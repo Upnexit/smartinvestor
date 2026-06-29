@@ -60,10 +60,10 @@ function Nav() {
   return (
     <header className="sticky top-0 z-50 border-b border-amber-100 bg-white/85 backdrop-blur-md">
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-        <a href="#" className="flex items-center gap-2.5">
+        <Link to="/" className="flex items-center gap-2.5">
           <Logo />
           <span className="bn-display text-lg text-slate-900 sm:text-xl">Smart Investor</span>
-        </a>
+        </Link>
         <div className="hidden items-center gap-7 md:flex">
           {[
             ["কিভাবে কাজ করে", "#how"],
@@ -77,8 +77,8 @@ function Nav() {
           ))}
         </div>
         <div className="flex items-center gap-2 sm:gap-2.5">
-          <a href="#" className="btn-green !px-3 !py-2 text-xs sm:!px-4 sm:text-sm">লগইন</a>
-          <a href="#" className="btn-gold !px-3 !py-2 text-xs sm:!px-4 sm:text-sm">শুরু করুন</a>
+          <Link to="/auth" className="btn-green !px-3 !py-2 text-xs sm:!px-4 sm:text-sm">লগইন</Link>
+          <Link to="/register" className="btn-gold !px-3 !py-2 text-xs sm:!px-4 sm:text-sm">শুরু করুন</Link>
         </div>
       </nav>
     </header>
