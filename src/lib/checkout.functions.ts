@@ -40,10 +40,9 @@ export const createPendingCheckoutOrder = createServerFn({ method: "POST" })
     senderNumber: validatePhone(data.senderNumber),
   }))
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const userId = context.userId;
 
-    const { data: existing } = await supabaseAdmin
+    const { data: existing } = await context.supabase
       .from("user_packages")
       .select("id")
       .eq("user_id", userId)
@@ -52,7 +51,7 @@ export const createPendingCheckoutOrder = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (existing) {
-      await supabaseAdmin
+      await context.supabase
         .from("user_packages")
         .update({
           payment_method: data.method,
@@ -62,7 +61,7 @@ export const createPendingCheckoutOrder = createServerFn({ method: "POST" })
       return { orderId: existing.id };
     }
 
-    const { data: inserted, error } = await supabaseAdmin
+    const { data: inserted, error } = await context.supabase
       .from("user_packages")
       .insert({
         user_id: userId,
@@ -87,11 +86,10 @@ export const submitCheckoutPayment = createServerFn({ method: "POST" })
     trxId: validateTrx(data.trxId),
   }))
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const userId = context.userId;
 
     // find or create pending/rejected order
-    const { data: existing } = await supabaseAdmin
+    const { data: existing } = await context.supabase
       .from("user_packages")
       .select("id, status")
       .eq("user_id", userId)
@@ -103,7 +101,7 @@ export const submitCheckoutPayment = createServerFn({ method: "POST" })
 
     let orderId = existing?.id;
     if (!orderId) {
-      const { data: inserted, error } = await supabaseAdmin
+      const { data: inserted, error } = await context.supabase
         .from("user_packages")
         .insert({
           user_id: userId,
@@ -118,7 +116,7 @@ export const submitCheckoutPayment = createServerFn({ method: "POST" })
       orderId = inserted.id;
     }
 
-    const { error: updErr } = await supabaseAdmin
+    const { error: updErr } = await context.supabase
       .from("user_packages")
       .update({
         trx_id: data.trxId,
@@ -139,8 +137,7 @@ export const adminApprovePackage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { orderId: string }) => ({ orderId: validateUuid(data.orderId) }))
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: result, error } = await supabaseAdmin.rpc("admin_review_user_package", {
+    const { data: result, error } = await context.supabase.rpc("admin_review_user_package", {
       _actor_user_id: context.userId,
       _order_id: data.orderId,
       _action: "approve",
@@ -158,8 +155,7 @@ export const adminRejectPackage = createServerFn({ method: "POST" })
     return { orderId: validateUuid(data.orderId), reason };
   })
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: result, error } = await supabaseAdmin.rpc("admin_review_user_package", {
+    const { data: result, error } = await context.supabase.rpc("admin_review_user_package", {
       _actor_user_id: context.userId,
       _order_id: data.orderId,
       _action: "reject",
@@ -172,8 +168,7 @@ export const adminRejectPackage = createServerFn({ method: "POST" })
 export const checkIsAdmin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin.rpc("has_role", {
+    const { data, error } = await context.supabase.rpc("has_role", {
       _user_id: context.userId,
       _role: "admin",
     });
