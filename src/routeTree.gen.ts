@@ -17,7 +17,15 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminTasksRouteImport } from './routes/admin.tasks'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminReportsRouteImport } from './routes/admin.reports'
+import { Route as AdminProfileRouteImport } from './routes/admin.profile'
+import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
+import { Route as AdminMonitorRouteImport } from './routes/admin.monitor'
+import { Route as AdminCommunityRouteImport } from './routes/admin.community'
+import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
 import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticated/withdraw'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedReferralRouteImport } from './routes/_authenticated/referral'
@@ -27,7 +35,6 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCommunityRouteImport } from './routes/_authenticated/community'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
-import { Route as AuthenticatedAdminApprovalsRouteImport } from './routes/_authenticated/admin/approvals'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -68,9 +75,49 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminTasksRoute = AdminTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProfileRoute = AdminProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPackagesRoute = AdminPackagesRouteImport.update({
   id: '/packages',
   path: '/packages',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMonitorRoute = AdminMonitorRouteImport.update({
+  id: '/monitor',
+  path: '/monitor',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCommunityRoute = AdminCommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminApprovalsRoute = AdminApprovalsRouteImport.update({
+  id: '/approvals',
+  path: '/approvals',
   getParentRoute: () => AdminRoute,
 } as any)
 const AuthenticatedWithdrawRoute = AuthenticatedWithdrawRouteImport.update({
@@ -118,12 +165,6 @@ const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AdminUsersRoute,
 } as any)
-const AuthenticatedAdminApprovalsRoute =
-  AuthenticatedAdminApprovalsRouteImport.update({
-    id: '/admin/approvals',
-    path: '/admin/approvals',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -138,11 +179,18 @@ export interface FileRoutesByFullPath {
   '/referral': typeof AuthenticatedReferralRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
+  '/admin/approvals': typeof AdminApprovalsRoute
+  '/admin/community': typeof AdminCommunityRoute
+  '/admin/monitor': typeof AdminMonitorRoute
   '/admin/packages': typeof AdminPackagesRoute
+  '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/profile': typeof AdminProfileRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/tasks': typeof AdminTasksRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/admin/': typeof AdminIndexRoute
-  '/admin/approvals': typeof AuthenticatedAdminApprovalsRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
 }
 export interface FileRoutesByTo {
@@ -157,11 +205,18 @@ export interface FileRoutesByTo {
   '/referral': typeof AuthenticatedReferralRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
+  '/admin/approvals': typeof AdminApprovalsRoute
+  '/admin/community': typeof AdminCommunityRoute
+  '/admin/monitor': typeof AdminMonitorRoute
   '/admin/packages': typeof AdminPackagesRoute
+  '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/profile': typeof AdminProfileRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/tasks': typeof AdminTasksRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/admin': typeof AdminIndexRoute
-  '/admin/approvals': typeof AuthenticatedAdminApprovalsRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
 }
 export interface FileRoutesById {
@@ -179,11 +234,18 @@ export interface FileRoutesById {
   '/_authenticated/referral': typeof AuthenticatedReferralRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
+  '/admin/approvals': typeof AdminApprovalsRoute
+  '/admin/community': typeof AdminCommunityRoute
+  '/admin/monitor': typeof AdminMonitorRoute
   '/admin/packages': typeof AdminPackagesRoute
+  '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/profile': typeof AdminProfileRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/settings': typeof AdminSettingsRoute
+  '/admin/tasks': typeof AdminTasksRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/admin/': typeof AdminIndexRoute
-  '/_authenticated/admin/approvals': typeof AuthenticatedAdminApprovalsRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
 }
 export interface FileRouteTypes {
@@ -201,11 +263,18 @@ export interface FileRouteTypes {
     | '/referral'
     | '/tasks'
     | '/withdraw'
+    | '/admin/approvals'
+    | '/admin/community'
+    | '/admin/monitor'
     | '/admin/packages'
+    | '/admin/payments'
+    | '/admin/profile'
+    | '/admin/reports'
+    | '/admin/settings'
+    | '/admin/tasks'
     | '/admin/users'
     | '/admin/withdrawals'
     | '/admin/'
-    | '/admin/approvals'
     | '/admin/users/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -220,11 +289,18 @@ export interface FileRouteTypes {
     | '/referral'
     | '/tasks'
     | '/withdraw'
+    | '/admin/approvals'
+    | '/admin/community'
+    | '/admin/monitor'
     | '/admin/packages'
+    | '/admin/payments'
+    | '/admin/profile'
+    | '/admin/reports'
+    | '/admin/settings'
+    | '/admin/tasks'
     | '/admin/users'
     | '/admin/withdrawals'
     | '/admin'
-    | '/admin/approvals'
     | '/admin/users/$id'
   id:
     | '__root__'
@@ -241,11 +317,18 @@ export interface FileRouteTypes {
     | '/_authenticated/referral'
     | '/_authenticated/tasks'
     | '/_authenticated/withdraw'
+    | '/admin/approvals'
+    | '/admin/community'
+    | '/admin/monitor'
     | '/admin/packages'
+    | '/admin/payments'
+    | '/admin/profile'
+    | '/admin/reports'
+    | '/admin/settings'
+    | '/admin/tasks'
     | '/admin/users'
     | '/admin/withdrawals'
     | '/admin/'
-    | '/_authenticated/admin/approvals'
     | '/admin/users/$id'
   fileRoutesById: FileRoutesById
 }
@@ -315,11 +398,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/tasks': {
+      id: '/admin/tasks'
+      path: '/tasks'
+      fullPath: '/admin/tasks'
+      preLoaderRoute: typeof AdminTasksRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/profile': {
+      id: '/admin/profile'
+      path: '/profile'
+      fullPath: '/admin/profile'
+      preLoaderRoute: typeof AdminProfileRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/payments': {
+      id: '/admin/payments'
+      path: '/payments'
+      fullPath: '/admin/payments'
+      preLoaderRoute: typeof AdminPaymentsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/packages': {
       id: '/admin/packages'
       path: '/packages'
       fullPath: '/admin/packages'
       preLoaderRoute: typeof AdminPackagesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/monitor': {
+      id: '/admin/monitor'
+      path: '/monitor'
+      fullPath: '/admin/monitor'
+      preLoaderRoute: typeof AdminMonitorRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/community': {
+      id: '/admin/community'
+      path: '/community'
+      fullPath: '/admin/community'
+      preLoaderRoute: typeof AdminCommunityRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/approvals': {
+      id: '/admin/approvals'
+      path: '/approvals'
+      fullPath: '/admin/approvals'
+      preLoaderRoute: typeof AdminApprovalsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/_authenticated/withdraw': {
@@ -385,13 +524,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersIdRouteImport
       parentRoute: typeof AdminUsersRoute
     }
-    '/_authenticated/admin/approvals': {
-      id: '/_authenticated/admin/approvals'
-      path: '/admin/approvals'
-      fullPath: '/admin/approvals'
-      preLoaderRoute: typeof AuthenticatedAdminApprovalsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
   }
 }
 
@@ -404,7 +536,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReferralRoute: typeof AuthenticatedReferralRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedWithdrawRoute: typeof AuthenticatedWithdrawRoute
-  AuthenticatedAdminApprovalsRoute: typeof AuthenticatedAdminApprovalsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -416,7 +547,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReferralRoute: AuthenticatedReferralRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedWithdrawRoute: AuthenticatedWithdrawRoute,
-  AuthenticatedAdminApprovalsRoute: AuthenticatedAdminApprovalsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -435,14 +565,30 @@ const AdminUsersRouteWithChildren = AdminUsersRoute._addFileChildren(
 )
 
 interface AdminRouteChildren {
+  AdminApprovalsRoute: typeof AdminApprovalsRoute
+  AdminCommunityRoute: typeof AdminCommunityRoute
+  AdminMonitorRoute: typeof AdminMonitorRoute
   AdminPackagesRoute: typeof AdminPackagesRoute
+  AdminPaymentsRoute: typeof AdminPaymentsRoute
+  AdminProfileRoute: typeof AdminProfileRoute
+  AdminReportsRoute: typeof AdminReportsRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminTasksRoute: typeof AdminTasksRoute
   AdminUsersRoute: typeof AdminUsersRouteWithChildren
   AdminWithdrawalsRoute: typeof AdminWithdrawalsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminApprovalsRoute: AdminApprovalsRoute,
+  AdminCommunityRoute: AdminCommunityRoute,
+  AdminMonitorRoute: AdminMonitorRoute,
   AdminPackagesRoute: AdminPackagesRoute,
+  AdminPaymentsRoute: AdminPaymentsRoute,
+  AdminProfileRoute: AdminProfileRoute,
+  AdminReportsRoute: AdminReportsRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminTasksRoute: AdminTasksRoute,
   AdminUsersRoute: AdminUsersRouteWithChildren,
   AdminWithdrawalsRoute: AdminWithdrawalsRoute,
   AdminIndexRoute: AdminIndexRoute,
