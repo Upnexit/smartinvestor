@@ -1,6 +1,6 @@
 export type AccentKey =
   | "amber" | "sky" | "emerald" | "fuchsia" | "orange" | "pink"
-  | "rose" | "purple" | "indigo" | "lime" | "teal" | "slate";
+  | "rose" | "purple" | "indigo" | "lime" | "teal" | "cyan" | "slate";
 
 export type Accent = {
   /** main gradient from/via/to classes */
