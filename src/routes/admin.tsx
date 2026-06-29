@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { Loader2, ShieldAlert, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { checkIsAdmin } from "@/lib/checkout.functions";
 import { GradientButton } from "@/components/admin/AdminUI";
 
 export const Route = createFileRoute("/admin")({
@@ -23,8 +22,16 @@ function AdminShell() {
     let cancelled = false;
     (async () => {
       try {
-        const r = await checkIsAdmin();
-        if (!cancelled) setState(r.isAdmin ? "ok" : "denied");
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (userError || !userData.user) throw new Error("unauthorized");
+        const { data: roleRow, error: roleError } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userData.user.id)
+          .eq("role", "admin")
+          .maybeSingle();
+        if (roleError) throw roleError;
+        if (!cancelled) setState(roleRow ? "ok" : "denied");
       } catch {
         if (!cancelled) setState("denied");
       }
