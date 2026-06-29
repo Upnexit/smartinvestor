@@ -295,6 +295,8 @@ function RegisterPage() {
                 আগে থেকেই একাউন্ট আছে?{" "}
                 <Link to="/auth" className="font-semibold text-amber-700 hover:text-amber-800">লগইন করুন →</Link>
               </p>
+                </div>
+              </div>
             </div>
 
             {/* Trust badges */}
