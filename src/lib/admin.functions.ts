@@ -148,7 +148,7 @@ export const adminReviewWithdrawal = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const db = await assertAdmin(context.userId);
     const { data: row, error } = await db.rpc("admin_review_withdrawal", {
-      _actor: context.userId, _id: data.id, _action: data.action, _note: data.note,
+      _actor: context.userId, _id: data.id, _action: data.action, _note: data.note ?? undefined,
     });
     if (error) throw new Error(error.message);
     return row;
