@@ -15,6 +15,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticated/withdraw'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
@@ -54,6 +55,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminWithdrawalsRoute = AdminWithdrawalsRouteImport.update({
+  id: '/withdrawals',
+  path: '/withdrawals',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/tasks': typeof AuthenticatedTasksRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
+  '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/approvals': typeof AuthenticatedAdminApprovalsRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/tasks': typeof AuthenticatedTasksRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
+  '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/admin': typeof AdminIndexRoute
   '/admin/approvals': typeof AuthenticatedAdminApprovalsRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
@@ -164,6 +172,7 @@ export interface FileRoutesById {
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
+  '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/admin/': typeof AdminIndexRoute
   '/_authenticated/admin/approvals': typeof AuthenticatedAdminApprovalsRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
@@ -184,6 +193,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/withdraw'
     | '/admin/users'
+    | '/admin/withdrawals'
     | '/admin/'
     | '/admin/approvals'
     | '/admin/users/$id'
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/withdraw'
     | '/admin/users'
+    | '/admin/withdrawals'
     | '/admin'
     | '/admin/approvals'
     | '/admin/users/$id'
@@ -220,6 +231,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tasks'
     | '/_authenticated/withdraw'
     | '/admin/users'
+    | '/admin/withdrawals'
     | '/admin/'
     | '/_authenticated/admin/approvals'
     | '/admin/users/$id'
@@ -275,6 +287,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/withdrawals': {
+      id: '/admin/withdrawals'
+      path: '/withdrawals'
+      fullPath: '/admin/withdrawals'
+      preLoaderRoute: typeof AdminWithdrawalsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/users': {
@@ -398,11 +417,13 @@ const AdminUsersRouteWithChildren = AdminUsersRoute._addFileChildren(
 
 interface AdminRouteChildren {
   AdminUsersRoute: typeof AdminUsersRouteWithChildren
+  AdminWithdrawalsRoute: typeof AdminWithdrawalsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminUsersRoute: AdminUsersRouteWithChildren,
+  AdminWithdrawalsRoute: AdminWithdrawalsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
