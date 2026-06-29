@@ -124,9 +124,9 @@ function Hero() {
         </p>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <a href="#" className="btn-gold w-full sm:w-auto">
+          <Link to="/register" className="btn-gold w-full sm:w-auto">
             ফ্রি একাউন্ট খুলুন <ArrowRight className="h-4 w-4" />
-          </a>
+          </Link>
           <a href="#how" className="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-3 font-semibold text-slate-800 shadow-soft transition-colors hover:border-amber-400 sm:w-auto">
             কিভাবে কাজ করে
           </a>
