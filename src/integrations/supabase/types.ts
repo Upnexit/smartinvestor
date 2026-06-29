@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      communities: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      community_bans: {
+        Row: {
+          banned_by: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          banned_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          banned_by?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       community_messages: {
         Row: {
           content: string | null
@@ -41,11 +98,40 @@ export type Database = {
         }
         Relationships: []
       }
+      error_logs: {
+        Row: {
+          context: Json | null
+          created_at: string
+          id: string
+          level: string
+          message: string
+          source: string | null
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string
+          id?: string
+          level?: string
+          message: string
+          source?: string | null
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string
+          id?: string
+          level?: string
+          message?: string
+          source?: string | null
+        }
+        Relationships: []
+      }
       link_tasks: {
         Row: {
           action_type: string
           active: boolean
+          category: string | null
           created_at: string
+          daily_limit: number
           description: string | null
           id: string
           link_url: string
@@ -57,7 +143,9 @@ export type Database = {
         Insert: {
           action_type?: string
           active?: boolean
+          category?: string | null
           created_at?: string
+          daily_limit?: number
           description?: string | null
           id?: string
           link_url: string
@@ -69,7 +157,9 @@ export type Database = {
         Update: {
           action_type?: string
           active?: boolean
+          category?: string | null
           created_at?: string
+          daily_limit?: number
           description?: string | null
           id?: string
           link_url?: string
@@ -396,7 +486,10 @@ export type Database = {
           created_at: string
           id: string
           method: Database["public"]["Enums"]["payment_method"]
+          note: string | null
           rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           status: Database["public"]["Enums"]["withdrawal_status"]
           trx_id: string | null
           updated_at: string
@@ -408,7 +501,10 @@ export type Database = {
           created_at?: string
           id?: string
           method: Database["public"]["Enums"]["payment_method"]
+          note?: string | null
           rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: Database["public"]["Enums"]["withdrawal_status"]
           trx_id?: string | null
           updated_at?: string
@@ -420,7 +516,10 @@ export type Database = {
           created_at?: string
           id?: string
           method?: Database["public"]["Enums"]["payment_method"]
+          note?: string | null
           rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           status?: Database["public"]["Enums"]["withdrawal_status"]
           trx_id?: string | null
           updated_at?: string
@@ -433,6 +532,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_delete_package: {
+        Args: { _actor: string; _id: string }
+        Returns: undefined
+      }
+      admin_delete_user_data: {
+        Args: { _actor: string; _user_id: string }
+        Returns: undefined
+      }
       admin_review_user_package: {
         Args: {
           _action: string
@@ -462,6 +569,98 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "user_packages"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_review_withdrawal: {
+        Args: { _action: string; _actor: string; _id: string; _note?: string }
+        Returns: {
+          account_number: string
+          amount: number
+          created_at: string
+          id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          note: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["withdrawal_status"]
+          trx_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "withdrawals"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_save_package: {
+        Args: { _actor: string; _id: string; _patch: Json }
+        Returns: {
+          active: boolean
+          created_at: string
+          daily_income: number
+          daily_tasks: number
+          description: string | null
+          duration_days: number
+          id: string
+          name: string
+          price: number
+          sort_order: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "packages"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_toggle_package: {
+        Args: { _active: boolean; _actor: string; _id: string }
+        Returns: {
+          active: boolean
+          created_at: string
+          daily_income: number
+          daily_tasks: number
+          description: string | null
+          duration_days: number
+          id: string
+          name: string
+          price: number
+          sort_order: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "packages"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_update_user_profile: {
+        Args: { _actor: string; _patch: Json; _user_id: string }
+        Returns: {
+          avatar_url: string | null
+          balance: number
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          locked_balance: number
+          phone: string | null
+          referral_code: string | null
+          referred_by: string | null
+          tasks_completed: number
+          total_earned: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
           isOneToOne: true
           isSetofReturn: false
         }
