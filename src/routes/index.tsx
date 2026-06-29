@@ -362,7 +362,7 @@ function Earnings() {
                 <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-600" />দৈনিক {p.tasks}টি টাস্ক</li>
                 <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-600" />মোট আয় {p.total}</li>
               </ul>
-              <Link to="/register" className={`mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${p.gradient} px-4 py-2.5 text-sm font-bold text-white shadow-soft transition-transform hover:scale-[1.02]`}>
+              <Link to="/our-packages" className={`mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${p.gradient} px-4 py-2.5 text-sm font-bold text-white shadow-soft transition-transform hover:scale-[1.02]`}>
                 বিস্তারিত দেখুন <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -370,7 +370,7 @@ function Earnings() {
         ))}
       </div>
       <div className="mx-auto mt-10 flex max-w-6xl flex-col items-center gap-2 text-center">
-        <Link to="/register" className="btn-gold">সকল প্যাকেজ দেখুন →</Link>
+        <Link to="/our-packages" className="btn-gold">সকল প্যাকেজ দেখুন →</Link>
         <p className="text-xs text-slate-600">১০টি প্রিমিয়াম প্যাকেজ — Like · Comment · Share</p>
       </div>
     </section>
