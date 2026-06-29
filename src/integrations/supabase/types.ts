@@ -187,6 +187,7 @@ export type Database = {
           description: string | null
           duration_days: number
           id: string
+          image_url: string | null
           name: string
           price: number
           sort_order: number
@@ -200,6 +201,7 @@ export type Database = {
           description?: string | null
           duration_days?: number
           id?: string
+          image_url?: string | null
           name: string
           price: number
           sort_order?: number
@@ -213,6 +215,7 @@ export type Database = {
           description?: string | null
           duration_days?: number
           id?: string
+          image_url?: string | null
           name?: string
           price?: number
           sort_order?: number
@@ -607,6 +610,7 @@ export type Database = {
           description: string | null
           duration_days: number
           id: string
+          image_url: string | null
           name: string
           price: number
           sort_order: number
@@ -629,6 +633,7 @@ export type Database = {
           description: string | null
           duration_days: number
           id: string
+          image_url: string | null
           name: string
           price: number
           sort_order: number
