@@ -370,7 +370,7 @@ function Earnings() {
         ))}
       </div>
       <div className="mx-auto mt-10 flex max-w-6xl flex-col items-center gap-2 text-center">
-        <a href="#" className="btn-gold">সকল প্যাকেজ দেখুন →</a>
+        <Link to="/register" className="btn-gold">সকল প্যাকেজ দেখুন →</Link>
         <p className="text-xs text-slate-600">১০টি প্রিমিয়াম প্যাকেজ — Like · Comment · Share</p>
       </div>
     </section>
