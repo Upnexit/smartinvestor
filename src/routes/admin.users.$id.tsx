@@ -169,7 +169,7 @@ function UserDetailPage() {
       )}
 
       {tab === "referrals" && (
-        <AdminCard accent="violet" className="p-4">
+        <AdminCard accent="purple" className="p-4">
           {data.referrals.length === 0 ? <p className="text-sm text-slate-500 text-center py-4">কোনো রেফারেল আয় নেই</p> : (
             <ul className="space-y-2">
               {data.referrals.map((r) => (
