@@ -1,6 +1,6 @@
 export type AccentKey =
   | "amber" | "sky" | "emerald" | "fuchsia" | "orange" | "pink"
-  | "rose" | "purple" | "indigo" | "lime" | "teal" | "slate";
+  | "rose" | "purple" | "indigo" | "lime" | "teal" | "cyan" | "slate";
 
 export type Accent = {
   /** main gradient from/via/to classes */
@@ -31,5 +31,6 @@ export const ACCENTS: Record<AccentKey, Accent> = {
   indigo:  { gradient: "from-indigo-500 via-violet-600 to-purple-700",    bar: "from-indigo-400 to-purple-700",   chip: "from-indigo-500 to-violet-600",    glow: "shadow-indigo-500/30", soft: "bg-indigo-50",  ring: "ring-indigo-300",  text: "text-indigo-700" },
   lime:    { gradient: "from-lime-500 via-green-600 to-emerald-700",      bar: "from-lime-400 to-emerald-700",    chip: "from-lime-500 to-green-600",       glow: "shadow-lime-500/30",   soft: "bg-lime-50",    ring: "ring-lime-300",    text: "text-lime-700" },
   teal:    { gradient: "from-teal-500 via-cyan-600 to-sky-700",           bar: "from-teal-400 to-sky-700",        chip: "from-teal-500 to-cyan-600",        glow: "shadow-teal-500/30",   soft: "bg-teal-50",    ring: "ring-teal-300",    text: "text-teal-700" },
+  cyan:    { gradient: "from-cyan-500 via-sky-600 to-blue-700",           bar: "from-cyan-400 to-blue-700",       chip: "from-cyan-500 to-sky-600",         glow: "shadow-cyan-500/30",   soft: "bg-cyan-50",    ring: "ring-cyan-300",    text: "text-cyan-700" },
   slate:   { gradient: "from-slate-600 via-slate-700 to-slate-900",       bar: "from-slate-400 to-slate-900",     chip: "from-slate-600 to-slate-800",      glow: "shadow-slate-500/30",  soft: "bg-slate-50",   ring: "ring-slate-300",   text: "text-slate-700" },
 };
