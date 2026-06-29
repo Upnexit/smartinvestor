@@ -68,7 +68,7 @@ export const adminUpdateUser = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const db = await assertAdmin(context.userId);
     const { data: row, error } = await db.rpc("admin_update_user_profile", {
-      _actor: context.userId, _user_id: data.userId, _patch: data.patch,
+      _actor: context.userId, _user_id: data.userId, _patch: data.patch as never,
     });
     if (error) throw new Error(error.message);
     return row;
