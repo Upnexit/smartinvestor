@@ -42,30 +42,3 @@ export const createConfirmedUserAccount = createServerFn({ method: "POST" })
 
     return { ok: true, userId: created.user.id };
   });
-
-export const confirmExistingEmailAccount = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) =>
-    z.object({ email: z.string().trim().email().max(255) }).parse(data),
-  )
-  .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const email = data.email.toLowerCase();
-
-    for (let page = 1; page <= 10; page += 1) {
-      const { data: users, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
-      if (error) throw new Error(error.message);
-      const user = users.users.find((u) => u.email?.toLowerCase() === email);
-      if (user) {
-        if (!user.email_confirmed_at) {
-          const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
-            email_confirm: true,
-          });
-          if (updateError) throw new Error(updateError.message);
-        }
-        return { ok: true };
-      }
-      if (users.users.length < 1000) break;
-    }
-
-    return { ok: false };
-  });
