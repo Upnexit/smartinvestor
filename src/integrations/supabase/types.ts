@@ -232,12 +232,16 @@ export type Database = {
           full_name: string | null
           id: string
           locked_balance: number
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          payment_number: string
           phone: string | null
           referral_code: string | null
           referred_by: string | null
+          signup_bonus_paid: boolean
           tasks_completed: number
           total_earned: number
           updated_at: string
+          user_code: string
         }
         Insert: {
           avatar_url?: string | null
@@ -247,12 +251,16 @@ export type Database = {
           full_name?: string | null
           id: string
           locked_balance?: number
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          payment_number?: string
           phone?: string | null
           referral_code?: string | null
           referred_by?: string | null
+          signup_bonus_paid?: boolean
           tasks_completed?: number
           total_earned?: number
           updated_at?: string
+          user_code: string
         }
         Update: {
           avatar_url?: string | null
@@ -262,12 +270,16 @@ export type Database = {
           full_name?: string | null
           id?: string
           locked_balance?: number
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          payment_number?: string
           phone?: string | null
           referral_code?: string | null
           referred_by?: string | null
+          signup_bonus_paid?: boolean
           tasks_completed?: number
           total_earned?: number
           updated_at?: string
+          user_code?: string
         }
         Relationships: []
       }
@@ -656,12 +668,16 @@ export type Database = {
           full_name: string | null
           id: string
           locked_balance: number
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          payment_number: string
           phone: string | null
           referral_code: string | null
           referred_by: string | null
+          signup_bonus_paid: boolean
           tasks_completed: number
           total_earned: number
           updated_at: string
+          user_code: string
         }
         SetofOptions: {
           from: "*"
