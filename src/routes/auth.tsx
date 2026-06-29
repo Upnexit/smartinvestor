@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -7,6 +8,7 @@ import {
   ShieldCheck, Zap, Gift, ArrowRight,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { confirmExistingEmailAccount } from "@/lib/auth.functions";
 
 type Search = { redirect?: string; mode?: string };
 
@@ -54,6 +56,7 @@ function mapAuthError(msg: string): string {
 function AuthPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
+  const confirmAccount = useServerFn(confirmExistingEmailAccount);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -71,7 +74,13 @@ function AuthPage() {
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    let { data, error } = await supabase.auth.signInWithPassword({ email: email.toLowerCase(), password });
+    if (error?.message.toLowerCase().includes("email not confirmed")) {
+      await confirmAccount({ data: { email: email.toLowerCase() } });
+      const retry = await supabase.auth.signInWithPassword({ email: email.toLowerCase(), password });
+      data = retry.data;
+      error = retry.error;
+    }
     if (error || !data.user) {
       setLoading(false);
       const msg = mapAuthError(error?.message ?? "লগইন ব্যর্থ");
