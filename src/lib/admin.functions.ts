@@ -25,16 +25,14 @@ async function assertAdmin(userId: string) {
 
 export const adminListUsers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { q?: string; status?: string; limit?: number }) => ({
+  .inputValidator((d: { q?: string; limit?: number }) => ({
     q: typeof d?.q === "string" ? d.q.trim().slice(0, 80) : "",
-    status: typeof d?.status === "string" ? d.status : "",
     limit: Math.min(Math.max(d?.limit ?? 100, 1), 500),
   }))
   .handler(async ({ data, context }) => {
     const db = await assertAdmin(context.userId);
     let q = db.from("profiles").select("*").order("created_at", { ascending: false }).limit(data.limit);
     if (data.q) q = q.or(`full_name.ilike.%${data.q}%,email.ilike.%${data.q}%,phone.ilike.%${data.q}%`);
-    if (data.status) q = q.eq("status", data.status);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
     return rows ?? [];
