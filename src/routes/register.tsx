@@ -211,11 +211,17 @@ function RegisterPage() {
 
           {/* Right form */}
           <section className="lg:col-span-3">
-            <div className="rounded-3xl border border-amber-100 bg-white p-6 shadow-pop sm:p-8">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+            <div className="rounded-[28px] bg-gradient-to-br from-amber-400 via-rose-400 to-fuchsia-500 p-[2px] shadow-pop">
+              <div className="relative overflow-hidden rounded-[26px] bg-white p-6 sm:p-8">
+                <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-amber-200/40 blur-3xl" />
+                <div className="pointer-events-none absolute -left-16 bottom-0 h-48 w-48 rounded-full bg-rose-200/40 blur-3xl" />
+                <div className="relative">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-100 to-rose-100 px-3 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-200">
                 <Sparkles className="h-3.5 w-3.5" /> ফ্রি রেজিস্ট্রেশন
               </span>
-              <h1 className="bn-display mt-3 text-3xl text-slate-900">নতুন একাউন্ট তৈরি করুন</h1>
+              <h1 className="bn-display mt-3 text-3xl text-slate-900 sm:text-4xl">
+                নতুন <span className="text-gradient">একাউন্ট</span> তৈরি করুন
+              </h1>
               <p className="mt-2 text-sm text-slate-600">মাত্র ১ মিনিটে রেজিস্ট্রেশন — পেয়ে যান ৳৩০০ বোনাস</p>
 
               <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
