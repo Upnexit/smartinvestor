@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
@@ -60,10 +60,10 @@ function Nav() {
   return (
     <header className="sticky top-0 z-50 border-b border-amber-100 bg-white/85 backdrop-blur-md">
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-        <a href="#" className="flex items-center gap-2.5">
+        <Link to="/" className="flex items-center gap-2.5">
           <Logo />
           <span className="bn-display text-lg text-slate-900 sm:text-xl">Smart Investor</span>
-        </a>
+        </Link>
         <div className="hidden items-center gap-7 md:flex">
           {[
             ["কিভাবে কাজ করে", "#how"],
@@ -77,8 +77,8 @@ function Nav() {
           ))}
         </div>
         <div className="flex items-center gap-2 sm:gap-2.5">
-          <a href="#" className="btn-green !px-3 !py-2 text-xs sm:!px-4 sm:text-sm">লগইন</a>
-          <a href="#" className="btn-gold !px-3 !py-2 text-xs sm:!px-4 sm:text-sm">শুরু করুন</a>
+          <Link to="/auth" className="btn-green !px-3 !py-2 text-xs sm:!px-4 sm:text-sm">লগইন</Link>
+          <Link to="/register" className="btn-gold !px-3 !py-2 text-xs sm:!px-4 sm:text-sm">শুরু করুন</Link>
         </div>
       </nav>
     </header>
@@ -124,9 +124,9 @@ function Hero() {
         </p>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <a href="#" className="btn-gold w-full sm:w-auto">
+          <Link to="/register" className="btn-gold w-full sm:w-auto">
             ফ্রি একাউন্ট খুলুন <ArrowRight className="h-4 w-4" />
-          </a>
+          </Link>
           <a href="#how" className="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-3 font-semibold text-slate-800 shadow-soft transition-colors hover:border-amber-400 sm:w-auto">
             কিভাবে কাজ করে
           </a>
@@ -362,15 +362,15 @@ function Earnings() {
                 <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-600" />দৈনিক {p.tasks}টি টাস্ক</li>
                 <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-600" />মোট আয় {p.total}</li>
               </ul>
-              <button className={`mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${p.gradient} px-4 py-2.5 text-sm font-bold text-white shadow-soft transition-transform hover:scale-[1.02]`}>
+              <Link to="/register" className={`mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${p.gradient} px-4 py-2.5 text-sm font-bold text-white shadow-soft transition-transform hover:scale-[1.02]`}>
                 বিস্তারিত দেখুন <ArrowRight className="h-4 w-4" />
-              </button>
+              </Link>
             </div>
           </article>
         ))}
       </div>
       <div className="mx-auto mt-10 flex max-w-6xl flex-col items-center gap-2 text-center">
-        <a href="#" className="btn-gold">সকল প্যাকেজ দেখুন →</a>
+        <Link to="/register" className="btn-gold">সকল প্যাকেজ দেখুন →</Link>
         <p className="text-xs text-slate-600">১০টি প্রিমিয়াম প্যাকেজ — Like · Comment · Share</p>
       </div>
     </section>
@@ -530,12 +530,12 @@ function CTA() {
             ফ্রি রেজিস্ট্রেশন। কোনো ইনভেস্টমেন্ট নেই। প্রথম টাস্ক থেকেই আয় শুরু।
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <a href="#" className="inline-flex w-full items-center justify-center rounded-xl bg-white px-6 py-3 font-bold text-rose-700 shadow-soft transition-transform hover:scale-105 sm:w-auto">
+            <Link to="/register" className="inline-flex w-full items-center justify-center rounded-xl bg-white px-6 py-3 font-bold text-rose-700 shadow-soft transition-transform hover:scale-105 sm:w-auto">
               ফ্রি একাউন্ট খুলুন
-            </a>
-            <a href="#" className="inline-flex w-full items-center justify-center rounded-xl border-2 border-white/70 bg-white/10 px-6 py-3 font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-auto">
+            </Link>
+            <Link to="/auth" className="inline-flex w-full items-center justify-center rounded-xl border-2 border-white/70 bg-white/10 px-6 py-3 font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-auto">
               লগইন করুন
-            </a>
+            </Link>
           </div>
         </div>
       </div>
