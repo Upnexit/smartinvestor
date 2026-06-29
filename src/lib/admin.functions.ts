@@ -164,10 +164,10 @@ export const adminSaveTask = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const db = await assertAdmin(context.userId);
     if (data.id) {
-      const { error } = await db.from("link_tasks").update(data.patch).eq("id", data.id);
+      const { error } = await db.from("link_tasks").update(data.patch as never).eq("id", data.id);
       if (error) throw new Error(error.message);
     } else {
-      const { error } = await db.from("link_tasks").insert(data.patch);
+      const { error } = await db.from("link_tasks").insert(data.patch as never);
       if (error) throw new Error(error.message);
     }
     return { ok: true };
