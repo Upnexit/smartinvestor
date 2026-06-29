@@ -45,7 +45,7 @@ const schema = z.object({
 
 function mapAuthError(msg: string): string {
   const m = msg.toLowerCase();
-  if (m.includes("email not confirmed")) return "ইমেইল ভেরিফাই করুন";
+  if (m.includes("email not confirmed")) return "একাউন্ট active হচ্ছে — একটু পরে আবার চেষ্টা করুন";
   if (m.includes("invalid") && m.includes("credentials")) return "ইমেইল অথবা পাসওয়ার্ড ভুল";
   if (m.includes("rate")) return "একটু পরে আবার চেষ্টা করুন";
   return msg;
@@ -71,7 +71,7 @@ function AuthPage() {
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email: email.toLowerCase(), password });
     if (error || !data.user) {
       setLoading(false);
       const msg = mapAuthError(error?.message ?? "লগইন ব্যর্থ");
