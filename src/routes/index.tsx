@@ -530,12 +530,12 @@ function CTA() {
             ফ্রি রেজিস্ট্রেশন। কোনো ইনভেস্টমেন্ট নেই। প্রথম টাস্ক থেকেই আয় শুরু।
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <a href="#" className="inline-flex w-full items-center justify-center rounded-xl bg-white px-6 py-3 font-bold text-rose-700 shadow-soft transition-transform hover:scale-105 sm:w-auto">
+            <Link to="/register" className="inline-flex w-full items-center justify-center rounded-xl bg-white px-6 py-3 font-bold text-rose-700 shadow-soft transition-transform hover:scale-105 sm:w-auto">
               ফ্রি একাউন্ট খুলুন
-            </a>
-            <a href="#" className="inline-flex w-full items-center justify-center rounded-xl border-2 border-white/70 bg-white/10 px-6 py-3 font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-auto">
+            </Link>
+            <Link to="/auth" className="inline-flex w-full items-center justify-center rounded-xl border-2 border-white/70 bg-white/10 px-6 py-3 font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-auto">
               লগইন করুন
-            </a>
+            </Link>
           </div>
         </div>
       </div>
