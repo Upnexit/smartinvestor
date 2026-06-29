@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as OurPackagesRouteImport } from './routes/our-packages'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -39,6 +40,11 @@ import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OurPackagesRoute = OurPackagesRouteImport.update({
+  id: '/our-packages',
+  path: '/our-packages',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/our-packages': typeof OurPackagesRoute
   '/register': typeof RegisterRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/community': typeof AuthenticatedCommunityRoute
@@ -196,6 +203,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/our-packages': typeof OurPackagesRoute
   '/register': typeof RegisterRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/community': typeof AuthenticatedCommunityRoute
@@ -225,6 +233,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/our-packages': typeof OurPackagesRoute
   '/register': typeof RegisterRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/community': typeof AuthenticatedCommunityRoute
@@ -254,6 +263,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/our-packages'
     | '/register'
     | '/checkout'
     | '/community'
@@ -280,6 +290,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/our-packages'
     | '/register'
     | '/checkout'
     | '/community'
@@ -308,6 +319,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/admin'
     | '/auth'
+    | '/our-packages'
     | '/register'
     | '/_authenticated/checkout'
     | '/_authenticated/community'
@@ -337,6 +349,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
+  OurPackagesRoute: typeof OurPackagesRoute
   RegisterRoute: typeof RegisterRoute
 }
 
@@ -347,6 +360,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/our-packages': {
+      id: '/our-packages'
+      path: '/our-packages'
+      fullPath: '/our-packages'
+      preLoaderRoute: typeof OurPackagesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -601,6 +621,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
+  OurPackagesRoute: OurPackagesRoute,
   RegisterRoute: RegisterRoute,
 }
 export const routeTree = rootRouteImport
