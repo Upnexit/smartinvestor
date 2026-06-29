@@ -144,7 +144,7 @@ export const adminApprovePackage = createServerFn({ method: "POST" })
       _actor_user_id: context.userId,
       _order_id: data.orderId,
       _action: "approve",
-      _reason: null,
+      _reason: undefined,
     });
     if (error) throw new Error(error.message);
     return result;
