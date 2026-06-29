@@ -275,9 +275,14 @@ export type Database = {
           id: string
           package_id: string
           payment_method: Database["public"]["Enums"]["payment_method"] | null
+          payment_txn: string | null
+          purchased_at: string
           rejection_reason: string | null
+          reviewed_at: string | null
           screenshot_url: string | null
+          sender_number: string | null
           status: Database["public"]["Enums"]["package_status"]
+          submitted_at: string | null
           trx_id: string | null
           updated_at: string
           user_id: string
@@ -289,9 +294,14 @@ export type Database = {
           id?: string
           package_id: string
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          payment_txn?: string | null
+          purchased_at?: string
           rejection_reason?: string | null
+          reviewed_at?: string | null
           screenshot_url?: string | null
+          sender_number?: string | null
           status?: Database["public"]["Enums"]["package_status"]
+          submitted_at?: string | null
           trx_id?: string | null
           updated_at?: string
           user_id: string
@@ -303,9 +313,14 @@ export type Database = {
           id?: string
           package_id?: string
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          payment_txn?: string | null
+          purchased_at?: string
           rejection_reason?: string | null
+          reviewed_at?: string | null
           screenshot_url?: string | null
+          sender_number?: string | null
           status?: Database["public"]["Enums"]["package_status"]
+          submitted_at?: string | null
           trx_id?: string | null
           updated_at?: string
           user_id?: string
@@ -418,6 +433,39 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_review_user_package: {
+        Args: {
+          _action: string
+          _actor_user_id: string
+          _order_id: string
+          _reason?: string
+        }
+        Returns: {
+          activated_at: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          package_id: string
+          payment_method: Database["public"]["Enums"]["payment_method"] | null
+          payment_txn: string | null
+          purchased_at: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          screenshot_url: string | null
+          sender_number: string | null
+          status: Database["public"]["Enums"]["package_status"]
+          submitted_at: string | null
+          trx_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_packages"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
