@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -8,6 +9,7 @@ import {
   ArrowRight, Check, Crown, TrendingUp, Banknote, Award,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { createConfirmedUserAccount } from "@/lib/auth.functions";
 
 type Search = { ref?: string; redirect?: string };
 
@@ -56,6 +58,7 @@ function mapSignupError(msg: string): string {
 function RegisterPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
+  const createAccount = useServerFn(createConfirmedUserAccount);
   const [form, setForm] = useState({
     full_name: "", email: "", phone: "",
     payment_method: "bkash" as "bkash" | "nagad" | "rocket",
@@ -80,33 +83,34 @@ function RegisterPage() {
       return;
     }
     setLoading(true);
-    const origin = typeof window !== "undefined" ? window.location.origin : undefined;
-    const { data, error: err } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: {
-        emailRedirectTo: origin ? `${origin}/dashboard` : undefined,
+    try {
+      await createAccount({
         data: {
-          full_name: form.full_name,
-          phone: form.phone,
-          payment_method: form.payment_method,
-          payment_number: form.payment_number,
+          ...form,
+          email: form.email.toLowerCase(),
           ref: search.ref ?? null,
         },
-      },
-    });
-    if (err) {
+      });
+    } catch (err) {
       setLoading(false);
-      const msg = mapSignupError(err.message);
+      const msg = mapSignupError(err instanceof Error ? err.message : "রেজিস্ট্রেশন ব্যর্থ হয়েছে");
       setError(msg);
       toast.error(msg);
       return;
     }
     if (typeof window !== "undefined") localStorage.setItem("signup_bonus_pending", "1");
-    toast.success("একাউন্ট সফলভাবে তৈরি হয়েছে! ৳৩০০ বোনাস যোগ হয়েছে");
-    if (!data.session) {
-      await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
+    const { error: loginError } = await supabase.auth.signInWithPassword({
+      email: form.email.toLowerCase(),
+      password: form.password,
+    });
+    if (loginError) {
+      setLoading(false);
+      const msg = mapSignupError(loginError.message);
+      setError(msg);
+      toast.error(msg);
+      return;
     }
+    toast.success("একাউন্ট সফলভাবে তৈরি হয়েছে! ৳৩০০ বোনাস যোগ হয়েছে");
     setLoading(false);
     navigate({ to: safeRedirect(search.redirect) ?? "/dashboard", replace: true });
   }
