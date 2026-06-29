@@ -115,10 +115,10 @@ function UserDetailPage() {
         <AdminCard accent="fuchsia" className="p-4">
           {data.packages.length === 0 ? <p className="text-sm text-slate-500 text-center py-4">কোনো প্যাকেজ নেই</p> : (
             <ul className="space-y-2">
-              {data.packages.map((p) => (
+              {data.packages.map((p: { id: string; created_at?: string | null; status?: string | null; packages?: { name?: string } | null }) => (
                 <li key={p.id} className="flex items-center justify-between rounded-xl ring-1 ring-fuchsia-100 bg-fuchsia-50/40 px-3 py-2">
                   <div className="min-w-0">
-                    <p className="bn-display text-sm">{(p as { packages?: { name?: string } | null }).packages?.name ?? "—"}</p>
+                    <p className="bn-display text-sm">{p.packages?.name ?? "—"}</p>
                     <p className="text-[11px] text-slate-500">{new Date(p.created_at!).toLocaleString("bn-BD")}</p>
                   </div>
                   <span className={cn("rounded-md px-2 py-0.5 text-[10px] font-bold uppercase",
@@ -138,10 +138,10 @@ function UserDetailPage() {
         <AdminCard accent="rose" className="p-4">
           {data.tasks.length === 0 ? <p className="text-sm text-slate-500 text-center py-4">কোনো টাস্ক নেই</p> : (
             <ul className="space-y-2">
-              {data.tasks.map((t) => (
+              {data.tasks.map((t: { id: string; link_tasks?: { title?: string; reward?: number | string | null } | null }) => (
                 <li key={t.id} className="flex items-center justify-between rounded-xl ring-1 ring-rose-100 bg-rose-50/40 px-3 py-2 text-sm">
-                  <span className="truncate">{(t as { link_tasks?: { title?: string } | null }).link_tasks?.title ?? "—"}</span>
-                  <span className="font-bold text-rose-700">৳{Number((t as { link_tasks?: { reward?: number } | null }).link_tasks?.reward ?? 0)}</span>
+                  <span className="truncate">{t.link_tasks?.title ?? "—"}</span>
+                  <span className="font-bold text-rose-700">৳{Number(t.link_tasks?.reward ?? 0)}</span>
                 </li>
               ))}
             </ul>
@@ -153,7 +153,7 @@ function UserDetailPage() {
         <AdminCard accent="emerald" className="p-4">
           {data.withdrawals.length === 0 ? <p className="text-sm text-slate-500 text-center py-4">কোনো উইথড্র নেই</p> : (
             <ul className="space-y-2">
-              {data.withdrawals.map((w) => (
+              {data.withdrawals.map((w: { id: string; amount?: number | string | null; method?: string | null; status?: string | null }) => (
                 <li key={w.id} className="flex items-center justify-between rounded-xl ring-1 ring-emerald-100 bg-emerald-50/40 px-3 py-2">
                   <p className="text-sm">৳{w.amount} · {w.method}</p>
                   <span className={cn("rounded-md px-2 py-0.5 text-[10px] font-bold uppercase",
@@ -172,7 +172,7 @@ function UserDetailPage() {
         <AdminCard accent="purple" className="p-4">
           {data.referrals.length === 0 ? <p className="text-sm text-slate-500 text-center py-4">কোনো রেফারেল আয় নেই</p> : (
             <ul className="space-y-2">
-              {data.referrals.map((r) => (
+              {data.referrals.map((r: { id: string; referred_user_id: string; amount?: number | string | null }) => (
                 <li key={r.id} className="flex items-center justify-between rounded-xl ring-1 ring-purple-100 bg-purple-50/40 px-3 py-2 text-sm">
                   <span className="font-mono text-xs">{r.referred_user_id.slice(0,8)}…</span>
                   <span className="font-bold text-purple-700">+৳{r.amount}</span>

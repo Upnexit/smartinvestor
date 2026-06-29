@@ -30,10 +30,10 @@ function ReportsPage() {
       const d = new Date(Date.now() - i * 86400_000);
       days0[fmt(d.toISOString())] = { d: fmt(d.toISOString()), signups: 0, revenue: 0, withdraw: 0, tasks: 0 };
     }
-    data.signups.forEach((s) => { const k = fmt(s.created_at); if (days0[k]) days0[k].signups++; });
-    data.revenue.forEach((s) => { const k = fmt(s.created_at); const p = Number((s as { packages?: { price?: number } | null }).packages?.price ?? 0); if (days0[k]) days0[k].revenue += p; });
-    data.withdrawals.forEach((s) => { const k = fmt(s.created_at); if (days0[k] && s.status !== "rejected") days0[k].withdraw += Number(s.amount); });
-    data.taskCompletions.forEach((s) => { const k = fmt(s.created_at); if (days0[k]) days0[k].tasks++; });
+    data.signups.forEach((s: { created_at: string }) => { const k = fmt(s.created_at); if (days0[k]) days0[k].signups++; });
+    data.revenue.forEach((s: { created_at: string; packages?: { price?: number } | null }) => { const k = fmt(s.created_at); const p = Number(s.packages?.price ?? 0); if (days0[k]) days0[k].revenue += p; });
+    data.withdrawals.forEach((s: { created_at: string; status?: string | null; amount?: number | string | null }) => { const k = fmt(s.created_at); if (days0[k] && s.status !== "rejected") days0[k].withdraw += Number(s.amount ?? 0); });
+    data.taskCompletions.forEach((s: { created_at: string }) => { const k = fmt(s.created_at); if (days0[k]) days0[k].tasks++; });
     return Object.values(days0);
   }, [data, days]);
 
@@ -148,7 +148,7 @@ function ReportsPage() {
         </div>
         {!leaders ? <Shimmer className="h-20" /> : (
           <div className="divide-y divide-amber-100">
-            {leaders.map((u, i) => (
+            {leaders.map((u: { id: string; full_name?: string | null; total_earned?: number | string | null }, i: number) => (
               <div key={u.id} className="flex items-center justify-between py-2 text-sm">
                 <span className="bn-display"><span className="text-amber-600 mr-2">#{i + 1}</span> {u.full_name ?? "—"}</span>
                 <span className="bn-display bg-gradient-to-br from-amber-600 to-orange-600 bg-clip-text text-transparent">৳{Number(u.total_earned ?? 0).toLocaleString("bn-BD")}</span>

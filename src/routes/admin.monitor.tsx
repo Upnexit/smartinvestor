@@ -41,7 +41,7 @@ function MonitorPage() {
           <p className="text-xs text-slate-500">কোনো এরর নেই 🎉</p>
         ) : (
           <ul className="divide-y divide-rose-100">
-            {data.errors.map((e) => {
+            {data.errors.map((e: unknown) => {
               const r = e as { id: string; message?: string; level?: string; created_at: string };
               return (
                 <li key={r.id} className="py-2">
