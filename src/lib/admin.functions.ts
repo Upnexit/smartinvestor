@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 const UUID = /^[0-9a-f-]{36}$/i;
 function uuid(v: unknown): string {
@@ -13,7 +15,7 @@ function str(v: unknown, max = 500): string {
   return s;
 }
 
-type AdminDb = Parameters<Parameters<typeof requireSupabaseAuth["options"]["server"]>[0]["next"]>[0]["context"]["supabase"];
+type AdminDb = SupabaseClient<Database>;
 
 async function assertAdmin(db: AdminDb, userId: string) {
   const { data, error } = await db.rpc("has_role", { _user_id: userId, _role: "admin" });
