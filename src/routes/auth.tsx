@@ -1,17 +1,33 @@
 import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
+import { toast } from "sonner";
 import {
   Mail, Lock, Eye, EyeOff, AlertCircle, Loader2, Sparkles,
-  ShieldCheck, Zap, Gift,
+  ShieldCheck, Zap, Gift, ArrowRight,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+type Search = { redirect?: string; mode?: string };
+
+function safeRedirect(target?: string | null): string | null {
+  if (!target) return null;
+  if (!target.startsWith("/") || target.startsWith("//")) return null;
+  return target;
+}
+
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  beforeLoad: async () => {
+  validateSearch: (s: Record<string, unknown>): Search => ({
+    redirect: typeof s.redirect === "string" ? s.redirect : undefined,
+    mode: typeof s.mode === "string" ? s.mode : undefined,
+  }),
+  beforeLoad: async ({ search }) => {
     const { data } = await supabase.auth.getSession();
-    if (data.session) throw redirect({ to: "/dashboard" });
+    if (data.session) {
+      const dest = safeRedirect(search.redirect) ?? "/dashboard";
+      throw redirect({ to: dest });
+    }
   },
   head: () => ({
     meta: [
@@ -23,43 +39,58 @@ export const Route = createFileRoute("/auth")({
 });
 
 const schema = z.object({
-  email: z.string().trim().email({ message: "সঠিক ইমেইল দিন" }),
-  password: z.string().min(6, { message: "পাসওয়ার্ড কমপক্ষে ৬ অক্ষর" }),
+  email: z.string().trim().email({ message: "সঠিক ইমেইল দিন" }).max(255),
+  password: z.string().min(6, { message: "পাসওয়ার্ড কমপক্ষে ৬ অক্ষর" }).max(72),
 });
+
+function mapAuthError(msg: string): string {
+  const m = msg.toLowerCase();
+  if (m.includes("email not confirmed")) return "ইমেইল ভেরিফাই করুন";
+  if (m.includes("invalid") && m.includes("credentials")) return "ইমেইল অথবা পাসওয়ার্ড ভুল";
+  if (m.includes("rate")) return "একটু পরে আবার চেষ্টা করুন";
+  return msg;
+}
 
 function AuthPage() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
+    setErrors({});
     const parsed = schema.safeParse({ email, password });
     if (!parsed.success) {
-      setError(parsed.error.issues[0].message);
+      const fe: typeof errors = {};
+      parsed.error.issues.forEach((i) => { fe[i.path[0] as "email" | "password"] = i.message; });
+      setErrors(fe);
       return;
     }
     setLoading(true);
-    const { data, error: err } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (err || !data.user) {
-      setError("ইমেইল অথবা পাসওয়ার্ড ভুল");
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error || !data.user) {
+      setLoading(false);
+      const msg = mapAuthError(error?.message ?? "লগইন ব্যর্থ");
+      setErrors({ form: msg });
+      toast.error(msg);
       return;
     }
-    const { data: roles } = await supabase
-      .from("user_roles").select("role").eq("user_id", data.user.id);
-    const isAdmin = roles?.some((r) => r.role === "admin");
-    navigate({ to: isAdmin ? "/dashboard" : "/dashboard", replace: true });
+    toast.success("সফলভাবে লগইন হয়েছে!");
+    const { data: roleRow } = await supabase
+      .from("user_roles").select("role").eq("user_id", data.user.id).eq("role", "admin").maybeSingle();
+    const isAdmin = !!roleRow;
+    const dest = safeRedirect(search.redirect) ?? (isAdmin ? "/admin" : "/dashboard");
+    setLoading(false);
+    navigate({ to: dest, replace: true });
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50/30 to-rose-50/40">
       <div className="grid min-h-screen lg:grid-cols-5">
-        {/* Left: brand panel */}
         <aside
           className="relative hidden overflow-hidden lg:col-span-2 lg:flex lg:flex-col lg:justify-between p-10 text-white"
           style={{ backgroundImage: "linear-gradient(160deg, oklch(0.72 0.18 70), oklch(0.65 0.2 45) 50%, oklch(0.6 0.22 25))" }}
@@ -69,7 +100,7 @@ function AuthPage() {
 
           <div className="relative z-10">
             <div className="flex items-center gap-3">
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/20 backdrop-blur-sm shadow-lg">
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/20 backdrop-blur-sm shadow-lg ring-1 ring-white/30">
                 <Sparkles className="h-7 w-7" />
               </div>
               <div>
@@ -87,12 +118,12 @@ function AuthPage() {
 
             <ul className="mt-8 space-y-4">
               {[
-                { Icon: ShieldCheck, t: "১০০% নিরাপদ ও বিশ্বস্ত পেমেন্ট" },
-                { Icon: Zap, t: "ইনস্ট্যান্ট bKash / Nagad উইথড্র" },
-                { Icon: Gift, t: "৳৩০০ সাইনআপ বোনাস — সাথে সাথে" },
+                { Icon: ShieldCheck, t: "১০০% নিরাপদ ও যাচাইকৃত প্ল্যাটফর্ম" },
+                { Icon: Zap, t: "bKash / Nagad / Rocket ইনস্ট্যান্ট পেমেন্ট" },
+                { Icon: Gift, t: "প্রতিটি রেফারে অতিরিক্ত ৳৫০ বোনাস" },
               ].map(({ Icon, t }) => (
                 <li key={t} className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/15 backdrop-blur-sm">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/15 backdrop-blur-sm ring-1 ring-white/20">
                     <Icon className="h-5 w-5" />
                   </span>
                   <span className="text-white/95">{t}</span>
@@ -115,34 +146,40 @@ function AuthPage() {
           </div>
         </aside>
 
-        {/* Right: form */}
         <main className="flex items-center justify-center px-5 py-10 sm:px-10 lg:col-span-3">
           <div className="w-full max-w-md">
+            {/* Mobile brand bar */}
+            <div className="mb-6 flex items-center justify-between lg:hidden">
+              <div className="flex items-center gap-2">
+                <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-400 to-rose-500 text-white shadow-md">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <span className="bn-display text-lg text-slate-900">Smart Investor</span>
+              </div>
+              <Link to="/" className="text-sm font-medium text-amber-700">হোম →</Link>
+            </div>
+
             <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-              <Sparkles className="h-3.5 w-3.5" /> SMART INVESTOR
+              <Sparkles className="h-3.5 w-3.5" /> SMART NETWORK BD
             </span>
             <h1 className="bn-display mt-4 text-3xl text-slate-900">আপনার একাউন্টে লগইন</h1>
-            <p className="mt-2 text-sm text-slate-600">নিচে ইমেইল ও পাসওয়ার্ড দিয়ে লগইন করুন।</p>
+            <p className="mt-2 text-sm text-slate-600">আবার স্বাগতম! আপনার ড্যাশবোর্ডে প্রবেশ করুন।</p>
 
             <form onSubmit={handleSubmit} className="mt-7 space-y-4" noValidate>
-              <div>
-                <label className="text-sm font-medium text-slate-700">ইমেইল</label>
-                <div className="relative mt-1.5">
-                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="w-full rounded-xl border-2 border-slate-200 bg-white py-3 pl-10 pr-3 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100"
-                  />
-                </div>
-              </div>
+              <Field
+                icon={Mail}
+                label="ইমেইল"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={setEmail}
+                placeholder="you@example.com"
+                error={errors.email}
+              />
 
               <div>
                 <label className="text-sm font-medium text-slate-700">পাসওয়ার্ড</label>
-                <div className="relative mt-1.5">
+                <div className={`relative mt-1.5 ${errors.password ? "" : ""}`}>
                   <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <input
                     type={showPw ? "text" : "password"}
@@ -150,7 +187,11 @@ function AuthPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full rounded-xl border-2 border-slate-200 bg-white py-3 pl-10 pr-10 text-sm outline-none transition focus:border-amber-400 focus:ring-4 focus:ring-amber-100"
+                    className={`w-full rounded-xl border-2 bg-white py-3 pl-10 pr-10 text-sm outline-none transition focus:ring-4 ${
+                      errors.password
+                        ? "border-rose-400 focus:border-rose-400 focus:ring-rose-100"
+                        : "border-slate-200 focus:border-amber-400 focus:ring-amber-100"
+                    }`}
                   />
                   <button
                     type="button"
@@ -161,12 +202,13 @@ function AuthPage() {
                     {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                {errors.password && <InlineError msg={errors.password} />}
               </div>
 
-              {error && (
+              {errors.form && (
                 <div className="flex items-start gap-2 rounded-xl bg-rose-50 px-3 py-2.5 text-sm text-rose-700 border border-rose-200">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>{error}</span>
+                  <span>{errors.form}</span>
                 </div>
               )}
 
@@ -182,13 +224,62 @@ function AuthPage() {
             >
               <span className="flex items-center gap-2">
                 <Gift className="h-4 w-4" />
-                ৳৩০০ সাইনআপ বোনাস পেতে রেজিস্টার করুন
+                নতুন এখানে? ৳৩০০ সাইনআপ বোনাস নিয়ে শুরু করুন
               </span>
-              <span className="text-amber-700">→</span>
+              <ArrowRight className="h-4 w-4 text-amber-700" />
             </Link>
+
+            <p className="mt-6 text-center text-xs text-slate-500">
+              একাউন্ট তৈরি করার মাধ্যমে আপনি আমাদের শর্তাবলী মেনে নিচ্ছেন।
+            </p>
           </div>
         </main>
       </div>
+    </div>
+  );
+}
+
+function InlineError({ msg }: { msg: string }) {
+  return (
+    <p className="mt-1.5 flex items-center gap-1.5 text-xs text-rose-600">
+      <AlertCircle className="h-3.5 w-3.5" /> {msg}
+    </p>
+  );
+}
+
+type FieldProps = {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
+  maxLength?: number;
+  autoComplete?: string;
+  error?: string;
+};
+
+function Field({ icon: Icon, label, value, onChange, placeholder, type = "text", maxLength, autoComplete, error }: FieldProps) {
+  return (
+    <div>
+      <label className="text-sm font-medium text-slate-700">{label}</label>
+      <div className="relative mt-1.5">
+        <Icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <input
+          type={type}
+          autoComplete={autoComplete}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          maxLength={maxLength}
+          className={`w-full rounded-xl border-2 bg-white py-3 pl-10 pr-3 text-sm outline-none transition focus:ring-4 ${
+            error
+              ? "border-rose-400 focus:border-rose-400 focus:ring-rose-100"
+              : "border-slate-200 focus:border-amber-400 focus:ring-amber-100"
+          }`}
+        />
+      </div>
+      {error && <InlineError msg={error} />}
     </div>
   );
 }
