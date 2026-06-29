@@ -31,7 +31,7 @@ function PackagesPage() {
   const [del, setDel] = useState<Pkg | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const refresh = () => list().then((r) => setRows(r as Pkg[]));
+  const refresh = () => list().then((r) => setRows(r as unknown as Pkg[]));
   useAdminAutoRefresh(refresh);
 
   const onAdd = () => { setEdit({ id: "", name: "", price: 0, daily_income: 0, duration_days: 30, image_url: null, active: true, description: null }); setOpen(true); };
