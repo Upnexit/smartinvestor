@@ -57,6 +57,7 @@ function mapSignupError(msg: string): string {
 }
 
 function RegisterPage() {
+  const site = useSiteSettings();
   const navigate = useNavigate();
   const search = Route.useSearch();
   const createAccount = useServerFn(createConfirmedUserAccount);
