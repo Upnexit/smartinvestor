@@ -69,12 +69,13 @@ function Heading({
 /* ---------------- 1. Nav ---------------- */
 
 function Nav() {
+  const { site_name } = useSiteSettings();
   return (
     <header className="sticky top-0 z-50 border-b border-amber-100 bg-white/85 backdrop-blur-md">
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <Link to="/" className="flex items-center gap-2.5">
           <Logo />
-          <span className="bn-display text-lg text-slate-900 sm:text-xl">Smart Investor</span>
+          <span className="bn-display text-lg text-slate-900 sm:text-xl">{site_name}</span>
         </Link>
         <div className="hidden items-center gap-7 md:flex">
           {[
