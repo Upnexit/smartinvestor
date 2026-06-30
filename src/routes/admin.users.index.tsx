@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Users, Search, Trash2, Eye, Download, UserPlus, ShieldCheck, UserCog, Pencil, X } from "lucide-react";
+import { Users, Search, Trash2, Eye, Download, UserPlus, ShieldCheck, UserCog, Pencil, X, Ban, ShieldOff } from "lucide-react";
 import {
   AdminPageHeader, AdminCard, GradientButton, SoftButton, Shimmer, EmptyState, ConfirmDeleteModal,
 } from "@/components/admin/AdminUI";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
-import { listUsers, deleteUser, subscribeTable } from "@/lib/admin-client";
+import { listUsers, deleteUser, subscribeTable, setUserStatus } from "@/lib/admin-client";
+import { UserEditDrawer } from "@/components/admin/UserEditDrawer";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -15,6 +16,7 @@ type User = {
   id: string; full_name: string | null; email: string | null; phone: string | null;
   avatar_url: string | null; balance: number; locked_balance: number; total_earned: number;
   referral_code: string | null; tasks_completed: number; created_at: string;
+  status?: string | null; payment_method?: string | null; payment_number?: string | null;
 };
 
 export const Route = createFileRoute("/admin/users/")({
@@ -31,6 +33,8 @@ function UsersPage() {
   const [todayCount, setTodayCount] = useState(0);
   const [busy, setBusy] = useState<string | null>(null);
   const [del, setDel] = useState<User | null>(null);
+  const [edit, setEdit] = useState<User | null>(null);
+  const [suspendTarget, setSuspendTarget] = useState<User | null>(null);
 
   const refresh = () => {
     listUsers(q ?? "").then((rows) => setUsers(rows as User[])).catch((e) => toast.error(e instanceof Error ? e.message : "ব্যর্থ"));
@@ -53,7 +57,6 @@ function UsersPage() {
     newToday: todayCount,
   }), [users, todayCount]);
 
-  // Real-time debounced search — syncs to URL after 300ms
   useEffect(() => {
     const t = setTimeout(() => {
       const next = query.trim();
@@ -74,6 +77,18 @@ function UsersPage() {
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "ব্যর্থ");
     } finally { setBusy(null); }
+  };
+
+  const handleToggleSuspend = async (u: User) => {
+    const isSuspended = u.status === "suspended";
+    setBusy(u.id);
+    try {
+      await setUserStatus(u.id, isSuspended ? "active" : "suspended", isSuspended ? undefined : "অ্যাডমিন কর্তৃক সাসপেন্ড");
+      toast.success(isSuspended ? "অ্যাকাউন্ট পুনরায় চালু করা হয়েছে" : "অ্যাকাউন্ট সাসপেন্ড করা হয়েছে");
+      setSuspendTarget(null);
+      refresh();
+    } catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
+    finally { setBusy(null); }
   };
 
   const exportCsv = () => {
@@ -97,7 +112,7 @@ function UsersPage() {
 
   return (
     <>
-      <AdminPageHeader accent="sky" Icon={Users} title="ইউজার ম্যানেজমেন্ট" subtitle="সকল ইউজার, সার্চ, এডিট, ডিলিট"
+      <AdminPageHeader accent="sky" Icon={Users} title="ইউজার ম্যানেজমেন্ট" subtitle="সকল ইউজার, সার্চ, এডিট, সাসপেন্ড, ডিলিট"
         action={<GradientButton accent="sky" onClick={exportCsv}><Download className="h-4 w-4" /> CSV</GradientButton>} />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -140,45 +155,57 @@ function UsersPage() {
         <EmptyState Icon={Users} title="কোনো ইউজার পাওয়া যায়নি" hint="অন্য কীওয়ার্ডে চেষ্টা করুন" accent="sky" />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {users.map((u) => (
-            <AdminCard key={u.id} accent="sky" interactive className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={cn("grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white font-bold shadow-lg ring-2 ring-white")}>
-                  {(u.full_name ?? "?").slice(0,1).toUpperCase()}
+          {users.map((u) => {
+            const suspended = u.status === "suspended" || u.status === "banned";
+            return (
+              <AdminCard key={u.id} accent="sky" interactive className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className={cn("grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br text-white font-bold shadow-lg ring-2 ring-white",
+                    suspended ? "from-rose-500 to-red-600" : "from-sky-500 to-indigo-600")}>
+                    {(u.full_name ?? "?").slice(0,1).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="bn-display text-base text-slate-900 truncate flex items-center gap-1.5">
+                      {u.full_name ?? "—"}
+                      {suspended && <span className="inline-flex items-center gap-0.5 rounded-md bg-rose-100 px-1.5 py-0.5 text-[9px] font-bold text-rose-700 uppercase"><Ban className="h-2.5 w-2.5" /> সাসপেন্ডেড</span>}
+                    </p>
+                    <p className="text-xs text-slate-500 truncate">{u.email}</p>
+                    <p className="text-xs font-mono text-slate-400">{u.phone}</p>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="bn-display text-base text-slate-900 truncate">{u.full_name ?? "—"}</p>
-                  <p className="text-xs text-slate-500 truncate">{u.email}</p>
-                  <p className="text-xs font-mono text-slate-400">{u.phone}</p>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  <div className="rounded-lg bg-emerald-50 p-2 text-center">
+                    <p className="text-[10px] text-emerald-600 font-semibold">ব্যালেন্স</p>
+                    <p className="text-sm font-bold text-emerald-700">৳{Number(u.balance).toFixed(0)}</p>
+                  </div>
+                  <div className="rounded-lg bg-amber-50 p-2 text-center">
+                    <p className="text-[10px] text-amber-600 font-semibold">লকড</p>
+                    <p className="text-sm font-bold text-amber-700">৳{Number(u.locked_balance).toFixed(0)}</p>
+                  </div>
+                  <div className="rounded-lg bg-sky-50 p-2 text-center">
+                    <p className="text-[10px] text-sky-600 font-semibold">টাস্ক</p>
+                    <p className="text-sm font-bold text-sky-700">{u.tasks_completed}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                <div className="rounded-lg bg-emerald-50 p-2 text-center">
-                  <p className="text-[10px] text-emerald-600 font-semibold">ব্যালেন্স</p>
-                  <p className="text-sm font-bold text-emerald-700">৳{Number(u.balance).toFixed(0)}</p>
+                <div className="mt-3 grid grid-cols-4 gap-1.5">
+                  <Link to="/admin/users/$id" params={{ id: u.id }} className="inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 px-2 py-1.5 text-[11px] font-bold text-white shadow-md shadow-blue-500/30 hover:scale-[1.02] transition">
+                    <Eye className="h-3.5 w-3.5" /> ডিটেইল
+                  </Link>
+                  <button onClick={() => setEdit(u)} className="inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 px-2 py-1.5 text-[11px] font-bold text-white shadow-md shadow-emerald-500/30 hover:scale-[1.02] transition">
+                    <Pencil className="h-3.5 w-3.5" /> এডিট
+                  </button>
+                  <button onClick={() => setSuspendTarget(u)} disabled={busy === u.id}
+                    className={cn("inline-flex items-center justify-center gap-1 rounded-xl px-2 py-1.5 text-[11px] font-bold text-white shadow-md hover:scale-[1.02] transition disabled:opacity-60",
+                      suspended ? "bg-gradient-to-br from-lime-500 to-emerald-600 shadow-emerald-500/30" : "bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/30")}>
+                    {suspended ? <><ShieldCheck className="h-3.5 w-3.5" /> চালু</> : <><ShieldOff className="h-3.5 w-3.5" /> সাসপেন্ড</>}
+                  </button>
+                  <SoftButton onClick={() => setDel(u)} accent="rose" className="!from-rose-100 !to-red-200 !text-rose-700 !ring-rose-200 !text-[11px] justify-center">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </SoftButton>
                 </div>
-                <div className="rounded-lg bg-amber-50 p-2 text-center">
-                  <p className="text-[10px] text-amber-600 font-semibold">লকড</p>
-                  <p className="text-sm font-bold text-amber-700">৳{Number(u.locked_balance).toFixed(0)}</p>
-                </div>
-                <div className="rounded-lg bg-sky-50 p-2 text-center">
-                  <p className="text-[10px] text-sky-600 font-semibold">টাস্ক</p>
-                  <p className="text-sm font-bold text-sky-700">{u.tasks_completed}</p>
-                </div>
-              </div>
-              <div className="mt-3 flex gap-1.5">
-                <Link to="/admin/users/$id" params={{ id: u.id }} className="flex-1 inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 px-3 py-1.5 text-xs font-bold text-white shadow-md shadow-blue-500/30 hover:scale-[1.02] transition">
-                  <Eye className="h-3.5 w-3.5" /> ডিটেইল
-                </Link>
-                <Link to="/admin/users/$id" params={{ id: u.id }} search={{ edit: 1 } as never} className="inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 px-3 py-1.5 text-xs font-bold text-white shadow-md shadow-emerald-500/30 hover:scale-[1.02] transition">
-                  <Pencil className="h-3.5 w-3.5" /> এডিট
-                </Link>
-                <SoftButton onClick={() => setDel(u)} accent="rose" className="!from-rose-100 !to-red-200 !text-rose-700 !ring-rose-200">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </SoftButton>
-              </div>
-            </AdminCard>
-          ))}
+              </AdminCard>
+            );
+          })}
         </div>
       )}
 
@@ -187,6 +214,21 @@ function UsersPage() {
         title="ইউজার ডিলিট করবেন?"
         body={<>এই ইউজারের সকল ডাটা (প্যাকেজ, টাস্ক, উইথড্র, রেফারেল) মুছে যাবে। <b className="text-rose-600">এটা ফিরিয়ে আনা যাবে না।</b></>}
       />
+
+      {suspendTarget && (
+        <ConfirmDeleteModal
+          open onClose={() => setSuspendTarget(null)} busy={!!busy}
+          onConfirm={() => handleToggleSuspend(suspendTarget)}
+          title={suspendTarget.status === "suspended" ? "অ্যাকাউন্ট পুনরায় চালু করবেন?" : "অ্যাকাউন্ট সাসপেন্ড করবেন?"}
+          body={suspendTarget.status === "suspended"
+            ? <>ইউজার আবার সব ফিচার ব্যবহার করতে পারবে।</>
+            : <>সাসপেন্ড করলে ইউজার লগইন করতে পারবে কিন্তু সাসপেনশন স্ক্রিন দেখবে এবং শুধু অ্যাডমিন-এর সাথে চ্যাট করতে পারবে।</>}
+        />
+      )}
+
+      {edit && (
+        <UserEditDrawer userId={edit.id} initial={edit} onClose={() => setEdit(null)} onSaved={() => { setEdit(null); refresh(); }} />
+      )}
     </>
   );
 }
