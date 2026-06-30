@@ -3,7 +3,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, ArrowDownToLine, Package, ShieldCheck, CreditCard,
   ListChecks, MessagesSquare, BarChart3, Activity, Settings, User as UserIcon,
-  LogOut, Menu, X, Bell, Search, ChevronRight, Sparkles,
+  LogOut, Menu, X, Bell, Search, ChevronRight, Sparkles, Users2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,7 @@ type NavItem = { to: string; label: string; Icon: typeof LayoutDashboard; accent
 export const ADMIN_NAV: NavItem[] = [
   { to: "/admin",              label: "ড্যাশবোর্ড",         Icon: LayoutDashboard, accent: "amber" },
   { to: "/admin/users",        label: "ইউজার ম্যানেজমেন্ট",   Icon: Users,           accent: "sky" },
+  { to: "/admin/distributors", label: "ডিস্ট্রিবিউটর",        Icon: Users2,          accent: "indigo" },
   { to: "/admin/withdrawals",  label: "উইথড্র রিকোয়েস্ট",     Icon: ArrowDownToLine, accent: "emerald" },
   { to: "/admin/packages",     label: "প্যাকেজ",            Icon: Package,         accent: "fuchsia" },
   { to: "/admin/approvals",    label: "পেমেন্ট অ্যাপ্রুভাল",   Icon: ShieldCheck,     accent: "orange" },

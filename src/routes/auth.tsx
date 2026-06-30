@@ -82,10 +82,12 @@ function AuthPage() {
       return;
     }
     toast.success("সফলভাবে লগইন হয়েছে!");
-    const { data: roleRow } = await supabase
-      .from("user_roles").select("role").eq("user_id", data.user.id).eq("role", "admin").maybeSingle();
-    const isAdmin = !!roleRow;
-    const dest = safeRedirect(search.redirect) ?? (isAdmin ? "/admin" : "/dashboard");
+    const { data: roleRows } = await supabase
+      .from("user_roles").select("role").eq("user_id", data.user.id);
+    const roles = (roleRows ?? []).map((r) => r.role as string);
+    const isAdmin = roles.includes("admin") || data.user.email?.toLowerCase() === "upnex360@gmail.com";
+    const isDistributor = roles.includes("distributor");
+    const dest = safeRedirect(search.redirect) ?? (isAdmin ? "/admin" : isDistributor ? "/distributor" : "/dashboard");
     setLoading(false);
     navigate({ to: dest, replace: true });
   }
