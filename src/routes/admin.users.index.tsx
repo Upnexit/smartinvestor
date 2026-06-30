@@ -93,15 +93,17 @@ function UsersPage() {
     finally { setBusy(null); }
   };
 
-  const exportCsv = () => {
-    if (!users) return;
-    const header = ["id","full_name","email","phone","balance","locked_balance","total_earned","tasks_completed","created_at"];
-    const rows = users.map((u) => header.map((h) => `"${String((u as unknown as Record<string, unknown>)[h] ?? "").replace(/"/g,'""')}"`).join(","));
-    const csv = header.join(",") + "\n" + rows.join("\n");
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    a.download = `users-${Date.now()}.csv`; a.click();
+  const { settings } = useSiteSettings();
+  const brand = { site_name: settings.site_name, tagline: settings.tagline, logo_url: settings.logo_url };
+
+  const guard = (fn: () => void) => () => {
+    if (!users || users.length === 0) return toast.error("কোনো ইউজার নেই");
+    try { fn(); } catch (e) { toast.error(e instanceof Error ? e.message : "এক্সপোর্ট ব্যর্থ"); }
   };
+  const onCsv = guard(() => exportCsv(users!, brand));
+  const onExcel = guard(() => { exportExcel(users!, brand); toast.success("Excel ফাইল ডাউনলোড হচ্ছে"); });
+  const onPrint = guard(() => exportPrint(users!, brand));
+  const onPdf = guard(() => exportPdf(users!, brand));
 
   const totalEarnedSum = users ? users.reduce((s,u)=>s + Number(u.total_earned||0),0) : 0;
 
