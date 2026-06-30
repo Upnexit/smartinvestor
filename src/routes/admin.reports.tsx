@@ -58,7 +58,7 @@ const fmtKey = (s: string) => new Date(s).toISOString().slice(5, 10);
 
 /* ============== PAGE ============== */
 function ReportsPage() {
-  const { settings } = useSiteSettings();
+  const settings = useSiteSettings();
   const [days, setDays] = useState(30);
   const [snap, setSnap] = useState<Snapshot | null>(null);
   const [series, setSeries] = useState<DayBucket[] | null>(null);
