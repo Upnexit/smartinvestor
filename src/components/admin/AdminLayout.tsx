@@ -45,11 +45,11 @@ export function AdminLayout({ children }: { children: ReactNode }) {
       {/* Mobile top bar */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-amber-200/70 bg-white/90 backdrop-blur px-3 py-2.5 lg:hidden">
         <Link to="/admin" className="flex items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/40">
-            <Sparkles className="h-5 w-5" />
+          <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/40 overflow-hidden">
+            {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-5 w-5" />}
           </div>
           <div>
-            <p className="bn-display text-sm leading-none">Smart Investor</p>
+            <p className="bn-display text-sm leading-none">{site.site_name}</p>
             <p className="text-[9px] font-bold tracking-widest text-orange-600 mt-0.5">ADMIN</p>
           </div>
         </Link>
