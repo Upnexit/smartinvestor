@@ -17,7 +17,7 @@ type User = {
   referral_code: string | null; tasks_completed: number; created_at: string;
 };
 
-export const Route = createFileRoute("/admin/users")({
+export const Route = createFileRoute("/admin/users/")({
   validateSearch: (s: Record<string, unknown>): Search => ({ q: typeof s.q === "string" ? s.q : undefined }),
   head: () => ({ meta: [{ title: "ইউজার — Smart Investor Admin" }] }),
   component: UsersPage,
