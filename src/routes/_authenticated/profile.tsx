@@ -29,6 +29,7 @@ type Profile = {
   locked_balance: number;
   total_earned: number;
   avatar_url: string | null;
+  email_verified: boolean;
 };
 
 function ProfilePage() {
