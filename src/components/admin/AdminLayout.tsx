@@ -31,6 +31,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   const [drawer, setDrawer] = useState(false);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const site = useSiteSettings();
 
   useEffect(() => { setDrawer(false); }, [pathname]);
 
