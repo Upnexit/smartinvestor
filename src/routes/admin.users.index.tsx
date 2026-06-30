@@ -93,7 +93,7 @@ function UsersPage() {
     finally { setBusy(null); }
   };
 
-  const { settings } = useSiteSettings();
+  const settings = useSiteSettings();
   const brand = { site_name: settings.site_name, tagline: settings.tagline, logo_url: settings.logo_url };
 
   const guard = (fn: () => void) => () => {
