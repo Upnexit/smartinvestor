@@ -1,15 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Users, Search, Trash2, Eye, Download, UserPlus, ShieldCheck, UserCog, Pencil, X, Ban, ShieldOff } from "lucide-react";
+import { Users, Search, Trash2, Eye, FileSpreadsheet, FileText, Printer, FileDown, UserPlus, ShieldCheck, UserCog, Pencil, X, Ban, ShieldOff } from "lucide-react";
 import {
-  AdminPageHeader, AdminCard, GradientButton, SoftButton, Shimmer, EmptyState, ConfirmDeleteModal,
+  AdminPageHeader, AdminCard, SoftButton, Shimmer, EmptyState, ConfirmDeleteModal,
 } from "@/components/admin/AdminUI";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
 import { listUsers, deleteUser, subscribeTable, setUserStatus } from "@/lib/admin-client";
 import { UserEditDrawer } from "@/components/admin/UserEditDrawer";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from "@/hooks/use-site-settings";
+import { exportCsv, exportExcel, exportPrint, exportPdf } from "@/lib/users-export";
 
 type Search = { q?: string };
 type User = {
