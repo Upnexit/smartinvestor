@@ -1,16 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { Users2, Plus, Edit3, Trash2, Search, MapPin, Phone, Wallet, Award, UserCheck, Activity } from "lucide-react";
 import { toast } from "sonner";
-import {
-  adminListDistributors, adminDeleteDistributor, adminUpdateDistributor,
-} from "@/lib/distributor.functions";
 import {
   AdminPageHeader, StatTile, AdminCard, GradientButton, SoftButton, EmptyState, Shimmer, ConfirmDeleteModal,
 } from "@/components/admin/AdminUI";
 import { DistributorFormModal } from "@/components/admin/DistributorFormModal";
-import { useAuthReady } from "@/hooks/use-auth-ready";
+import { deleteDistributor, listDistributors, subscribeTable, updateDistributor } from "@/lib/admin-client";
+import { useAdminAutoRefresh } from "@/lib/admin-refresh";
 
 export const Route = createFileRoute("/admin/distributors")({
   head: () => ({ meta: [{ title: "ডিস্ট্রিবিউটর — অ্যাডমিন" }] }),
@@ -26,38 +23,32 @@ type DRow = {
 };
 
 function AdminDistributorsPage() {
-  const list = useServerFn(adminListDistributors);
-  const del = useServerFn(adminDeleteDistributor);
-  const upd = useServerFn(adminUpdateDistributor);
-  const { isReady, user } = useAuthReady();
   const [rows, setRows] = useState<DRow[] | null>(null);
   const [q, setQ] = useState("");
   const [modal, setModal] = useState<{ open: boolean; editing: DRow | null }>({ open: false, editing: null });
   const [confirm, setConfirm] = useState<DRow | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function refresh() {
-    if (!isReady || !user) return;
-    try {
-      const data = await list({ data: { q } });
-      setRows(data as DRow[]);
-    } catch (e) {
-      const raw = e instanceof Error ? e.message : "লোড ব্যর্থ";
-      const friendly = /Unauthorized|authorization header|No session/i.test(raw)
-        ? "সেশন লোড হচ্ছে — কিছুক্ষণ পর আবার চেষ্টা করুন"
-        : /Missing Supabase/i.test(raw)
-          ? "সার্ভার কনফিগারেশন সমস্যা — পুনরায় চেষ্টা করুন"
-          : raw;
-      toast.error(friendly);
-      setRows([]);
-    }
-  }
+  const refresh = () => {
+    listDistributors(q)
+      .then((data) => setRows(data as DRow[]))
+      .catch((e) => {
+        toast.error(e instanceof Error ? e.message : "ডিস্ট্রিবিউটর লোড ব্যর্থ");
+        setRows([]);
+      });
+  };
 
-  // Initial + auth-ready load
-  useEffect(() => { if (isReady && user) refresh(); /* eslint-disable-next-line */ }, [isReady, user?.id]);
+  useAdminAutoRefresh(refresh);
+
+  useEffect(() => {
+    const offDistributors = subscribeTable("distributors", refresh);
+    const offProfiles = subscribeTable("profiles", refresh);
+    return () => { offDistributors(); offProfiles(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q]);
+
   // Debounced search
   useEffect(() => {
-    if (!isReady || !user) return;
     const t = setTimeout(refresh, 300);
     return () => clearTimeout(t);
     /* eslint-disable-next-line */
@@ -75,7 +66,7 @@ function AdminDistributorsPage() {
 
   async function toggleStatus(row: DRow) {
     try {
-      await upd({ data: { userId: row.user_id, patch: { status: row.status === "active" ? "suspended" : "active" } } });
+      await updateDistributor(row.user_id, { ...row, status: row.status === "active" ? "suspended" : "active" });
       toast.success("স্ট্যাটাস আপডেট");
       refresh();
     } catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
@@ -85,7 +76,7 @@ function AdminDistributorsPage() {
     if (!confirm) return;
     setBusy(true);
     try {
-      await del({ data: { userId: confirm.user_id, deleteAuth: true } });
+      await deleteDistributor(confirm.user_id);
       toast.success("ডিলিট হয়েছে");
       setConfirm(null);
       refresh();
@@ -178,7 +169,7 @@ function AdminDistributorsPage() {
         onClose={() => setConfirm(null)}
         onConfirm={performDelete}
         title="ডিস্ট্রিবিউটর ডিলিট করবেন?"
-        body={<span>এই ডিস্ট্রিবিউটর ও তাদের অ্যাকাউন্ট স্থায়ীভাবে মুছে যাবে।</span>}
+        body={<span>এই ডিস্ট্রিবিউটর রোল ও এজেন্ট প্রোফাইল মুছে যাবে; সংযুক্ত ইউজারগুলো আনঅ্যাসাইন হবে।</span>}
         busy={busy}
       />
     </div>
