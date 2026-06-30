@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Send, MessageCircle, Loader2, Users, Mic, Square, Image as ImageIcon,
-  Sparkles, X, Play, Pause,
+  Sparkles, Play, Pause,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { askSmartAI } from "@/lib/ai.functions";
@@ -30,6 +30,21 @@ type AIMsg = { id: string; role: "user" | "assistant"; content: string };
 
 const BUCKET = "community-voice";
 
+const AI_SUGGESTIONS = [
+  "Smart Investor কীভাবে কাজ করে?",
+  "প্যাকেজ কিনে কত আয় হবে?",
+  "উইথড্র কীভাবে করবো?",
+  "রেফার করে কত কমিশন পাবো?",
+  "৩০০ টাকা bonus কীভাবে আনলক হবে?",
+];
+
+const COMMUNITY_SUGGESTIONS = [
+  "সবাইকে শুভেচ্ছা! 🌸",
+  "কেউ কি আজকের টাস্ক complete করেছেন?",
+  "কোন প্যাকেজটি best আপনাদের মতে?",
+  "Withdraw কতক্ষণে আসে?",
+];
+
 async function uploadAndSign(file: Blob, path: string): Promise<string | null> {
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, { upsert: true, contentType: file.type });
   if (error) { toast.error(error.message); return null; }
@@ -38,10 +53,46 @@ async function uploadAndSign(file: Blob, path: string): Promise<string | null> {
 }
 
 function CommunityPage() {
+  const [tab, setTab] = useState<"ai" | "chat">("ai");
+
   return (
-    <div className="-mx-4 -my-5 sm:-mx-6 sm:-my-8 h-[calc(100dvh-148px)] lg:h-[calc(100dvh-96px)] grid gap-3 p-3 sm:p-4 lg:grid-cols-2 bg-gradient-to-br from-slate-50 to-white">
-      <AIChatPanel />
-      <CommunityChatPanel />
+    <div className="-mx-4 -my-5 sm:-mx-6 sm:-my-8 flex flex-col h-[calc(100dvh-72px)] lg:h-[calc(100dvh-64px)] bg-gradient-to-br from-slate-50 to-white">
+      {/* Mobile toggle */}
+      <div className="lg:hidden p-2 sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-slate-200">
+        <div className="grid grid-cols-2 gap-1.5 rounded-2xl bg-slate-100 p-1">
+          <button
+            onClick={() => setTab("ai")}
+            className={cn(
+              "flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition",
+              tab === "ai"
+                ? "bg-gradient-to-br from-fuchsia-500 to-indigo-600 text-white shadow"
+                : "text-slate-600",
+            )}
+          >
+            <Sparkles className="h-4 w-4" /> Smart AI
+          </button>
+          <button
+            onClick={() => setTab("chat")}
+            className={cn(
+              "flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition",
+              tab === "chat"
+                ? "bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow"
+                : "text-slate-600",
+            )}
+          >
+            <MessageCircle className="h-4 w-4" /> কমিউনিটি
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 min-h-0 grid gap-3 p-2 sm:p-3 lg:grid-cols-2">
+        <div className={cn("min-h-0 h-full", tab === "ai" ? "block" : "hidden", "lg:block")}>
+          <AIChatPanel />
+        </div>
+        <div className={cn("min-h-0 h-full", tab === "chat" ? "block" : "hidden", "lg:block")}>
+          <CommunityChatPanel />
+        </div>
+      </div>
     </div>
   );
 }
@@ -55,6 +106,7 @@ function AIChatPanel() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const showSuggestions = msgs.length <= 1;
 
   function down() { requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: 1e9, behavior: "smooth" })); }
   useEffect(() => { down(); }, [msgs]);
@@ -75,12 +127,11 @@ function AIChatPanel() {
   }
 
   async function handleImage(file: File) {
-    // Inform AI a user attached an image (no vision; describe filename)
     await send(`[ছবি সংযুক্ত: ${file.name}] এই ছবি সম্পর্কে আমাকে গাইড দিন।`);
   }
 
   return (
-    <section className="flex flex-col overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200 shadow-soft min-h-0">
+    <section className="flex h-full flex-col overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200 shadow-soft min-h-0">
       <header className="flex items-center gap-3 border-b border-slate-200 bg-gradient-to-r from-fuchsia-500 via-purple-500 to-indigo-600 p-3 text-white">
         <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/20 ring-1 ring-white/30">
           <Sparkles className="h-5 w-5" />
@@ -105,6 +156,23 @@ function AIChatPanel() {
         {busy && (
           <div className="flex items-center gap-2 text-xs text-slate-500"><Loader2 className="h-3 w-3 animate-spin" /> ভাবছি…</div>
         )}
+
+        {showSuggestions && (
+          <div className="pt-2">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">পরামর্শকৃত প্রশ্ন</p>
+            <div className="flex flex-wrap gap-1.5">
+              {AI_SUGGESTIONS.map((q) => (
+                <button
+                  key={q}
+                  onClick={() => send(q)}
+                  className="rounded-full bg-white px-3 py-1.5 text-xs text-fuchsia-700 ring-1 ring-fuchsia-200 hover:bg-fuchsia-50 transition"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <Composer
@@ -116,8 +184,6 @@ function AIChatPanel() {
         accentFrom="from-fuchsia-500"
         accentTo="to-indigo-600"
         placeholder="AI কে জিজ্ঞেস করুন…"
-        // AI doesn't accept voice — disable mic
-        voiceDisabled
       />
     </section>
   );
@@ -190,14 +256,10 @@ function CommunityChatPanel() {
     if (url) await postMessage({ image_url: url });
   }
 
-  async function handleVoice(blob: Blob, durationMs: number) {
-    if (!me) return;
-    const url = await uploadAndSign(blob, `voice/${me}/${Date.now()}.webm`);
-    if (url) await postMessage({ voice_url: url, voice_duration_ms: durationMs });
-  }
+  const showSuggestions = !loading && messages.length === 0;
 
   return (
-    <section className="flex flex-col overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200 shadow-soft min-h-0">
+    <section className="flex h-full flex-col overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200 shadow-soft min-h-0">
       <header className="flex items-center gap-3 border-b border-slate-200 bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 p-3 text-white">
         <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/20 ring-1 ring-white/30">
           <MessageCircle className="h-5 w-5" />
@@ -249,6 +311,23 @@ function CommunityChatPanel() {
             </div>
           );
         })}
+
+        {showSuggestions && (
+          <div className="pt-2">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2 text-center">দ্রুত শুরু করুন</p>
+            <div className="flex flex-wrap justify-center gap-1.5">
+              {COMMUNITY_SUGGESTIONS.map((q) => (
+                <button
+                  key={q}
+                  onClick={() => postMessage({ content: q })}
+                  className="rounded-full bg-white px-3 py-1.5 text-xs text-cyan-700 ring-1 ring-cyan-200 hover:bg-cyan-50 transition"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <Composer
@@ -256,68 +335,97 @@ function CommunityChatPanel() {
         setText={setText}
         onSend={() => text.trim() && postMessage({ content: text.trim() })}
         onImage={handleImage}
-        onVoice={handleVoice}
         disabled={sending}
         accentFrom="from-cyan-500"
         accentTo="to-blue-600"
-        placeholder="মেসেজ লিখুন…"
+        placeholder="মেসেজ লিখুন বা মাইকে বলুন…"
       />
     </section>
   );
 }
 
-/* =================== COMPOSER =================== */
+/* =================== COMPOSER (with real-time STT dictation) =================== */
+type SpeechRecognitionLike = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((e: { resultIndex: number; results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null;
+  onerror: ((e: { error?: string }) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
+function getSpeechRecognition(): (new () => SpeechRecognitionLike) | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as { SpeechRecognition?: new () => SpeechRecognitionLike; webkitSpeechRecognition?: new () => SpeechRecognitionLike };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
+}
+
 function Composer({
-  text, setText, onSend, onImage, onVoice, disabled,
-  accentFrom, accentTo, placeholder, voiceDisabled,
+  text, setText, onSend, onImage, disabled,
+  accentFrom, accentTo, placeholder,
 }: {
   text: string;
   setText: (v: string) => void;
   onSend: () => void;
   onImage: (f: File) => void | Promise<void>;
-  onVoice?: (b: Blob, ms: number) => void | Promise<void>;
   disabled?: boolean;
   accentFrom: string;
   accentTo: string;
   placeholder: string;
-  voiceDisabled?: boolean;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [rec, setRec] = useState<MediaRecorder | null>(null);
-  const [recording, setRecording] = useState(false);
-  const startedAt = useRef<number>(0);
+  const recRef = useRef<SpeechRecognitionLike | null>(null);
+  const baseRef = useRef<string>("");
+  const [listening, setListening] = useState(false);
 
-  async function startRec() {
-    if (!onVoice || voiceDisabled) return;
+  function startDictation() {
+    const SR = getSpeechRecognition();
+    if (!SR) { toast.error("আপনার ব্রাউজার voice → text সাপোর্ট করে না"); return; }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mr = new MediaRecorder(stream);
-      const chunks: Blob[] = [];
-      mr.ondataavailable = (e) => chunks.push(e.data);
-      mr.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(chunks, { type: "audio/webm" });
-        const dur = Date.now() - startedAt.current;
-        await onVoice(blob, dur);
+      const r = new SR();
+      r.lang = "bn-BD";
+      r.continuous = true;
+      r.interimResults = true;
+      baseRef.current = text ? text + " " : "";
+      r.onresult = (e) => {
+        let finalT = "";
+        let interim = "";
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const res = e.results[i];
+          const transcript = res[0]?.transcript ?? "";
+          if (res.isFinal) finalT += transcript; else interim += transcript;
+        }
+        if (finalT) baseRef.current += finalT + " ";
+        setText((baseRef.current + interim).trimStart());
       };
-      startedAt.current = Date.now();
-      mr.start();
-      setRec(mr);
-      setRecording(true);
+      r.onerror = (ev) => {
+        if (ev.error && ev.error !== "no-speech" && ev.error !== "aborted") toast.error("মাইক: " + ev.error);
+      };
+      r.onend = () => setListening(false);
+      r.start();
+      recRef.current = r;
+      setListening(true);
     } catch {
-      toast.error("মাইক্রোফোন অ্যাক্সেস ব্যর্থ");
+      toast.error("মাইক চালু করা যায়নি");
     }
   }
-  function stopRec() {
-    rec?.stop(); setRec(null); setRecording(false);
+
+  function stopDictation() {
+    recRef.current?.stop();
+    recRef.current = null;
+    setListening(false);
   }
 
   return (
     <div className="border-t border-slate-200 bg-white p-2.5">
-      {recording && (
+      {listening && (
         <div className="mb-2 flex items-center justify-between rounded-xl bg-rose-50 px-3 py-1.5 ring-1 ring-rose-200">
-          <span className="inline-flex items-center gap-2 text-xs text-rose-700"><span className="h-2 w-2 animate-pulse rounded-full bg-rose-500" /> রেকর্ড হচ্ছে…</span>
-          <button onClick={stopRec} className="inline-flex items-center gap-1 rounded-lg bg-rose-600 px-2 py-1 text-[11px] font-bold text-white">
+          <span className="inline-flex items-center gap-2 text-xs text-rose-700">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-rose-500" /> শুনছি… কথা বলুন
+          </span>
+          <button onClick={stopDictation} className="inline-flex items-center gap-1 rounded-lg bg-rose-600 px-2 py-1 text-[11px] font-bold text-white">
             <Square className="h-3 w-3" /> থামান
           </button>
         </div>
@@ -333,19 +441,18 @@ function Composer({
         </button>
         <input ref={fileRef} type="file" accept="image/*" className="hidden"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) { onImage(f); e.target.value = ""; } }} />
-        {!voiceDisabled && onVoice && (
-          <button
-            onClick={recording ? stopRec : startRec}
-            disabled={disabled}
-            className={cn(
-              "grid h-10 w-10 shrink-0 place-items-center rounded-xl text-white disabled:opacity-40",
-              recording ? "bg-rose-600" : "bg-gradient-to-br from-emerald-500 to-teal-600",
-            )}
-            aria-label="ভয়েস"
-          >
-            {recording ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-          </button>
-        )}
+        <button
+          onClick={listening ? stopDictation : startDictation}
+          disabled={disabled}
+          className={cn(
+            "grid h-10 w-10 shrink-0 place-items-center rounded-xl text-white disabled:opacity-40 transition",
+            listening ? "bg-rose-600 animate-pulse" : "bg-gradient-to-br from-emerald-500 to-teal-600",
+          )}
+          aria-label="ভয়েস থেকে টেক্সট"
+          title="মাইকে বলুন — text এ convert হবে"
+        >
+          {listening ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+        </button>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
