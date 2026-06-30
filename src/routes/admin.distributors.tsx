@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Users2, Plus, Edit3, Trash2, Search, MapPin, Phone, Wallet, Award, UserCheck, Activity, Loader2 } from "lucide-react";
+import { Users2, Plus, Edit3, Trash2, Search, MapPin, Phone, Wallet, Award, UserCheck, Activity } from "lucide-react";
 import { toast } from "sonner";
 import {
   adminListDistributors, adminDeleteDistributor, adminUpdateDistributor,
