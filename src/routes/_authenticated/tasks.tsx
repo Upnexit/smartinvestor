@@ -85,6 +85,10 @@ function TasksPage() {
 
   async function handleDoTask(task: Task) {
     if (!userId) return;
+    if (!emailVerified) {
+      toast.error("টাস্ক করতে হলে আগে ইমেইল ভেরিফাই করুন (প্রোফাইল)");
+      return;
+    }
     if (hasActivePkg === false) {
       toast.error("টাস্ক করতে হলে একটি active প্যাকেজ লাগবে");
       return;
