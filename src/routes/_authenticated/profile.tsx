@@ -109,6 +109,18 @@ function ProfilePage() {
 
   if (!profile) return <div className="h-72 rounded-2xl bg-slate-100 animate-pulse" />;
 
+  // Profile completion percentage
+  const checks = [
+    { key: "নাম",            ok: !!profile.full_name && profile.full_name.trim().length >= 2 },
+    { key: "ইমেইল",          ok: !!profile.email },
+    { key: "ফোন",           ok: /^01[3-9]\d{8}$/.test((profile.phone ?? "").replace(/\D/g, "")) },
+    { key: "পেমেন্ট মেথড",   ok: !!profile.payment_method },
+    { key: "পেমেন্ট নাম্বার", ok: /^01[3-9]\d{8}$/.test((profile.payment_number ?? "").replace(/\D/g, "")) },
+    { key: "রেফারেল কোড",    ok: !!profile.referral_code },
+  ];
+  const completePct = Math.round((checks.filter((c) => c.ok).length / checks.length) * 100);
+  const missing = checks.filter((c) => !c.ok).map((c) => c.key);
+
   return (
     <div className="space-y-5">
       <div>
@@ -121,8 +133,20 @@ function ProfilePage() {
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-600 p-5 text-white shadow-pop">
         <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/15 blur-2xl" />
         <div className="relative flex items-center gap-4">
-          <div className="grid h-16 w-16 place-items-center rounded-2xl bg-white/20 backdrop-blur text-2xl font-bold ring-2 ring-white/40">
-            {(profile.full_name ?? "S")[0]?.toUpperCase()}
+          {/* Circular progress avatar */}
+          <div className="relative grid h-20 w-20 shrink-0 place-items-center">
+            <svg className="absolute inset-0 -rotate-90" viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="3" />
+              <circle cx="18" cy="18" r="16" fill="none" stroke="white" strokeWidth="3"
+                strokeLinecap="round"
+                strokeDasharray={`${(completePct / 100) * 100.53} 100.53`} />
+            </svg>
+            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white/20 backdrop-blur text-xl font-bold ring-1 ring-white/40">
+              {(profile.full_name ?? "S")[0]?.toUpperCase()}
+            </div>
+            <span className="absolute -bottom-1 right-0 rounded-full bg-white px-1.5 py-0.5 text-[10px] font-bold text-rose-600 shadow">
+              {completePct}%
+            </span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="bn-display text-xl truncate">{profile.full_name || "—"}</p>
@@ -132,6 +156,21 @@ function ProfilePage() {
             </button>
           </div>
         </div>
+
+        {/* Completion progress strip */}
+        <div className="relative mt-4">
+          <div className="flex items-center justify-between text-[11px] text-white/90">
+            <span className="font-semibold">প্রোফাইল সম্পূর্ণতা</span>
+            <span className="font-bold">{completePct}%</span>
+          </div>
+          <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-white/20">
+            <div className="h-full rounded-full bg-gradient-to-r from-amber-300 via-white to-emerald-300 transition-all duration-500" style={{ width: `${completePct}%` }} />
+          </div>
+          {missing.length > 0 && (
+            <p className="mt-1.5 text-[10px] text-white/85">বাকি: {missing.join(" · ")}</p>
+          )}
+        </div>
+
         <div className="relative mt-4 grid grid-cols-3 gap-2 text-center">
           <div className="rounded-xl bg-white/15 backdrop-blur p-2">
             <Wallet className="mx-auto h-4 w-4" />
