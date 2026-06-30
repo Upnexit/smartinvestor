@@ -68,18 +68,25 @@ function DashboardPage() {
       }
       try {
         const since = new Date(); since.setDate(since.getDate() - 6); since.setHours(0,0,0,0);
+        const sb = supabase as unknown as {
+          from: (t: string) => {
+            select: (s: string) => {
+              eq: (c: string, v: string) => { gte: (c: string, v: string) => Promise<{ data: Array<Record<string, unknown>> | null }> };
+            };
+          };
+        };
         const [{ data: txs }, { data: refs }] = await Promise.all([
-          supabase.from("transactions").select("amount, type, created_at").eq("user_id", uid).gte("created_at", since.toISOString()),
-          supabase.from("referrals").select("commission, created_at").eq("referrer_id", uid).gte("created_at", since.toISOString()),
+          sb.from("transactions").select("amount, type, created_at").eq("user_id", uid).gte("created_at", since.toISOString()),
+          sb.from("referrals").select("commission, created_at").eq("referrer_id", uid).gte("created_at", since.toISOString()),
         ]);
-        (txs ?? []).forEach((t: { amount: number; type: string; created_at: string }) => {
-          const idx = 6 - Math.floor((today.getTime() - new Date(t.created_at).getTime()) / 86400000);
+        (txs ?? []).forEach((t) => {
+          const idx = 6 - Math.floor((today.getTime() - new Date(t.created_at as string).getTime()) / 86400000);
           if (idx >= 0 && idx < 7) {
             if (t.type === "task_reward") { days[idx].income += Number(t.amount) || 0; days[idx].tasks += 1; }
           }
         });
-        (refs ?? []).forEach((r: { commission: number; created_at: string }) => {
-          const idx = 6 - Math.floor((today.getTime() - new Date(r.created_at).getTime()) / 86400000);
+        (refs ?? []).forEach((r) => {
+          const idx = 6 - Math.floor((today.getTime() - new Date(r.created_at as string).getTime()) / 86400000);
           if (idx >= 0 && idx < 7) days[idx].referral += Number(r.commission) || 0;
         });
       } catch { /* tables may differ; keep zeros */ }
