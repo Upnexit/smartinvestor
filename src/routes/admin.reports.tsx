@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { BarChart3, Download, Trophy } from "lucide-react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { AdminPageHeader, AdminCard, GradientButton, SoftButton, Shimmer } from "@/components/admin/AdminUI";
-import { adminReports, adminTopUsers } from "@/lib/admin.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/reports")({
@@ -12,15 +11,42 @@ export const Route = createFileRoute("/admin/reports")({
   component: ReportsPage,
 });
 
-function ReportsPage() {
-  const reports = useServerFn(adminReports);
-  const top = useServerFn(adminTopUsers);
-  const [days, setDays] = useState(30);
-  const [data, setData] = useState<Awaited<ReturnType<typeof adminReports>> | null>(null);
-  const [leaders, setLeaders] = useState<Awaited<ReturnType<typeof adminTopUsers>> | null>(null);
+type ReportData = {
+  signups: Array<{ created_at: string }>;
+  revenue: Array<{ created_at: string; packages?: { price?: number } | null }>;
+  withdrawals: Array<{ created_at: string; status?: string | null; amount?: number | string | null }>;
+  taskCompletions: Array<{ created_at: string }>;
+};
+type Leader = { id: string; full_name: string | null; total_earned: number | string | null };
 
-  useEffect(() => { void reports({ data: { days } }).then(setData); }, [days, reports]);
-  useEffect(() => { void top().then(setLeaders); }, [top]);
+function ReportsPage() {
+  const [days, setDays] = useState(30);
+  const [data, setData] = useState<ReportData | null>(null);
+  const [leaders, setLeaders] = useState<Leader[] | null>(null);
+
+  useEffect(() => {
+    const since = new Date(Date.now() - days * 86400_000).toISOString();
+    void (async () => {
+      const [s, r, w, t] = await Promise.all([
+        supabase.from("profiles").select("created_at").gte("created_at", since),
+        supabase.from("user_packages").select("created_at, packages(price)").eq("status", "active").gte("created_at", since),
+        supabase.from("withdrawals").select("created_at,status,amount").gte("created_at", since),
+        supabase.from("task_submissions").select("created_at").eq("status", "approved").gte("created_at", since),
+      ]);
+      setData({
+        signups: (s.data ?? []) as ReportData["signups"],
+        revenue: (r.data ?? []) as ReportData["revenue"],
+        withdrawals: (w.data ?? []) as ReportData["withdrawals"],
+        taskCompletions: (t.data ?? []) as ReportData["taskCompletions"],
+      });
+    })();
+  }, [days]);
+
+  useEffect(() => {
+    void supabase.from("profiles").select("id,full_name,total_earned").order("total_earned", { ascending: false }).limit(10)
+      .then(({ data }) => setLeaders((data ?? []) as Leader[]));
+  }, []);
+
 
   const series = useMemo(() => {
     if (!data) return null;
