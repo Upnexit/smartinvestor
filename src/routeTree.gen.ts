@@ -19,6 +19,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTasksRouteImport } from './routes/admin.tasks'
+import { Route as AdminSupportRouteImport } from './routes/admin.support'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminProfileRouteImport } from './routes/admin.profile'
@@ -86,6 +87,11 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
 const AdminTasksRoute = AdminTasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSupportRoute = AdminSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
@@ -206,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/support': typeof AdminSupportRoute
   '/admin/tasks': typeof AdminTasksRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
@@ -235,6 +242,7 @@ export interface FileRoutesByTo {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/support': typeof AdminSupportRoute
   '/admin/tasks': typeof AdminTasksRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/admin': typeof AdminIndexRoute
@@ -266,6 +274,7 @@ export interface FileRoutesById {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/support': typeof AdminSupportRoute
   '/admin/tasks': typeof AdminTasksRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
@@ -298,6 +307,7 @@ export interface FileRouteTypes {
     | '/admin/profile'
     | '/admin/reports'
     | '/admin/settings'
+    | '/admin/support'
     | '/admin/tasks'
     | '/admin/users'
     | '/admin/withdrawals'
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
     | '/admin/profile'
     | '/admin/reports'
     | '/admin/settings'
+    | '/admin/support'
     | '/admin/tasks'
     | '/admin/withdrawals'
     | '/admin'
@@ -357,6 +368,7 @@ export interface FileRouteTypes {
     | '/admin/profile'
     | '/admin/reports'
     | '/admin/settings'
+    | '/admin/support'
     | '/admin/tasks'
     | '/admin/users'
     | '/admin/withdrawals'
@@ -445,6 +457,13 @@ declare module '@tanstack/react-router' {
       path: '/tasks'
       fullPath: '/admin/tasks'
       preLoaderRoute: typeof AdminTasksRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/support': {
+      id: '/admin/support'
+      path: '/support'
+      fullPath: '/admin/support'
+      preLoaderRoute: typeof AdminSupportRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/settings': {
@@ -644,6 +663,7 @@ interface AdminRouteChildren {
   AdminProfileRoute: typeof AdminProfileRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminSupportRoute: typeof AdminSupportRoute
   AdminTasksRoute: typeof AdminTasksRoute
   AdminUsersRoute: typeof AdminUsersRouteWithChildren
   AdminWithdrawalsRoute: typeof AdminWithdrawalsRoute
@@ -659,6 +679,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminProfileRoute: AdminProfileRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminSupportRoute: AdminSupportRoute,
   AdminTasksRoute: AdminTasksRoute,
   AdminUsersRoute: AdminUsersRouteWithChildren,
   AdminWithdrawalsRoute: AdminWithdrawalsRoute,
