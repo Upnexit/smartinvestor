@@ -116,6 +116,7 @@ function ProfilePage() {
   const checks = [
     { key: "নাম",            ok: !!profile.full_name && profile.full_name.trim().length >= 2 },
     { key: "ইমেইল",          ok: !!profile.email },
+    { key: "ইমেইল ভেরিফাইড", ok: !!profile.email_verified },
     { key: "ফোন",           ok: /^01[3-9]\d{8}$/.test((profile.phone ?? "").replace(/\D/g, "")) },
     { key: "পেমেন্ট মেথড",   ok: !!profile.payment_method },
     { key: "পেমেন্ট নাম্বার", ok: /^01[3-9]\d{8}$/.test((profile.payment_number ?? "").replace(/\D/g, "")) },
