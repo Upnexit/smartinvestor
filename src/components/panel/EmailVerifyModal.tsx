@@ -86,8 +86,13 @@ export function EmailVerifyModal({
       setCooldown(60);
       setTimeout(() => inputs.current[0]?.focus(), 50);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "ব্যর্থ";
-      toast.error(msg.includes("Unauthorized") ? "সেশন মেয়াদ শেষ — আবার লগইন করুন" : msg, { id });
+      const raw = e instanceof Error ? e.message : "ব্যর্থ";
+      const friendly = /Unauthorized|authorization header|No session/i.test(raw)
+        ? "সেশন মেয়াদ শেষ — আবার লগইন করে চেষ্টা করুন"
+        : /Missing Supabase/i.test(raw)
+          ? "সার্ভার কনফিগারেশন সমস্যা — কিছুক্ষণ পর আবার চেষ্টা করুন"
+          : raw;
+      toast.error(friendly, { id });
     } finally {
       setSending(false);
     }
