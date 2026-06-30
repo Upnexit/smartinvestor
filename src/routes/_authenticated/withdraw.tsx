@@ -44,6 +44,7 @@ function WithdrawPage() {
   const [submitting, setSubmitting] = useState(false);
   const [history, setHistory] = useState<WD[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+  const [emailVerified, setEmailVerified] = useState(true);
   const paymentBranding = usePaymentBranding();
   const logos = useMemo<Record<Method, string>>(() => ({
     bkash: paymentBranding.bkash.logo_url ?? "",
@@ -57,7 +58,7 @@ function WithdrawPage() {
       if (!u.user) return;
       setUserId(u.user.id);
       const [{ data: p }, { data: w }] = await Promise.all([
-        supabase.from("profiles").select("balance,locked_balance,payment_method,payment_number")
+        supabase.from("profiles").select("balance,locked_balance,payment_method,payment_number,email_verified")
           .eq("id", u.user.id).maybeSingle(),
         supabase.from("withdrawals").select("*").eq("user_id", u.user.id)
           .order("created_at", { ascending: false }).limit(20),
@@ -67,6 +68,7 @@ function WithdrawPage() {
         setLocked(Number(p.locked_balance) || 0);
         if (p.payment_method) setMethod(p.payment_method as Method);
         if (p.payment_number) setAccountNumber(p.payment_number);
+        setEmailVerified(!!p.email_verified);
       }
       setHistory((w ?? []) as WD[]);
     })();
@@ -82,6 +84,7 @@ function WithdrawPage() {
 
   async function handleSubmit() {
     if (!userId || !phoneValid || !amountValid) return;
+    if (!emailVerified) { toast.error("আগে ইমেইল ভেরিফাই করুন (প্রোফাইল)"); return; }
     setSubmitting(true);
     const tId = toast.loading("রিকোয়েস্ট পাঠানো হচ্ছে…");
     try {

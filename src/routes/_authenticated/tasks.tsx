@@ -45,21 +45,24 @@ function TasksPage() {
   const [filter, setFilter] = useState<string>("all");
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [emailVerified, setEmailVerified] = useState(true);
 
   useEffect(() => {
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
       setUserId(u.user.id);
-      const [{ data: t }, { data: s }, { data: up }] = await Promise.all([
+      const [{ data: t }, { data: s }, { data: up }, { data: prof }] = await Promise.all([
         supabase.from("link_tasks").select("*").eq("active", true).order("created_at", { ascending: false }),
         supabase.from("task_submissions").select("task_id,status,created_at").eq("user_id", u.user.id)
           .gte("created_at", new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
         supabase.from("user_packages").select("id").eq("user_id", u.user.id).eq("status", "active").limit(1),
+        supabase.from("profiles").select("email_verified").eq("id", u.user.id).maybeSingle(),
       ]);
       setTasks((t ?? []) as Task[]);
       setSubs((s ?? []) as Submission[]);
       setHasActivePkg((up ?? []).length > 0);
+      setEmailVerified(!!prof?.email_verified);
     })();
   }, []);
 
@@ -82,6 +85,10 @@ function TasksPage() {
 
   async function handleDoTask(task: Task) {
     if (!userId) return;
+    if (!emailVerified) {
+      toast.error("টাস্ক করতে হলে আগে ইমেইল ভেরিফাই করুন (প্রোফাইল)");
+      return;
+    }
     if (hasActivePkg === false) {
       toast.error("টাস্ক করতে হলে একটি active প্যাকেজ লাগবে");
       return;

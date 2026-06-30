@@ -3,10 +3,11 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   User as UserIcon, Mail, Phone, Smartphone, Save, Loader2, Lock,
-  Copy, Check, ShieldCheck, Crown, Wallet, TrendingUp,
+  Copy, Check, ShieldCheck, Crown, Wallet, TrendingUp, BadgeCheck, AlertCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { EmailVerifyModal } from "@/components/panel/EmailVerifyModal";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({ meta: [{ title: "প্রোফাইল — Smart Investor" }] }),
@@ -28,6 +29,7 @@ type Profile = {
   locked_balance: number;
   total_earned: number;
   avatar_url: string | null;
+  email_verified: boolean;
 };
 
 function ProfilePage() {
@@ -41,6 +43,7 @@ function ProfilePage() {
   const [pwOld, setPwOld] = useState("");
   const [pwNew, setPwNew] = useState("");
   const [pwBusy, setPwBusy] = useState(false);
+  const [verifyOpen, setVerifyOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -113,6 +116,7 @@ function ProfilePage() {
   const checks = [
     { key: "নাম",            ok: !!profile.full_name && profile.full_name.trim().length >= 2 },
     { key: "ইমেইল",          ok: !!profile.email },
+    { key: "ইমেইল ভেরিফাইড", ok: !!profile.email_verified },
     { key: "ফোন",           ok: /^01[3-9]\d{8}$/.test((profile.phone ?? "").replace(/\D/g, "")) },
     { key: "পেমেন্ট মেথড",   ok: !!profile.payment_method },
     { key: "পেমেন্ট নাম্বার", ok: /^01[3-9]\d{8}$/.test((profile.payment_number ?? "").replace(/\D/g, "")) },
@@ -197,7 +201,22 @@ function ProfilePage() {
           <input value={fullName} onChange={(e) => setFullName(e.target.value)} className="profile-input" />
         </Field>
         <Field label="ইমেইল" icon={Mail}>
-          <input value={profile.email ?? ""} disabled className="profile-input bg-slate-50 text-slate-500" />
+          <div className="flex items-center gap-2">
+            <input value={profile.email ?? ""} disabled className="profile-input bg-slate-50 text-slate-500 flex-1" />
+            {profile.email_verified ? (
+              <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-2 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200">
+                <BadgeCheck className="h-4 w-4" /> ভেরিফাইড
+              </span>
+            ) : (
+              <button type="button" onClick={() => setVerifyOpen(true)}
+                className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 px-3 py-2 text-xs font-bold text-white shadow hover:opacity-95">
+                <AlertCircle className="h-4 w-4" /> ভেরিফাই করুন
+              </button>
+            )}
+          </div>
+          {!profile.email_verified && (
+            <p className="mt-1.5 text-[11px] text-amber-700">টাস্ক/উইথড্র করতে ইমেইল ভেরিফিকেশন আবশ্যক।</p>
+          )}
         </Field>
         <Field label="ফোন নাম্বার" icon={Phone}>
           <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01XXXXXXXXX" inputMode="numeric" maxLength={14}
@@ -246,6 +265,13 @@ function ProfilePage() {
       </section>
 
       <style>{`.profile-input{width:100%;border-radius:0.75rem;border:2px solid #e2e8f0;padding:0.75rem 1rem;outline:none;transition:border-color .15s}.profile-input:focus{border-color:#f43f5e}`}</style>
+
+      <EmailVerifyModal
+        email={profile.email ?? ""}
+        open={verifyOpen}
+        onClose={() => setVerifyOpen(false)}
+        onVerified={() => setProfile({ ...profile, email_verified: true })}
+      />
     </div>
   );
 }
