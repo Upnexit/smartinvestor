@@ -243,3 +243,18 @@ function UsersPage() {
     </>
   );
 }
+
+function ExportBtn({ onClick, label, Icon, gradient, shadow }: {
+  onClick: () => void; label: string; Icon: typeof Users; gradient: string; shadow: string;
+}) {
+  return (
+    <button onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br px-3 py-2 text-xs font-bold text-white shadow-lg ring-1 ring-white/20 transition-all hover:scale-[1.04] hover:-translate-y-0.5 active:scale-95",
+        gradient, shadow,
+      )}
+    >
+      <Icon className="h-3.5 w-3.5" /> {label}
+    </button>
+  );
+}
