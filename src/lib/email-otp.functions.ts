@@ -55,13 +55,19 @@ function buildRaw(to: string, fromEmail: string, subject: string, html: string) 
 }
 
 async function getGmailAddress(): Promise<string> {
+  if (!process.env.LOVABLE_API_KEY) throw new Error("সার্ভার কনফিগারেশন ত্রুটি: LOVABLE_API_KEY অনুপস্থিত");
+  if (!process.env.GOOGLE_MAIL_API_KEY) throw new Error("Gmail সংযোগ পাওয়া যায়নি — অ্যাডমিনকে জানান");
   const r = await fetch(`${GATEWAY}/users/me/profile`, {
     headers: {
       Authorization: `Bearer ${process.env.LOVABLE_API_KEY}`,
-      "X-Connection-Api-Key": process.env.GOOGLE_MAIL_API_KEY!,
+      "X-Connection-Api-Key": process.env.GOOGLE_MAIL_API_KEY,
     },
   });
-  if (!r.ok) throw new Error("Gmail profile fetch failed");
+  if (!r.ok) {
+    const t = await r.text().catch(() => "");
+    console.error("[gmail] profile fetch failed", r.status, t.slice(0, 300));
+    throw new Error(`Gmail সংযোগ ব্যর্থ (${r.status})`);
+  }
   const j = (await r.json()) as { emailAddress?: string };
   return j.emailAddress ?? "no-reply@smartinvestor.app";
 }
@@ -156,3 +162,61 @@ export const verifyEmailOtp = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
+
+// Update the signed-in user's email (auth + profile) and reset verification.
+// Used by the verification modal when the user wants to correct a wrong email.
+export const updateMyEmail = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ email: z.string().trim().toLowerCase().email("সঠিক ইমেইল দিন") }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const newEmail = data.email;
+
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("email")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (prof?.email?.toLowerCase() === newEmail) {
+      return { ok: true, changed: false, email: newEmail };
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Reject if another user already owns this email
+    const { data: existing } = await supabaseAdmin
+      .from("profiles")
+      .select("id")
+      .eq("email", newEmail)
+      .neq("id", userId)
+      .maybeSingle();
+    if (existing) throw new Error("এই ইমেইল ইতিমধ্যে ব্যবহৃত");
+
+    const { error: aErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      email: newEmail,
+      email_confirm: true,
+    });
+    if (aErr) {
+      console.error("[updateMyEmail] auth admin error", aErr);
+      throw new Error(aErr.message || "ইমেইল আপডেট ব্যর্থ");
+    }
+
+    const { error: pErr } = await supabaseAdmin
+      .from("profiles")
+      .update({ email: newEmail, email_verified: false })
+      .eq("id", userId);
+    if (pErr) throw new Error(pErr.message);
+
+    // Invalidate any pending OTPs
+    await supabaseAdmin
+      .from("email_otps")
+      .update({ consumed_at: new Date().toISOString() })
+      .eq("user_id", userId)
+      .is("consumed_at", null);
+
+    return { ok: true, changed: true, email: newEmail };
+  });
+

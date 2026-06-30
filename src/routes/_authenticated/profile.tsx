@@ -271,7 +271,9 @@ function ProfilePage() {
         open={verifyOpen}
         onClose={() => setVerifyOpen(false)}
         onVerified={() => setProfile({ ...profile, email_verified: true })}
+        onEmailChanged={(newEmail) => setProfile({ ...profile, email: newEmail, email_verified: false })}
       />
+
     </div>
   );
 }
