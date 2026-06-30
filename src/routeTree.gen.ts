@@ -11,11 +11,17 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as OurPackagesRouteImport } from './routes/our-packages'
+import { Route as DistributorRouteImport } from './routes/distributor'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DistributorIndexRouteImport } from './routes/distributor.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as DistributorUsersRouteImport } from './routes/distributor.users'
+import { Route as DistributorSupportRouteImport } from './routes/distributor.support'
+import { Route as DistributorProfileRouteImport } from './routes/distributor.profile'
+import { Route as DistributorEarningsRouteImport } from './routes/distributor.earnings'
 import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTasksRouteImport } from './routes/admin.tasks'
@@ -26,6 +32,7 @@ import { Route as AdminProfileRouteImport } from './routes/admin.profile'
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
 import { Route as AdminMonitorRouteImport } from './routes/admin.monitor'
+import { Route as AdminDistributorsRouteImport } from './routes/admin.distributors'
 import { Route as AdminCommunityRouteImport } from './routes/admin.community'
 import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
 import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticated/withdraw'
@@ -50,6 +57,11 @@ const OurPackagesRoute = OurPackagesRouteImport.update({
   path: '/our-packages',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DistributorRoute = DistributorRouteImport.update({
+  id: '/distributor',
+  path: '/distributor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -69,10 +81,35 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DistributorIndexRoute = DistributorIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DistributorRoute,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const DistributorUsersRoute = DistributorUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => DistributorRoute,
+} as any)
+const DistributorSupportRoute = DistributorSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => DistributorRoute,
+} as any)
+const DistributorProfileRoute = DistributorProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => DistributorRoute,
+} as any)
+const DistributorEarningsRoute = DistributorEarningsRouteImport.update({
+  id: '/earnings',
+  path: '/earnings',
+  getParentRoute: () => DistributorRoute,
 } as any)
 const AdminWithdrawalsRoute = AdminWithdrawalsRouteImport.update({
   id: '/withdrawals',
@@ -122,6 +159,11 @@ const AdminPackagesRoute = AdminPackagesRouteImport.update({
 const AdminMonitorRoute = AdminMonitorRouteImport.update({
   id: '/monitor',
   path: '/monitor',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDistributorsRoute = AdminDistributorsRouteImport.update({
+  id: '/distributors',
+  path: '/distributors',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminCommunityRoute = AdminCommunityRouteImport.update({
@@ -194,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/distributor': typeof DistributorRouteWithChildren
   '/our-packages': typeof OurPackagesRoute
   '/register': typeof RegisterRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
@@ -206,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/community': typeof AdminCommunityRoute
+  '/admin/distributors': typeof AdminDistributorsRoute
   '/admin/monitor': typeof AdminMonitorRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/payments': typeof AdminPaymentsRoute
@@ -216,7 +260,12 @@ export interface FileRoutesByFullPath {
   '/admin/tasks': typeof AdminTasksRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
+  '/distributor/earnings': typeof DistributorEarningsRoute
+  '/distributor/profile': typeof DistributorProfileRoute
+  '/distributor/support': typeof DistributorSupportRoute
+  '/distributor/users': typeof DistributorUsersRoute
   '/admin/': typeof AdminIndexRoute
+  '/distributor/': typeof DistributorIndexRoute
   '/packages/$id': typeof AuthenticatedPackagesIdRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/admin/users/': typeof AdminUsersIndexRoute
@@ -236,6 +285,7 @@ export interface FileRoutesByTo {
   '/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/community': typeof AdminCommunityRoute
+  '/admin/distributors': typeof AdminDistributorsRoute
   '/admin/monitor': typeof AdminMonitorRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/payments': typeof AdminPaymentsRoute
@@ -245,7 +295,12 @@ export interface FileRoutesByTo {
   '/admin/support': typeof AdminSupportRoute
   '/admin/tasks': typeof AdminTasksRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
+  '/distributor/earnings': typeof DistributorEarningsRoute
+  '/distributor/profile': typeof DistributorProfileRoute
+  '/distributor/support': typeof DistributorSupportRoute
+  '/distributor/users': typeof DistributorUsersRoute
   '/admin': typeof AdminIndexRoute
+  '/distributor': typeof DistributorIndexRoute
   '/packages/$id': typeof AuthenticatedPackagesIdRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/admin/users': typeof AdminUsersIndexRoute
@@ -256,6 +311,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/distributor': typeof DistributorRouteWithChildren
   '/our-packages': typeof OurPackagesRoute
   '/register': typeof RegisterRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
@@ -268,6 +324,7 @@ export interface FileRoutesById {
   '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/community': typeof AdminCommunityRoute
+  '/admin/distributors': typeof AdminDistributorsRoute
   '/admin/monitor': typeof AdminMonitorRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/payments': typeof AdminPaymentsRoute
@@ -278,7 +335,12 @@ export interface FileRoutesById {
   '/admin/tasks': typeof AdminTasksRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
+  '/distributor/earnings': typeof DistributorEarningsRoute
+  '/distributor/profile': typeof DistributorProfileRoute
+  '/distributor/support': typeof DistributorSupportRoute
+  '/distributor/users': typeof DistributorUsersRoute
   '/admin/': typeof AdminIndexRoute
+  '/distributor/': typeof DistributorIndexRoute
   '/_authenticated/packages/$id': typeof AuthenticatedPackagesIdRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/admin/users/': typeof AdminUsersIndexRoute
@@ -289,6 +351,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/distributor'
     | '/our-packages'
     | '/register'
     | '/checkout'
@@ -301,6 +364,7 @@ export interface FileRouteTypes {
     | '/withdraw'
     | '/admin/approvals'
     | '/admin/community'
+    | '/admin/distributors'
     | '/admin/monitor'
     | '/admin/packages'
     | '/admin/payments'
@@ -311,7 +375,12 @@ export interface FileRouteTypes {
     | '/admin/tasks'
     | '/admin/users'
     | '/admin/withdrawals'
+    | '/distributor/earnings'
+    | '/distributor/profile'
+    | '/distributor/support'
+    | '/distributor/users'
     | '/admin/'
+    | '/distributor/'
     | '/packages/$id'
     | '/admin/users/$id'
     | '/admin/users/'
@@ -331,6 +400,7 @@ export interface FileRouteTypes {
     | '/withdraw'
     | '/admin/approvals'
     | '/admin/community'
+    | '/admin/distributors'
     | '/admin/monitor'
     | '/admin/packages'
     | '/admin/payments'
@@ -340,7 +410,12 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/admin/tasks'
     | '/admin/withdrawals'
+    | '/distributor/earnings'
+    | '/distributor/profile'
+    | '/distributor/support'
+    | '/distributor/users'
     | '/admin'
+    | '/distributor'
     | '/packages/$id'
     | '/admin/users/$id'
     | '/admin/users'
@@ -350,6 +425,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/admin'
     | '/auth'
+    | '/distributor'
     | '/our-packages'
     | '/register'
     | '/_authenticated/checkout'
@@ -362,6 +438,7 @@ export interface FileRouteTypes {
     | '/_authenticated/withdraw'
     | '/admin/approvals'
     | '/admin/community'
+    | '/admin/distributors'
     | '/admin/monitor'
     | '/admin/packages'
     | '/admin/payments'
@@ -372,7 +449,12 @@ export interface FileRouteTypes {
     | '/admin/tasks'
     | '/admin/users'
     | '/admin/withdrawals'
+    | '/distributor/earnings'
+    | '/distributor/profile'
+    | '/distributor/support'
+    | '/distributor/users'
     | '/admin/'
+    | '/distributor/'
     | '/_authenticated/packages/$id'
     | '/admin/users/$id'
     | '/admin/users/'
@@ -383,6 +465,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
+  DistributorRoute: typeof DistributorRouteWithChildren
   OurPackagesRoute: typeof OurPackagesRoute
   RegisterRoute: typeof RegisterRoute
 }
@@ -401,6 +484,13 @@ declare module '@tanstack/react-router' {
       path: '/our-packages'
       fullPath: '/our-packages'
       preLoaderRoute: typeof OurPackagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/distributor': {
+      id: '/distributor'
+      path: '/distributor'
+      fullPath: '/distributor'
+      preLoaderRoute: typeof DistributorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -431,12 +521,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/distributor/': {
+      id: '/distributor/'
+      path: '/'
+      fullPath: '/distributor/'
+      preLoaderRoute: typeof DistributorIndexRouteImport
+      parentRoute: typeof DistributorRoute
+    }
     '/admin/': {
       id: '/admin/'
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/distributor/users': {
+      id: '/distributor/users'
+      path: '/users'
+      fullPath: '/distributor/users'
+      preLoaderRoute: typeof DistributorUsersRouteImport
+      parentRoute: typeof DistributorRoute
+    }
+    '/distributor/support': {
+      id: '/distributor/support'
+      path: '/support'
+      fullPath: '/distributor/support'
+      preLoaderRoute: typeof DistributorSupportRouteImport
+      parentRoute: typeof DistributorRoute
+    }
+    '/distributor/profile': {
+      id: '/distributor/profile'
+      path: '/profile'
+      fullPath: '/distributor/profile'
+      preLoaderRoute: typeof DistributorProfileRouteImport
+      parentRoute: typeof DistributorRoute
+    }
+    '/distributor/earnings': {
+      id: '/distributor/earnings'
+      path: '/earnings'
+      fullPath: '/distributor/earnings'
+      preLoaderRoute: typeof DistributorEarningsRouteImport
+      parentRoute: typeof DistributorRoute
     }
     '/admin/withdrawals': {
       id: '/admin/withdrawals'
@@ -506,6 +631,13 @@ declare module '@tanstack/react-router' {
       path: '/monitor'
       fullPath: '/admin/monitor'
       preLoaderRoute: typeof AdminMonitorRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/distributors': {
+      id: '/admin/distributors'
+      path: '/distributors'
+      fullPath: '/admin/distributors'
+      preLoaderRoute: typeof AdminDistributorsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/community': {
@@ -657,6 +789,7 @@ const AdminUsersRouteWithChildren = AdminUsersRoute._addFileChildren(
 interface AdminRouteChildren {
   AdminApprovalsRoute: typeof AdminApprovalsRoute
   AdminCommunityRoute: typeof AdminCommunityRoute
+  AdminDistributorsRoute: typeof AdminDistributorsRoute
   AdminMonitorRoute: typeof AdminMonitorRoute
   AdminPackagesRoute: typeof AdminPackagesRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
@@ -673,6 +806,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminApprovalsRoute: AdminApprovalsRoute,
   AdminCommunityRoute: AdminCommunityRoute,
+  AdminDistributorsRoute: AdminDistributorsRoute,
   AdminMonitorRoute: AdminMonitorRoute,
   AdminPackagesRoute: AdminPackagesRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
@@ -688,11 +822,32 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface DistributorRouteChildren {
+  DistributorEarningsRoute: typeof DistributorEarningsRoute
+  DistributorProfileRoute: typeof DistributorProfileRoute
+  DistributorSupportRoute: typeof DistributorSupportRoute
+  DistributorUsersRoute: typeof DistributorUsersRoute
+  DistributorIndexRoute: typeof DistributorIndexRoute
+}
+
+const DistributorRouteChildren: DistributorRouteChildren = {
+  DistributorEarningsRoute: DistributorEarningsRoute,
+  DistributorProfileRoute: DistributorProfileRoute,
+  DistributorSupportRoute: DistributorSupportRoute,
+  DistributorUsersRoute: DistributorUsersRoute,
+  DistributorIndexRoute: DistributorIndexRoute,
+}
+
+const DistributorRouteWithChildren = DistributorRoute._addFileChildren(
+  DistributorRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
+  DistributorRoute: DistributorRouteWithChildren,
   OurPackagesRoute: OurPackagesRoute,
   RegisterRoute: RegisterRoute,
 }
