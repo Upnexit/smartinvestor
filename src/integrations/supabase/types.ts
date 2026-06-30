@@ -186,6 +186,7 @@ export type Database = {
           daily_tasks: number
           description: string | null
           duration_days: number
+          featured: boolean
           id: string
           image_url: string | null
           name: string
@@ -200,6 +201,7 @@ export type Database = {
           daily_tasks?: number
           description?: string | null
           duration_days?: number
+          featured?: boolean
           id?: string
           image_url?: string | null
           name: string
@@ -214,6 +216,7 @@ export type Database = {
           daily_tasks?: number
           description?: string | null
           duration_days?: number
+          featured?: boolean
           id?: string
           image_url?: string | null
           name?: string
@@ -621,6 +624,7 @@ export type Database = {
           daily_tasks: number
           description: string | null
           duration_days: number
+          featured: boolean
           id: string
           image_url: string | null
           name: string
@@ -644,6 +648,7 @@ export type Database = {
           daily_tasks: number
           description: string | null
           duration_days: number
+          featured: boolean
           id: string
           image_url: string | null
           name: string
@@ -686,6 +691,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      expire_user_packages: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
