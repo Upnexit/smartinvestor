@@ -44,6 +44,7 @@ function WithdrawPage() {
   const [submitting, setSubmitting] = useState(false);
   const [history, setHistory] = useState<WD[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+  const [emailVerified, setEmailVerified] = useState(true);
   const paymentBranding = usePaymentBranding();
   const logos = useMemo<Record<Method, string>>(() => ({
     bkash: paymentBranding.bkash.logo_url ?? "",
