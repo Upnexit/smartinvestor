@@ -76,6 +76,7 @@ export type Database = {
           content: string | null
           created_at: string
           id: string
+          image_url: string | null
           user_id: string
           voice_duration_ms: number | null
           voice_url: string | null
@@ -84,6 +85,7 @@ export type Database = {
           content?: string | null
           created_at?: string
           id?: string
+          image_url?: string | null
           user_id: string
           voice_duration_ms?: number | null
           voice_url?: string | null
@@ -92,6 +94,7 @@ export type Database = {
           content?: string | null
           created_at?: string
           id?: string
+          image_url?: string | null
           user_id?: string
           voice_duration_ms?: number | null
           voice_url?: string | null
