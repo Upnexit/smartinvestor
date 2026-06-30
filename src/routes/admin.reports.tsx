@@ -347,7 +347,7 @@ function ReportsPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="d" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip formatter={(v: number | null) => v == null ? "—" : "৳" + Number(v).toLocaleString("en-IN")} />
+                <Tooltip formatter={(v) => v == null ? "—" : "৳" + Number(v).toLocaleString("en-IN")} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
                 <Area type="monotone" dataKey="revenue" name="বাস্তব রেভিনিউ" stroke="#6366f1" fill="url(#rev-actual)" strokeWidth={2} />
                 <Area type="monotone" dataKey="projected" name="পূর্বাভাস" stroke="#ec4899" fill="url(#rev-proj)" strokeWidth={2} strokeDasharray="4 4" />
