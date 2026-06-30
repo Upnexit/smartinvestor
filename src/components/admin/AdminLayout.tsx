@@ -21,6 +21,7 @@ export const ADMIN_NAV: NavItem[] = [
   { to: "/admin/payments",     label: "পেমেন্ট গেটওয়ে",      Icon: CreditCard,      accent: "pink" },
   { to: "/admin/tasks",        label: "টাস্ক লিংক",          Icon: ListChecks,      accent: "rose" },
   { to: "/admin/community",    label: "কমিউনিটি চ্যাট",      Icon: MessagesSquare,  accent: "purple" },
+  { to: "/admin/support",      label: "সাপোর্ট চ্যাট",       Icon: MessagesSquare,  accent: "rose" },
   { to: "/admin/reports",      label: "রিপোর্ট",            Icon: BarChart3,       accent: "indigo" },
   { to: "/admin/monitor",      label: "সিস্টেম মনিটর",       Icon: Activity,        accent: "lime" },
   { to: "/admin/settings",     label: "হোমপেজ সেটিংস",       Icon: Settings,        accent: "teal" },

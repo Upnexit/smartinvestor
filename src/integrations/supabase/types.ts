@@ -244,6 +244,8 @@ export type Database = {
           referral_code: string | null
           referred_by: string | null
           signup_bonus_paid: boolean
+          status: Database["public"]["Enums"]["user_status"]
+          suspend_reason: string | null
           tasks_completed: number
           total_earned: number
           updated_at: string
@@ -263,6 +265,8 @@ export type Database = {
           referral_code?: string | null
           referred_by?: string | null
           signup_bonus_paid?: boolean
+          status?: Database["public"]["Enums"]["user_status"]
+          suspend_reason?: string | null
           tasks_completed?: number
           total_earned?: number
           updated_at?: string
@@ -282,6 +286,8 @@ export type Database = {
           referral_code?: string | null
           referred_by?: string | null
           signup_bonus_paid?: boolean
+          status?: Database["public"]["Enums"]["user_status"]
+          suspend_reason?: string | null
           tasks_completed?: number
           total_earned?: number
           updated_at?: string
@@ -331,6 +337,30 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      support_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          sender: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          sender: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          sender?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -642,6 +672,41 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_set_user_status: {
+        Args: {
+          _actor: string
+          _reason?: string
+          _status: Database["public"]["Enums"]["user_status"]
+          _user_id: string
+        }
+        Returns: {
+          avatar_url: string | null
+          balance: number
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          locked_balance: number
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          payment_number: string
+          phone: string | null
+          referral_code: string | null
+          referred_by: string | null
+          signup_bonus_paid: boolean
+          status: Database["public"]["Enums"]["user_status"]
+          suspend_reason: string | null
+          tasks_completed: number
+          total_earned: number
+          updated_at: string
+          user_code: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_toggle_package: {
         Args: { _active: boolean; _actor: string; _id: string }
         Returns: {
@@ -682,6 +747,8 @@ export type Database = {
           referral_code: string | null
           referred_by: string | null
           signup_bonus_paid: boolean
+          status: Database["public"]["Enums"]["user_status"]
+          suspend_reason: string | null
           tasks_completed: number
           total_earned: number
           updated_at: string
@@ -708,6 +775,7 @@ export type Database = {
       package_status: "pending" | "active" | "rejected" | "expired"
       payment_method: "bkash" | "nagad" | "rocket"
       submission_status: "pending" | "approved" | "rejected"
+      user_status: "active" | "suspended" | "banned"
       withdrawal_status: "pending" | "approved" | "rejected" | "paid"
     }
     CompositeTypes: {
@@ -840,6 +908,7 @@ export const Constants = {
       package_status: ["pending", "active", "rejected", "expired"],
       payment_method: ["bkash", "nagad", "rocket"],
       submission_status: ["pending", "approved", "rejected"],
+      user_status: ["active", "suspended", "banned"],
       withdrawal_status: ["pending", "approved", "rejected", "paid"],
     },
   },
