@@ -143,9 +143,9 @@ function DashboardPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-dashed border-amber-300 bg-amber-50/60 p-4 text-sm text-amber-900 flex items-center gap-3">
-        <Sparkles className="h-5 w-5 shrink-0" />
-        <span>সম্পূর্ণ ড্যাশবোর্ড (চার্ট, প্যাকেজ স্ট্যাটাস, রিসেন্ট অ্যাক্টিভিটি) পরবর্তী ধাপে যোগ হবে।</span>
+      <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-rose-50 to-emerald-50 p-4 text-sm text-amber-900 flex items-center gap-3">
+        <Sparkles className="h-5 w-5 shrink-0 text-amber-600" />
+        <span>প্যাকেজ ক্রয় করে দৈনিক টাস্ক unlock করুন এবং ৪৫ দিনে ১১০% পর্যন্ত রিটার্ন অর্জন করুন।</span>
       </div>
     </div>
   );
