@@ -55,13 +55,19 @@ function buildRaw(to: string, fromEmail: string, subject: string, html: string) 
 }
 
 async function getGmailAddress(): Promise<string> {
+  if (!process.env.LOVABLE_API_KEY) throw new Error("সার্ভার কনফিগারেশন ত্রুটি: LOVABLE_API_KEY অনুপস্থিত");
+  if (!process.env.GOOGLE_MAIL_API_KEY) throw new Error("Gmail সংযোগ পাওয়া যায়নি — অ্যাডমিনকে জানান");
   const r = await fetch(`${GATEWAY}/users/me/profile`, {
     headers: {
       Authorization: `Bearer ${process.env.LOVABLE_API_KEY}`,
-      "X-Connection-Api-Key": process.env.GOOGLE_MAIL_API_KEY!,
+      "X-Connection-Api-Key": process.env.GOOGLE_MAIL_API_KEY,
     },
   });
-  if (!r.ok) throw new Error("Gmail profile fetch failed");
+  if (!r.ok) {
+    const t = await r.text().catch(() => "");
+    console.error("[gmail] profile fetch failed", r.status, t.slice(0, 300));
+    throw new Error(`Gmail সংযোগ ব্যর্থ (${r.status})`);
+  }
   const j = (await r.json()) as { emailAddress?: string };
   return j.emailAddress ?? "no-reply@smartinvestor.app";
 }
