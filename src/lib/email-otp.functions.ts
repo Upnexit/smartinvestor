@@ -74,6 +74,7 @@ async function getGmailAddress(): Promise<string> {
 
 export const sendEmailOtp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
+  .inputValidator(() => ({}))
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
 

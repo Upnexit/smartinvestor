@@ -80,7 +80,7 @@ export function EmailVerifyModal({
     setSending(true);
     const id = toast.loading("কোড পাঠানো হচ্ছে…");
     try {
-      await sendFn();
+      await sendFn({ data: {} });
       toast.success("কোড আপনার ইমেইলে পাঠানো হয়েছে", { id });
       setSent(true);
       setCooldown(60);
