@@ -1,15 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Users, Search, Trash2, Eye, Download, UserPlus, ShieldCheck, UserCog, Pencil, X, Ban, ShieldOff } from "lucide-react";
+import { Users, Search, Trash2, Eye, FileSpreadsheet, FileText, Printer, FileDown, UserPlus, ShieldCheck, UserCog, Pencil, X, Ban, ShieldOff } from "lucide-react";
 import {
-  AdminPageHeader, AdminCard, GradientButton, SoftButton, Shimmer, EmptyState, ConfirmDeleteModal,
+  AdminPageHeader, AdminCard, SoftButton, Shimmer, EmptyState, ConfirmDeleteModal,
 } from "@/components/admin/AdminUI";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
 import { listUsers, deleteUser, subscribeTable, setUserStatus } from "@/lib/admin-client";
 import { UserEditDrawer } from "@/components/admin/UserEditDrawer";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from "@/hooks/use-site-settings";
+import { exportCsv, exportExcel, exportPrint, exportPdf } from "@/lib/users-export";
 
 type Search = { q?: string };
 type User = {
@@ -91,15 +93,17 @@ function UsersPage() {
     finally { setBusy(null); }
   };
 
-  const exportCsv = () => {
-    if (!users) return;
-    const header = ["id","full_name","email","phone","balance","locked_balance","total_earned","tasks_completed","created_at"];
-    const rows = users.map((u) => header.map((h) => `"${String((u as unknown as Record<string, unknown>)[h] ?? "").replace(/"/g,'""')}"`).join(","));
-    const csv = header.join(",") + "\n" + rows.join("\n");
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    a.download = `users-${Date.now()}.csv`; a.click();
+  const settings = useSiteSettings();
+  const brand = { site_name: settings.site_name, tagline: settings.tagline, logo_url: settings.logo_url };
+
+  const guard = (fn: () => void) => () => {
+    if (!users || users.length === 0) return toast.error("কোনো ইউজার নেই");
+    try { fn(); } catch (e) { toast.error(e instanceof Error ? e.message : "এক্সপোর্ট ব্যর্থ"); }
   };
+  const onCsv = guard(() => exportCsv(users!, brand));
+  const onExcel = guard(() => { exportExcel(users!, brand); toast.success("Excel ফাইল ডাউনলোড হচ্ছে"); });
+  const onPrint = guard(() => exportPrint(users!, brand));
+  const onPdf = guard(() => exportPdf(users!, brand));
 
   const totalEarnedSum = users ? users.reduce((s,u)=>s + Number(u.total_earned||0),0) : 0;
 
@@ -113,7 +117,14 @@ function UsersPage() {
   return (
     <>
       <AdminPageHeader accent="sky" Icon={Users} title="ইউজার ম্যানেজমেন্ট" subtitle="সকল ইউজার, সার্চ, এডিট, সাসপেন্ড, ডিলিট"
-        action={<GradientButton accent="sky" onClick={exportCsv}><Download className="h-4 w-4" /> CSV</GradientButton>} />
+        action={
+          <div className="flex flex-wrap items-center gap-1.5">
+            <ExportBtn onClick={onCsv} label="CSV" Icon={FileText} gradient="from-slate-600 to-slate-800" shadow="shadow-slate-500/30" />
+            <ExportBtn onClick={onExcel} label="Excel" Icon={FileSpreadsheet} gradient="from-emerald-500 to-green-600" shadow="shadow-emerald-500/40" />
+            <ExportBtn onClick={onPdf} label="PDF" Icon={FileDown} gradient="from-rose-500 to-red-600" shadow="shadow-rose-500/40" />
+            <ExportBtn onClick={onPrint} label="Print" Icon={Printer} gradient="from-sky-500 to-indigo-600" shadow="shadow-sky-500/40" />
+          </div>
+        } />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {tiles.map((t) => (
@@ -230,5 +241,20 @@ function UsersPage() {
         <UserEditDrawer userId={edit.id} initial={edit} onClose={() => setEdit(null)} onSaved={() => { setEdit(null); refresh(); }} />
       )}
     </>
+  );
+}
+
+function ExportBtn({ onClick, label, Icon, gradient, shadow }: {
+  onClick: () => void; label: string; Icon: typeof Users; gradient: string; shadow: string;
+}) {
+  return (
+    <button onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br px-3 py-2 text-xs font-bold text-white shadow-lg ring-1 ring-white/20 transition-all hover:scale-[1.04] hover:-translate-y-0.5 active:scale-95",
+        gradient, shadow,
+      )}
+    >
+      <Icon className="h-3.5 w-3.5" /> {label}
+    </button>
   );
 }
