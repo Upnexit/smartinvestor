@@ -155,7 +155,11 @@ function WithdrawPage() {
                         : "bg-white border-slate-200 text-slate-700 hover:border-slate-300",
                   )}
                 >
-                  <Smartphone className={cn("mx-auto h-5 w-5", sel ? "text-white" : "text-slate-500")} />
+                  {logos[m] ? (
+                    <img src={logos[m]} alt={b.name} className={cn("mx-auto h-7 w-7 object-contain rounded", sel && "bg-white/90 p-0.5")} />
+                  ) : (
+                    <Smartphone className={cn("mx-auto h-5 w-5", sel ? "text-white" : "text-slate-500")} />
+                  )}
                   <p className="mt-1 text-xs font-bold">{b.name}</p>
                 </button>
               );
