@@ -71,6 +71,15 @@ export async function deleteUser(userId: string) {
   if (error) throw new Error(error.message);
 }
 
+export async function setUserStatus(userId: string, status: "active" | "suspended" | "banned", reason?: string) {
+  const a = await actorId();
+  const { data, error } = await supabase.rpc("admin_set_user_status", {
+    _actor: a, _user_id: userId, _status: status, _reason: reason ?? null,
+  });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
 /* ============ PACKAGES ============ */
 
 export async function listPackages() {
