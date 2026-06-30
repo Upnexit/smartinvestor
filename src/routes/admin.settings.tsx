@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Settings, Save, Upload } from "lucide-react";
 import { AdminPageHeader, AdminCard, GradientButton, Shimmer } from "@/components/admin/AdminUI";
 import { supabase } from "@/integrations/supabase/client";
-import { adminSaveSetting } from "@/lib/admin.functions";
+import { saveSetting } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/settings")({
@@ -26,7 +25,6 @@ const DEF: Site = {
 };
 
 function SettingsPage() {
-  const save = useServerFn(adminSaveSetting);
   const [s, setS] = useState<Site | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -42,7 +40,7 @@ function SettingsPage() {
   const handleSave = async () => {
     if (!s) return;
     setBusy(true);
-    try { await save({ data: { key: "site", value: s as unknown as Record<string, unknown> } }); toast.success("সেভ হয়েছে"); }
+    try { await saveSetting("site", s); toast.success("সেভ হয়েছে"); }
     catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
     finally { setBusy(false); }
   };

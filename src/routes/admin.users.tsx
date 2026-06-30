@@ -1,13 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Users, Search, Trash2, Eye, Download, UserPlus, ShieldCheck, UserCog } from "lucide-react";
 import {
   AdminPageHeader, AdminCard, StatTile, GradientButton, SoftButton, Shimmer, EmptyState, ConfirmDeleteModal,
 } from "@/components/admin/AdminUI";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
-import { adminListUsers, adminDeleteUser } from "@/lib/admin.functions";
+import { listUsers, deleteUser, subscribeTable } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -33,15 +32,18 @@ function UsersPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [del, setDel] = useState<User | null>(null);
 
-  const list = useServerFn(adminListUsers);
-  const remove = useServerFn(adminDeleteUser);
-
   const refresh = () => {
-    list({ data: { q: q ?? "" } }).then((rows) => setUsers(rows as User[])).catch((e) => toast.error(String(e.message ?? e)));
+    listUsers(q ?? "").then((rows) => setUsers(rows as User[])).catch((e) => toast.error(e instanceof Error ? e.message : "ব্যর্থ"));
     const since = new Date(); since.setHours(0,0,0,0);
     supabase.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since.toISOString()).then(({ count }) => setTodayCount(count ?? 0));
   };
   useAdminAutoRefresh(refresh);
+
+  useEffect(() => {
+    const unsub = subscribeTable("profiles", refresh);
+    return unsub;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q]);
 
   useEffect(() => { setQuery(q ?? ""); }, [q]);
 
@@ -57,7 +59,7 @@ function UsersPage() {
     if (!del) return;
     setBusy(del.id);
     try {
-      await remove({ data: { userId: del.id } });
+      await deleteUser(del.id);
       toast.success("ইউজার ডিলিট হয়েছে");
       setDel(null);
       refresh();

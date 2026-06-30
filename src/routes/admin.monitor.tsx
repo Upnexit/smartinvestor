@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { Activity, AlertTriangle, Database, HardDrive, Users } from "lucide-react";
 import { AdminPageHeader, AdminCard, StatTile, Shimmer } from "@/components/admin/AdminUI";
-import { adminMonitor } from "@/lib/admin.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
 
 export const Route = createFileRoute("/admin/monitor")({
@@ -11,11 +10,19 @@ export const Route = createFileRoute("/admin/monitor")({
   component: MonitorPage,
 });
 
-function MonitorPage() {
-  const monitor = useServerFn(adminMonitor);
-  const [data, setData] = useState<Awaited<ReturnType<typeof adminMonitor>> | null>(null);
+type Data = { latencyMs: number; totalUsers: number; errors: Array<{ id: string; message?: string; level?: string; created_at: string }>; checkedAt: string };
 
-  const refresh = () => monitor().then(setData);
+function MonitorPage() {
+  const [data, setData] = useState<Data | null>(null);
+
+  const refresh = async () => {
+    const t0 = performance.now();
+    const [{ count }, errs] = await Promise.all([
+      supabase.from("profiles").select("id", { count: "exact", head: true }),
+      supabase.from("error_logs").select("id,message,level,created_at").order("created_at", { ascending: false }).limit(10).then((r) => r.data ?? []).catch(() => [] as Data["errors"]),
+    ]);
+    setData({ latencyMs: Math.round(performance.now() - t0), totalUsers: count ?? 0, errors: errs as Data["errors"], checkedAt: new Date().toISOString() });
+  };
   useAdminAutoRefresh(refresh);
   useEffect(() => { const t = setInterval(refresh, 15000); return () => clearInterval(t); }, []);
 
@@ -41,15 +48,12 @@ function MonitorPage() {
           <p className="text-xs text-slate-500">কোনো এরর নেই 🎉</p>
         ) : (
           <ul className="divide-y divide-rose-100">
-            {data.errors.map((e: unknown) => {
-              const r = e as { id: string; message?: string; level?: string; created_at: string };
-              return (
-                <li key={r.id} className="py-2">
-                  <p className="text-xs font-mono text-rose-700 truncate">{r.message ?? "—"}</p>
-                  <p className="text-[10px] text-slate-400">{r.level} · {new Date(r.created_at).toLocaleString("bn-BD")}</p>
-                </li>
-              );
-            })}
+            {data.errors.map((r) => (
+              <li key={r.id} className="py-2">
+                <p className="text-xs font-mono text-rose-700 truncate">{r.message ?? "—"}</p>
+                <p className="text-[10px] text-slate-400">{r.level} · {new Date(r.created_at).toLocaleString("bn-BD")}</p>
+              </li>
+            ))}
           </ul>
         )}
       </AdminCard>
