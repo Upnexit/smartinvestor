@@ -16,7 +16,7 @@ async function getSessionWithWait(maxMs = 2000): Promise<string | null> {
     const finish = (token: string | null) => {
       if (done) return;
       done = true;
-      try { sub.subscription.unsubscribe(); } catch { /* noop */ }
+      try { sub.data.subscription.unsubscribe(); } catch { /* noop */ }
       clearInterval(poll);
       clearTimeout(timer);
       resolve(token);
