@@ -170,6 +170,9 @@ function UsersPage() {
                 <Link to="/admin/users/$id" params={{ id: u.id }} className="flex-1 inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 px-3 py-1.5 text-xs font-bold text-white shadow-md shadow-blue-500/30 hover:scale-[1.02] transition">
                   <Eye className="h-3.5 w-3.5" /> ডিটেইল
                 </Link>
+                <Link to="/admin/users/$id" params={{ id: u.id }} search={{ edit: 1 } as never} className="inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 px-3 py-1.5 text-xs font-bold text-white shadow-md shadow-emerald-500/30 hover:scale-[1.02] transition">
+                  <Pencil className="h-3.5 w-3.5" /> এডিট
+                </Link>
                 <SoftButton onClick={() => setDel(u)} accent="rose" className="!from-rose-100 !to-red-200 !text-rose-700 !ring-rose-200">
                   <Trash2 className="h-3.5 w-3.5" />
                 </SoftButton>
