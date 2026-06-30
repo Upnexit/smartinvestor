@@ -35,8 +35,18 @@ type PayAccounts = {
   guides?: Partial<Record<Method, string>>;
 };
 
-function BrandBadge({ method, size = 44 }: { method: Method; size?: number }) {
+function BrandBadge({ method, size = 44, logoUrl }: { method: Method; size?: number; logoUrl?: string }) {
   const b = BRAND[method];
+  if (logoUrl) {
+    return (
+      <div
+        style={{ width: size, height: size }}
+        className="grid place-items-center rounded-2xl bg-white shadow-md ring-1 ring-slate-200 overflow-hidden p-1"
+      >
+        <img src={logoUrl} alt={b.name} className="h-full w-full object-contain" />
+      </div>
+    );
+  }
   return (
     <div
       style={{ width: size, height: size, background: b.gradient }}
@@ -91,13 +101,25 @@ function CheckoutPage() {
   useEffect(() => {
     if (!pkgId) { navigate({ to: "/packages" }); return; }
     (async () => {
-      const [{ data: p }, { data: s }] = await Promise.all([
+      const [{ data: p }, { data: s }, { data: perMethod }] = await Promise.all([
         supabase.from("packages").select("id,name,price,duration_days").eq("id", pkgId).maybeSingle(),
         supabase.from("site_settings").select("value").eq("key", "payment_accounts").maybeSingle(),
+        supabase.from("site_settings").select("key,value").in("key", ["payment_bkash","payment_nagad","payment_rocket"]),
       ]);
       if (!p) { toast.error("প্যাকেজ পাওয়া যায়নি"); navigate({ to: "/packages" }); return; }
       setPkg(p as Pkg);
-      setAccounts((s?.value as PayAccounts) ?? {});
+      const base = (s?.value as PayAccounts) ?? {};
+      const logos: Partial<Record<Method, string>> = { ...(base.logos ?? {}) };
+      const merged: PayAccounts = { ...base };
+      (perMethod ?? []).forEach((r) => {
+        const m = (r.key as string).replace("payment_", "") as Method;
+        const v = r.value as { number?: string; logo_url?: string; active?: boolean } | null;
+        if (!v || v.active === false) return;
+        if (v.number && !merged[m]) merged[m] = v.number;
+        if (v.logo_url) logos[m] = v.logo_url;
+      });
+      merged.logos = logos;
+      setAccounts(merged);
     })();
   }, [pkgId, navigate]);
 
@@ -188,7 +210,7 @@ function CheckoutPage() {
           )}
           {step === "account" && method && (
             <StepAccount
-              pkg={pkg} method={method} senderNumber={senderNumber} setSenderNumber={setSenderNumber}
+              pkg={pkg} method={method} accounts={accounts} senderNumber={senderNumber} setSenderNumber={setSenderNumber}
               phoneValid={phoneValid} phoneNorm={phoneNorm} invoiceShort={invoiceShort}
               onBack={() => setStep("select")} onConfirm={handleConfirmNumber} creating={creating}
             />
@@ -202,7 +224,7 @@ function CheckoutPage() {
           )}
           {step === "trx" && method && (
             <StepTrx
-              pkg={pkg} method={method} activeNumber={activeNumber} trxId={trxId} setTrxId={setTrxId}
+              pkg={pkg} method={method} accounts={accounts} activeNumber={activeNumber} trxId={trxId} setTrxId={setTrxId}
               trxNorm={trxNorm} trxValid={trxValid} submitting={submitting}
               onBack={() => setStep("waiting")} onSubmit={handleSubmitTrx}
             />
@@ -260,7 +282,7 @@ function StepSelect({ pkg, accounts, method, setMethod, invoiceShort, onNext, on
                 sel ? "border-slate-900 bg-slate-50 shadow-md" : "border-slate-200 hover:border-slate-300 bg-white",
               )}
             >
-              <BrandBadge method={m} />
+              <BrandBadge method={m} logoUrl={accounts.logos?.[m]} />
               <div className="flex-1">
                 <p className="bn-display text-base text-slate-900">{b.name}</p>
                 <p className="text-xs text-slate-500">Send Money</p>
@@ -288,8 +310,8 @@ function StepSelect({ pkg, accounts, method, setMethod, invoiceShort, onNext, on
 }
 
 /* ---------------- Step 2: account ---------------- */
-function StepAccount({ pkg, method, senderNumber, setSenderNumber, phoneValid, phoneNorm, invoiceShort, onBack, onConfirm, creating }: {
-  pkg: Pkg; method: Method; senderNumber: string; setSenderNumber: (v: string) => void;
+function StepAccount({ pkg, method, accounts, senderNumber, setSenderNumber, phoneValid, phoneNorm, invoiceShort, onBack, onConfirm, creating }: {
+  pkg: Pkg; method: Method; accounts: PayAccounts; senderNumber: string; setSenderNumber: (v: string) => void;
   phoneValid: boolean; phoneNorm: string; invoiceShort: string;
   onBack: () => void; onConfirm: () => void; creating: boolean;
 }) {
@@ -301,7 +323,7 @@ function StepAccount({ pkg, method, senderNumber, setSenderNumber, phoneValid, p
           <ArrowLeft className="h-4 w-4" /> পেছনে
         </button>
         <div className="flex items-center gap-3">
-          <BrandBadge method={method} />
+          <BrandBadge method={method} logoUrl={accounts.logos?.[method]} />
           <h2 className="bn-display text-xl">আপনার {b.name} নাম্বার দিন</h2>
         </div>
       </div>
@@ -366,7 +388,7 @@ function StepWaiting({ pkg, method, accounts, countdown, activeNumber, orderErro
     <div>
       <div className="p-5 text-white" style={{ background: b.gradient }}>
         <div className="flex items-center gap-3">
-          <BrandBadge method={method} />
+          <BrandBadge method={method} logoUrl={accounts.logos?.[method]} />
           <div className="flex-1">
             <p className="text-xs text-white/85">{b.name} মার্চেন্ট নাম্বার</p>
             <p className="font-mono text-xl font-bold">{activeNumber || "—"}</p>
@@ -437,8 +459,8 @@ function Step({ n, children }: { n: number; children: React.ReactNode }) {
 }
 
 /* ---------------- Step 4: trx ---------------- */
-function StepTrx({ pkg, method, activeNumber, trxId, setTrxId, trxNorm, trxValid, submitting, onBack, onSubmit }: {
-  pkg: Pkg; method: Method; activeNumber: string;
+function StepTrx({ pkg, method, accounts, activeNumber, trxId, setTrxId, trxNorm, trxValid, submitting, onBack, onSubmit }: {
+  pkg: Pkg; method: Method; accounts: PayAccounts; activeNumber: string;
   trxId: string; setTrxId: (v: string) => void; trxNorm: string; trxValid: boolean;
   submitting: boolean; onBack: () => void; onSubmit: () => void;
 }) {
@@ -450,7 +472,7 @@ function StepTrx({ pkg, method, activeNumber, trxId, setTrxId, trxNorm, trxValid
           <ArrowLeft className="h-4 w-4" /> পেছনে
         </button>
         <div className="flex items-center gap-3">
-          <BrandBadge method={method} />
+          <BrandBadge method={method} logoUrl={accounts.logos?.[method]} />
           <div className="flex-1">
             <p className="text-xs text-white/85">পাঠিয়েছেন → {activeNumber}</p>
             <p className="font-mono text-lg font-bold">৳{pkg.price}</p>

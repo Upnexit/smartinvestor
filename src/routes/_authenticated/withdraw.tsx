@@ -43,17 +43,19 @@ function WithdrawPage() {
   const [submitting, setSubmitting] = useState(false);
   const [history, setHistory] = useState<WD[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+  const [logos, setLogos] = useState<Record<Method, string>>({ bkash: "", nagad: "", rocket: "" });
 
   useEffect(() => {
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
       setUserId(u.user.id);
-      const [{ data: p }, { data: w }] = await Promise.all([
+      const [{ data: p }, { data: w }, { data: pay }] = await Promise.all([
         supabase.from("profiles").select("balance,locked_balance,payment_method,payment_number")
           .eq("id", u.user.id).maybeSingle(),
         supabase.from("withdrawals").select("*").eq("user_id", u.user.id)
           .order("created_at", { ascending: false }).limit(20),
+        supabase.from("site_settings").select("key,value").in("key", ["payment_bkash","payment_nagad","payment_rocket"]),
       ]);
       if (p) {
         setBalance(Number(p.balance) || 0);
@@ -62,6 +64,13 @@ function WithdrawPage() {
         if (p.payment_number) setAccountNumber(p.payment_number);
       }
       setHistory((w ?? []) as WD[]);
+      const next: Record<Method, string> = { bkash: "", nagad: "", rocket: "" };
+      (pay ?? []).forEach((r) => {
+        const m = (r.key as string).replace("payment_", "") as Method;
+        const v = r.value as { logo_url?: string } | null;
+        if (m in next && v?.logo_url) next[m] = v.logo_url;
+      });
+      setLogos(next);
     })();
   }, []);
 
@@ -146,7 +155,11 @@ function WithdrawPage() {
                         : "bg-white border-slate-200 text-slate-700 hover:border-slate-300",
                   )}
                 >
-                  <Smartphone className={cn("mx-auto h-5 w-5", sel ? "text-white" : "text-slate-500")} />
+                  {logos[m] ? (
+                    <img src={logos[m]} alt={b.name} className={cn("mx-auto h-7 w-7 object-contain rounded", sel && "bg-white/90 p-0.5")} />
+                  ) : (
+                    <Smartphone className={cn("mx-auto h-5 w-5", sel ? "text-white" : "text-slate-500")} />
+                  )}
                   <p className="mt-1 text-xs font-bold">{b.name}</p>
                 </button>
               );
