@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Users, Search, Trash2, Eye, Download, UserPlus, ShieldCheck, UserCog } from "lucide-react";
+import { Users, Search, Trash2, Eye, Download, UserPlus, ShieldCheck, UserCog, Pencil, X } from "lucide-react";
 import {
-  AdminPageHeader, AdminCard, StatTile, GradientButton, SoftButton, Shimmer, EmptyState, ConfirmDeleteModal,
+  AdminPageHeader, AdminCard, GradientButton, SoftButton, Shimmer, EmptyState, ConfirmDeleteModal,
 } from "@/components/admin/AdminUI";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
 import { listUsers, deleteUser, subscribeTable } from "@/lib/admin-client";
@@ -53,7 +53,15 @@ function UsersPage() {
     newToday: todayCount,
   }), [users, todayCount]);
 
-  const onSearch = () => navigate({ search: query.trim() ? { q: query.trim() } : {} });
+  // Real-time debounced search — syncs to URL after 300ms
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const next = query.trim();
+      if ((q ?? "") !== next) navigate({ search: next ? { q: next } : {} });
+    }, 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
 
   const handleDelete = async () => {
     if (!del) return;
@@ -78,28 +86,49 @@ function UsersPage() {
     a.download = `users-${Date.now()}.csv`; a.click();
   };
 
+  const totalEarnedSum = users ? users.reduce((s,u)=>s + Number(u.total_earned||0),0) : 0;
+
+  const tiles: Array<{ label: string; value: string; Icon: typeof Users; from: string; to: string; ring: string; shadow: string }> = [
+    { label: "মোট ইউজার",    value: stats.total.toLocaleString("bn-BD"),   Icon: Users,       from: "from-sky-500",     to: "to-indigo-600",  ring: "ring-sky-200/60",     shadow: "shadow-sky-500/30" },
+    { label: "আর্নিং ইউজার",  value: stats.earners.toLocaleString("bn-BD"), Icon: ShieldCheck, from: "from-emerald-500", to: "to-teal-600",    ring: "ring-emerald-200/60", shadow: "shadow-emerald-500/30" },
+    { label: "আজকের সাইনআপ", value: stats.newToday.toLocaleString("bn-BD"), Icon: UserPlus,    from: "from-rose-500",    to: "to-pink-600",    ring: "ring-rose-200/60",    shadow: "shadow-rose-500/30" },
+    { label: "মোট আর্নিং",    value: users ? "৳" + totalEarnedSum.toLocaleString("bn-BD") : "—", Icon: UserCog, from: "from-amber-500", to: "to-orange-600", ring: "ring-amber-200/60", shadow: "shadow-amber-500/30" },
+  ];
+
   return (
     <>
       <AdminPageHeader accent="sky" Icon={Users} title="ইউজার ম্যানেজমেন্ট" subtitle="সকল ইউজার, সার্চ, এডিট, ডিলিট"
         action={<GradientButton accent="sky" onClick={exportCsv}><Download className="h-4 w-4" /> CSV</GradientButton>} />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatTile accent="sky"     label="মোট ইউজার"      value={stats.total.toLocaleString("bn-BD")} Icon={Users} />
-        <StatTile accent="emerald" label="আর্নিং ইউজার"    value={stats.earners.toLocaleString("bn-BD")} Icon={ShieldCheck} />
-        <StatTile accent="rose"    label="আজকের সাইনআপ"   value={stats.newToday.toLocaleString("bn-BD")} Icon={UserPlus} />
-        <StatTile accent="amber"   label="মোট আর্নিং"      value={users ? "৳" + users.reduce((s,u)=>s + Number(u.total_earned||0),0).toLocaleString("bn-BD") : "—"} Icon={UserCog} />
+        {tiles.map((t) => (
+          <div key={t.label} className={cn("relative overflow-hidden rounded-2xl bg-gradient-to-br p-4 text-white ring-1 shadow-xl animate-admin-pop", t.from, t.to, t.ring, t.shadow)}>
+            <div className="absolute -top-6 -right-6 h-24 w-24 rounded-full bg-white/15 blur-2xl" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.25),transparent_60%)]" />
+            <div className="relative flex items-start justify-between">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-white/85">{t.label}</p>
+                <p className="mt-1 bn-display text-2xl font-extrabold drop-shadow-sm">{t.value}</p>
+              </div>
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/20 ring-1 ring-white/30 backdrop-blur">
+                <t.Icon className="h-5 w-5" />
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <AdminCard accent="sky" className="p-3">
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <input value={query} onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") onSearch(); }}
-              placeholder="নাম / ইমেইল / ফোন খুঁজুন..."
-              className="w-full rounded-xl border border-sky-200 bg-sky-50/30 pl-9 pr-3 py-2 text-sm outline-none focus:border-sky-400 focus:bg-white" />
-          </div>
-          <GradientButton accent="sky" onClick={onSearch}>খুঁজুন</GradientButton>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <input value={query} onChange={(e) => setQuery(e.target.value)}
+            placeholder="নাম, ইমেইল, ফোন, ইউজার-কোড (SN-...) বা রেফারেল কোড লিখুন — রিয়েল-টাইম সার্চ"
+            className="w-full rounded-xl border border-sky-200 bg-sky-50/30 pl-9 pr-10 py-2.5 text-sm outline-none focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-300/40" />
+          {query && (
+            <button onClick={() => setQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 grid h-7 w-7 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </AdminCard>
 
@@ -140,6 +169,9 @@ function UsersPage() {
               <div className="mt-3 flex gap-1.5">
                 <Link to="/admin/users/$id" params={{ id: u.id }} className="flex-1 inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 px-3 py-1.5 text-xs font-bold text-white shadow-md shadow-blue-500/30 hover:scale-[1.02] transition">
                   <Eye className="h-3.5 w-3.5" /> ডিটেইল
+                </Link>
+                <Link to="/admin/users/$id" params={{ id: u.id }} search={{ edit: 1 } as never} className="inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 px-3 py-1.5 text-xs font-bold text-white shadow-md shadow-emerald-500/30 hover:scale-[1.02] transition">
+                  <Pencil className="h-3.5 w-3.5" /> এডিট
                 </Link>
                 <SoftButton onClick={() => setDel(u)} accent="rose" className="!from-rose-100 !to-red-200 !text-rose-700 !ring-rose-200">
                   <Trash2 className="h-3.5 w-3.5" />
