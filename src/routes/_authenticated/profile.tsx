@@ -3,10 +3,11 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   User as UserIcon, Mail, Phone, Smartphone, Save, Loader2, Lock,
-  Copy, Check, ShieldCheck, Crown, Wallet, TrendingUp,
+  Copy, Check, ShieldCheck, Crown, Wallet, TrendingUp, BadgeCheck, AlertCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { EmailVerifyModal } from "@/components/panel/EmailVerifyModal";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({ meta: [{ title: "প্রোফাইল — Smart Investor" }] }),
