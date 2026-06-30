@@ -459,8 +459,8 @@ function Step({ n, children }: { n: number; children: React.ReactNode }) {
 }
 
 /* ---------------- Step 4: trx ---------------- */
-function StepTrx({ pkg, method, activeNumber, trxId, setTrxId, trxNorm, trxValid, submitting, onBack, onSubmit }: {
-  pkg: Pkg; method: Method; activeNumber: string;
+function StepTrx({ pkg, method, accounts, activeNumber, trxId, setTrxId, trxNorm, trxValid, submitting, onBack, onSubmit }: {
+  pkg: Pkg; method: Method; accounts: PayAccounts; activeNumber: string;
   trxId: string; setTrxId: (v: string) => void; trxNorm: string; trxValid: boolean;
   submitting: boolean; onBack: () => void; onSubmit: () => void;
 }) {
