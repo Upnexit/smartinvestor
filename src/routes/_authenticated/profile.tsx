@@ -265,6 +265,13 @@ function ProfilePage() {
       </section>
 
       <style>{`.profile-input{width:100%;border-radius:0.75rem;border:2px solid #e2e8f0;padding:0.75rem 1rem;outline:none;transition:border-color .15s}.profile-input:focus{border-color:#f43f5e}`}</style>
+
+      <EmailVerifyModal
+        email={profile.email ?? ""}
+        open={verifyOpen}
+        onClose={() => setVerifyOpen(false)}
+        onVerified={() => setProfile({ ...profile, email_verified: true })}
+      />
     </div>
   );
 }
