@@ -52,15 +52,17 @@ function TasksPage() {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
       setUserId(u.user.id);
-      const [{ data: t }, { data: s }, { data: up }] = await Promise.all([
+      const [{ data: t }, { data: s }, { data: up }, { data: prof }] = await Promise.all([
         supabase.from("link_tasks").select("*").eq("active", true).order("created_at", { ascending: false }),
         supabase.from("task_submissions").select("task_id,status,created_at").eq("user_id", u.user.id)
           .gte("created_at", new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
         supabase.from("user_packages").select("id").eq("user_id", u.user.id).eq("status", "active").limit(1),
+        supabase.from("profiles").select("email_verified").eq("id", u.user.id).maybeSingle(),
       ]);
       setTasks((t ?? []) as Task[]);
       setSubs((s ?? []) as Submission[]);
       setHasActivePkg((up ?? []).length > 0);
+      setEmailVerified(!!prof?.email_verified);
     })();
   }, []);
 
