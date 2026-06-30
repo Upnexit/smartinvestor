@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { BD_DISTRICTS } from "@/lib/bd-districts";
+import { BD_THANAS, NOTE_PRESETS } from "@/lib/bd-thanas";
 import { createDistributor, updateDistributor } from "@/lib/admin-client";
 
 type DistributorRow = {
@@ -253,18 +254,47 @@ export function DistributorFormModal({
                   <MapPin className="h-3.5 w-3.5 text-sky-600" /> জেলা
                 </label>
                 <select value={form.district}
-                  onChange={(e) => setForm({ ...form, district: e.target.value })}
+                  onChange={(e) => setForm({ ...form, district: e.target.value, thana: "" })}
                   className="mt-1.5 w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100">
                   <option value="">— জেলা নির্বাচন করুন —</option>
                   {BD_DISTRICTS.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
-              <Field label="থানা / উপজেলা" value={form.thana}
-                onChange={(v) => setForm({ ...form, thana: v })} placeholder="থানার নাম" />
+              <div>
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5 text-sky-600" /> থানা / উপজেলা
+                </label>
+                {form.district && (BD_THANAS[form.district]?.length ?? 0) > 0 ? (
+                  <select value={form.thana}
+                    onChange={(e) => setForm({ ...form, thana: e.target.value })}
+                    className="mt-1.5 w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100">
+                    <option value="">— থানা নির্বাচন করুন —</option>
+                    {BD_THANAS[form.district].map((t) => <option key={t} value={t}>{t}</option>)}
+                    <option value="__other__">অন্যান্য (নিজে লিখুন)</option>
+                  </select>
+                ) : (
+                  <input value={form.thana}
+                    onChange={(e) => setForm({ ...form, thana: e.target.value })}
+                    placeholder={form.district ? "থানার নাম লিখুন" : "প্রথমে জেলা নির্বাচন করুন"}
+                    disabled={!form.district}
+                    className="mt-1.5 w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100 disabled:bg-slate-50 disabled:text-slate-400" />
+                )}
+                {form.thana === "__other__" && (
+                  <input autoFocus placeholder="থানার নাম লিখুন"
+                    onChange={(e) => setForm({ ...form, thana: e.target.value })}
+                    className="mt-2 w-full rounded-xl border-2 border-sky-200 bg-sky-50/40 px-3 py-2 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100" />
+                )}
+              </div>
             </div>
             <div className="mt-3">
-              <Field label="বিস্তারিত ঠিকানা" value={form.address}
-                onChange={(v) => setForm({ ...form, address: v })} placeholder="গ্রাম / মহল্লা / রাস্তা" />
+              <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 text-sky-600" /> গ্রাম / মহল্লা / বিস্তারিত ঠিকানা
+                <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold text-slate-500">ঐচ্ছিক</span>
+              </label>
+              <input value={form.address}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
+                placeholder="গ্রাম, মহল্লা, রাস্তা, বাড়ি নং…"
+                className="mt-1.5 w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100" />
             </div>
           </Section>
 
@@ -299,11 +329,27 @@ export function DistributorFormModal({
               <div className="sm:col-span-2">
                 <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
                   <FileText className="h-3.5 w-3.5 text-slate-600" /> নোট / মন্তব্য
+                  <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold text-slate-500">প্রিসেট ক্লিক করুন</span>
                 </label>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {NOTE_PRESETS.map((p) => (
+                    <button key={p.label} type="button"
+                      onClick={() => setForm({ ...form, notes: form.notes ? `${form.notes}\n${p.text}` : p.text })}
+                      className="rounded-full bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-200 px-2.5 py-1 text-[11px] font-bold text-indigo-700 hover:from-indigo-100 hover:to-violet-100 hover:border-indigo-300 transition">
+                      + {p.label}
+                    </button>
+                  ))}
+                </div>
                 <textarea value={form.notes} rows={3}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  placeholder="ইন্টারনাল রেফারেন্স, চুক্তির বিবরণ ইত্যাদি…"
-                  className="mt-1.5 w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 resize-none" />
+                  placeholder="ইন্টারনাল রেফারেন্স, চুক্তির বিবরণ ইত্যাদি… অথবা উপরের প্রিসেট ক্লিক করুন।"
+                  className="mt-2 w-full rounded-xl border-2 border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 resize-none" />
+                {form.notes && (
+                  <button type="button" onClick={() => setForm({ ...form, notes: "" })}
+                    className="mt-1 text-[11px] text-rose-600 hover:text-rose-700 font-bold">
+                    × সাফ করুন
+                  </button>
+                )}
               </div>
             </div>
           </Section>
