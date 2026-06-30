@@ -91,13 +91,25 @@ function CheckoutPage() {
   useEffect(() => {
     if (!pkgId) { navigate({ to: "/packages" }); return; }
     (async () => {
-      const [{ data: p }, { data: s }] = await Promise.all([
+      const [{ data: p }, { data: s }, { data: perMethod }] = await Promise.all([
         supabase.from("packages").select("id,name,price,duration_days").eq("id", pkgId).maybeSingle(),
         supabase.from("site_settings").select("value").eq("key", "payment_accounts").maybeSingle(),
+        supabase.from("site_settings").select("key,value").in("key", ["payment_bkash","payment_nagad","payment_rocket"]),
       ]);
       if (!p) { toast.error("প্যাকেজ পাওয়া যায়নি"); navigate({ to: "/packages" }); return; }
       setPkg(p as Pkg);
-      setAccounts((s?.value as PayAccounts) ?? {});
+      const base = (s?.value as PayAccounts) ?? {};
+      const logos: Partial<Record<Method, string>> = { ...(base.logos ?? {}) };
+      const merged: PayAccounts = { ...base };
+      (perMethod ?? []).forEach((r) => {
+        const m = (r.key as string).replace("payment_", "") as Method;
+        const v = r.value as { number?: string; logo_url?: string; active?: boolean } | null;
+        if (!v || v.active === false) return;
+        if (v.number && !merged[m]) merged[m] = v.number;
+        if (v.logo_url) logos[m] = v.logo_url;
+      });
+      merged.logos = logos;
+      setAccounts(merged);
     })();
   }, [pkgId, navigate]);
 
