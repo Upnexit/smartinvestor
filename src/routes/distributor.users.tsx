@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { Users, Search, Mail, Phone } from "lucide-react";
-import { distributorListMyUsers } from "@/lib/distributor.functions";
 import { AdminPageHeader, AdminCard, EmptyState, Shimmer } from "@/components/admin/AdminUI";
+import { listMyDistributorUsers } from "@/lib/admin-client";
 
 export const Route = createFileRoute("/distributor/users")({
   component: MyUsersPage,
@@ -12,12 +11,11 @@ export const Route = createFileRoute("/distributor/users")({
 type Row = { id: string; full_name: string; email: string; phone: string | null; balance: number; total_earned: number; created_at: string; status: string };
 
 function MyUsersPage() {
-  const list = useServerFn(distributorListMyUsers);
   const [rows, setRows] = useState<Row[] | null>(null);
   const [q, setQ] = useState("");
 
   async function refresh() {
-    try { setRows(await list({ data: { q } }) as Row[]); } catch { setRows([]); }
+    try { setRows(await listMyDistributorUsers(q) as Row[]); } catch { setRows([]); }
   }
   useEffect(() => { refresh(); /* eslint-disable-next-line */ }, []);
   useEffect(() => { const t = setTimeout(refresh, 300); return () => clearTimeout(t); /* eslint-disable-next-line */ }, [q]);

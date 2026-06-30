@@ -1,19 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { Wallet, TrendingUp, Award } from "lucide-react";
-import { distributorGetMe } from "@/lib/distributor.functions";
 import { AdminPageHeader, StatTile, AdminCard } from "@/components/admin/AdminUI";
+import { getMyDistributorBundle } from "@/lib/admin-client";
 
 export const Route = createFileRoute("/distributor/earnings")({
   component: EarningsPage,
 });
 
 function EarningsPage() {
-  const getMe = useServerFn(distributorGetMe);
   const [data, setData] = useState<{ profile: { commission_rate?: number; payment_method?: string; payment_number?: string } | null; stats: { balance?: number; total_earned?: number; total_deposit?: number } | null } | null>(null);
 
-  useEffect(() => { (async () => { try { setData(await getMe() as never); } catch { setData({ profile: null, stats: null }); } })(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { (async () => { try { setData(await getMyDistributorBundle() as never); } catch { setData({ profile: null, stats: null }); } })(); }, []);
 
   const s = data?.stats;
   const p = data?.profile;

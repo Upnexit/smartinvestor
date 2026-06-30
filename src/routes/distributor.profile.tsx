@@ -1,19 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { User as UserIcon, Save } from "lucide-react";
 import { toast } from "sonner";
-import { distributorGetMe, distributorUpdateMe } from "@/lib/distributor.functions";
 import { AdminPageHeader, AdminCard, GradientButton } from "@/components/admin/AdminUI";
 import { BD_DISTRICTS } from "@/lib/bd-districts";
+import { getMyDistributorBundle, updateMyDistributorProfile } from "@/lib/admin-client";
 
 export const Route = createFileRoute("/distributor/profile")({
   component: ProfilePage,
 });
 
 function ProfilePage() {
-  const getMe = useServerFn(distributorGetMe);
-  const upd = useServerFn(distributorUpdateMe);
   const [form, setForm] = useState({ full_name: "", phone: "", payment_method: "bkash", payment_number: "", district: "", thana: "", address: "" });
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -21,7 +18,7 @@ function ProfilePage() {
   useEffect(() => {
     (async () => {
       try {
-        const r = await getMe() as { profile: Record<string, string | null> | null };
+        const r = await getMyDistributorBundle() as { profile: Record<string, string | null> | null };
         const p = r.profile;
         if (p) {
           setEmail(p.email ?? "");
@@ -33,14 +30,13 @@ function ProfilePage() {
         }
       } catch { /* ignore */ }
     })();
-    // eslint-disable-next-line
   }, []);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
-      await upd({ data: { patch: form } });
+      await updateMyDistributorProfile(form);
       toast.success("প্রোফাইল আপডেট হয়েছে");
     } catch (err) { toast.error(err instanceof Error ? err.message : "ব্যর্থ"); }
     finally { setBusy(false); }
