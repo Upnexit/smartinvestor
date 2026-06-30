@@ -103,7 +103,7 @@ function UserDetailPage() {
             <Bio label="পেমেন্ট নম্বর"        value={p?.payment_number} />
             <Bio label="রেফারেল কোড"          value={p?.referral_code} mono />
             <Bio label="রেফার করেছেন"        value={p?.referred_by ? String(p.referred_by).slice(0,8) + "…" : "—"} mono />
-            <Bio label="স্ট্যাটাস"            value={p?.status} />
+            <Bio label="স্ট্যাটাস"            value={(p as unknown as { status?: string | null })?.status ?? "active"} />
             <Bio label="অ্যাকাউন্ট তৈরি"     value={p?.created_at ? new Date(p.created_at).toLocaleString("bn-BD") : "—"} />
             <Bio label="শেষ আপডেট"           value={p?.updated_at ? new Date(p.updated_at).toLocaleString("bn-BD") : "—"} />
             <Bio label="সম্পূর্ণ UUID"        value={p?.id} mono small />
