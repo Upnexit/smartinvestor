@@ -25,7 +25,6 @@ export async function listUsers(q: string) {
       `user_code.ilike.%${esc}%`,
       `referral_code.ilike.%${esc}%`,
     ];
-    if (/^[0-9a-fA-F-]+$/.test(esc)) parts.push(`id::text.ilike.${esc}%`);
     req = req.or(parts.join(","));
   }
   const { data, error } = await req;
