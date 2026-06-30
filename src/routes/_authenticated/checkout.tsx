@@ -6,6 +6,7 @@ import {
   X, ArrowLeft, Check, Copy, ShieldCheck, Loader2, Sparkles, AlertCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { usePaymentBranding, type PaymentBranding } from "@/hooks/use-payment-branding";
 import { cn } from "@/lib/utils";
 import {
   createPendingCheckoutOrder,
@@ -43,7 +44,7 @@ function BrandBadge({ method, size = 44, logoUrl }: { method: Method; size?: num
         style={{ width: size, height: size }}
         className="grid place-items-center rounded-2xl bg-white shadow-md ring-1 ring-slate-200 overflow-hidden p-1"
       >
-        <img src={logoUrl} alt={b.name} className="h-full w-full object-contain" />
+        <img src={logoUrl} alt={`${b.name} logo`} loading="eager" decoding="async" className="h-full w-full object-contain" />
       </div>
     );
   }
@@ -96,6 +97,7 @@ function CheckoutPage() {
   const [creating, setCreating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [countdown, setCountdown] = useState(30);
+  const paymentBranding = usePaymentBranding();
 
   // Load package + payment accounts
   useEffect(() => {
@@ -119,9 +121,13 @@ function CheckoutPage() {
         if (v.logo_url) logos[m] = v.logo_url;
       });
       merged.logos = logos;
-      setAccounts(merged);
+      setAccounts(applyPaymentBranding(merged, paymentBranding));
     })();
-  }, [pkgId, navigate]);
+  }, [pkgId, navigate, paymentBranding]);
+
+  useEffect(() => {
+    setAccounts((prev) => applyPaymentBranding(prev, paymentBranding));
+  }, [paymentBranding]);
 
   // Countdown in waiting step
   useEffect(() => {
@@ -236,6 +242,18 @@ function CheckoutPage() {
       </div>
     </div>
   );
+}
+
+function applyPaymentBranding(accounts: PayAccounts, branding: PaymentBranding): PayAccounts {
+  const next: PayAccounts = { ...accounts, logos: { ...(accounts.logos ?? {}) } };
+  (["bkash", "nagad", "rocket"] as Method[]).forEach((method) => {
+    const cfg = branding[method];
+    if (cfg.active === false) return;
+    if (cfg.number && !next[method]) next[method] = cfg.number;
+    if (cfg.instructions) next.guides = { ...(next.guides ?? {}), [method]: cfg.instructions };
+    if (cfg.logo_url) next.logos = { ...(next.logos ?? {}), [method]: cfg.logo_url };
+  });
+  return next;
 }
 
 /* ---------------- Step 1: select ---------------- */
