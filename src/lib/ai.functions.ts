@@ -70,17 +70,26 @@ export const askSmartAI = createServerFn({ method: "POST" })
     const geminiKey = process.env.GEMINI_API_KEY;
     const lovableKey = process.env.LOVABLE_API_KEY;
 
-    // Prefer user's own Gemini key, fall back to Lovable AI Gateway
+    const errors: string[] = [];
+
     if (geminiKey) {
       try {
         const reply = await callGemini(data.messages, geminiKey);
         return { reply };
       } catch (err) {
-        // If Gemini fails (bad key/quota), fall back to Lovable if available
-        if (!lovableKey) throw err;
+        errors.push(`Gemini: ${(err as Error).message}`);
       }
     }
-    if (!lovableKey) throw new Error("AI কনফিগার নেই");
-    const reply = await callLovable(data.messages, lovableKey);
-    return { reply };
+    if (lovableKey) {
+      try {
+        const reply = await callLovable(data.messages, lovableKey);
+        return { reply };
+      } catch (err) {
+        errors.push(`Lovable: ${(err as Error).message}`);
+      }
+    }
+    if (errors.length === 0) {
+      throw new Error("AI কনফিগার নেই — অ্যাডমিনকে জানান");
+    }
+    throw new Error(errors.join(" | "));
   });
