@@ -52,6 +52,7 @@ function mapAuthError(msg: string): string {
 }
 
 function AuthPage() {
+  const site = useSiteSettings();
   const navigate = useNavigate();
   const search = Route.useSearch();
   const [email, setEmail] = useState("");
