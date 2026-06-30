@@ -16,7 +16,18 @@ async function actorId(): Promise<string> {
 export async function listUsers(q: string) {
   let req = supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(200);
   const s = q.trim();
-  if (s) req = req.or(`full_name.ilike.%${s}%,email.ilike.%${s}%,phone.ilike.%${s}%`);
+  if (s) {
+    const esc = s.replace(/[%,()]/g, "");
+    const parts = [
+      `full_name.ilike.%${esc}%`,
+      `email.ilike.%${esc}%`,
+      `phone.ilike.%${esc}%`,
+      `user_code.ilike.%${esc}%`,
+      `referral_code.ilike.%${esc}%`,
+    ];
+    if (/^[0-9a-fA-F-]+$/.test(esc)) parts.push(`id::text.ilike.${esc}%`);
+    req = req.or(parts.join(","));
+  }
   const { data, error } = await req;
   if (error) throw new Error(error.message);
   return data ?? [];
