@@ -7,6 +7,7 @@ import {
   ShieldCheck, Zap, Gift, ArrowRight,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 type Search = { redirect?: string; mode?: string };
 
