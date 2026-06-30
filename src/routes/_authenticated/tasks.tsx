@@ -45,6 +45,7 @@ function TasksPage() {
   const [filter, setFilter] = useState<string>("all");
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [emailVerified, setEmailVerified] = useState(true);
 
   useEffect(() => {
     (async () => {
