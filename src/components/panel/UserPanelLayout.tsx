@@ -5,6 +5,7 @@ import {
   Users, User as UserIcon, ChevronRight, LogOut, Sparkles, Menu, X, Bell, Crown,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
