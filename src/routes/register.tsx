@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { createConfirmedUserAccount } from "@/lib/auth.functions";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 type Search = { ref?: string; redirect?: string };
 
