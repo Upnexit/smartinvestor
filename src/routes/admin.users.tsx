@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Users, Search, Trash2, Eye, Download, UserPlus, ShieldCheck, UserCog } from "lucide-react";
+import { Users, Search, Trash2, Eye, Download, UserPlus, ShieldCheck, UserCog, Pencil, X } from "lucide-react";
 import {
-  AdminPageHeader, AdminCard, StatTile, GradientButton, SoftButton, Shimmer, EmptyState, ConfirmDeleteModal,
+  AdminPageHeader, AdminCard, GradientButton, SoftButton, Shimmer, EmptyState, ConfirmDeleteModal,
 } from "@/components/admin/AdminUI";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
 import { listUsers, deleteUser, subscribeTable } from "@/lib/admin-client";
