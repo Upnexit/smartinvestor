@@ -21,8 +21,8 @@ type NavItem = {
 
 const NAV: NavItem[] = [
   { to: "/dashboard",  label: "ড্যাশবোর্ড",  short: "হোম",    Icon: LayoutDashboard, from: "from-amber-400",   to_: "to-orange-500",  soft: "bg-amber-50",   dot: "bg-amber-500" },
-  { to: "/tasks",      label: "আজকের টাস্ক", short: "টাস্ক",  Icon: ListChecks,      from: "from-sky-400",     to_: "to-blue-500",    soft: "bg-sky-50",     dot: "bg-sky-500" },
-  { to: "/community",  label: "কমিউনিটি",    short: "চ্যাট",  Icon: MessageCircle,   from: "from-cyan-400",    to_: "to-blue-500",    soft: "bg-cyan-50",    dot: "bg-cyan-500" },
+  { to: "/tasks",      label: "আজকের টাস্ক", short: "টাস্ক",  Icon: ListChecks,      from: "from-indigo-500",  to_: "to-blue-700",    soft: "bg-indigo-50",  dot: "bg-indigo-500" },
+  { to: "/community",  label: "কমিউনিটি",    short: "চ্যাট",  Icon: MessageCircle,   from: "from-teal-400",    to_: "to-cyan-600",    soft: "bg-teal-50",    dot: "bg-teal-500" },
   { to: "/packages",   label: "প্যাকেজ",     short: "প্যাকেজ", Icon: Package,         from: "from-fuchsia-400", to_: "to-purple-600",  soft: "bg-fuchsia-50", dot: "bg-fuchsia-500" },
   { to: "/withdraw",   label: "উইথড্র",      short: "উইথড্র",  Icon: ArrowDownToLine, from: "from-emerald-400", to_: "to-green-600",   soft: "bg-emerald-50", dot: "bg-emerald-500" },
   { to: "/referral",   label: "রেফারেল",     short: "রেফার",  Icon: Users,           from: "from-violet-400",  to_: "to-fuchsia-500", soft: "bg-violet-50",  dot: "bg-violet-500" },
