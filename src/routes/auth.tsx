@@ -101,15 +101,19 @@ function AuthPage() {
           <div className="pointer-events-none absolute -bottom-24 -right-16 h-80 w-80 rounded-full bg-emerald-300/30 blur-3xl" />
 
           <div className="relative z-10">
-            <div className="flex items-center gap-3">
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/20 backdrop-blur-sm shadow-lg ring-1 ring-white/30">
-                <Sparkles className="h-7 w-7" />
+            <Link to="/" aria-label="হোম পেজে ফিরুন" className="flex items-center gap-3 rounded-2xl outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70">
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/20 backdrop-blur-sm shadow-lg ring-1 ring-white/30 overflow-hidden">
+                {site.logo_url ? (
+                  <img src={site.logo_url} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <Sparkles className="h-7 w-7" />
+                )}
               </div>
               <div>
-                <p className="bn-display text-2xl leading-tight">Smart Investor</p>
-                <p className="text-xs text-white/80">স্মার্ট ইনভেস্টর</p>
+                <p className="bn-display text-2xl leading-tight">{site.site_name}</p>
+                <p className="text-xs text-white/80">{site.tagline || "হোমে ফিরে যান"}</p>
               </div>
-            </div>
+            </Link>
 
             <h1 className="bn-display mt-16 text-4xl leading-tight">
               Like, Comment করে<br/>টাকা Income করুন
