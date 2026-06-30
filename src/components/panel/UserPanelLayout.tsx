@@ -48,11 +48,11 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
       {/* Mobile top bar */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/85 backdrop-blur px-4 py-3 lg:hidden">
         <Link to="/dashboard" className="flex items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg">
-            <Sparkles className="h-5 w-5" />
+          <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg overflow-hidden">
+            {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-5 w-5" />}
           </div>
           <div>
-            <p className="bn-display text-base leading-none">Smart Investor</p>
+            <p className="bn-display text-base leading-none">{site.site_name}</p>
             <p className="text-[10px] text-slate-500 mt-0.5">USER · PANEL</p>
           </div>
         </Link>
