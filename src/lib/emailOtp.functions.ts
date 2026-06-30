@@ -185,34 +185,42 @@ export const updateMyEmail = createServerFn({ method: "POST" })
       return { ok: true, changed: false, email: newEmail };
     }
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const hasServiceRole = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-    // Reject if another user already owns this email
-    const { data: existing } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .eq("email", newEmail)
-      .neq("id", userId)
-      .maybeSingle();
-    if (existing) throw new Error("এই ইমেইল ইতিমধ্যে ব্যবহৃত");
+    if (hasServiceRole) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { error: aErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-      email: newEmail,
-      email_confirm: true,
-    });
-    if (aErr) {
-      console.error("[updateMyEmail] auth admin error", aErr);
-      throw new Error(aErr.message || "ইমেইল আপডেট ব্যর্থ");
+      // Reject if another user already owns this email
+      const { data: existing } = await supabaseAdmin
+        .from("profiles")
+        .select("id")
+        .eq("email", newEmail)
+        .neq("id", userId)
+        .maybeSingle();
+      if (existing) throw new Error("এই ইমেইল ইতিমধ্যে ব্যবহৃত");
+
+      const { error: aErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        email: newEmail,
+        email_confirm: true,
+      });
+      if (aErr) {
+        console.error("[updateMyEmail] auth admin error", aErr);
+        throw new Error(aErr.message || "ইমেইল আপডেট ব্যর্থ");
+      }
     }
 
-    const { error: pErr } = await supabaseAdmin
+    const writeClient = hasServiceRole
+      ? (await import("@/integrations/supabase/client.server")).supabaseAdmin
+      : supabase;
+
+    const { error: pErr } = await writeClient
       .from("profiles")
       .update({ email: newEmail, email_verified: false })
       .eq("id", userId);
     if (pErr) throw new Error(pErr.message);
 
     // Invalidate any pending OTPs
-    await supabaseAdmin
+    await writeClient
       .from("email_otps")
       .update({ consumed_at: new Date().toISOString() })
       .eq("user_id", userId)
