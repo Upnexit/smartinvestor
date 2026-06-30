@@ -20,7 +20,9 @@ export const Route = createFileRoute("/")({
 
 function Logo({ size = 40 }: { size?: number }) {
   const { logo_url, site_name } = useSiteSettings();
-  if (logo_url) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  if (mounted && logo_url) {
     return (
       <img
         src={logo_url}
