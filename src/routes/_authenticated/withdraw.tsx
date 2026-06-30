@@ -43,17 +43,19 @@ function WithdrawPage() {
   const [submitting, setSubmitting] = useState(false);
   const [history, setHistory] = useState<WD[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+  const [logos, setLogos] = useState<Record<Method, string>>({ bkash: "", nagad: "", rocket: "" });
 
   useEffect(() => {
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
       setUserId(u.user.id);
-      const [{ data: p }, { data: w }] = await Promise.all([
+      const [{ data: p }, { data: w }, { data: pay }] = await Promise.all([
         supabase.from("profiles").select("balance,locked_balance,payment_method,payment_number")
           .eq("id", u.user.id).maybeSingle(),
         supabase.from("withdrawals").select("*").eq("user_id", u.user.id)
           .order("created_at", { ascending: false }).limit(20),
+        supabase.from("site_settings").select("key,value").in("key", ["payment_bkash","payment_nagad","payment_rocket"]),
       ]);
       if (p) {
         setBalance(Number(p.balance) || 0);
@@ -62,6 +64,12 @@ function WithdrawPage() {
         if (p.payment_number) setAccountNumber(p.payment_number);
       }
       setHistory((w ?? []) as WD[]);
+      const next: Record<Method, string> = { bkash: "", nagad: "", rocket: "" };
+      (pay ?? []).forEach((r: { key: string; value: { logo_url?: string } | null }) => {
+        const m = r.key.replace("payment_", "") as Method;
+        if (m in next && r.value?.logo_url) next[m] = r.value.logo_url;
+      });
+      setLogos(next);
     })();
   }, []);
 
