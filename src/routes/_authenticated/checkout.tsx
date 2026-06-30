@@ -282,7 +282,7 @@ function StepSelect({ pkg, accounts, method, setMethod, invoiceShort, onNext, on
                 sel ? "border-slate-900 bg-slate-50 shadow-md" : "border-slate-200 hover:border-slate-300 bg-white",
               )}
             >
-              <BrandBadge method={m} />
+              <BrandBadge method={m} logoUrl={accounts.logos?.[m]} />
               <div className="flex-1">
                 <p className="bn-display text-base text-slate-900">{b.name}</p>
                 <p className="text-xs text-slate-500">Send Money</p>
@@ -323,7 +323,7 @@ function StepAccount({ pkg, method, senderNumber, setSenderNumber, phoneValid, p
           <ArrowLeft className="h-4 w-4" /> পেছনে
         </button>
         <div className="flex items-center gap-3">
-          <BrandBadge method={method} />
+          <BrandBadge method={method} logoUrl={accounts.logos?.[method]} />
           <h2 className="bn-display text-xl">আপনার {b.name} নাম্বার দিন</h2>
         </div>
       </div>
@@ -388,7 +388,7 @@ function StepWaiting({ pkg, method, accounts, countdown, activeNumber, orderErro
     <div>
       <div className="p-5 text-white" style={{ background: b.gradient }}>
         <div className="flex items-center gap-3">
-          <BrandBadge method={method} />
+          <BrandBadge method={method} logoUrl={accounts.logos?.[method]} />
           <div className="flex-1">
             <p className="text-xs text-white/85">{b.name} মার্চেন্ট নাম্বার</p>
             <p className="font-mono text-xl font-bold">{activeNumber || "—"}</p>
@@ -472,7 +472,7 @@ function StepTrx({ pkg, method, activeNumber, trxId, setTrxId, trxNorm, trxValid
           <ArrowLeft className="h-4 w-4" /> পেছনে
         </button>
         <div className="flex items-center gap-3">
-          <BrandBadge method={method} />
+          <BrandBadge method={method} logoUrl={accounts.logos?.[method]} />
           <div className="flex-1">
             <p className="text-xs text-white/85">পাঠিয়েছেন → {activeNumber}</p>
             <p className="font-mono text-lg font-bold">৳{pkg.price}</p>
