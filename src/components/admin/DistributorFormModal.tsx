@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { BD_DISTRICTS } from "@/lib/bd-districts";
+import { BD_THANAS, NOTE_PRESETS } from "@/lib/bd-thanas";
 import { createDistributor, updateDistributor } from "@/lib/admin-client";
 
 type DistributorRow = {
