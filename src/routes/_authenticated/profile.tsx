@@ -43,6 +43,7 @@ function ProfilePage() {
   const [pwOld, setPwOld] = useState("");
   const [pwNew, setPwNew] = useState("");
   const [pwBusy, setPwBusy] = useState(false);
+  const [verifyOpen, setVerifyOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
