@@ -65,9 +65,10 @@ function WithdrawPage() {
       }
       setHistory((w ?? []) as WD[]);
       const next: Record<Method, string> = { bkash: "", nagad: "", rocket: "" };
-      (pay ?? []).forEach((r: { key: string; value: { logo_url?: string } | null }) => {
-        const m = r.key.replace("payment_", "") as Method;
-        if (m in next && r.value?.logo_url) next[m] = r.value.logo_url;
+      (pay ?? []).forEach((r) => {
+        const m = (r.key as string).replace("payment_", "") as Method;
+        const v = r.value as { logo_url?: string } | null;
+        if (m in next && v?.logo_url) next[m] = v.logo_url;
       });
       setLogos(next);
     })();
