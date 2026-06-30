@@ -224,6 +224,56 @@ export async function deleteDistributor(userId: string) {
   if (error) throw new Error(error.message);
 }
 
+export async function getMyDistributorBundle() {
+  const userId = await actorId();
+  const [profileRes, statsRes] = await Promise.all([
+    supabase.from("distributors").select("*").eq("user_id", userId).maybeSingle(),
+    supabase.rpc("distributor_stats", { _user_id: userId }),
+  ]);
+  if (profileRes.error) throw new Error(profileRes.error.message);
+  if (statsRes.error) throw new Error(statsRes.error.message);
+  return { profile: profileRes.data, stats: statsRes.data };
+}
+
+export async function listMyDistributorUsers(q: string) {
+  const userId = await actorId();
+  let req = supabase
+    .from("profiles")
+    .select("*")
+    .eq("distributor_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(500);
+  const s = cleanSearch(q);
+  if (s) {
+    req = req.or([
+      `full_name.ilike.%${s}%`,
+      `email.ilike.%${s}%`,
+      `phone.ilike.%${s}%`,
+      `user_code.ilike.%${s}%`,
+    ].join(","));
+  }
+  const { data, error } = await req;
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+export async function updateMyDistributorProfile(patch: Record<string, unknown>) {
+  const userId = await actorId();
+  const allowed = ["full_name", "phone", "payment_method", "payment_number", "district", "thana", "address"];
+  const filtered: Record<string, unknown> = {};
+  for (const key of allowed) {
+    if (key in patch) filtered[key] = patch[key];
+  }
+  const { data, error } = await supabase
+    .from("distributors")
+    .update(filtered as never)
+    .eq("user_id", userId)
+    .select()
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
 /* ============ PACKAGES ============ */
 
 export async function listPackages() {

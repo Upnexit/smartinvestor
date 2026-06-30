@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { Users, Package, Wallet, TrendingUp, LayoutDashboard, ArrowRight } from "lucide-react";
-import { distributorGetMe, distributorListMyUsers } from "@/lib/distributor.functions";
 import { AdminPageHeader, StatTile, AdminCard, EmptyState, Shimmer } from "@/components/admin/AdminUI";
 import { Link } from "@tanstack/react-router";
+import { getMyDistributorBundle, listMyDistributorUsers } from "@/lib/admin-client";
 
 export const Route = createFileRoute("/distributor/")({
   component: DistDashboard,
@@ -14,17 +13,14 @@ type Stats = { total_users: number; active_packages: number; total_deposit: numb
 type Me = { profile: { full_name?: string; district?: string; commission_rate?: number } | null; stats: Stats | null };
 
 function DistDashboard() {
-  const getMe = useServerFn(distributorGetMe);
-  const listUsers = useServerFn(distributorListMyUsers);
   const [me, setMe] = useState<Me | null>(null);
   const [recent, setRecent] = useState<{ id: string; full_name: string; email: string; balance: number; created_at: string }[] | null>(null);
 
   useEffect(() => {
     (async () => {
-      try { setMe(await getMe() as Me); } catch (e) { console.error(e); setMe({ profile: null, stats: null }); }
-      try { const u = await listUsers({ data: { q: "" } }); setRecent((u as never[]).slice(0, 5)); } catch { setRecent([]); }
+      try { setMe(await getMyDistributorBundle() as Me); } catch (e) { console.error(e); setMe({ profile: null, stats: null }); }
+      try { const u = await listMyDistributorUsers(""); setRecent((u as never[]).slice(0, 5)); } catch { setRecent([]); }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const s = me?.stats;
