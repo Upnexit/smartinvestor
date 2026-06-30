@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2, Mail, ShieldCheck, X, Pencil, Check, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
-import { sendEmailOtp, verifyEmailOtp, updateMyEmail } from "@/lib/email-otp.functions";
+import { sendEmailOtp, verifyEmailOtp, updateMyEmail } from "@/lib/emailOtp.functions";
 
 export function EmailVerifyModal({
   email,

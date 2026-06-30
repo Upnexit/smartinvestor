@@ -1,13 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   User as UserIcon, Mail, Phone, Smartphone, Save, Loader2, Lock,
   Copy, Check, ShieldCheck, Crown, Wallet, TrendingUp, BadgeCheck, AlertCircle,
+  Pencil,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { EmailVerifyModal } from "@/components/panel/EmailVerifyModal";
+import { updateMyEmail } from "@/lib/emailOtp.functions";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({ meta: [{ title: "প্রোফাইল — Smart Investor" }] }),
@@ -33,8 +36,11 @@ type Profile = {
 };
 
 function ProfilePage() {
+  const updateEmailFn = useServerFn(updateMyEmail);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [fullName, setFullName] = useState("");
+  const [emailDraft, setEmailDraft] = useState("");
+  const [emailEditing, setEmailEditing] = useState(false);
   const [phone, setPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<Method>("bkash");
   const [paymentNumber, setPaymentNumber] = useState("");
@@ -54,6 +60,7 @@ function ProfilePage() {
         const p = data as Profile;
         setProfile(p);
         setFullName(p.full_name ?? "");
+        setEmailDraft(p.email ?? "");
         setPhone(p.phone ?? "");
         setPaymentMethod(p.payment_method);
         setPaymentNumber(p.payment_number ?? "");
@@ -65,6 +72,9 @@ function ProfilePage() {
   const phoneValid = /^01[3-9]\d{8}$/.test(phoneNorm);
   const payNorm = paymentNumber.replace(/\D/g, "");
   const payValid = /^01[3-9]\d{8}$/.test(payNorm);
+  const normalizedEmail = emailDraft.trim().toLowerCase();
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+  const emailChanged = profile ? normalizedEmail !== (profile.email ?? "").toLowerCase() : false;
 
   async function copy(v: string, label: string) {
     try { await navigator.clipboard.writeText(v); setCopied(label); toast.success("কপি হয়েছে"); setTimeout(() => setCopied(null), 1500); } catch {}
@@ -73,11 +83,17 @@ function ProfilePage() {
   async function handleSave() {
     if (!profile) return;
     if (fullName.trim().length < 2) return toast.error("পুরো নাম দিন");
+    if (!emailValid) return toast.error("সঠিক ইমেইল দিন");
     if (!phoneValid) return toast.error("সঠিক ফোন নাম্বার দিন");
     if (!payValid) return toast.error("সঠিক পেমেন্ট নাম্বার দিন");
     setSaving(true);
     const tId = toast.loading("সেভ হচ্ছে…");
     try {
+      let nextProfile = profile;
+      if (emailChanged) {
+        const emailRes = await updateEmailFn({ data: { email: normalizedEmail } });
+        nextProfile = { ...nextProfile, email: emailRes.email ?? normalizedEmail, email_verified: false };
+      }
       const { error } = await supabase.from("profiles").update({
         full_name: fullName.trim(),
         phone: phoneNorm,
@@ -86,7 +102,9 @@ function ProfilePage() {
       }).eq("id", profile.id);
       if (error) throw error;
       toast.success("সফলভাবে সেভ হয়েছে", { id: tId });
-      setProfile({ ...profile, full_name: fullName.trim(), phone: phoneNorm, payment_method: paymentMethod, payment_number: payNorm });
+      setEmailDraft(nextProfile.email ?? normalizedEmail);
+      setEmailEditing(false);
+      setProfile({ ...nextProfile, full_name: fullName.trim(), phone: phoneNorm, payment_method: paymentMethod, payment_number: payNorm });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "সেভ ব্যর্থ", { id: tId });
     } finally {
@@ -201,8 +219,30 @@ function ProfilePage() {
           <input value={fullName} onChange={(e) => setFullName(e.target.value)} className="profile-input" />
         </Field>
         <Field label="ইমেইল" icon={Mail}>
-          <div className="flex items-center gap-2">
-            <input value={profile.email ?? ""} disabled className="profile-input bg-slate-50 text-slate-500 flex-1" />
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="flex min-w-0 flex-1 gap-2">
+              <input
+                value={emailDraft}
+                onChange={(e) => setEmailDraft(e.target.value)}
+                disabled={!emailEditing}
+                type="email"
+                className={cn(
+                  "profile-input flex-1 font-mono",
+                  !emailEditing && "bg-slate-50 text-slate-500",
+                  emailEditing && emailDraft && !emailValid && "border-rose-300 bg-rose-50/40",
+                )}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (emailEditing) setEmailDraft(profile.email ?? "");
+                  setEmailEditing((v) => !v);
+                }}
+                className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-2 text-xs font-bold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-200"
+              >
+                <Pencil className="h-3.5 w-3.5" /> {emailEditing ? "বাতিল" : "এডিট"}
+              </button>
+            </div>
             {profile.email_verified ? (
               <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-2 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200">
                 <BadgeCheck className="h-4 w-4" /> ভেরিফাইড
@@ -214,6 +254,9 @@ function ProfilePage() {
               </button>
             )}
           </div>
+          {emailEditing && (
+            <p className="mt-1.5 text-[11px] text-slate-500">ইমেইল পরিবর্তন করে নিচের “সেভ করুন” চাপুন, তারপর ভেরিফাই করুন।</p>
+          )}
           {!profile.email_verified && (
             <p className="mt-1.5 text-[11px] text-amber-700">টাস্ক/উইথড্র করতে ইমেইল ভেরিফিকেশন আবশ্যক।</p>
           )}
@@ -271,7 +314,7 @@ function ProfilePage() {
         open={verifyOpen}
         onClose={() => setVerifyOpen(false)}
         onVerified={() => setProfile({ ...profile, email_verified: true })}
-        onEmailChanged={(newEmail) => setProfile({ ...profile, email: newEmail, email_verified: false })}
+        onEmailChanged={(newEmail) => { setEmailDraft(newEmail); setProfile({ ...profile, email: newEmail, email_verified: false }); }}
       />
 
     </div>
