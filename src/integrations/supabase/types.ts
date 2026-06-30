@@ -101,6 +101,69 @@ export type Database = {
         }
         Relationships: []
       }
+      distributors: {
+        Row: {
+          address: string | null
+          balance: number
+          commission_rate: number
+          created_at: string
+          created_by: string | null
+          district: string | null
+          email: string
+          full_name: string
+          notes: string | null
+          payment_method: Database["public"]["Enums"]["payment_method"] | null
+          payment_number: string | null
+          phone: string | null
+          status: string
+          thana: string | null
+          total_earned: number
+          total_users: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          balance?: number
+          commission_rate?: number
+          created_at?: string
+          created_by?: string | null
+          district?: string | null
+          email: string
+          full_name: string
+          notes?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          payment_number?: string | null
+          phone?: string | null
+          status?: string
+          thana?: string | null
+          total_earned?: number
+          total_users?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          balance?: number
+          commission_rate?: number
+          created_at?: string
+          created_by?: string | null
+          district?: string | null
+          email?: string
+          full_name?: string
+          notes?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          payment_number?: string | null
+          phone?: string | null
+          status?: string
+          thana?: string | null
+          total_earned?: number
+          total_users?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_otps: {
         Row: {
           attempts: number
@@ -267,6 +330,7 @@ export type Database = {
           avatar_url: string | null
           balance: number
           created_at: string
+          distributor_id: string | null
           email: string | null
           email_verified: boolean
           full_name: string | null
@@ -289,6 +353,7 @@ export type Database = {
           avatar_url?: string | null
           balance?: number
           created_at?: string
+          distributor_id?: string | null
           email?: string | null
           email_verified?: boolean
           full_name?: string | null
@@ -311,6 +376,7 @@ export type Database = {
           avatar_url?: string | null
           balance?: number
           created_at?: string
+          distributor_id?: string | null
           email?: string | null
           email_verified?: boolean
           full_name?: string | null
@@ -619,6 +685,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_delete_distributor: {
+        Args: { _actor: string; _user_id: string }
+        Returns: undefined
+      }
       admin_delete_package: {
         Args: { _actor: string; _id: string }
         Returns: undefined
@@ -719,6 +789,7 @@ export type Database = {
           avatar_url: string | null
           balance: number
           created_at: string
+          distributor_id: string | null
           email: string | null
           email_verified: boolean
           full_name: string | null
@@ -774,6 +845,7 @@ export type Database = {
           avatar_url: string | null
           balance: number
           created_at: string
+          distributor_id: string | null
           email: string | null
           email_verified: boolean
           full_name: string | null
@@ -799,6 +871,36 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_upsert_distributor: {
+        Args: { _actor: string; _patch: Json; _user_id: string }
+        Returns: {
+          address: string | null
+          balance: number
+          commission_rate: number
+          created_at: string
+          created_by: string | null
+          district: string | null
+          email: string
+          full_name: string
+          notes: string | null
+          payment_method: Database["public"]["Enums"]["payment_method"] | null
+          payment_number: string | null
+          phone: string | null
+          status: string
+          thana: string | null
+          total_earned: number
+          total_users: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "distributors"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      distributor_stats: { Args: { _user_id: string }; Returns: Json }
       expire_user_packages: { Args: never; Returns: undefined }
       has_role: {
         Args: {
@@ -809,7 +911,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "distributor"
       package_status: "pending" | "active" | "rejected" | "expired"
       payment_method: "bkash" | "nagad" | "rocket"
       submission_status: "pending" | "approved" | "rejected"
@@ -942,7 +1044,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "distributor"],
       package_status: ["pending", "active", "rejected", "expired"],
       payment_method: ["bkash", "nagad", "rocket"],
       submission_status: ["pending", "approved", "rejected"],
