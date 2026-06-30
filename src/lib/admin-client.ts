@@ -5,6 +5,21 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+type DistributorInput = {
+  email: string;
+  password?: string;
+  full_name: string;
+  phone?: string | null;
+  payment_method?: string | null;
+  payment_number?: string | null;
+  district?: string | null;
+  thana?: string | null;
+  address?: string | null;
+  commission_rate?: number;
+  status?: string;
+  notes?: string | null;
+};
+
 async function actorId(): Promise<string> {
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) throw new Error("লগইন প্রয়োজন");
@@ -78,6 +93,135 @@ export async function setUserStatus(userId: string, status: "active" | "suspende
   });
   if (error) throw new Error(error.message);
   return data;
+}
+
+/* ============ DISTRIBUTORS ============ */
+
+function cleanSearch(value: string) {
+  return value.trim().replace(/[%,()]/g, "").slice(0, 80);
+}
+
+function normalizeDistributorPatch(input: DistributorInput) {
+  return {
+    full_name: input.full_name?.trim() ?? "",
+    email: input.email?.trim().toLowerCase() ?? "",
+    phone: input.phone?.trim() || null,
+    payment_method: ["bkash", "nagad", "rocket"].includes(String(input.payment_method)) ? input.payment_method : "bkash",
+    payment_number: input.payment_number?.trim() || null,
+    district: input.district?.trim() || null,
+    thana: input.thana?.trim() || null,
+    address: input.address?.trim() || null,
+    commission_rate: Math.min(Math.max(Number(input.commission_rate ?? 5), 0), 100),
+    status: input.status ?? "active",
+    notes: input.notes?.trim() || null,
+  };
+}
+
+export async function listDistributors(q: string) {
+  let req = supabase.from("distributors").select("*").order("created_at", { ascending: false }).limit(500);
+  const s = cleanSearch(q);
+  if (s) {
+    req = req.or([
+      `full_name.ilike.%${s}%`,
+      `email.ilike.%${s}%`,
+      `phone.ilike.%${s}%`,
+      `district.ilike.%${s}%`,
+      `thana.ilike.%${s}%`,
+    ].join(","));
+  }
+  const { data, error } = await req;
+  if (error) throw new Error(error.message);
+
+  const rows = data ?? [];
+  const ids = rows.map((r) => r.user_id).filter(Boolean);
+  const counts: Record<string, number> = {};
+  if (ids.length) {
+    const { data: profiles, error: countError } = await supabase
+      .from("profiles")
+      .select("distributor_id")
+      .in("distributor_id", ids);
+    if (countError) throw new Error(countError.message);
+    for (const profile of profiles ?? []) {
+      const id = profile.distributor_id;
+      if (id) counts[id] = (counts[id] ?? 0) + 1;
+    }
+  }
+
+  return rows.map((row) => ({ ...row, users_count: counts[row.user_id] ?? 0 }));
+}
+
+async function createAuthUserWithPublicSignup(input: DistributorInput) {
+  const url = import.meta.env.VITE_SUPABASE_URL;
+  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) throw new Error("Supabase client config missing");
+  if (!input.password || input.password.length < 6) throw new Error("পাসওয়ার্ড ৬+ অক্ষর হতে হবে");
+
+  const res = await fetch(`${url}/auth/v1/signup`, {
+    method: "POST",
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: input.email.trim().toLowerCase(),
+      password: input.password,
+      data: {
+        full_name: input.full_name.trim(),
+        phone: input.phone ?? "",
+        payment_method: input.payment_method ?? "bkash",
+        payment_number: input.payment_number ?? "",
+        role: "distributor",
+      },
+    }),
+  });
+
+  const payload = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const message = String(payload?.msg ?? payload?.message ?? payload?.error_description ?? payload?.error ?? "অ্যাকাউন্ট তৈরি ব্যর্থ");
+    if (/already|registered|exists|user_exists/i.test(message)) {
+      throw new Error("এই ইমেইল আগে থেকেই ব্যবহার করা হয়েছে");
+    }
+    throw new Error(message);
+  }
+
+  const userId = payload?.user?.id ?? payload?.id;
+  if (!userId) throw new Error("অ্যাকাউন্ট তৈরি হয়েছে, কিন্তু ইউজার আইডি পাওয়া যায়নি");
+  return String(userId);
+}
+
+export async function createDistributor(input: DistributorInput) {
+  const actor = await actorId();
+  const patch = normalizeDistributorPatch(input);
+  const userId = await createAuthUserWithPublicSignup(input);
+
+  const { data, error } = await supabase.rpc("admin_upsert_distributor", {
+    _actor: actor,
+    _user_id: userId,
+    _patch: patch as never,
+  });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function updateDistributor(userId: string, input: DistributorInput) {
+  const actor = await actorId();
+  const { data, error } = await supabase.rpc("admin_upsert_distributor", {
+    _actor: actor,
+    _user_id: userId,
+    _patch: normalizeDistributorPatch(input) as never,
+  });
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function deleteDistributor(userId: string) {
+  const actor = await actorId();
+  const { error } = await supabase.rpc("admin_delete_distributor", {
+    _actor: actor,
+    _user_id: userId,
+  });
+  if (error) throw new Error(error.message);
 }
 
 /* ============ PACKAGES ============ */

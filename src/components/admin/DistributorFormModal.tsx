@@ -4,10 +4,9 @@ import {
   User as UserIcon, Mail, Lock, Phone as PhoneIcon, MapPin, Wallet,
   Percent, FileText, Sparkles, ShieldCheck,
 } from "lucide-react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { adminCreateDistributor, adminUpdateDistributor } from "@/lib/distributor.functions";
 import { BD_DISTRICTS } from "@/lib/bd-districts";
+import { createDistributor, updateDistributor } from "@/lib/admin-client";
 
 type DistributorRow = {
   user_id: string; full_name: string; email: string; phone: string | null;
@@ -28,8 +27,6 @@ export function DistributorFormModal({
   open: boolean; onClose: () => void; onSaved: () => void;
   editing?: DistributorRow | null;
 }) {
-  const create = useServerFn(adminCreateDistributor);
-  const update = useServerFn(adminUpdateDistributor);
   const isEdit = !!editing;
 
   const [form, setForm] = useState({
@@ -96,10 +93,10 @@ export function DistributorFormModal({
     setBusy(true);
     try {
       if (isEdit && editing) {
-        await update({ data: { userId: editing.user_id, patch: { ...form, password: undefined } } });
+        await updateDistributor(editing.user_id, { ...form, password: undefined });
         toast.success("ডিস্ট্রিবিউটর আপডেট হয়েছে ✓");
       } else {
-        await create({ data: form });
+        await createDistributor(form);
         toast.success("নতুন ডিস্ট্রিবিউটর তৈরি হয়েছে ✓");
       }
       onSaved();
