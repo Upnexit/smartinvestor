@@ -171,7 +171,8 @@ function CommunityChatPanel() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  async function postMessage(payload: Partial<Msg>) {
+  type InsertMsg = { content?: string | null; voice_url?: string | null; voice_duration_ms?: number | null; image_url?: string | null };
+  async function postMessage(payload: InsertMsg) {
     if (!me) return;
     setSending(true);
     try {
