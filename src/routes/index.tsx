@@ -9,6 +9,7 @@ import {
   Zap, Gift, Trophy, ArrowRight, Star, Banknote, Crown, Gem, Award,
   Rocket, Check, Package, Truck, ShoppingCart,
 } from "lucide-react";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 export const Route = createFileRoute("/")({
   component: SmartInvestorPage,
@@ -17,6 +18,17 @@ export const Route = createFileRoute("/")({
 /* ---------------- Shared bits ---------------- */
 
 function Logo({ size = 40 }: { size?: number }) {
+  const { logo_url, site_name } = useSiteSettings();
+  if (logo_url) {
+    return (
+      <img
+        src={logo_url}
+        alt={`${site_name} লোগো`}
+        style={{ width: size, height: size }}
+        className="rounded-xl object-cover ring-2 ring-amber-200 shadow-soft bg-white"
+      />
+    );
+  }
   return (
     <div
       className="grid place-items-center rounded-xl bg-white ring-2 ring-amber-200 shadow-soft"
