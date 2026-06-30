@@ -310,8 +310,8 @@ function StepSelect({ pkg, accounts, method, setMethod, invoiceShort, onNext, on
 }
 
 /* ---------------- Step 2: account ---------------- */
-function StepAccount({ pkg, method, senderNumber, setSenderNumber, phoneValid, phoneNorm, invoiceShort, onBack, onConfirm, creating }: {
-  pkg: Pkg; method: Method; senderNumber: string; setSenderNumber: (v: string) => void;
+function StepAccount({ pkg, method, accounts, senderNumber, setSenderNumber, phoneValid, phoneNorm, invoiceShort, onBack, onConfirm, creating }: {
+  pkg: Pkg; method: Method; accounts: PayAccounts; senderNumber: string; setSenderNumber: (v: string) => void;
   phoneValid: boolean; phoneNorm: string; invoiceShort: string;
   onBack: () => void; onConfirm: () => void; creating: boolean;
 }) {
