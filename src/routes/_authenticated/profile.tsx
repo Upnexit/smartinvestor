@@ -248,8 +248,11 @@ function ProfilePage() {
                 <BadgeCheck className="h-4 w-4" /> ভেরিফাইড
               </span>
             ) : (
-              <button type="button" onClick={() => setVerifyOpen(true)}
-                className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 px-3 py-2 text-xs font-bold text-white shadow hover:opacity-95">
+              <button
+                type="button"
+                onClick={() => emailChanged ? toast.error("আগে পরিবর্তিত ইমেইলটি সেভ করুন") : setVerifyOpen(true)}
+                className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 px-3 py-2 text-xs font-bold text-white shadow hover:opacity-95"
+              >
                 <AlertCircle className="h-4 w-4" /> ভেরিফাই করুন
               </button>
             )}
