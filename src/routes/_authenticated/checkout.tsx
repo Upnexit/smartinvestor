@@ -210,7 +210,7 @@ function CheckoutPage() {
           )}
           {step === "account" && method && (
             <StepAccount
-              pkg={pkg} method={method} senderNumber={senderNumber} setSenderNumber={setSenderNumber}
+              pkg={pkg} method={method} accounts={accounts} senderNumber={senderNumber} setSenderNumber={setSenderNumber}
               phoneValid={phoneValid} phoneNorm={phoneNorm} invoiceShort={invoiceShort}
               onBack={() => setStep("select")} onConfirm={handleConfirmNumber} creating={creating}
             />
@@ -224,7 +224,7 @@ function CheckoutPage() {
           )}
           {step === "trx" && method && (
             <StepTrx
-              pkg={pkg} method={method} activeNumber={activeNumber} trxId={trxId} setTrxId={setTrxId}
+              pkg={pkg} method={method} accounts={accounts} activeNumber={activeNumber} trxId={trxId} setTrxId={setTrxId}
               trxNorm={trxNorm} trxValid={trxValid} submitting={submitting}
               onBack={() => setStep("waiting")} onSubmit={handleSubmitTrx}
             />
