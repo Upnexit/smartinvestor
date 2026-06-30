@@ -33,19 +33,26 @@ export async function listUsers(q: string) {
 }
 
 export async function getUserBundle(userId: string) {
-  const [profile, packages, withdrawals, tasks, refs] = await Promise.all([
+  const [profile, packages, withdrawals, tasks, refs, referredUsers, totalRefCount, totalRefEarned] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
     supabase.from("user_packages").select("*, packages(name,price)").eq("user_id", userId).order("created_at", { ascending: false }),
     supabase.from("withdrawals").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
     supabase.from("task_submissions").select("*, link_tasks(title,reward)").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
-    supabase.from("referral_earnings").select("*").eq("referrer_id", userId).order("created_at", { ascending: false }).limit(50),
+    supabase.from("referral_earnings").select("*").eq("referrer_id", userId).order("created_at", { ascending: false }).limit(100),
+    supabase.from("profiles").select("id,full_name,email,phone,user_code,created_at,total_earned").eq("referred_by", userId).order("created_at", { ascending: false }).limit(200),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("referred_by", userId),
+    supabase.from("referral_earnings").select("amount").eq("referrer_id", userId),
   ]);
+  const earnedSum = (totalRefEarned.data ?? []).reduce((s: number, r: { amount: number | string | null }) => s + Number(r.amount || 0), 0);
   return {
     profile: profile.data,
     packages: packages.data ?? [],
     withdrawals: withdrawals.data ?? [],
     tasks: tasks.data ?? [],
     referrals: refs.data ?? [],
+    referredUsers: referredUsers.data ?? [],
+    referralCount: totalRefCount.count ?? 0,
+    referralEarnedTotal: earnedSum,
   };
 }
 
