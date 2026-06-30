@@ -101,6 +101,39 @@ export type Database = {
         }
         Relationships: []
       }
+      email_otps: {
+        Row: {
+          attempts: number
+          code_hash: string
+          consumed_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          code_hash: string
+          consumed_at?: string | null
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          code_hash?: string
+          consumed_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       error_logs: {
         Row: {
           context: Json | null
@@ -235,6 +268,7 @@ export type Database = {
           balance: number
           created_at: string
           email: string | null
+          email_verified: boolean
           full_name: string | null
           id: string
           locked_balance: number
@@ -256,6 +290,7 @@ export type Database = {
           balance?: number
           created_at?: string
           email?: string | null
+          email_verified?: boolean
           full_name?: string | null
           id: string
           locked_balance?: number
@@ -277,6 +312,7 @@ export type Database = {
           balance?: number
           created_at?: string
           email?: string | null
+          email_verified?: boolean
           full_name?: string | null
           id?: string
           locked_balance?: number
@@ -684,6 +720,7 @@ export type Database = {
           balance: number
           created_at: string
           email: string | null
+          email_verified: boolean
           full_name: string | null
           id: string
           locked_balance: number
@@ -738,6 +775,7 @@ export type Database = {
           balance: number
           created_at: string
           email: string | null
+          email_verified: boolean
           full_name: string | null
           id: string
           locked_balance: number
