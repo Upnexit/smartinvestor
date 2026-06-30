@@ -117,17 +117,42 @@ const QUICK_ACTIONS = [
   { to: "/admin/settings",    label: "সেটিংস",       accent: "teal"    as AccentKey, Icon: Settings },
 ];
 
-type Tab = "signups" | "revenue" | "topups";
-const TABS: { key: Tab; label: string; accent: AccentKey; Icon: React.ComponentType<{ className?: string }> }[] = [
-  { key: "signups", label: "দৈনিক সাইনআপ",  accent: "sky",     Icon: Users },
-  { key: "revenue", label: "রেভিনিউ ট্রেন্ড", accent: "amber",   Icon: Wallet },
-  { key: "topups",  label: "দৈনিক টপআপ",     accent: "fuchsia", Icon: LineIcon },
+const SERIES = [
+  { key: "signups", label: "দৈনিক সাইনআপ", color: "#0284c7", accent: "sky" as AccentKey },
+  { key: "revenue", label: "রেভিনিউ (৳)",   color: "#f59e0b", accent: "amber" as AccentKey },
+  { key: "topups",  label: "দৈনিক টপআপ",    color: "#c026d3", accent: "fuchsia" as AccentKey },
 ];
+
+type ComboPoint = { date: string; signups: number; revenue: number; topups: number };
+
+function ComboTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name?: string; dataKey?: string; value?: number; color?: string }>; label?: string }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-xl bg-white/95 backdrop-blur shadow-xl ring-1 ring-slate-200 px-3 py-2 text-xs">
+      <p className="bn-display text-slate-900 mb-1.5">{label}</p>
+      <ul className="space-y-1">
+        {payload.map((p) => {
+          const s = SERIES.find((x) => x.key === p.dataKey);
+          if (!s) return null;
+          const val = p.dataKey === "revenue" ? fmtBDT(Number(p.value ?? 0)) : fmtBN(Number(p.value ?? 0));
+          return (
+            <li key={p.dataKey} className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-1.5 text-slate-700">
+                <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />
+                {s.label}
+              </span>
+              <span className="font-bold text-slate-900 tabular-nums">{val}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
 
 function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [activity, setActivity] = useState<Array<{ id: string; label: string; time: string; accent: AccentKey }>>([]);
-  const [tab, setTab] = useState<Tab>("signups");
 
   const refresh = () => {
     loadStats().then(setStats).catch(() => {});
@@ -146,8 +171,15 @@ function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const activeTab = useMemo(() => TABS.find((t) => t.key === tab)!, [tab]);
-  const A = ACCENTS[activeTab.accent];
+  const combo: ComboPoint[] = useMemo(() => {
+    if (!stats) return [];
+    return stats.signupSeries.map((s, i) => ({
+      date: s.date,
+      signups: s.count,
+      revenue: stats.revenueSeries[i]?.amount ?? 0,
+      topups: stats.topupSeries[i]?.count ?? 0,
+    }));
+  }, [stats]);
 
   return (
     <>
@@ -166,59 +198,32 @@ function DashboardPage() {
         <VibrantStat accent="rose"    label="পেন্ডিং অ্যাপ্রুভাল"  value={stats ? fmtBN(stats.pending) : "—"}    Icon={UserPlus}    trend="অপেক্ষমান" />
       </div>
 
-      {/* Unified analytics: tabs (signups / revenue / topups) + quick actions */}
-      <AdminCard accent={activeTab.accent} className="p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-          <div>
-            <h2 className="bn-display text-lg text-slate-900">অ্যানালিটিক্স — ৩০ দিন</h2>
-            <p className="text-xs text-slate-500 mt-0.5">লেয়ার বাই লেয়ার ভিউ — ট্যাবে ক্লিক করুন</p>
+      {/* Unified analytics + Quick actions side-by-side */}
+      <div className="grid gap-3 lg:grid-cols-3">
+        <AdminCard accent="amber" className="p-4 lg:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div className="min-w-0">
+              <h2 className="bn-display text-lg text-slate-900">অ্যানালিটিক্স — ৩০ দিন</h2>
+              <p className="text-xs text-slate-500 mt-0.5">সাইনআপ · রেভিনিউ · টপআপ — এক ভিউতে</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {SERIES.map((s) => (
+                <span key={s.key} className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 ring-1 ring-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                  <span className="inline-block h-2 w-2 rounded-full" style={{ background: s.color }} />
+                  {s.label}
+                </span>
+              ))}
+            </div>
           </div>
-          <span className={cn("text-[10px] font-bold uppercase tracking-[0.18em] px-2 py-0.5 rounded-md bg-gradient-to-r text-white", A.chip)}>Live</span>
-        </div>
 
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {TABS.map((t) => {
-            const active = t.key === tab;
-            const ac = ACCENTS[t.accent];
-            return (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className={cn(
-                  "group inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all duration-300",
-                  active
-                    ? cn("bg-gradient-to-br text-white shadow-lg scale-[1.03]", ac.chip, ac.glow)
-                    : cn("ring-1 ring-slate-200 hover:-translate-y-0.5 bg-white", ac.text, ac.soft),
-                )}
-              >
-                <t.Icon className="h-3.5 w-3.5" />
-                {t.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Chart */}
-        {!stats ? <Shimmer className="h-56" /> : (
-          <ResponsiveContainer width="100%" height={240}>
-            {tab === "signups" ? (
-              <AreaChart data={stats.signupSeries}>
+          {!stats ? <Shimmer className="h-72" /> : (
+            <ResponsiveContainer width="100%" height={300}>
+              <ComposedChart data={combo} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="g-signups" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%"  stopColor="#0284c7" stopOpacity={0.55} />
-                    <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                    <stop offset="0%"  stopColor="#0284c7" stopOpacity={0.45} />
+                    <stop offset="100%" stopColor="#0284c7" stopOpacity={0} />
                   </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={4} />
-                <YAxis tick={{ fontSize: 10 }} width={28} />
-                <Tooltip />
-                <Area type="monotone" dataKey="count" stroke="#0284c7" strokeWidth={2.5} fill="url(#g-signups)" />
-              </AreaChart>
-            ) : tab === "revenue" ? (
-              <BarChart data={stats.revenueSeries}>
-                <defs>
                   <linearGradient id="g-rev" x1="0" x2="0" y1="0" y2="1">
                     <stop offset="0%"  stopColor="#f59e0b" stopOpacity={1} />
                     <stop offset="100%" stopColor="#ef4444" stopOpacity={0.75} />
@@ -226,30 +231,26 @@ function DashboardPage() {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={4} />
-                <YAxis tick={{ fontSize: 10 }} width={40} />
-                <Tooltip formatter={(v) => fmtBDT(Number(v))} />
-                <Bar dataKey="amount" fill="url(#g-rev)" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            ) : (
-              <LineChart data={stats.topupSeries}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={4} />
-                <YAxis tick={{ fontSize: 10 }} width={28} />
-                <Tooltip />
-                <Line type="monotone" dataKey="count" stroke="#c026d3" strokeWidth={2.5} dot={{ r: 3, fill: "#c026d3" }} activeDot={{ r: 5 }} />
-              </LineChart>
-            )}
-          </ResponsiveContainer>
-        )}
+                <YAxis yAxisId="left" tick={{ fontSize: 10 }} width={32} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10 }} width={48} tickFormatter={(v) => "৳" + Math.round(Number(v)).toLocaleString("bn-BD")} />
+                <Tooltip content={<ComboTooltip />} cursor={{ fill: "rgba(245,158,11,0.06)" }} />
+                <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" />
+                <Bar  yAxisId="right" dataKey="revenue" name="রেভিনিউ (৳)"  fill="url(#g-rev)" radius={[6, 6, 0, 0]} barSize={14} />
+                <Area yAxisId="left"  dataKey="signups" name="দৈনিক সাইনআপ" type="monotone" stroke="#0284c7" strokeWidth={2.25} fill="url(#g-signups)" />
+                <Line yAxisId="left"  dataKey="topups"  name="দৈনিক টপআপ"   type="monotone" stroke="#c026d3" strokeWidth={2.5} dot={{ r: 2.5, fill: "#c026d3" }} activeDot={{ r: 5 }} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          )}
+        </AdminCard>
 
-        {/* Quick actions inside the analytics card */}
-        <div className="mt-5 pt-4 border-t border-amber-100">
+        {/* Quick actions — right side */}
+        <AdminCard accent="fuchsia" className="p-4">
           <div className="flex items-center gap-2 mb-3">
             <Zap className="h-4 w-4 text-amber-600" />
             <h3 className="bn-display text-sm text-slate-900">দ্রুত অ্যাকশন</h3>
-            <span className="text-[10px] text-slate-500">এক ক্লিকে কাজ</span>
+            <span className="text-[10px] text-slate-500 ml-auto">এক ক্লিকে</span>
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+          <div className="grid grid-cols-2 gap-2">
             {QUICK_ACTIONS.map((q) => {
               const ac = ACCENTS[q.accent];
               return (
@@ -264,8 +265,8 @@ function DashboardPage() {
               );
             })}
           </div>
-        </div>
-      </AdminCard>
+        </AdminCard>
+      </div>
 
       {/* Live activity */}
       <AdminCard accent="lime" className="p-4">
