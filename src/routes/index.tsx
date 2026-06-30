@@ -9,6 +9,7 @@ import {
   Zap, Gift, Trophy, ArrowRight, Star, Banknote, Crown, Gem, Award,
   Rocket, Check, Package, Truck, ShoppingCart,
 } from "lucide-react";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 export const Route = createFileRoute("/")({
   component: SmartInvestorPage,
@@ -17,6 +18,17 @@ export const Route = createFileRoute("/")({
 /* ---------------- Shared bits ---------------- */
 
 function Logo({ size = 40 }: { size?: number }) {
+  const { logo_url, site_name } = useSiteSettings();
+  if (logo_url) {
+    return (
+      <img
+        src={logo_url}
+        alt={`${site_name} লোগো`}
+        style={{ width: size, height: size }}
+        className="rounded-xl object-cover ring-2 ring-amber-200 shadow-soft bg-white"
+      />
+    );
+  }
   return (
     <div
       className="grid place-items-center rounded-xl bg-white ring-2 ring-amber-200 shadow-soft"
@@ -57,12 +69,13 @@ function Heading({
 /* ---------------- 1. Nav ---------------- */
 
 function Nav() {
+  const { site_name } = useSiteSettings();
   return (
     <header className="sticky top-0 z-50 border-b border-amber-100 bg-white/85 backdrop-blur-md">
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <Link to="/" className="flex items-center gap-2.5">
           <Logo />
-          <span className="bn-display text-lg text-slate-900 sm:text-xl">Smart Investor</span>
+          <span className="bn-display text-lg text-slate-900 sm:text-xl">{site_name}</span>
         </Link>
         <div className="hidden items-center gap-7 md:flex">
           {[
@@ -546,15 +559,16 @@ function CTA() {
 /* ---------------- 10. Footer ---------------- */
 
 function Footer() {
+  const { site_name } = useSiteSettings();
   return (
     <footer className="border-t border-slate-200 bg-white px-4 py-8 sm:px-6">
       <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-2.5">
           <Logo size={36} />
-          <span className="bn-display text-lg text-slate-900">Smart Investor</span>
+          <span className="bn-display text-lg text-slate-900">{site_name}</span>
         </div>
         <div className="flex flex-col gap-3 text-sm text-slate-600 sm:flex-row sm:items-center sm:gap-6">
-          <span>© 2025 Smart Investor — সকল অধিকার সংরক্ষিত।</span>
+          <span>© 2025 {site_name} — সকল অধিকার সংরক্ষিত।</span>
           <div className="flex gap-4">
             <a href="#" className="hover:text-amber-600">শর্তাবলী</a>
             <a href="#" className="hover:text-amber-600">প্রাইভেসি</a>

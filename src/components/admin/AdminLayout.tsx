@@ -8,6 +8,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { ACCENTS, type AccentKey } from "@/lib/admin-accents";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 type NavItem = { to: string; label: string; Icon: typeof LayoutDashboard; accent: AccentKey };
 
@@ -30,6 +31,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   const [drawer, setDrawer] = useState(false);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const site = useSiteSettings();
 
   useEffect(() => { setDrawer(false); }, [pathname]);
 
@@ -43,11 +45,11 @@ export function AdminLayout({ children }: { children: ReactNode }) {
       {/* Mobile top bar */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-amber-200/70 bg-white/90 backdrop-blur px-3 py-2.5 lg:hidden">
         <Link to="/admin" className="flex items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/40">
-            <Sparkles className="h-5 w-5" />
+          <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/40 overflow-hidden">
+            {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-5 w-5" />}
           </div>
           <div>
-            <p className="bn-display text-sm leading-none">Smart Investor</p>
+            <p className="bn-display text-sm leading-none">{site.site_name}</p>
             <p className="text-[9px] font-bold tracking-widest text-orange-600 mt-0.5">ADMIN</p>
           </div>
         </Link>
@@ -120,16 +122,17 @@ export function AdminLayout({ children }: { children: ReactNode }) {
 function SidebarBody({
   pathname, onNav, onLogout,
 }: { pathname: string; onNav: () => void; onLogout: () => void }) {
+  const site = useSiteSettings();
   return (
     <div className="flex h-full flex-col p-3">
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 p-3 ring-1 ring-amber-200/70">
         <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-orange-500 to-red-500" />
         <Link to="/admin" onClick={onNav} className="flex items-center gap-2.5">
-          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/40">
-            <Sparkles className="h-6 w-6" />
+          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/40 overflow-hidden">
+            {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-6 w-6" />}
           </div>
           <div className="min-w-0">
-            <p className="bn-display text-base text-slate-900 leading-none">Smart Investor</p>
+            <p className="bn-display text-base text-slate-900 leading-none">{site.site_name}</p>
             <p className="text-[10px] font-bold tracking-[0.18em] text-orange-600 mt-1 flex items-center gap-1.5">
               ADMIN PANEL
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />

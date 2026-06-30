@@ -7,6 +7,7 @@ import {
   ShieldCheck, Zap, Gift, ArrowRight,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 type Search = { redirect?: string; mode?: string };
 
@@ -52,6 +53,7 @@ function mapAuthError(msg: string): string {
 }
 
 function AuthPage() {
+  const site = useSiteSettings();
   const navigate = useNavigate();
   const search = Route.useSearch();
   const [email, setEmail] = useState("");
@@ -99,15 +101,19 @@ function AuthPage() {
           <div className="pointer-events-none absolute -bottom-24 -right-16 h-80 w-80 rounded-full bg-emerald-300/30 blur-3xl" />
 
           <div className="relative z-10">
-            <div className="flex items-center gap-3">
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/20 backdrop-blur-sm shadow-lg ring-1 ring-white/30">
-                <Sparkles className="h-7 w-7" />
+            <Link to="/" aria-label="হোম পেজে ফিরুন" className="flex items-center gap-3 rounded-2xl outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70">
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/20 backdrop-blur-sm shadow-lg ring-1 ring-white/30 overflow-hidden">
+                {site.logo_url ? (
+                  <img src={site.logo_url} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <Sparkles className="h-7 w-7" />
+                )}
               </div>
               <div>
-                <p className="bn-display text-2xl leading-tight">Smart Investor</p>
-                <p className="text-xs text-white/80">স্মার্ট ইনভেস্টর</p>
+                <p className="bn-display text-2xl leading-tight">{site.site_name}</p>
+                <p className="text-xs text-white/80">{site.tagline || "হোমে ফিরে যান"}</p>
               </div>
-            </div>
+            </Link>
 
             <h1 className="bn-display mt-16 text-4xl leading-tight">
               Like, Comment করে<br/>টাকা Income করুন
@@ -150,12 +156,12 @@ function AuthPage() {
           <div className="w-full max-w-md">
             {/* Mobile brand bar */}
             <div className="mb-6 flex items-center justify-between lg:hidden">
-              <div className="flex items-center gap-2">
-                <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-400 to-rose-500 text-white shadow-md">
-                  <Sparkles className="h-5 w-5" />
+              <Link to="/" aria-label="হোম পেজে ফিরুন" className="flex items-center gap-2 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+                <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-400 to-rose-500 text-white shadow-md overflow-hidden">
+                  {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-5 w-5" />}
                 </div>
-                <span className="bn-display text-lg text-slate-900">Smart Investor</span>
-              </div>
+                <span className="bn-display text-lg text-slate-900">{site.site_name}</span>
+              </Link>
               <Link to="/" className="text-sm font-medium text-amber-700">হোম →</Link>
             </div>
 
