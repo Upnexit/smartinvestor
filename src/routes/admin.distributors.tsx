@@ -38,7 +38,16 @@ function AdminDistributorsPage() {
     try {
       const data = await list({ data: { q } });
       setRows(data as DRow[]);
-    } catch (e) { toast.error(e instanceof Error ? e.message : "লোড ব্যর্থ"); }
+    } catch (e) {
+      const raw = e instanceof Error ? e.message : "লোড ব্যর্থ";
+      const friendly = /Unauthorized|authorization header|No session/i.test(raw)
+        ? "সেশন লোড হচ্ছে — কিছুক্ষণ পর আবার চেষ্টা করুন"
+        : /Missing Supabase/i.test(raw)
+          ? "সার্ভার কনফিগারেশন সমস্যা — পুনরায় চেষ্টা করুন"
+          : raw;
+      toast.error(friendly);
+      setRows([]);
+    }
   }
 
   useEffect(() => { refresh(); /* eslint-disable-next-line */ }, []);
