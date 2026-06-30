@@ -117,7 +117,14 @@ function UsersPage() {
   return (
     <>
       <AdminPageHeader accent="sky" Icon={Users} title="ইউজার ম্যানেজমেন্ট" subtitle="সকল ইউজার, সার্চ, এডিট, সাসপেন্ড, ডিলিট"
-        action={<GradientButton accent="sky" onClick={exportCsv}><Download className="h-4 w-4" /> CSV</GradientButton>} />
+        action={
+          <div className="flex flex-wrap items-center gap-1.5">
+            <ExportBtn onClick={onCsv} label="CSV" Icon={FileText} gradient="from-slate-600 to-slate-800" shadow="shadow-slate-500/30" />
+            <ExportBtn onClick={onExcel} label="Excel" Icon={FileSpreadsheet} gradient="from-emerald-500 to-green-600" shadow="shadow-emerald-500/40" />
+            <ExportBtn onClick={onPdf} label="PDF" Icon={FileDown} gradient="from-rose-500 to-red-600" shadow="shadow-rose-500/40" />
+            <ExportBtn onClick={onPrint} label="Print" Icon={Printer} gradient="from-sky-500 to-indigo-600" shadow="shadow-sky-500/40" />
+          </div>
+        } />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {tiles.map((t) => (
