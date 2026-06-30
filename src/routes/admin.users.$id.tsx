@@ -63,12 +63,18 @@ function UserDetailPage() {
 
   return (
     <>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Link to="/admin/users" className="grid h-9 w-9 place-items-center rounded-xl bg-white text-slate-500 hover:bg-slate-50 ring-1 ring-slate-200"><ArrowLeft className="h-4 w-4" /></Link>
-        <AdminPageHeader accent="sky" Icon={UserIcon}
-          title={p?.full_name ?? "—"}
-          subtitle={`${p?.email ?? ""} · ${p?.phone ?? ""}`}
-        />
+        <div className="flex-1 min-w-0">
+          <AdminPageHeader accent="sky" Icon={UserIcon}
+            title={p?.full_name ?? "—"}
+            subtitle={`${p?.email ?? ""} · ${p?.phone ?? ""} · ID: ${p?.user_code ?? id.slice(0,8)}`}
+          />
+        </div>
+        <button onClick={() => setTab("profile")}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-500/30 hover:scale-[1.03] transition ring-1 ring-emerald-300/40">
+          <Pencil className="h-4 w-4" /> প্রোফাইল এডিট করুন
+        </button>
       </div>
 
       <div className="flex gap-1.5 overflow-x-auto pb-1">
