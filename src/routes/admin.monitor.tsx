@@ -19,7 +19,7 @@ function MonitorPage() {
     const t0 = performance.now();
     const [{ count }, errs] = await Promise.all([
       supabase.from("profiles").select("id", { count: "exact", head: true }),
-      supabase.from("error_logs").select("id,message,level,created_at").order("created_at", { ascending: false }).limit(10).then((r) => r.data ?? []).catch(() => [] as Data["errors"]),
+      (async () => { try { const r = await supabase.from("error_logs").select("id,message,level,created_at").order("created_at", { ascending: false }).limit(10); return (r.data ?? []) as Data["errors"]; } catch { return [] as Data["errors"]; } })(),
     ]);
     setData({ latencyMs: Math.round(performance.now() - t0), totalUsers: count ?? 0, errors: errs as Data["errors"], checkedAt: new Date().toISOString() });
   };
