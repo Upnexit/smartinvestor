@@ -99,8 +99,8 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1.5 lg:hidden">
+      {/* Mobile bottom nav — gradient background, always-colorful icons */}
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/40 bg-gradient-to-r from-amber-50 via-rose-50 to-cyan-50 backdrop-blur-xl px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_-12px_rgba(15,23,42,0.15)] lg:hidden">
         <ul className="grid grid-cols-6">
           {BOTTOM_NAV.map((item) => {
             const active = pathname.startsWith(item.to);
@@ -108,20 +108,19 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
               <li key={item.to}>
                 <Link
                   to={item.to}
-                  className="relative flex flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[10px] font-medium"
+                  className="relative flex flex-col items-center gap-1 rounded-xl px-1 py-1 text-[10px] font-semibold"
                 >
                   {active && (
-                    <span className={cn("absolute -top-1 h-1 w-7 rounded-full bg-gradient-to-r", item.from, item.to_)} />
+                    <span className={cn("absolute -top-1.5 h-1 w-7 rounded-full bg-gradient-to-r shadow-md", item.from, item.to_)} />
                   )}
                   <span className={cn(
-                    "grid h-9 w-9 place-items-center rounded-xl transition",
-                    active
-                      ? cn("bg-gradient-to-br text-white shadow-lg scale-110", item.from, item.to_)
-                      : "text-slate-500"
+                    "grid h-10 w-10 place-items-center rounded-2xl text-white bg-gradient-to-br shadow-md transition-all duration-300",
+                    item.from, item.to_,
+                    active ? "scale-110 ring-2 ring-white shadow-lg saturate-150 -translate-y-0.5" : "saturate-110 hover:scale-105",
                   )}>
                     <item.Icon className="h-[18px] w-[18px]" />
                   </span>
-                  <span className={cn(active ? "text-slate-900" : "text-slate-500")}>{item.short}</span>
+                  <span className={cn("transition-colors", active ? "text-slate-900" : "text-slate-600")}>{item.short}</span>
                 </Link>
               </li>
             );
