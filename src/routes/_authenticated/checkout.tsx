@@ -35,8 +35,18 @@ type PayAccounts = {
   guides?: Partial<Record<Method, string>>;
 };
 
-function BrandBadge({ method, size = 44 }: { method: Method; size?: number }) {
+function BrandBadge({ method, size = 44, logoUrl }: { method: Method; size?: number; logoUrl?: string }) {
   const b = BRAND[method];
+  if (logoUrl) {
+    return (
+      <div
+        style={{ width: size, height: size }}
+        className="grid place-items-center rounded-2xl bg-white shadow-md ring-1 ring-slate-200 overflow-hidden p-1"
+      >
+        <img src={logoUrl} alt={b.name} className="h-full w-full object-contain" />
+      </div>
+    );
+  }
   return (
     <div
       style={{ width: size, height: size, background: b.gradient }}
