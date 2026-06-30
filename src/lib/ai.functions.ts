@@ -58,7 +58,7 @@ async function callLovable(messages: Msg[], key: string): Promise<string> {
 }
 
 export const askSmartAI = createServerFn({ method: "POST" })
-  .inputValidator((data: { messages: Msg[] }) => {
+  .validator((data: { messages: Msg[] }) => {
     if (!Array.isArray(data?.messages)) throw new Error("messages required");
     const messages = data.messages.slice(-20).map((m) => ({
       role: m.role === "assistant" ? "assistant" : m.role === "system" ? "system" : "user",
@@ -78,6 +78,7 @@ export const askSmartAI = createServerFn({ method: "POST" })
         return { reply };
       } catch (err) {
         errors.push(`Gemini: ${(err as Error).message}`);
+        console.warn("Smart AI Gemini fallback:", (err as Error).message);
       }
     }
     if (lovableKey) {
@@ -86,10 +87,30 @@ export const askSmartAI = createServerFn({ method: "POST" })
         return { reply };
       } catch (err) {
         errors.push(`Lovable: ${(err as Error).message}`);
+        console.warn("Smart AI Gateway fallback:", (err as Error).message);
       }
     }
-    if (errors.length === 0) {
-      throw new Error("AI কনফিগার নেই — অ্যাডমিনকে জানান");
-    }
-    throw new Error(errors.join(" | "));
+    return { reply: buildLocalSmartReply(data.messages, errors.length > 0) };
   });
+
+function buildLocalSmartReply(messages: Msg[], degraded: boolean): string {
+  const last = [...messages].reverse().find((m) => m.role === "user")?.content.toLowerCase() ?? "";
+  const note = degraded ? "\n\n(লাইভ AI সাময়িকভাবে ব্যস্ত, তাই Smart Investor quick assistant থেকে উত্তর দিচ্ছি।)" : "";
+
+  if (/withdraw|উইথ|তুল|bkash|বিকাশ|nagad|নগদ|rocket|রকেট/.test(last)) {
+    return `উইথড্র করতে User Panel → Withdraw এ যান, bKash/Nagad/Rocket নির্বাচন করুন, 01 দিয়ে শুরু ১১ সংখ্যার নম্বর দিন এবং সর্বনিম্ন ৳২০০ রিকোয়েস্ট করুন। সাধারণত অ্যাডমিন approval এর পর ব্যালেন্স পাঠানো হয়।${note}`;
+  }
+  if (/package|প্যাকেজ|roi|income|আয়|ইনকাম|লাভ/.test(last)) {
+    return `প্যাকেজ কিনলে ৪৫ দিনের জন্য দৈনিক task ও earning limit সক্রিয় হয়। প্যাকেজ কার্ড থেকে বিস্তারিত দেখুন, তারপর Checkout এ manual payment করে Transaction ID জমা দিন—অ্যাডমিন approve করলে subscription active হবে।${note}`;
+  }
+  if (/task|টাস্ক|like|comment|লাইক|কমেন্ট/.test(last)) {
+    return `Tasks পেজে প্রতিদিনের লাইক/কমেন্ট কাজগুলো দেখা যাবে। নির্দেশনা অনুযায়ী কাজ শেষ করে proof/submission দিন; approval হলে reward আপনার balance এ যোগ হবে।${note}`;
+  }
+  if (/ref|রেফার|commission|কমিশন/.test(last)) {
+    return `আপনার referral link/share code দিয়ে নতুন user join করে প্যাকেজ active করলে আপনি package price-এর ৫% referral commission পাবেন।${note}`;
+  }
+  if (/bonus|বোনাস|৩০০|300/.test(last)) {
+    return `নতুন account এ ৳৩০০ signup bonus locked balance হিসেবে থাকে। প্যাকেজ active ও platform rules complete হলে এটি ব্যবহারযোগ্য balance এ unlock করার সুযোগ থাকে।${note}`;
+  }
+  return `আমি Smart AI সহকারী। প্যাকেজ, টাস্ক, উইথড্র, রেফারেল বা বোনাস সম্পর্কে প্রশ্ন করুন—আমি বাংলায় সাহায্য করবো।${note}`;
+}
