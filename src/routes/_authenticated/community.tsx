@@ -56,9 +56,13 @@ function CommunityPage() {
   const [tab, setTab] = useState<"ai" | "chat">("ai");
 
   return (
-    <div className="-mx-4 -my-5 sm:-mx-6 sm:-my-8 flex flex-col h-[calc(100dvh-72px)] lg:h-[calc(100dvh-64px)] bg-gradient-to-br from-slate-50 to-white">
+    <div
+      className="fixed inset-x-0 z-20 overflow-hidden bg-gradient-to-br from-slate-50 to-white flex flex-col
+                 top-[57px] bottom-[calc(72px+env(safe-area-inset-bottom))]
+                 lg:left-72 lg:top-0 lg:bottom-0 lg:right-0"
+    >
       {/* Mobile toggle */}
-      <div className="lg:hidden p-2 sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-slate-200">
+      <div className="lg:hidden shrink-0 p-2 bg-white/90 backdrop-blur border-b border-slate-200">
         <div className="grid grid-cols-2 gap-1.5 rounded-2xl bg-slate-100 p-1">
           <button
             onClick={() => setTab("ai")}
