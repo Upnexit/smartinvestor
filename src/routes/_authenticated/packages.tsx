@@ -104,11 +104,11 @@ function PackageCard({ p }: { p: Pkg }) {
       </dl>
 
       <div className={cn(
-        "mt-3 inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold text-white shadow-md",
+        "mt-3 inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-bold text-white shadow-md",
         isVip ? "bg-gradient-to-br from-amber-500 via-orange-500 to-rose-600 shadow-amber-300/50"
               : "bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-300/40",
       )}>
-        বিস্তারিত দেখুন <ArrowRight className="h-3.5 w-3.5" />
+        ক্রয় করুন <ArrowRight className="h-3.5 w-3.5" />
       </div>
     </Link>
   );
