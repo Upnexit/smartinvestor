@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Loader2, User as UserIcon, Wallet, Package, ListChecks, ArrowDownToLine, Users as UsersIcon } from "lucide-react";
+import { ArrowLeft, Save, Loader2, User as UserIcon, Wallet, Package, ListChecks, ArrowDownToLine, Users as UsersIcon, Pencil } from "lucide-react";
 import { AdminPageHeader, AdminCard, GradientButton, SoftButton, Shimmer } from "@/components/admin/AdminUI";
 import { getUserBundle, updateUser } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
