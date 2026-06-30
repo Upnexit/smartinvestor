@@ -1,22 +1,31 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Mail, ShieldCheck, X } from "lucide-react";
+import { Loader2, Mail, ShieldCheck, X, Pencil, Check, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
-import { sendEmailOtp, verifyEmailOtp } from "@/lib/email-otp.functions";
+import { sendEmailOtp, verifyEmailOtp, updateMyEmail } from "@/lib/email-otp.functions";
 
 export function EmailVerifyModal({
   email,
   open,
   onClose,
   onVerified,
+  onEmailChanged,
 }: {
   email: string;
   open: boolean;
   onClose: () => void;
   onVerified: () => void;
+  onEmailChanged?: (newEmail: string) => void;
 }) {
   const sendFn = useServerFn(sendEmailOtp);
   const verifyFn = useServerFn(verifyEmailOtp);
+  const updateFn = useServerFn(updateMyEmail);
+
+  const [currentEmail, setCurrentEmail] = useState(email);
+  const [editMode, setEditMode] = useState(false);
+  const [editValue, setEditValue] = useState(email);
+  const [savingEmail, setSavingEmail] = useState(false);
+
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [sent, setSent] = useState(false);
@@ -26,9 +35,15 @@ export function EmailVerifyModal({
 
   useEffect(() => {
     if (!open) {
-      setSent(false); setDigits(["", "", "", "", "", ""]); setCooldown(0);
+      setSent(false);
+      setDigits(["", "", "", "", "", ""]);
+      setCooldown(0);
+      setEditMode(false);
+    } else {
+      setCurrentEmail(email);
+      setEditValue(email);
     }
-  }, [open]);
+  }, [open, email]);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -39,6 +54,27 @@ export function EmailVerifyModal({
   if (!open) return null;
 
   const code = digits.join("");
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editValue.trim());
+
+  async function handleSaveEmail() {
+    if (!emailValid) return toast.error("সঠিক ইমেইল দিন");
+    setSavingEmail(true);
+    const id = toast.loading("ইমেইল আপডেট হচ্ছে…");
+    try {
+      const res = await updateFn({ data: { email: editValue.trim() } });
+      const next = res.email ?? editValue.trim();
+      setCurrentEmail(next);
+      setEditMode(false);
+      setSent(false);
+      setDigits(["", "", "", "", "", ""]);
+      onEmailChanged?.(next);
+      toast.success(res.changed ? "ইমেইল আপডেট হয়েছে" : "ইমেইল অপরিবর্তিত", { id });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "ব্যর্থ", { id });
+    } finally {
+      setSavingEmail(false);
+    }
+  }
 
   async function handleSend() {
     setSending(true);
@@ -50,7 +86,8 @@ export function EmailVerifyModal({
       setCooldown(60);
       setTimeout(() => inputs.current[0]?.focus(), 50);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "ব্যর্থ", { id });
+      const msg = e instanceof Error ? e.message : "ব্যর্থ";
+      toast.error(msg.includes("Unauthorized") ? "সেশন মেয়াদ শেষ — আবার লগইন করুন" : msg, { id });
     } finally {
       setSending(false);
     }
@@ -108,19 +145,68 @@ export function EmailVerifyModal({
           </div>
           <h2 className="bn-display mt-3 text-xl">ইমেইল ভেরিফিকেশন</h2>
           <p className="mt-1 text-xs text-white/90">
-            {sent ? "আপনার ইমেইলে পাঠানো ৬-সংখ্যার কোডটি দিন।" : "নিচের বাটনে ক্লিক করলে আপনার ইমেইলে একটি কোড পাঠানো হবে।"}
+            {editMode
+              ? "সঠিক ইমেইলটি লিখে সেভ করুন, এরপর কোড পাঠান।"
+              : sent
+              ? "আপনার ইমেইলে পাঠানো ৬-সংখ্যার কোডটি দিন।"
+              : "নিচের বাটনে ক্লিক করলে আপনার ইমেইলে একটি কোড পাঠানো হবে।"}
           </p>
-          <p className="mt-2 inline-block rounded-md bg-white/15 px-2 py-0.5 text-[12px] font-mono">{email}</p>
         </div>
 
         <div className="space-y-4 p-6">
-          {!sent ? (
+          {/* Email row */}
+          {!editMode ? (
+            <div className="flex items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">আপনার ইমেইল</p>
+                <p className="truncate font-mono text-sm text-slate-900">{currentEmail}</p>
+              </div>
+              <button
+                onClick={() => { setEditMode(true); setEditValue(currentEmail); }}
+                className="inline-flex items-center gap-1 rounded-lg bg-white px-2.5 py-1.5 text-[11px] font-bold text-rose-600 ring-1 ring-rose-200 hover:bg-rose-50"
+              >
+                <Pencil className="h-3 w-3" /> পরিবর্তন
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2 rounded-2xl border-2 border-rose-200 bg-rose-50/40 p-3">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-rose-700">নতুন ইমেইল</label>
+              <input
+                type="email"
+                autoFocus
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 font-mono text-sm outline-none focus:border-rose-500"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setEditMode(false); setEditValue(currentEmail); }}
+                  className="inline-flex flex-1 items-center justify-center gap-1 rounded-xl bg-slate-100 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" /> বাতিল
+                </button>
+                <button
+                  onClick={handleSaveEmail}
+                  disabled={savingEmail || !emailValid || editValue.trim().toLowerCase() === currentEmail.toLowerCase()}
+                  className="inline-flex flex-1 items-center justify-center gap-1 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-2 text-xs font-bold text-white shadow disabled:opacity-50"
+                >
+                  {savingEmail ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                  সেভ করুন
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!editMode && !sent && (
             <button onClick={handleSend} disabled={sending}
-              className="w-full rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 py-3 text-base font-bold text-white shadow-lg disabled:opacity-50 inline-flex items-center justify-center gap-2">
+              className="w-full rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-fuchsia-600 py-3 text-base font-bold text-white shadow-lg disabled:opacity-50 inline-flex items-center justify-center gap-2">
               {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Mail className="h-5 w-5" />}
               কোড পাঠান
             </button>
-          ) : (
+          )}
+
+          {!editMode && sent && (
             <>
               <div className="flex justify-between gap-2" onPaste={handlePaste}>
                 {digits.map((d, i) => (
