@@ -201,7 +201,22 @@ function ProfilePage() {
           <input value={fullName} onChange={(e) => setFullName(e.target.value)} className="profile-input" />
         </Field>
         <Field label="ইমেইল" icon={Mail}>
-          <input value={profile.email ?? ""} disabled className="profile-input bg-slate-50 text-slate-500" />
+          <div className="flex items-center gap-2">
+            <input value={profile.email ?? ""} disabled className="profile-input bg-slate-50 text-slate-500 flex-1" />
+            {profile.email_verified ? (
+              <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-2 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200">
+                <BadgeCheck className="h-4 w-4" /> ভেরিফাইড
+              </span>
+            ) : (
+              <button type="button" onClick={() => setVerifyOpen(true)}
+                className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 px-3 py-2 text-xs font-bold text-white shadow hover:opacity-95">
+                <AlertCircle className="h-4 w-4" /> ভেরিফাই করুন
+              </button>
+            )}
+          </div>
+          {!profile.email_verified && (
+            <p className="mt-1.5 text-[11px] text-amber-700">টাস্ক/উইথড্র করতে ইমেইল ভেরিফিকেশন আবশ্যক।</p>
+          )}
         </Field>
         <Field label="ফোন নাম্বার" icon={Phone}>
           <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01XXXXXXXXX" inputMode="numeric" maxLength={14}
