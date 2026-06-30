@@ -72,7 +72,7 @@ export function DistributorFormModal({
   // Form completion meter
   const completion = useMemo(() => {
     const req = ["full_name", "email", "phone", "payment_number", "district"];
-    const filled = req.filter((k) => (form as Record<string, string>)[k]?.toString().trim()).length;
+    const filled = req.filter((k) => String((form as unknown as Record<string, unknown>)[k] ?? "").trim()).length;
     return Math.round((filled / req.length) * 100);
   }, [form]);
 
