@@ -114,7 +114,7 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
                     <span className={cn("absolute -top-1.5 h-1 w-7 rounded-full bg-gradient-to-r shadow-md", item.from, item.to_)} />
                   )}
                   <span className={cn(
-                    "grid h-10 w-10 place-items-center rounded-2xl text-white bg-gradient-to-br shadow-md transition-all duration-300",
+                    "grid h-10 w-10 place-items-center rounded-[14px] text-white bg-gradient-to-br shadow-md transition-all duration-300",
                     item.from, item.to_,
                     active ? "scale-110 ring-2 ring-white shadow-lg saturate-150 -translate-y-0.5" : "saturate-110 hover:scale-105",
                   )}>
