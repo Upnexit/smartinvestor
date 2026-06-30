@@ -149,8 +149,8 @@ function SidebarContent({
         </div>
       </Link>
 
-      {/* Nav — always colorful gradients with hover animation */}
-      <nav className="mt-5 flex-1 space-y-2 overflow-y-auto pr-1">
+      {/* Nav — neutral row, gradient icon tile, professional hover */}
+      <nav className="mt-5 flex-1 space-y-1.5 overflow-y-auto pr-1">
         {NAV.map((item) => {
           const active = pathname.startsWith(item.to);
           return (
@@ -159,18 +159,23 @@ function SidebarContent({
               to={item.to}
               onClick={onNavigate}
               className={cn(
-                "group relative flex items-center gap-3 overflow-hidden rounded-2xl px-3 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-300",
-                "bg-gradient-to-br", item.from, item.to_,
-                "hover:shadow-xl hover:-translate-y-0.5 hover:saturate-150",
-                active ? "ring-2 ring-white/70 scale-[1.02]" : "opacity-95 hover:opacity-100",
+                "group relative flex items-center gap-3 overflow-hidden rounded-2xl px-3 py-2.5 text-sm font-semibold transition-all duration-300",
+                active
+                  ? "bg-slate-900/[0.04] text-slate-900 ring-1 ring-slate-200 shadow-soft"
+                  : "text-slate-700 hover:bg-slate-50 hover:-translate-y-0.5",
               )}
             >
-              <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 -translate-x-full transition-transform duration-700 group-hover:translate-x-full" />
-              <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-white/20 backdrop-blur ring-1 ring-white/30 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110">
+              <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/0 via-white/60 to-white/0 -translate-x-full transition-transform duration-700 group-hover:translate-x-full" />
+              <span className={cn(
+                "relative grid h-9 w-9 place-items-center rounded-xl text-white shadow-md bg-gradient-to-br transition-all duration-300",
+                item.from, item.to_,
+                "group-hover:rotate-6 group-hover:scale-110 group-hover:shadow-lg group-hover:saturate-150",
+                active && "ring-2 ring-white scale-105",
+              )}>
                 <item.Icon className="h-[18px] w-[18px]" />
               </span>
-              <span className="relative flex-1 drop-shadow-sm">{item.label}</span>
-              <ChevronRight className={cn("relative h-4 w-4 transition-transform duration-300", active ? "translate-x-0" : "-translate-x-1 opacity-70 group-hover:translate-x-0 group-hover:opacity-100")} />
+              <span className="relative flex-1">{item.label}</span>
+              <ChevronRight className={cn("relative h-4 w-4 transition-all duration-300", active ? "translate-x-0 text-slate-700" : "-translate-x-1 text-slate-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0")} />
             </Link>
           );
         })}
