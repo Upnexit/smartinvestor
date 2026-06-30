@@ -181,11 +181,11 @@ function RegisterPage() {
           <div className="w-full max-w-md">
             {/* Mobile brand bar */}
             <div className="mb-6 flex items-center justify-between lg:hidden">
-              <Link to="/" className="flex items-center gap-2">
-                <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-400 to-rose-500 text-white shadow-md">
-                  <Sparkles className="h-5 w-5" />
+              <Link to="/" aria-label="হোম পেজে ফিরুন" className="flex items-center gap-2 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
+                <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-400 to-rose-500 text-white shadow-md overflow-hidden">
+                  {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-5 w-5" />}
                 </div>
-                <span className="bn-display text-lg text-slate-900">Smart Investor</span>
+                <span className="bn-display text-lg text-slate-900">{site.site_name}</span>
               </Link>
               <Link to="/auth" search={{ mode: "login" }} className="text-sm font-medium text-amber-700">লগইন →</Link>
             </div>
