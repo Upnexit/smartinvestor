@@ -36,6 +36,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCommunityRouteImport } from './routes/_authenticated/community'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
+import { Route as AuthenticatedPackagesIdRouteImport } from './routes/_authenticated/packages.$id'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -171,6 +172,11 @@ const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AdminUsersRoute,
 } as any)
+const AuthenticatedPackagesIdRoute = AuthenticatedPackagesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthenticatedPackagesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -181,7 +187,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/community': typeof AuthenticatedCommunityRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/packages': typeof AuthenticatedPackagesRoute
+  '/packages': typeof AuthenticatedPackagesRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/referral': typeof AuthenticatedReferralRoute
   '/tasks': typeof AuthenticatedTasksRoute
@@ -198,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/admin/': typeof AdminIndexRoute
+  '/packages/$id': typeof AuthenticatedPackagesIdRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
 }
 export interface FileRoutesByTo {
@@ -208,7 +215,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/community': typeof AuthenticatedCommunityRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/packages': typeof AuthenticatedPackagesRoute
+  '/packages': typeof AuthenticatedPackagesRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/referral': typeof AuthenticatedReferralRoute
   '/tasks': typeof AuthenticatedTasksRoute
@@ -225,6 +232,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/admin': typeof AdminIndexRoute
+  '/packages/$id': typeof AuthenticatedPackagesIdRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
 }
 export interface FileRoutesById {
@@ -238,7 +246,7 @@ export interface FileRoutesById {
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/community': typeof AuthenticatedCommunityRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/packages': typeof AuthenticatedPackagesRoute
+  '/_authenticated/packages': typeof AuthenticatedPackagesRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/referral': typeof AuthenticatedReferralRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
@@ -255,6 +263,7 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/admin/': typeof AdminIndexRoute
+  '/_authenticated/packages/$id': typeof AuthenticatedPackagesIdRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
 }
 export interface FileRouteTypes {
@@ -285,6 +294,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/withdrawals'
     | '/admin/'
+    | '/packages/$id'
     | '/admin/users/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -312,6 +322,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/withdrawals'
     | '/admin'
+    | '/packages/$id'
     | '/admin/users/$id'
   id:
     | '__root__'
@@ -341,6 +352,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/withdrawals'
     | '/admin/'
+    | '/_authenticated/packages/$id'
     | '/admin/users/$id'
   fileRoutesById: FileRoutesById
 }
@@ -544,14 +556,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersIdRouteImport
       parentRoute: typeof AdminUsersRoute
     }
+    '/_authenticated/packages/$id': {
+      id: '/_authenticated/packages/$id'
+      path: '/$id'
+      fullPath: '/packages/$id'
+      preLoaderRoute: typeof AuthenticatedPackagesIdRouteImport
+      parentRoute: typeof AuthenticatedPackagesRoute
+    }
   }
 }
+
+interface AuthenticatedPackagesRouteChildren {
+  AuthenticatedPackagesIdRoute: typeof AuthenticatedPackagesIdRoute
+}
+
+const AuthenticatedPackagesRouteChildren: AuthenticatedPackagesRouteChildren = {
+  AuthenticatedPackagesIdRoute: AuthenticatedPackagesIdRoute,
+}
+
+const AuthenticatedPackagesRouteWithChildren =
+  AuthenticatedPackagesRoute._addFileChildren(
+    AuthenticatedPackagesRouteChildren,
+  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
   AuthenticatedCommunityRoute: typeof AuthenticatedCommunityRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedPackagesRoute: typeof AuthenticatedPackagesRoute
+  AuthenticatedPackagesRoute: typeof AuthenticatedPackagesRouteWithChildren
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedReferralRoute: typeof AuthenticatedReferralRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
@@ -562,7 +594,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
   AuthenticatedCommunityRoute: AuthenticatedCommunityRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedPackagesRoute: AuthenticatedPackagesRoute,
+  AuthenticatedPackagesRoute: AuthenticatedPackagesRouteWithChildren,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedReferralRoute: AuthenticatedReferralRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
