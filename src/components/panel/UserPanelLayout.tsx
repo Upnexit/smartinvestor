@@ -36,6 +36,7 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const activeItem = NAV.find((n) => pathname.startsWith(n.to)) ?? NAV[0];
   const navigate = useNavigate();
+  const site = useSiteSettings();
 
   async function handleLogout() {
     await supabase.auth.signOut();
