@@ -84,6 +84,7 @@ function WithdrawPage() {
 
   async function handleSubmit() {
     if (!userId || !phoneValid || !amountValid) return;
+    if (!emailVerified) { toast.error("আগে ইমেইল ভেরিফাই করুন (প্রোফাইল)"); return; }
     setSubmitting(true);
     const tId = toast.loading("রিকোয়েস্ট পাঠানো হচ্ছে…");
     try {
