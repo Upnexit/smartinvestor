@@ -149,22 +149,8 @@ function SidebarContent({
         </div>
       </Link>
 
-      {/* Mini profile */}
-      <div className="mt-4 flex items-center gap-3 rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-amber-50/40 p-3 shadow-soft">
-        <div className="relative">
-          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-rose-400 to-pink-500 text-sm font-bold text-white shadow-md">
-            SI
-          </div>
-          <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-slate-900">স্বাগতম 👋</p>
-          <p className="truncate text-xs text-slate-500">প্রোফাইল সম্পূর্ণ করুন</p>
-        </div>
-      </div>
-
-      {/* Nav */}
-      <nav className="mt-4 flex-1 space-y-1 overflow-y-auto">
+      {/* Nav — always colorful gradients with hover animation */}
+      <nav className="mt-5 flex-1 space-y-2 overflow-y-auto pr-1">
         {NAV.map((item) => {
           const active = pathname.startsWith(item.to);
           return (
@@ -173,23 +159,18 @@ function SidebarContent({
               to={item.to}
               onClick={onNavigate}
               className={cn(
-                "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
-                active ? cn(item.soft, "text-slate-900") : "text-slate-600 hover:bg-slate-50"
+                "group relative flex items-center gap-3 overflow-hidden rounded-2xl px-3 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-300",
+                "bg-gradient-to-br", item.from, item.to_,
+                "hover:shadow-xl hover:-translate-y-0.5 hover:saturate-150",
+                active ? "ring-2 ring-white/70 scale-[1.02]" : "opacity-95 hover:opacity-100",
               )}
             >
-              {active && (
-                <span className={cn("absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b", item.from, item.to_)} />
-              )}
-              <span className={cn(
-                "grid h-9 w-9 place-items-center rounded-xl transition",
-                active
-                  ? cn("bg-gradient-to-br text-white shadow-md scale-105", item.from, item.to_)
-                  : "bg-slate-100 text-slate-500 group-hover:bg-slate-200"
-              )}>
+              <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 -translate-x-full transition-transform duration-700 group-hover:translate-x-full" />
+              <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-white/20 backdrop-blur ring-1 ring-white/30 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110">
                 <item.Icon className="h-[18px] w-[18px]" />
               </span>
-              <span className="flex-1">{item.label}</span>
-              {active ? <ChevronRight className="h-4 w-4 text-slate-400" /> : <span className={cn("h-1.5 w-1.5 rounded-full opacity-40", item.dot)} />}
+              <span className="relative flex-1 drop-shadow-sm">{item.label}</span>
+              <ChevronRight className={cn("relative h-4 w-4 transition-transform duration-300", active ? "translate-x-0" : "-translate-x-1 opacity-70 group-hover:translate-x-0 group-hover:opacity-100")} />
             </Link>
           );
         })}

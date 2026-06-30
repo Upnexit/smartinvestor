@@ -116,22 +116,25 @@ function TasksPage() {
         <p className="mt-1 text-sm text-slate-600">প্রতিটি টাস্ক সম্পন্ন করে দৈনিক আয় বাড়ান।</p>
       </div>
 
-      {/* Summary */}
+      {/* Summary — gradient tiles */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-blue-50 ring-1 ring-sky-200 p-4">
-          <ListChecks className="h-5 w-5 text-sky-600" />
-          <p className="bn-display mt-2 text-2xl text-slate-900">{completedCount}</p>
-          <p className="text-[11px] text-slate-600">আজ সম্পন্ন</p>
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 p-4 text-white shadow-lg ring-1 ring-white/20">
+          <span className="pointer-events-none absolute -right-4 -top-4 h-16 w-16 rounded-full bg-white/20 blur-xl" />
+          <ListChecks className="h-5 w-5 opacity-90" />
+          <p className="bn-display mt-2 text-2xl drop-shadow">{completedCount}</p>
+          <p className="text-[11px] text-white/85">আজ সম্পন্ন</p>
         </div>
-        <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 ring-1 ring-emerald-200 p-4">
-          <Coins className="h-5 w-5 text-emerald-600" />
-          <p className="bn-display mt-2 text-2xl text-slate-900">৳{totalEarnedToday.toFixed(0)}</p>
-          <p className="text-[11px] text-slate-600">আজ আয়</p>
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-400 via-teal-500 to-green-600 p-4 text-white shadow-lg ring-1 ring-white/20">
+          <span className="pointer-events-none absolute -right-4 -top-4 h-16 w-16 rounded-full bg-white/20 blur-xl" />
+          <Coins className="h-5 w-5 opacity-90" />
+          <p className="bn-display mt-2 text-2xl drop-shadow">৳{totalEarnedToday.toFixed(0)}</p>
+          <p className="text-[11px] text-white/85">আজ আয়</p>
         </div>
-        <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 ring-1 ring-amber-200 p-4">
-          <Sparkles className="h-5 w-5 text-amber-600" />
-          <p className="bn-display mt-2 text-2xl text-slate-900">{tasks?.length ?? 0}</p>
-          <p className="text-[11px] text-slate-600">মোট টাস্ক</p>
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-600 p-4 text-white shadow-lg ring-1 ring-white/20">
+          <span className="pointer-events-none absolute -right-4 -top-4 h-16 w-16 rounded-full bg-white/20 blur-xl" />
+          <Sparkles className="h-5 w-5 opacity-90" />
+          <p className="bn-display mt-2 text-2xl drop-shadow">{tasks?.length ?? 0}</p>
+          <p className="text-[11px] text-white/85">মোট টাস্ক</p>
         </div>
       </div>
 
@@ -146,23 +149,30 @@ function TasksPage() {
         </div>
       )}
 
-      {/* Filter chips */}
+      {/* Filter chips — colorful gradients */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
         <Filter className="h-4 w-4 shrink-0 text-slate-500" />
-        {["all", "like", "comment", "share", "view"].map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={cn(
-              "shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition",
-              filter === f
-                ? "bg-slate-900 text-white shadow"
-                : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50",
-            )}
-          >
-            {f === "all" ? "সব" : ACTION_META[f]?.label ?? f}
-          </button>
-        ))}
+        {["all", "like", "comment", "share", "view"].map((f) => {
+          const meta = ACTION_META[f];
+          const sel = filter === f;
+          const grad = f === "all"
+            ? "from-slate-700 to-slate-900"
+            : `${meta.from} ${meta.to}`;
+          return (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={cn(
+                "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200",
+                sel
+                  ? cn("bg-gradient-to-r text-white shadow-md scale-105", grad)
+                  : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 hover:-translate-y-0.5",
+              )}
+            >
+              {f === "all" ? "সব" : meta.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Task list */}

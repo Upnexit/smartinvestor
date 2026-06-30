@@ -88,7 +88,7 @@ function CommunityPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-200px)] flex-col -mx-4 sm:mx-0 sm:rounded-3xl sm:ring-1 sm:ring-slate-200 overflow-hidden bg-white">
+    <div className="flex h-[calc(100dvh-180px)] lg:h-[calc(100dvh-120px)] flex-col -mx-4 -my-5 sm:-mx-6 sm:-my-8 sm:rounded-3xl sm:ring-1 sm:ring-slate-200 overflow-hidden bg-white shadow-soft">
       {/* Header */}
       <div className="border-b border-slate-200 bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 p-4 text-white">
         <div className="flex items-center gap-3">
