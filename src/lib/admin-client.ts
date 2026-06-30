@@ -160,7 +160,6 @@ async function createAuthUserWithPublicSignup(input: DistributorInput) {
     method: "POST",
     headers: {
       apikey: key,
-      Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
