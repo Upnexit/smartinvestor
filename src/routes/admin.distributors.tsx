@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Users2, Plus, Edit3, Trash2, Search, MapPin, Phone, Wallet, Award, UserCheck, Activity } from "lucide-react";
+import { Users2, Plus, Edit3, Trash2, Search, MapPin, Phone, Wallet, Award, UserCheck, Activity, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   adminListDistributors, adminDeleteDistributor, adminUpdateDistributor,
@@ -10,6 +10,7 @@ import {
   AdminPageHeader, StatTile, AdminCard, GradientButton, SoftButton, EmptyState, Shimmer, ConfirmDeleteModal,
 } from "@/components/admin/AdminUI";
 import { DistributorFormModal } from "@/components/admin/DistributorFormModal";
+import { useAuthReady } from "@/hooks/use-auth-ready";
 
 export const Route = createFileRoute("/admin/distributors")({
   head: () => ({ meta: [{ title: "ডিস্ট্রিবিউটর — অ্যাডমিন" }] }),
@@ -28,6 +29,7 @@ function AdminDistributorsPage() {
   const list = useServerFn(adminListDistributors);
   const del = useServerFn(adminDeleteDistributor);
   const upd = useServerFn(adminUpdateDistributor);
+  const { isReady, user } = useAuthReady();
   const [rows, setRows] = useState<DRow[] | null>(null);
   const [q, setQ] = useState("");
   const [modal, setModal] = useState<{ open: boolean; editing: DRow | null }>({ open: false, editing: null });
@@ -35,6 +37,7 @@ function AdminDistributorsPage() {
   const [busy, setBusy] = useState(false);
 
   async function refresh() {
+    if (!isReady || !user) return;
     try {
       const data = await list({ data: { q } });
       setRows(data as DRow[]);
@@ -50,8 +53,15 @@ function AdminDistributorsPage() {
     }
   }
 
-  useEffect(() => { refresh(); /* eslint-disable-next-line */ }, []);
-  useEffect(() => { const t = setTimeout(refresh, 300); return () => clearTimeout(t); /* eslint-disable-next-line */ }, [q]);
+  // Initial + auth-ready load
+  useEffect(() => { if (isReady && user) refresh(); /* eslint-disable-next-line */ }, [isReady, user?.id]);
+  // Debounced search
+  useEffect(() => {
+    if (!isReady || !user) return;
+    const t = setTimeout(refresh, 300);
+    return () => clearTimeout(t);
+    /* eslint-disable-next-line */
+  }, [q]);
 
   const stats = useMemo(() => {
     const r = rows ?? [];
