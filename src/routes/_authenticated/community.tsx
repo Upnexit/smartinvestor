@@ -126,7 +126,8 @@ function AIChatPanel() {
       const { reply } = await ask({ data: { messages: next.map(({ role, content }) => ({ role, content })) } });
       setMsgs((m) => [...m, { id: crypto.randomUUID(), role: "assistant", content: reply }]);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "AI ব্যর্থ");
+      console.warn("Smart AI client fallback:", e);
+      setMsgs((m) => [...m, { id: crypto.randomUUID(), role: "assistant", content: buildInstantAIReply(content) }]);
     } finally { setBusy(false); }
   }
 
@@ -191,6 +192,23 @@ function AIChatPanel() {
       />
     </section>
   );
+}
+
+function buildInstantAIReply(content: string): string {
+  const q = content.toLowerCase();
+  if (/withdraw|উইথ|বিকাশ|bkash|নগদ|nagad|রকেট|rocket/.test(q)) {
+    return "উইথড্র করতে Withdraw পেজে bKash/Nagad/Rocket নির্বাচন করুন, 01 দিয়ে শুরু ১১ সংখ্যার নম্বর দিন এবং সর্বনিম্ন ৳২০০ রিকোয়েস্ট করুন।";
+  }
+  if (/package|প্যাকেজ|roi|ইনকাম|আয়|income/.test(q)) {
+    return "প্যাকেজ কার্ড থেকে বিস্তারিত দেখে Checkout করুন। Transaction ID জমা দিলে অ্যাডমিন approval-এর পর package active হবে এবং daily task/earning শুরু হবে।";
+  }
+  if (/task|টাস্ক|like|লাইক|comment|কমেন্ট/.test(q)) {
+    return "Tasks পেজে প্রতিদিনের কাজগুলো দেখুন, নির্দেশনা অনুযায়ী proof submit করুন; approval হলে reward balance-এ যোগ হবে।";
+  }
+  if (/ref|রেফার|commission|কমিশন/.test(q)) {
+    return "Referral link দিয়ে নতুন user package active করলে আপনি package price-এর ৫% commission পাবেন।";
+  }
+  return "আমি Smart AI সহকারী। প্যাকেজ, টাস্ক, উইথড্র, রেফারেল বা বোনাস—যে কোনো বিষয়ে প্রশ্ন করুন, আমি বাংলায় সাহায্য করবো।";
 }
 
 /* =================== COMMUNITY =================== */

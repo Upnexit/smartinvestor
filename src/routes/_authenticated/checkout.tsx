@@ -123,7 +123,7 @@ function CheckoutPage() {
       merged.logos = logos;
       setAccounts(applyPaymentBranding(merged, paymentBranding));
     })();
-  }, [pkgId, navigate]);
+  }, [pkgId, navigate, paymentBranding]);
 
   useEffect(() => {
     setAccounts((prev) => applyPaymentBranding(prev, paymentBranding));
