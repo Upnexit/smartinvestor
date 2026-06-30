@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { CreditCard, Save } from "lucide-react";
 import { AdminPageHeader, AdminCard, GradientButton, Shimmer } from "@/components/admin/AdminUI";
 import { supabase } from "@/integrations/supabase/client";
-import { adminSaveSetting } from "@/lib/admin.functions";
+import { saveSetting } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/payments")({
@@ -20,7 +19,6 @@ const GRAD: Record<Method, string> = { bkash: "from-pink-500 to-rose-600", nagad
 const LABEL: Record<Method, string> = { bkash: "বিকাশ", nagad: "নগদ", rocket: "রকেট" };
 
 function PaymentsPage() {
-  const save = useServerFn(adminSaveSetting);
   const [state, setState] = useState<Record<Method, Cfg> | null>(null);
   const [busy, setBusy] = useState<Method | null>(null);
 
@@ -39,7 +37,7 @@ function PaymentsPage() {
   const handleSave = async (m: Method) => {
     if (!state) return;
     setBusy(m);
-    try { await save({ data: { key: `payment_${m}`, value: state[m] as unknown as Record<string, unknown> } }); toast.success(`${LABEL[m]} সেভ হয়েছে`); }
+    try { await saveSetting(`payment_${m}`, state[m]); toast.success(`${LABEL[m]} সেভ হয়েছে`); }
     catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
     finally { setBusy(null); }
   };

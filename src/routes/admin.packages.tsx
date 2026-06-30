@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Plus, Package as PackageIcon, Pencil, Trash2, X, Save, Upload } from "lucide-react";
 import { AdminPageHeader, AdminCard, GradientButton, SoftButton, EmptyState, ConfirmDeleteModal, Shimmer } from "@/components/admin/AdminUI";
-import { adminListPackages, adminSavePackage, adminTogglePackage, adminDeletePackage } from "@/lib/admin.functions";
+import { listPackages, savePackage, togglePackage, deletePackage, subscribeTable } from "@/lib/admin-client";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -20,19 +19,15 @@ type Pkg = {
 };
 
 function PackagesPage() {
-  const list = useServerFn(adminListPackages);
-  const save = useServerFn(adminSavePackage);
-  const toggle = useServerFn(adminTogglePackage);
-  const remove = useServerFn(adminDeletePackage);
-
   const [rows, setRows] = useState<Pkg[] | null>(null);
   const [edit, setEdit] = useState<Pkg | null>(null);
   const [open, setOpen] = useState(false);
   const [del, setDel] = useState<Pkg | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const refresh = () => list().then((r) => setRows(r as unknown as Pkg[]));
+  const refresh = () => listPackages().then((r) => setRows(r as unknown as Pkg[])).catch((e) => toast.error(e instanceof Error ? e.message : "ব্যর্থ"));
   useAdminAutoRefresh(refresh);
+  useEffect(() => subscribeTable("packages", refresh), []);
 
   const onAdd = () => { setEdit({ id: "", name: "", price: 0, daily_income: 0, duration_days: 30, image_url: null, active: true, description: null }); setOpen(true); };
   const onEdit = (p: Pkg) => { setEdit({ ...p }); setOpen(true); };
@@ -41,11 +36,11 @@ function PackagesPage() {
     if (!edit) return;
     setBusy(true);
     try {
-      await save({ data: { id: edit.id || null, patch: {
+      await savePackage(edit.id || null, {
         name: edit.name, price: edit.price, daily_income: edit.daily_income,
         duration_days: edit.duration_days, image_url: edit.image_url, active: edit.active,
         description: edit.description,
-      } } });
+      });
       toast.success("সেভ হয়েছে");
       setOpen(false); refresh();
     } catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
@@ -53,14 +48,14 @@ function PackagesPage() {
   };
 
   const handleToggle = async (p: Pkg) => {
-    try { await toggle({ data: { id: p.id, active: !p.active } }); refresh(); }
+    try { await togglePackage(p.id, !p.active); refresh(); }
     catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
   };
 
   const handleDelete = async () => {
     if (!del) return;
     setBusy(true);
-    try { await remove({ data: { id: del.id } }); toast.success("ডিলিট হয়েছে"); setDel(null); refresh(); }
+    try { await deletePackage(del.id); toast.success("ডিলিট হয়েছে"); setDel(null); refresh(); }
     catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
     finally { setBusy(false); }
   };

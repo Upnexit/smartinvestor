@@ -1,13 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Check, X, ShieldCheck, Copy, Image as ImgIcon } from "lucide-react";
 import { AdminPageHeader, AdminCard, GradientButton, SoftButton, EmptyState, Shimmer } from "@/components/admin/AdminUI";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
-import { adminSignedUrl } from "@/lib/admin.functions";
-import { adminApprovePackage, adminRejectPackage } from "@/lib/checkout.functions";
+import { reviewOrder, signedUrl } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/approvals")({
@@ -38,9 +36,7 @@ function ApprovalsPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [shot, setShot] = useState<string | null>(null);
 
-  const approve = useServerFn(adminApprovePackage);
-  const rej = useServerFn(adminRejectPackage);
-  const sign = useServerFn(adminSignedUrl);
+
 
   const refresh = () => supabase.from("user_packages")
     .select("id,status,payment_method,sender_number,trx_id,created_at,rejection_reason,user_id,package_id,screenshot_url,packages(name,price),profiles!user_packages_user_id_fkey(full_name,phone)")
@@ -65,20 +61,20 @@ function ApprovalsPage() {
 
   const onApprove = async (id: string) => {
     setBusy(id);
-    try { await approve({ data: { orderId: id } }); toast.success("অ্যাপ্রুভড"); refresh(); }
+    try { await reviewOrder(id, "approve"); toast.success("অ্যাপ্রুভড"); refresh(); }
     catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
     finally { setBusy(null); }
   };
   const onReject = async () => {
     if (!reject || reason.trim().length < 3) { toast.error("কারণ লিখুন"); return; }
     setBusy(reject.id);
-    try { await rej({ data: { orderId: reject.id, reason: reason.trim() } }); toast.success("রিজেক্টেড"); setReject(null); setReason(""); refresh(); }
+    try { await reviewOrder(reject.id, "reject", reason.trim()); toast.success("রিজেক্টেড"); setReject(null); setReason(""); refresh(); }
     catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
     finally { setBusy(null); }
   };
   const openShot = async (path: string) => {
     if (path.startsWith("http")) { setShot(path); return; }
-    try { const r = await sign({ data: { bucket: "payment-screenshots", path } }); setShot(r.url); }
+    try { const url = await signedUrl("payment-screenshots", path); setShot(url); }
     catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
   };
 

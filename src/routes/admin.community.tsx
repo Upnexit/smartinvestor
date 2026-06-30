@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { MessageSquare, Trash2, Ban, X } from "lucide-react";
 import { AdminPageHeader, AdminCard, GradientButton, SoftButton, EmptyState, Shimmer } from "@/components/admin/AdminUI";
 import { supabase } from "@/integrations/supabase/client";
-import { adminDeleteMessage, adminBanUser } from "@/lib/admin.functions";
+import { deleteMessage, banUser as banUserApi } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/community")({
@@ -19,8 +18,6 @@ type Msg = {
 };
 
 function CommunityPage() {
-  const del = useServerFn(adminDeleteMessage);
-  const ban = useServerFn(adminBanUser);
   const [msgs, setMsgs] = useState<Msg[] | null>(null);
   const [banUser, setBanUser] = useState<{ id: string; name: string } | null>(null);
   const [reason, setReason] = useState("");
@@ -40,14 +37,14 @@ function CommunityPage() {
 
   const handleDel = async (id: string) => {
     setBusy(id);
-    try { await del({ data: { id } }); toast.success("মুছে ফেলা হয়েছে"); refresh(); }
+    try { await deleteMessage(id); toast.success("মুছে ফেলা হয়েছে"); refresh(); }
     catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
     finally { setBusy(null); }
   };
   const handleBan = async () => {
     if (!banUser || reason.trim().length < 3) { toast.error("কারণ লিখুন"); return; }
     setBusy(banUser.id);
-    try { await ban({ data: { userId: banUser.id, reason: reason.trim(), hours } }); toast.success("ব্যান করা হয়েছে"); setBanUser(null); setReason(""); }
+    try { await banUserApi(banUser.id, reason.trim(), hours); toast.success("ব্যান করা হয়েছে"); setBanUser(null); setReason(""); }
     catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
     finally { setBusy(null); }
   };

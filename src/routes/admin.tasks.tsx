@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Link2, Plus, Pencil, Trash2, X, Save } from "lucide-react";
 import { AdminPageHeader, AdminCard, GradientButton, SoftButton, EmptyState, ConfirmDeleteModal, StatTile, Shimmer } from "@/components/admin/AdminUI";
 import { supabase } from "@/integrations/supabase/client";
-import { adminSaveTask, adminDeleteTask } from "@/lib/admin.functions";
+import { saveTask, deleteTask, subscribeTable } from "@/lib/admin-client";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
 import { cn } from "@/lib/utils";
 
@@ -21,8 +20,6 @@ type Task = {
 const EMPTY: Task = { id: "", title: "", url: "", reward: 5, category: "facebook", daily_limit: 1, active: true, description: null };
 
 function TasksPage() {
-  const save = useServerFn(adminSaveTask);
-  const remove = useServerFn(adminDeleteTask);
   const [rows, setRows] = useState<Task[] | null>(null);
   const [stats, setStats] = useState<{ done: number; paid: number } | null>(null);
   const [edit, setEdit] = useState<Task | null>(null);
@@ -51,10 +48,10 @@ function TasksPage() {
     if (!edit.title || !edit.url) { toast.error("টাইটেল ও URL দরকার"); return; }
     setBusy(true);
     try {
-      await save({ data: { id: edit.id || null, patch: {
+      await saveTask(edit.id || null, {
         title: edit.title, url: edit.url, reward: edit.reward, category: edit.category,
         daily_limit: edit.daily_limit, active: edit.active, description: edit.description,
-      } } });
+      });
       toast.success("সেভ হয়েছে"); setEdit(null); refresh();
     } catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
     finally { setBusy(false); }
@@ -62,12 +59,12 @@ function TasksPage() {
   const handleDel = async () => {
     if (!del) return;
     setBusy(true);
-    try { await remove({ data: { id: del.id } }); toast.success("ডিলিট"); setDel(null); refresh(); }
+    try { await deleteTask(del.id); toast.success("ডিলিট"); setDel(null); refresh(); }
     catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
     finally { setBusy(false); }
   };
   const toggle = async (t: Task) => {
-    try { await save({ data: { id: t.id, patch: { active: !t.active } } }); refresh(); }
+    try { await saveTask(t.id, { active: !t.active }); refresh(); }
     catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
   };
 

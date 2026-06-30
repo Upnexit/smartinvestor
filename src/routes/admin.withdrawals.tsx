@@ -1,13 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { ArrowDownToLine, Check, X, Loader2 } from "lucide-react";
 import {
   AdminPageHeader, AdminCard, GradientButton, SoftButton, EmptyState, Shimmer,
 } from "@/components/admin/AdminUI";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
-import { adminReviewWithdrawal } from "@/lib/admin.functions";
+import { reviewWithdrawal } from "@/lib/admin-client";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +36,7 @@ function WithdrawalsPage() {
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
 
-  const review = useServerFn(adminReviewWithdrawal);
+
 
   const refresh = () => {
     supabase.from("withdrawals")
@@ -72,7 +71,7 @@ function WithdrawalsPage() {
   const handleApprove = async (id: string) => {
     setBusy(id);
     try {
-      await review({ data: { id, action: "approve" } });
+      await reviewWithdrawal(id, "approve");
       toast.success("অ্যাপ্রুভ হয়েছে — ব্যালেন্স ডেবিট");
       refresh();
     } catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
@@ -84,7 +83,7 @@ function WithdrawalsPage() {
     if (reason.trim().length < 3) { toast.error("কারণ লিখুন (৩+ অক্ষর)"); return; }
     setBusy(reject.id);
     try {
-      await review({ data: { id: reject.id, action: "reject", note: reason.trim() } });
+      await reviewWithdrawal(reject.id, "reject", reason.trim());
       toast.success("রিজেক্ট হয়েছে");
       setReject(null); setReason(""); refresh();
     } catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }

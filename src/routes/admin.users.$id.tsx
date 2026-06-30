@@ -1,10 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { ArrowLeft, Save, Loader2, User as UserIcon, Wallet, Package, ListChecks, ArrowDownToLine, Users as UsersIcon } from "lucide-react";
 import { AdminPageHeader, AdminCard, GradientButton, SoftButton, Shimmer } from "@/components/admin/AdminUI";
-import { adminGetUser, adminUpdateUser } from "@/lib/admin.functions";
+import { getUserBundle, updateUser } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/users/$id")({
@@ -25,31 +24,29 @@ type TabKey = typeof TABS[number]["key"];
 
 function UserDetailPage() {
   const { id } = Route.useParams();
-  const get = useServerFn(adminGetUser);
-  const update = useServerFn(adminUpdateUser);
-  const [data, setData] = useState<Awaited<ReturnType<typeof get>> | null>(null);
+  const [data, setData] = useState<Awaited<ReturnType<typeof getUserBundle>> | null>(null);
   const [tab, setTab] = useState<TabKey>("profile");
   const [form, setForm] = useState({ full_name: "", phone: "", email: "", balance: "", locked_balance: "" });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    get({ data: { userId: id } }).then((r) => {
+    getUserBundle(id).then((r) => {
       setData(r);
       const p = r.profile;
       if (p) setForm({
         full_name: p.full_name ?? "", phone: p.phone ?? "", email: p.email ?? "",
         balance: String(p.balance ?? 0), locked_balance: String(p.locked_balance ?? 0),
       });
-    }).catch((e) => toast.error(e.message));
-  }, [id, get]);
+    }).catch((e) => toast.error(e instanceof Error ? e.message : "ব্যর্থ"));
+  }, [id]);
 
   const onSave = async () => {
     setSaving(true);
     try {
-      await update({ data: { userId: id, patch: {
+      await updateUser(id, {
         full_name: form.full_name, phone: form.phone, email: form.email,
         balance: form.balance, locked_balance: form.locked_balance,
-      } } });
+      });
       toast.success("সেভ হয়েছে");
     } catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
     finally { setSaving(false); }
