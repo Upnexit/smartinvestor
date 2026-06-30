@@ -2,10 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Users, ShieldCheck, Wallet, UserPlus, Package as PackageIcon, BarChart3,
-  Settings, ArrowDownToLine, ListChecks, Sparkles, TrendingUp, LineChart as LineIcon, Zap,
+  Settings, ArrowDownToLine, ListChecks, Sparkles, TrendingUp, Zap,
 } from "lucide-react";
 import {
-  AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+  ComposedChart, Area, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import {
