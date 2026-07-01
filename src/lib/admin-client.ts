@@ -150,58 +150,42 @@ export async function listDistributors(q: string) {
   return rows.map((row) => ({ ...row, users_count: counts[row.user_id] ?? 0 }));
 }
 
-async function createAuthUserWithPublicSignup(input: DistributorInput) {
-  const url = import.meta.env.VITE_SUPABASE_URL;
-  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) throw new Error("Supabase client config missing");
-  if (!input.password || input.password.length < 6) throw new Error("পাসওয়ার্ড ৬+ অক্ষর হতে হবে");
-
-  const res = await fetch(`${url}/auth/v1/signup`, {
-    method: "POST",
-    headers: {
-      apikey: key,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      email: input.email.trim().toLowerCase(),
-      password: input.password,
+export async function createDistributor(input: DistributorInput) {
+  if (!input.password || input.password.length < 6) {
+    throw new Error("পাসওয়ার্ড ৬+ অক্ষর হতে হবে");
+  }
+  // Use server function → supabaseAdmin.auth.admin.createUser (email_confirm: true).
+  // Bypasses Supabase's public signup email flow which is rate-limited
+  // (~4/hour) and triggers "email rate limit exceeded" errors.
+  const { adminCreateDistributor } = await import("@/lib/distributor.functions");
+  try {
+    return await adminCreateDistributor({
       data: {
+        email: input.email.trim().toLowerCase(),
+        password: input.password,
         full_name: input.full_name.trim(),
         phone: input.phone ?? "",
         payment_method: input.payment_method ?? "bkash",
         payment_number: input.payment_number ?? "",
-        role: "distributor",
+        district: input.district ?? "",
+        thana: input.thana ?? "",
+        address: input.address ?? "",
+        commission_rate: input.commission_rate ?? 5,
+        notes: input.notes ?? "",
       },
-    }),
-  });
-
-  const payload = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const message = String(payload?.msg ?? payload?.message ?? payload?.error_description ?? payload?.error ?? "অ্যাকাউন্ট তৈরি ব্যর্থ");
-    if (/already|registered|exists|user_exists/i.test(message)) {
+    } as never);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (/already|registered|exists|user_exists|duplicate/i.test(msg)) {
       throw new Error("এই ইমেইল আগে থেকেই ব্যবহার করা হয়েছে");
     }
-    throw new Error(message);
+    if (/rate limit|email rate/i.test(msg)) {
+      throw new Error("ইমেইল rate limit — কিছুক্ষণ পরে আবার চেষ্টা করুন");
+    }
+    throw new Error(msg);
   }
-
-  const userId = payload?.user?.id ?? payload?.id;
-  if (!userId) throw new Error("অ্যাকাউন্ট তৈরি হয়েছে, কিন্তু ইউজার আইডি পাওয়া যায়নি");
-  return String(userId);
 }
 
-export async function createDistributor(input: DistributorInput) {
-  const actor = await actorId();
-  const patch = normalizeDistributorPatch(input);
-  const userId = await createAuthUserWithPublicSignup(input);
-
-  const { data, error } = await supabase.rpc("admin_upsert_distributor", {
-    _actor: actor,
-    _user_id: userId,
-    _patch: patch as never,
-  });
-  if (error) throw new Error(error.message);
-  return data;
-}
 
 export async function updateDistributor(userId: string, input: DistributorInput) {
   const actor = await actorId();
