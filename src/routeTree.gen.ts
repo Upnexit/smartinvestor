@@ -18,6 +18,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DistributorIndexRouteImport } from './routes/distributor.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as DistributorWithdrawRouteImport } from './routes/distributor.withdraw'
 import { Route as DistributorUsersRouteImport } from './routes/distributor.users'
 import { Route as DistributorSupportRouteImport } from './routes/distributor.support'
 import { Route as DistributorProfileRouteImport } from './routes/distributor.profile'
@@ -90,6 +91,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const DistributorWithdrawRoute = DistributorWithdrawRouteImport.update({
+  id: '/withdraw',
+  path: '/withdraw',
+  getParentRoute: () => DistributorRoute,
 } as any)
 const DistributorUsersRoute = DistributorUsersRouteImport.update({
   id: '/users',
@@ -264,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/distributor/profile': typeof DistributorProfileRoute
   '/distributor/support': typeof DistributorSupportRoute
   '/distributor/users': typeof DistributorUsersRoute
+  '/distributor/withdraw': typeof DistributorWithdrawRoute
   '/admin/': typeof AdminIndexRoute
   '/distributor/': typeof DistributorIndexRoute
   '/packages/$id': typeof AuthenticatedPackagesIdRoute
@@ -299,6 +306,7 @@ export interface FileRoutesByTo {
   '/distributor/profile': typeof DistributorProfileRoute
   '/distributor/support': typeof DistributorSupportRoute
   '/distributor/users': typeof DistributorUsersRoute
+  '/distributor/withdraw': typeof DistributorWithdrawRoute
   '/admin': typeof AdminIndexRoute
   '/distributor': typeof DistributorIndexRoute
   '/packages/$id': typeof AuthenticatedPackagesIdRoute
@@ -339,6 +347,7 @@ export interface FileRoutesById {
   '/distributor/profile': typeof DistributorProfileRoute
   '/distributor/support': typeof DistributorSupportRoute
   '/distributor/users': typeof DistributorUsersRoute
+  '/distributor/withdraw': typeof DistributorWithdrawRoute
   '/admin/': typeof AdminIndexRoute
   '/distributor/': typeof DistributorIndexRoute
   '/_authenticated/packages/$id': typeof AuthenticatedPackagesIdRoute
@@ -379,6 +388,7 @@ export interface FileRouteTypes {
     | '/distributor/profile'
     | '/distributor/support'
     | '/distributor/users'
+    | '/distributor/withdraw'
     | '/admin/'
     | '/distributor/'
     | '/packages/$id'
@@ -414,6 +424,7 @@ export interface FileRouteTypes {
     | '/distributor/profile'
     | '/distributor/support'
     | '/distributor/users'
+    | '/distributor/withdraw'
     | '/admin'
     | '/distributor'
     | '/packages/$id'
@@ -453,6 +464,7 @@ export interface FileRouteTypes {
     | '/distributor/profile'
     | '/distributor/support'
     | '/distributor/users'
+    | '/distributor/withdraw'
     | '/admin/'
     | '/distributor/'
     | '/_authenticated/packages/$id'
@@ -534,6 +546,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/distributor/withdraw': {
+      id: '/distributor/withdraw'
+      path: '/withdraw'
+      fullPath: '/distributor/withdraw'
+      preLoaderRoute: typeof DistributorWithdrawRouteImport
+      parentRoute: typeof DistributorRoute
     }
     '/distributor/users': {
       id: '/distributor/users'
@@ -827,6 +846,7 @@ interface DistributorRouteChildren {
   DistributorProfileRoute: typeof DistributorProfileRoute
   DistributorSupportRoute: typeof DistributorSupportRoute
   DistributorUsersRoute: typeof DistributorUsersRoute
+  DistributorWithdrawRoute: typeof DistributorWithdrawRoute
   DistributorIndexRoute: typeof DistributorIndexRoute
 }
 
@@ -835,6 +855,7 @@ const DistributorRouteChildren: DistributorRouteChildren = {
   DistributorProfileRoute: DistributorProfileRoute,
   DistributorSupportRoute: DistributorSupportRoute,
   DistributorUsersRoute: DistributorUsersRoute,
+  DistributorWithdrawRoute: DistributorWithdrawRoute,
   DistributorIndexRoute: DistributorIndexRoute,
 }
 

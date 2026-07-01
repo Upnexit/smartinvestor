@@ -101,6 +101,51 @@ export type Database = {
         }
         Relationships: []
       }
+      distributor_withdrawals: {
+        Row: {
+          account_number: string
+          amount: number
+          created_at: string
+          distributor_id: string
+          id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          note: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          account_number: string
+          amount: number
+          created_at?: string
+          distributor_id: string
+          id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          note?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          account_number?: string
+          amount?: number
+          created_at?: string
+          distributor_id?: string
+          id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          note?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       distributors: {
         Row: {
           address: string | null
