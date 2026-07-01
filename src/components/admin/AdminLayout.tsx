@@ -1,9 +1,9 @@
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, ArrowDownToLine, Package, ShieldCheck, CreditCard,
   ListChecks, MessagesSquare, BarChart3, Activity, Settings, User as UserIcon,
-  LogOut, Menu, X, Bell, Search, ChevronRight, Sparkles, Users2,
+  LogOut, Menu, X, Bell, Search, ChevronRight, Sparkles, Users2, Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -87,21 +87,8 @@ export function AdminLayout({ children }: { children: ReactNode }) {
         <main className="min-w-0 flex-1">
           {/* Desktop top bar */}
           <div className="sticky top-0 z-20 hidden lg:block border-b border-amber-200/70 bg-white/85 backdrop-blur">
-            <div className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="search"
-                  placeholder="ইউজার / প্যাকেজ / ট্রানজেকশন..."
-                  className="w-full rounded-xl border border-amber-200 bg-amber-50/30 pl-9 pr-3 py-2 text-sm outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-300/40"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      const v = (e.target as HTMLInputElement).value.trim();
-                      navigate({ to: "/admin/users", search: v ? { q: v } : {} });
-                    }
-                  }}
-                />
-              </div>
+            <div className="mx-auto flex h-[60px] max-w-7xl items-center gap-3 px-6">
+              <AdminLiveSearch />
               <Link to="/admin/approvals" className="relative grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 transition hover:scale-[1.05]">
                 <Bell className="h-4 w-4" />
                 <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-white animate-pulse" />
@@ -111,6 +98,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
               </Link>
             </div>
           </div>
+
 
           <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-6 sm:py-6 space-y-4">
             {children}
@@ -127,21 +115,22 @@ function SidebarBody({
   const site = useSiteSettings();
   return (
     <div className="flex h-full flex-col p-3">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 p-3 ring-1 ring-amber-200/70">
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 px-2.5 ring-1 ring-amber-200/70 h-[60px] flex items-center">
         <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-orange-500 to-red-500" />
-        <Link to="/admin" onClick={onNav} className="flex items-center gap-2.5">
-          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/40 overflow-hidden">
-            {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-6 w-6" />}
+        <Link to="/admin" onClick={onNav} className="flex items-center gap-2 min-w-0 w-full">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 text-white shadow-md shadow-orange-500/40 overflow-hidden">
+            {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-5 w-5" />}
           </div>
-          <div className="min-w-0">
-            <p className="bn-display text-base text-slate-900 leading-none">{site.site_name}</p>
-            <p className="text-[10px] font-bold tracking-[0.18em] text-orange-600 mt-1 flex items-center gap-1.5">
+          <div className="min-w-0 leading-tight">
+            <p className="bn-display text-[13px] text-slate-900 leading-none truncate">{site.site_name}</p>
+            <p className="text-[9px] font-bold tracking-[0.18em] text-orange-600 mt-1 flex items-center gap-1">
               ADMIN PANEL
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             </p>
           </div>
         </Link>
       </div>
+
 
       <p className="px-2 pt-4 pb-1 text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">MENU</p>
       <nav className="flex-1 space-y-1 overflow-y-auto pr-1">
@@ -177,6 +166,130 @@ function SidebarBody({
         </span>
         লগআউট
       </button>
+    </div>
+  );
+}
+
+type SearchRow = {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
+  user_code: string | null;
+  avatar_url: string | null;
+};
+
+function AdminLiveSearch() {
+  const navigate = useNavigate();
+  const [q, setQ] = useState("");
+  const [rows, setRows] = useState<SearchRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const t = q.trim();
+    if (!t) { setRows([]); setLoading(false); return; }
+    setLoading(true);
+    const timer = setTimeout(async () => {
+      const esc = t.replace(/[%,()]/g, "");
+      const parts = [
+        `full_name.ilike.%${esc}%`,
+        `email.ilike.%${esc}%`,
+        `phone.ilike.%${esc}%`,
+        `user_code.ilike.%${esc}%`,
+        `referral_code.ilike.%${esc}%`,
+      ].join(",");
+      const { data } = await supabase
+        .from("profiles")
+        .select("id,full_name,email,phone,user_code,avatar_url")
+        .or(parts)
+        .limit(8);
+      setRows((data ?? []) as SearchRow[]);
+      setLoading(false);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [q]);
+
+  useEffect(() => {
+    function onDown(e: MouseEvent) {
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, []);
+
+  const t = q.trim();
+
+  return (
+    <div ref={boxRef} className="relative flex-1 max-w-md">
+      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <input
+        type="search"
+        value={q}
+        onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        placeholder="নাম, ফোন, ইউজার আইডি দিয়ে সার্চ..."
+        className="w-full rounded-xl border border-amber-200 bg-amber-50/30 pl-9 pr-9 py-2 text-sm outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-300/40"
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            navigate({ to: "/admin/users", search: t ? { q: t } : {} });
+            setOpen(false);
+          }
+          if (e.key === "Escape") setOpen(false);
+        }}
+      />
+      {loading && <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-orange-500" />}
+
+      {open && t && (
+        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-40 max-h-[70vh] overflow-y-auto rounded-2xl border border-amber-200 bg-white/95 backdrop-blur-xl shadow-2xl shadow-orange-500/10 ring-1 ring-amber-100">
+          {loading && rows.length === 0 && (
+            <p className="px-4 py-6 text-center text-sm text-slate-500">খুঁজছি...</p>
+          )}
+          {!loading && rows.length === 0 && (
+            <p className="px-4 py-6 text-center text-sm text-slate-500">কোনো ফলাফল নেই</p>
+          )}
+          {rows.length > 0 && (
+            <>
+              <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                ইউজার ({rows.length})
+              </p>
+              <ul className="pb-2">
+                {rows.map((r) => (
+                  <li key={r.id}>
+                    <button
+                      onClick={() => {
+                        navigate({ to: "/admin/users/$id", params: { id: r.id } });
+                        setOpen(false);
+                      }}
+                      className="flex w-full items-center gap-3 px-3 py-2 text-left transition hover:bg-amber-50"
+                    >
+                      <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-xs font-bold text-white">
+                        {r.avatar_url ? <img src={r.avatar_url} alt="" className="h-full w-full object-cover" /> : (r.full_name || r.email || "U").slice(0, 1).toUpperCase()}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-slate-900">
+                          {r.full_name || "নামহীন"}
+                        </span>
+                        <span className="block truncate text-[11px] text-slate-500">
+                          {[r.user_code, r.phone, r.email].filter(Boolean).join(" • ")}
+                        </span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => { navigate({ to: "/admin/users", search: { q: t } }); setOpen(false); }}
+                className="block w-full border-t border-amber-100 bg-amber-50/50 px-4 py-2.5 text-center text-xs font-semibold text-orange-700 hover:bg-amber-50"
+              >
+                সব ফলাফল দেখুন →
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
