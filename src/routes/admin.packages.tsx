@@ -19,13 +19,32 @@ type Pkg = {
   image_url: string | null; active: boolean; description: string | null;
 };
 
+const TARGET_W = 800;
+const TARGET_H = 800;
+
+async function resizeImage(file: File): Promise<Blob> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(TARGET_W / bitmap.width, TARGET_H / bitmap.height, 1);
+  const w = Math.round(bitmap.width * scale);
+  const h = Math.round(bitmap.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  return await new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob((b) => b ? resolve(b) : reject(new Error("resize failed")), "image/webp", 0.85)!
+  );
+}
+
 function PackagesPage() {
   const [rows, setRows] = useState<Pkg[] | null>(null);
   const [edit, setEdit] = useState<Pkg | null>(null);
   const [open, setOpen] = useState(false);
   const [del, setDel] = useState<Pkg | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [revenue, setRevenue] = useState<number | null>(null);
+
 
   const refresh = () => listPackages().then((r) => setRows(r as unknown as Pkg[])).catch((e) => toast.error(e instanceof Error ? e.message : "ব্যর্থ"));
   const refreshRevenue = async () => {
@@ -77,13 +96,23 @@ function PackagesPage() {
   };
 
   const uploadImage = async (file: File) => {
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = `pkg-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("package-images").upload(path, file, { upsert: true });
-    if (error) { toast.error(error.message); return; }
-    const { data: signed } = await supabase.storage.from("package-images").createSignedUrl(path, 60 * 60 * 24 * 365);
-    setEdit((e) => e ? { ...e, image_url: signed?.signedUrl ?? path } : e);
+    if (!file.type.startsWith("image/")) { toast.error("শুধু ছবি আপলোড করুন"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("সর্বোচ্চ ৫ MB"); return; }
+    setUploading(true);
+    try {
+      const blob = await resizeImage(file).catch(() => file);
+      const path = `pkg-${Date.now()}.webp`;
+      const { error } = await supabase.storage.from("package-images")
+        .upload(path, blob, { upsert: true, contentType: "image/webp", cacheControl: "31536000" });
+      if (error) throw error;
+      const { data: signed } = await supabase.storage.from("package-images").createSignedUrl(path, 60 * 60 * 24 * 365);
+      setEdit((e) => e ? { ...e, image_url: signed?.signedUrl ?? path } : e);
+      toast.success("ছবি আপলোড হয়েছে");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "আপলোড ব্যর্থ");
+    } finally { setUploading(false); }
   };
+
 
   const tiles = useMemo(() => {
     const total = rows?.length ?? 0;
@@ -175,13 +204,23 @@ function PackagesPage() {
               <Field label="মেয়াদ (দিন)" type="number" value={String(edit.duration_days)} onChange={(v) => setEdit({ ...edit, duration_days: Number(v) })} />
               <Field label="বিবরণ" value={edit.description ?? ""} onChange={(v) => setEdit({ ...edit, description: v })} />
               <div>
-                <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">ছবি</span>
-                <label className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-600 px-3 py-2 text-xs font-bold text-white cursor-pointer shadow-md shadow-pink-500/30 hover:scale-[1.02] transition">
-                  <Upload className="h-3.5 w-3.5" /> ছবি আপলোড
-                  <input type="file" className="hidden" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0])} />
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">প্যাকেজ ছবি</span>
+                  <span className="text-[10px] font-semibold text-fuchsia-600">প্রস্তাবিত: {TARGET_W}×{TARGET_H}px · WebP/JPG/PNG · ≤5MB</span>
+                </div>
+                <label className={cn(
+                  "inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-600 px-3 py-2 text-xs font-bold text-white shadow-md shadow-pink-500/30 transition",
+                  uploading ? "opacity-70 cursor-wait" : "cursor-pointer hover:scale-[1.02]"
+                )}>
+                  <Upload className="h-3.5 w-3.5" />
+                  {uploading ? "আপলোড হচ্ছে…" : (edit.image_url ? "ছবি বদলান" : "ছবি আপলোড")}
+                  <input type="file" className="hidden" accept="image/*" disabled={uploading}
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f); e.target.value = ""; }} />
                 </label>
-                {edit.image_url && <img src={edit.image_url} alt="" className="mt-2 h-20 rounded-lg object-cover" />}
+                <p className="mt-1 text-[10px] text-slate-500">ছবি স্বয়ংক্রিয়ভাবে {TARGET_W}×{TARGET_H}px এ রিসাইজ ও WebP-তে কম্প্রেস হবে — দ্রুত লোড হবে।</p>
+                {edit.image_url && <img src={edit.image_url} alt="" className="mt-2 h-24 w-24 rounded-lg object-cover ring-2 ring-fuchsia-200" />}
               </div>
+
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked={edit.active} onChange={(e) => setEdit({ ...edit, active: e.target.checked })} />
                 <span className="text-sm">অ্যাক্টিভ</span>

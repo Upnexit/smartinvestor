@@ -322,30 +322,48 @@ type Pkg = {
 };
 
 function Earnings() {
-  const pkgs: Pkg[] = [
-    {
-      name: "VIP", Icon: Crown,
-      gradient: "from-amber-400 via-orange-500 to-red-500",
-      badge: { label: "POPULAR", classes: "bg-rose-600 text-white" },
-      price: "৳ ৯,৯৯৯", daily: "৳ ৪৫০", total: "৳ ২০,২৫০", tasks: "১৫",
-    },
-    {
-      name: "Gold", Icon: Trophy,
-      gradient: "from-amber-300 via-yellow-400 to-amber-500",
-      price: "৳ ৪,৯৯৯", daily: "৳ ২২০", total: "৳ ৯,৯০০", tasks: "১০",
-    },
-    {
-      name: "Diamond", Icon: Gem,
-      gradient: "from-cyan-400 via-sky-500 to-blue-600",
-      price: "৳ ১৪,৯৯৯", daily: "৳ ৬৮০", total: "৳ ৩০,৬০০", tasks: "২০",
-    },
-    {
-      name: "Crazy", Icon: Rocket,
-      gradient: "from-pink-500 via-rose-500 to-orange-500",
-      badge: { label: "NEW", classes: "bg-pink-600 text-white" },
-      price: "৳ ৫২০", daily: "৳ ২০", total: "৳ ৯০০", tasks: "৫",
-    },
+  const fallback: (Pkg & { image_url: string | null })[] = [
+    { name: "VIP", Icon: Crown, gradient: "from-amber-400 via-orange-500 to-red-500", badge: { label: "POPULAR", classes: "bg-rose-600 text-white" }, price: "৳ ৯,৯৯৯", daily: "৳ ৪৫০", total: "৳ ২০,২৫০", tasks: "১৫", image_url: null },
+    { name: "Gold", Icon: Trophy, gradient: "from-amber-300 via-yellow-400 to-amber-500", price: "৳ ৪,৯৯৯", daily: "৳ ২২০", total: "৳ ৯,৯০০", tasks: "১০", image_url: null },
+    { name: "Diamond", Icon: Gem, gradient: "from-cyan-400 via-sky-500 to-blue-600", price: "৳ ১৪,৯৯৯", daily: "৳ ৬৮০", total: "৳ ৩০,৬০০", tasks: "২০", image_url: null },
+    { name: "Crazy", Icon: Rocket, gradient: "from-pink-500 via-rose-500 to-orange-500", badge: { label: "NEW", classes: "bg-pink-600 text-white" }, price: "৳ ৫২০", daily: "৳ ২০", total: "৳ ৯০০", tasks: "৫", image_url: null },
   ];
+  const [pkgs, setPkgs] = useState<(Pkg & { image_url: string | null })[]>(fallback);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data } = await supabase.from("packages")
+        .select("id,name,price,daily_income,daily_tasks,duration_days,image_url,featured,sort_order")
+        .eq("active", true)
+        .order("featured", { ascending: false })
+        .order("sort_order", { ascending: true })
+        .limit(4);
+      if (cancelled || !data || data.length === 0) return;
+      const gradients = [
+        "from-amber-400 via-orange-500 to-red-500",
+        "from-amber-300 via-yellow-400 to-amber-500",
+        "from-cyan-400 via-sky-500 to-blue-600",
+        "from-pink-500 via-rose-500 to-orange-500",
+      ];
+      const icons = [Crown, Trophy, Gem, Rocket];
+      const bn = (n: number) => Number(n).toLocaleString("bn-BD");
+      setPkgs(data.map((r, i) => ({
+        name: r.name,
+        Icon: icons[i % icons.length],
+        gradient: gradients[i % gradients.length],
+        badge: r.featured ? { label: "POPULAR", classes: "bg-rose-600 text-white" } : undefined,
+        price: `৳ ${bn(Number(r.price))}`,
+        daily: `৳ ${bn(Number(r.daily_income))}`,
+        total: `৳ ${bn(Number(r.daily_income) * Number(r.duration_days))}`,
+        tasks: bn(Number(r.daily_tasks)),
+        image_url: r.image_url,
+      })));
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   return (
     <section id="earning" className="bg-honey px-4 py-20 sm:px-6">
       <Heading
@@ -356,6 +374,12 @@ function Earnings() {
       <div className="mx-auto mt-12 grid max-w-6xl grid-cols-2 gap-5 lg:grid-cols-4">
         {pkgs.map((p) => (
           <article key={p.name} className="group flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-soft transition-all hover:-translate-y-1 hover:shadow-pop">
+            {p.image_url && (
+              <div className="relative h-36 w-full overflow-hidden">
+                <img src={p.image_url} alt={p.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <div className={`absolute inset-0 bg-gradient-to-t ${p.gradient} opacity-30 mix-blend-multiply`} />
+              </div>
+            )}
             <div className={`relative bg-gradient-to-br ${p.gradient} p-5 text-white`}>
               {p.badge && (
                 <span className={`absolute right-3 top-3 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${p.badge.classes} shadow-soft`}>
@@ -392,6 +416,7 @@ function Earnings() {
     </section>
   );
 }
+
 
 /* ---------------- 7. Products ---------------- */
 

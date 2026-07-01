@@ -18,7 +18,9 @@ type Pkg = {
   id: string; name: string; price: number;
   daily_tasks: number; daily_income: number; duration_days: number;
   description: string | null; featured: boolean; active: boolean;
+  image_url: string | null;
 };
+
 
 const bn = (n: number) => Number(n).toLocaleString("en-BD");
 
@@ -93,11 +95,19 @@ function PackageCard({ p, idx }: { p: Pkg; idx: number }) {
       <span className="pointer-events-none absolute -inset-x-10 -top-10 h-24 rotate-12 bg-gradient-to-r from-white/0 via-white/30 to-white/0 -translate-x-full transition-transform duration-700 group-hover:translate-x-full" />
       <span className="pointer-events-none absolute -right-8 -bottom-8 h-32 w-32 rounded-full bg-white/15 blur-2xl" />
 
+      {p.image_url && (
+        <div className="relative -mx-3.5 -mt-3.5 sm:-mx-4 sm:-mt-4 mb-2 h-24 sm:h-28 overflow-hidden rounded-t-2xl">
+          <img src={p.image_url} alt={p.name} loading="lazy" className="h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+        </div>
+      )}
+
       {isVip && (
         <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/25 backdrop-blur px-2 py-0.5 text-[10px] font-bold ring-1 ring-white/40">
           <Star className="h-2.5 w-2.5 fill-white" /> VIP
         </span>
       )}
+
 
       <span className="relative self-start rounded-lg bg-white/25 backdrop-blur px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1 ring-white/30">
         {roi}% ROI
