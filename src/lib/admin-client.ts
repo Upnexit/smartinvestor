@@ -29,7 +29,18 @@ async function actorId(): Promise<string> {
 /* ============ USERS ============ */
 
 export async function listUsers(q: string) {
+  // Exclude distributors from user management list
+  const { data: distRoleRows } = await supabase
+    .from("user_roles")
+    .select("user_id")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .eq("role", "distributor" as any);
+  const distIds = ((distRoleRows ?? []) as { user_id: string }[]).map((r) => r.user_id);
+
   let req = supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(200);
+  if (distIds.length) {
+    req = req.not("id", "in", `(${distIds.join(",")})`);
+  }
   const s = q.trim();
   if (s) {
     const esc = s.replace(/[%,()]/g, "");
@@ -45,14 +56,7 @@ export async function listUsers(q: string) {
   const { data, error } = await req;
   if (error) throw new Error(error.message);
   const rows = (data ?? []) as Record<string, unknown>[];
-  const ids = rows.map((r) => r.id as string);
-  let distSet = new Set<string>();
-  if (ids.length) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: roleRows } = await supabase.from("user_roles").select("user_id,role").in("user_id", ids).eq("role", "distributor" as any);
-    distSet = new Set(((roleRows ?? []) as { user_id: string }[]).map((r) => r.user_id));
-  }
-  return rows.map((r) => ({ ...r, is_distributor: distSet.has(r.id as string) }));
+  return rows.map((r) => ({ ...r, is_distributor: false }));
 }
 
 export async function getUserBundle(userId: string) {
