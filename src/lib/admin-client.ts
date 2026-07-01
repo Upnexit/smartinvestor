@@ -166,33 +166,36 @@ export async function createDistributor(input: DistributorInput) {
   if (!input.password || input.password.length < 6) {
     throw new Error("পাসওয়ার্ড ৬+ অক্ষর হতে হবে");
   }
-  // Use server function → supabaseAdmin.auth.admin.createUser (email_confirm: true).
-  // Bypasses Supabase's public signup email flow which is rate-limited
-  // (~4/hour) and triggers "email rate limit exceeded" errors.
-  const { adminCreateDistributor } = await import("@/lib/distributor.functions");
+  const actor = await actorId();
+  const patch = normalizeDistributorPatch(input);
+
+  // Create via Supabase Edge Function instead of TanStack server fn so the
+  // service-role secret is read in Supabase runtime, avoiding local preview
+  // "Missing Supabase environment variable" failures.
   try {
-    return await adminCreateDistributor({
-      data: {
-        email: input.email.trim().toLowerCase(),
+    const { data, error } = await supabase.functions.invoke("admin-create-distributor", {
+      body: {
+        actor,
         password: input.password,
-        full_name: input.full_name.trim(),
-        phone: input.phone ?? "",
-        payment_method: input.payment_method ?? "bkash",
-        payment_number: input.payment_number ?? "",
-        district: input.district ?? "",
-        thana: input.thana ?? "",
-        address: input.address ?? "",
-        commission_rate: input.commission_rate ?? 5,
-        notes: input.notes ?? "",
+        ...patch,
       },
     } as never);
+    const serverError = (data as { error?: string } | null)?.error;
+    if (error || serverError) throw new Error(serverError || error?.message || "ডিস্ট্রিবিউটর তৈরি ব্যর্থ");
+    return (data as { distributor?: unknown } | null)?.distributor ?? data;
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     if (/already|registered|exists|user_exists|duplicate/i.test(msg)) {
       throw new Error("এই ইমেইল আগে থেকেই ব্যবহার করা হয়েছে");
     }
+    if (/forbidden|unauthorized|jwt|admin/i.test(msg)) {
+      throw new Error("শুধু অ্যাডমিন নতুন ডিস্ট্রিবিউটর তৈরি করতে পারবেন");
+    }
     if (/rate limit|email rate/i.test(msg)) {
       throw new Error("ইমেইল rate limit — কিছুক্ষণ পরে আবার চেষ্টা করুন");
+    }
+    if (/Missing Supabase environment/i.test(msg)) {
+      throw new Error("সার্ভার সংযোগ প্রস্তুত নয় — পেজ রিফ্রেশ করে আবার চেষ্টা করুন");
     }
     throw new Error(msg);
   }

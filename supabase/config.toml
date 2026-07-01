@@ -13,3 +13,6 @@ verify_jwt = false
 
 [functions.register-user]
 verify_jwt = false
+
+[functions.admin-create-distributor]
+verify_jwt = false
