@@ -204,13 +204,23 @@ function PackagesPage() {
               <Field label="মেয়াদ (দিন)" type="number" value={String(edit.duration_days)} onChange={(v) => setEdit({ ...edit, duration_days: Number(v) })} />
               <Field label="বিবরণ" value={edit.description ?? ""} onChange={(v) => setEdit({ ...edit, description: v })} />
               <div>
-                <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">ছবি</span>
-                <label className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-600 px-3 py-2 text-xs font-bold text-white cursor-pointer shadow-md shadow-pink-500/30 hover:scale-[1.02] transition">
-                  <Upload className="h-3.5 w-3.5" /> ছবি আপলোড
-                  <input type="file" className="hidden" accept="image/*" onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0])} />
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">প্যাকেজ ছবি</span>
+                  <span className="text-[10px] font-semibold text-fuchsia-600">প্রস্তাবিত: {TARGET_W}×{TARGET_H}px · WebP/JPG/PNG · ≤5MB</span>
+                </div>
+                <label className={cn(
+                  "inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-600 px-3 py-2 text-xs font-bold text-white shadow-md shadow-pink-500/30 transition",
+                  uploading ? "opacity-70 cursor-wait" : "cursor-pointer hover:scale-[1.02]"
+                )}>
+                  <Upload className="h-3.5 w-3.5" />
+                  {uploading ? "আপলোড হচ্ছে…" : (edit.image_url ? "ছবি বদলান" : "ছবি আপলোড")}
+                  <input type="file" className="hidden" accept="image/*" disabled={uploading}
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f); e.target.value = ""; }} />
                 </label>
-                {edit.image_url && <img src={edit.image_url} alt="" className="mt-2 h-20 rounded-lg object-cover" />}
+                <p className="mt-1 text-[10px] text-slate-500">ছবি স্বয়ংক্রিয়ভাবে {TARGET_W}×{TARGET_H}px এ রিসাইজ ও WebP-তে কম্প্রেস হবে — দ্রুত লোড হবে।</p>
+                {edit.image_url && <img src={edit.image_url} alt="" className="mt-2 h-24 w-24 rounded-lg object-cover ring-2 ring-fuchsia-200" />}
               </div>
+
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked={edit.active} onChange={(e) => setEdit({ ...edit, active: e.target.checked })} />
                 <span className="text-sm">অ্যাক্টিভ</span>
