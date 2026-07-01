@@ -19,13 +19,32 @@ type Pkg = {
   image_url: string | null; active: boolean; description: string | null;
 };
 
+const TARGET_W = 800;
+const TARGET_H = 800;
+
+async function resizeImage(file: File): Promise<Blob> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(TARGET_W / bitmap.width, TARGET_H / bitmap.height, 1);
+  const w = Math.round(bitmap.width * scale);
+  const h = Math.round(bitmap.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  return await new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob((b) => b ? resolve(b) : reject(new Error("resize failed")), "image/webp", 0.85)!
+  );
+}
+
 function PackagesPage() {
   const [rows, setRows] = useState<Pkg[] | null>(null);
   const [edit, setEdit] = useState<Pkg | null>(null);
   const [open, setOpen] = useState(false);
   const [del, setDel] = useState<Pkg | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [revenue, setRevenue] = useState<number | null>(null);
+
 
   const refresh = () => listPackages().then((r) => setRows(r as unknown as Pkg[])).catch((e) => toast.error(e instanceof Error ? e.message : "ব্যর্থ"));
   const refreshRevenue = async () => {
