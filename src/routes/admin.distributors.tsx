@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Users2, Plus, Edit3, Trash2, Search, MapPin, Phone, Wallet, Award, UserCheck, Activity } from "lucide-react";
+import { Users2, Plus, Edit3, Trash2, Search, MapPin, Phone, Award, UserCheck, Activity, BadgeCheck, ShieldOff, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import {
   AdminPageHeader, StatTile, AdminCard, GradientButton, SoftButton, EmptyState, Shimmer, ConfirmDeleteModal,
@@ -113,47 +113,66 @@ function AdminDistributorsPage() {
       </AdminCard>
 
       {rows === null ? (
-        <div className="grid gap-2">{[0,1,2].map(i => <Shimmer key={i} className="h-20" />)}</div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[0,1,2,3,4,5].map(i => <Shimmer key={i} className="h-52" />)}
+        </div>
       ) : rows.length === 0 ? (
         <EmptyState Icon={Users2} title="কোন ডিস্ট্রিবিউটর নেই" hint="উপরের বাটন থেকে নতুন তৈরি করুন" accent="indigo" />
       ) : (
-        <div className="grid gap-2">
-          {rows.map((r) => (
-            <AdminCard key={r.user_id} accent="indigo" className="p-3" interactive>
-              <div className="flex flex-wrap items-start gap-3">
-                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-lg font-bold shadow-lg shadow-indigo-500/30">
-                  {(r.full_name?.[0] ?? "?").toUpperCase()}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {rows.map((r) => {
+            const suspended = r.status !== "active";
+            return (
+              <AdminCard key={r.user_id} accent="indigo" interactive className="p-4 relative overflow-hidden ring-2 ring-indigo-300/70 shadow-indigo-200/40">
+                <div className="absolute -top-px right-3 z-10">
+                  <div className="inline-flex items-center gap-1 rounded-b-lg bg-gradient-to-br from-indigo-500 to-violet-600 px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider text-white shadow-lg ring-1 ring-white/40">
+                    <BadgeCheck className="h-3 w-3" /> ডিস্ট্রিবিউটর
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-3">
+                  <div className={`grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br text-white font-bold shadow-lg ring-2 ring-white ${suspended ? "from-rose-500 to-red-600" : "from-indigo-500 to-violet-600"}`}>
+                    {(r.full_name?.[0] ?? "?").toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
                     <p className="bn-display text-base text-slate-900 truncate">{r.full_name}</p>
-                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${r.status === "active" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
-                      {r.status === "active" ? "সক্রিয়" : "সাসপেন্ড"}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500 truncate">{r.email}</p>
-                  <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600">
-                    {r.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" /> {r.phone}</span>}
-                    {r.district && <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {r.district}{r.thana ? `, ${r.thana}` : ""}</span>}
-                    {r.payment_number && <span className="inline-flex items-center gap-1"><Wallet className="h-3 w-3" /> {r.payment_method} • {r.payment_number}</span>}
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
-                    <span className="rounded-md bg-indigo-50 px-2 py-0.5 font-bold text-indigo-700">ইউজার: {r.users_count}</span>
-                    <span className="rounded-md bg-emerald-50 px-2 py-0.5 font-bold text-emerald-700">কমিশন: {r.commission_rate}%</span>
-                    <span className="rounded-md bg-amber-50 px-2 py-0.5 font-bold text-amber-700">ব্যালেন্স: ৳{Number(r.balance ?? 0).toLocaleString("bn-BD")}</span>
-                    <span className="rounded-md bg-fuchsia-50 px-2 py-0.5 font-bold text-fuchsia-700">আয়: ৳{Number(r.total_earned ?? 0).toLocaleString("bn-BD")}</span>
+                    <p className="text-xs text-slate-500 truncate">{r.email}</p>
+                    <div className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-slate-500">
+                      {r.phone && <span className="inline-flex items-center gap-0.5"><Phone className="h-2.5 w-2.5" />{r.phone}</span>}
+                      {r.district && <span className="inline-flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{r.district}{r.thana ? `, ${r.thana}` : ""}</span>}
+                    </div>
                   </div>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <SoftButton accent="indigo" onClick={() => setModal({ open: true, editing: r })}><Edit3 className="h-3 w-3" /> এডিট</SoftButton>
-                  <SoftButton accent={r.status === "active" ? "rose" : "emerald"} onClick={() => toggleStatus(r)}>
-                    {r.status === "active" ? "সাসপেন্ড" : "সক্রিয় করুন"}
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  <div className="rounded-lg bg-sky-50 p-2 text-center">
+                    <p className="text-[10px] text-sky-600 font-semibold">ইউজার</p>
+                    <p className="text-sm font-bold text-sky-700">{r.users_count}</p>
+                  </div>
+                  <div className="rounded-lg bg-emerald-50 p-2 text-center">
+                    <p className="text-[10px] text-emerald-600 font-semibold">কমিশন</p>
+                    <p className="text-sm font-bold text-emerald-700">{r.commission_rate}%</p>
+                  </div>
+                  <div className="rounded-lg bg-amber-50 p-2 text-center">
+                    <p className="text-[10px] text-amber-600 font-semibold">ব্যালেন্স</p>
+                    <p className="text-sm font-bold text-amber-700">৳{Number(r.balance ?? 0).toFixed(0)}</p>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-1.5">
+                  <button onClick={() => setModal({ open: true, editing: r })} className="inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 px-2 py-1.5 text-[11px] font-bold text-white shadow-md shadow-emerald-500/30 hover:scale-[1.02] transition">
+                    <Edit3 className="h-3.5 w-3.5" /> এডিট
+                  </button>
+                  <button onClick={() => toggleStatus(r)} className={`inline-flex items-center justify-center gap-1 rounded-xl px-2 py-1.5 text-[11px] font-bold text-white shadow-md hover:scale-[1.02] transition ${suspended ? "bg-gradient-to-br from-lime-500 to-emerald-600 shadow-emerald-500/30" : "bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/30"}`}>
+                    {suspended ? <><ShieldCheck className="h-3.5 w-3.5" /> চালু</> : <><ShieldOff className="h-3.5 w-3.5" /> সাসপেন্ড</>}
+                  </button>
+                  <SoftButton onClick={() => setConfirm(r)} accent="rose" className="!from-rose-100 !to-red-200 !text-rose-700 !ring-rose-200 !text-[11px] justify-center">
+                    <Trash2 className="h-3.5 w-3.5" />
                   </SoftButton>
-                  <SoftButton accent="rose" onClick={() => setConfirm(r)}><Trash2 className="h-3 w-3" /> ডিলিট</SoftButton>
                 </div>
-              </div>
-            </AdminCard>
-          ))}
+                <div className="mt-2 text-[10px] text-slate-500 text-center">
+                  মোট আয়: <b className="text-fuchsia-700">৳{Number(r.total_earned ?? 0).toLocaleString("bn-BD")}</b>
+                </div>
+              </AdminCard>
+            );
+          })}
         </div>
       )}
 
