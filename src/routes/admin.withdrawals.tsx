@@ -97,17 +97,28 @@ function WithdrawalsPage() {
         subtitle="অ্যাপ্রুভ করলে ইউজারের ব্যালেন্স থেকে ডেবিট হবে"
       />
 
-      <div className="flex gap-1.5 overflow-x-auto pb-1">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {(["pending","approved","rejected","all"] as Filter[]).map((f) => {
           const active = filter === f;
-          const map = { pending: "from-amber-500 to-orange-600", approved: "from-emerald-500 to-teal-600", rejected: "from-rose-500 to-red-600", all: "from-slate-600 to-slate-800" };
+          const meta = {
+            pending:  { label: "পেন্ডিং",   from: "from-amber-500",   to: "to-orange-600", ring: "ring-amber-200/60",   shadow: "shadow-amber-500/40" },
+            approved: { label: "অ্যাপ্রুভড", from: "from-emerald-500", to: "to-teal-600",   ring: "ring-emerald-200/60", shadow: "shadow-emerald-500/40" },
+            rejected: { label: "রিজেক্টেড", from: "from-rose-500",    to: "to-red-600",    ring: "ring-rose-200/60",    shadow: "shadow-rose-500/40" },
+            all:      { label: "সকল",       from: "from-slate-600",   to: "to-slate-800",  ring: "ring-slate-200/60",   shadow: "shadow-slate-500/40" },
+          }[f];
           return (
             <button key={f} onClick={() => setFilter(f)} className={cn(
-              "shrink-0 inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold ring-1 transition-all",
-              active ? cn("bg-gradient-to-br text-white ring-transparent shadow-md scale-[1.03]", map[f]) : "bg-white text-slate-600 ring-slate-200 hover:bg-slate-50",
+              "relative overflow-hidden rounded-2xl bg-gradient-to-br p-4 text-left text-white ring-1 shadow-xl transition-all animate-admin-pop hover:scale-[1.02] hover:-translate-y-0.5",
+              meta.from, meta.to, meta.ring, meta.shadow,
+              active && "ring-2 ring-white scale-[1.03]",
             )}>
-              {f === "pending" ? "পেন্ডিং" : f === "approved" ? "অ্যাপ্রুভড" : f === "rejected" ? "রিজেক্টেড" : "সকল"}
-              <span className={cn("rounded-md px-1.5 text-[10px]", active ? "bg-white/20" : "bg-slate-100 text-slate-500")}>{counts[f]}</span>
+              <div className="absolute -top-6 -right-6 h-24 w-24 rounded-full bg-white/15 blur-2xl" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.28),transparent_60%)]" />
+              <div className="relative">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-white/85">{meta.label}</p>
+                <p className="mt-1 bn-display text-3xl font-extrabold drop-shadow-sm">{counts[f].toLocaleString("bn-BD")}</p>
+                {active && <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-white/90">● নির্বাচিত</p>}
+              </div>
             </button>
           );
         })}
