@@ -32,12 +32,31 @@ const fmtBN = (n: number) => n.toLocaleString("bn-BD");
 
 async function loadStats(): Promise<Stats> {
   const since = new Date(Date.now() - 30 * 86400_000).toISOString();
+
+  // Fetch distributor user_ids first so we can exclude them from user metrics
+  const { data: distRows } = await supabase.from("distributors").select("user_id");
+  const distIds = ((distRows ?? []) as { user_id: string | null }[])
+    .map((r) => r.user_id).filter((v): v is string => !!v);
+  const inList = distIds.length ? `(${distIds.join(",")})` : null;
+
+  // totalUsers — exclude distributors
+  let totalQ = supabase.from("profiles").select("id", { count: "exact", head: true });
+  if (inList) totalQ = totalQ.not("id", "in", inList);
+
+  // activeUsers — profiles.status='active' excluding distributors (real-time)
+  let activeQ = supabase.from("profiles").select("id", { count: "exact", head: true }).eq("status", "active");
+  if (inList) activeQ = activeQ.not("id", "in", inList);
+
+  // signup series — exclude distributors
+  let signupQ = supabase.from("profiles").select("created_at").gte("created_at", since);
+  if (inList) signupQ = signupQ.not("id", "in", inList);
+
   const [totalU, activeU, revRows, pendRows, signupRows] = await Promise.all([
-    supabase.from("profiles").select("id", { count: "exact", head: true }),
-    supabase.from("user_packages").select("user_id", { count: "exact", head: true }).eq("status", "active"),
+    totalQ,
+    activeQ,
     supabase.from("user_packages").select("created_at, status, packages(price)").gte("created_at", since),
     supabase.from("user_packages").select("id", { count: "exact", head: true }).eq("status", "pending"),
-    supabase.from("profiles").select("created_at").gte("created_at", since),
+    signupQ,
   ]);
 
   const day = (d: string) => d.slice(0, 10);
