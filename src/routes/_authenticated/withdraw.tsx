@@ -184,13 +184,19 @@ function WithdrawPage() {
         </div>
 
         <div>
-          <label className="text-sm font-semibold text-slate-700">পরিমাণ (৳)</label>
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-semibold text-slate-700">পরিমাণ (৳)</label>
+            <span className="text-[11px] font-semibold text-slate-500">
+              উপলব্ধ: <span className="font-mono text-emerald-700">৳{available.toFixed(2)}</span>
+            </span>
+          </div>
           <input
             type="number" min={MIN_WITHDRAW} inputMode="numeric"
             value={amount} onChange={(e) => setAmount(e.target.value)}
-            placeholder={`সর্বনিম্ন ${MIN_WITHDRAW}`}
+            disabled={available <= 0}
+            placeholder={available <= 0 ? "ব্যালেন্স নেই" : `সর্বনিম্ন ${MIN_WITHDRAW}`}
             className={cn(
-              "mt-1.5 w-full rounded-xl border-2 px-4 py-3 font-mono text-base outline-none transition",
+              "mt-1.5 w-full rounded-xl border-2 px-4 py-3 font-mono text-base outline-none transition disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed",
               !amount ? "border-slate-200 focus:border-emerald-400"
                 : amountValid ? "border-emerald-400 bg-emerald-50/40"
                 : "border-rose-300 bg-rose-50/40",
@@ -198,16 +204,48 @@ function WithdrawPage() {
           />
           <div className="mt-1.5 flex justify-between text-xs">
             <span className="text-slate-500">সর্বনিম্ন: ৳{MIN_WITHDRAW}</span>
-            <button onClick={() => setAmount(String(Math.floor(available)))} className="font-semibold text-emerald-600 hover:underline">
+            <button
+              type="button"
+              onClick={() => available > 0 && setAmount(String(Math.floor(available)))}
+              disabled={available <= 0}
+              className="font-semibold text-emerald-600 hover:underline disabled:text-slate-400 disabled:no-underline disabled:cursor-not-allowed"
+            >
               সর্বোচ্চ: ৳{available.toFixed(0)}
             </button>
           </div>
+
+          {/* Inline validation messages */}
+          {available <= 0 ? (
+            <div className="mt-2 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+              <XCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-bold">আপনার একাউন্টে পর্যাপ্ত টাকা নেই</p>
+                <p className="mt-0.5 text-[11px] text-rose-600">টাস্ক সম্পন্ন করুন অথবা প্যাকেজ ক্রয় করে আয় শুরু করুন।</p>
+              </div>
+            </div>
+          ) : numAmount > available ? (
+            <div className="mt-2 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-bold">পর্যাপ্ত টাকা নেই — সীমা অতিক্রান্ত</p>
+                <p className="mt-0.5 text-[11px] text-rose-600 font-mono">
+                  উপলব্ধ ৳{available.toFixed(2)} · অনুরোধ ৳{numAmount.toFixed(2)} · ঘাটতি ৳{(numAmount - available).toFixed(2)}
+                </p>
+              </div>
+            </div>
+          ) : numAmount > 0 && numAmount < MIN_WITHDRAW ? (
+            <div className="mt-2 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <p className="font-semibold">সর্বনিম্ন ৳{MIN_WITHDRAW} উইথড্র করতে হবে</p>
+            </div>
+          ) : null}
         </div>
 
-        {numAmount > 0 && (
+        {numAmount > 0 && amountValid && (
           <div className="rounded-xl bg-slate-50 p-3 text-sm space-y-1">
             <div className="flex justify-between text-slate-600"><span>পরিমাণ</span><span className="font-mono">৳{numAmount.toFixed(2)}</span></div>
             <div className="flex justify-between text-slate-600"><span>সার্ভিস চার্জ (২%)</span><span className="font-mono">- ৳{fee.toFixed(2)}</span></div>
+            <div className="flex justify-between text-slate-600"><span>অবশিষ্ট ব্যালেন্স</span><span className="font-mono">৳{(available - numAmount).toFixed(2)}</span></div>
             <div className="flex justify-between border-t border-slate-200 pt-1 font-bold text-emerald-700"><span>আপনি পাবেন</span><span className="font-mono">৳{willReceive.toFixed(2)}</span></div>
           </div>
         )}
