@@ -105,8 +105,14 @@ function RegisterPage() {
       return;
     }
     if (typeof window !== "undefined") localStorage.setItem("signup_bonus_pending", "1");
-    // If email confirmations are disabled, signUp already returns a session
+    // If email confirmations are enabled on Supabase, the signUp above returns
+    // no session. Auto-confirm the user via edge function so login works.
     if (!signup.session) {
+      try {
+        await supabase.functions.invoke("auto-confirm-signup", { body: { email } });
+      } catch {
+        /* non-fatal — retry sign-in anyway */
+      }
       const { error: loginError } = await supabase.auth.signInWithPassword({
         email,
         password: form.password,
