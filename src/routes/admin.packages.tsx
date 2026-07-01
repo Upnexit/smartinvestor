@@ -19,22 +19,27 @@ type Pkg = {
   image_url: string | null; active: boolean; description: string | null;
 };
 
-const TARGET_W = 800;
-const TARGET_H = 800;
+const TARGET_W = 1600;
+const TARGET_H = 1600;
 
 async function resizeImage(file: File): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
+  // Only downscale if larger than target; never upscale. Preserves original quality.
   const scale = Math.min(TARGET_W / bitmap.width, TARGET_H / bitmap.height, 1);
   const w = Math.round(bitmap.width * scale);
   const h = Math.round(bitmap.height * scale);
   const canvas = document.createElement("canvas");
   canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext("2d")!;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   ctx.drawImage(bitmap, 0, 0, w, h);
+  // High-quality WebP (0.95) — visually lossless, small file
   return await new Promise<Blob>((resolve, reject) =>
-    canvas.toBlob((b) => b ? resolve(b) : reject(new Error("resize failed")), "image/webp", 0.85)!
+    canvas.toBlob((b) => b ? resolve(b) : reject(new Error("resize failed")), "image/webp", 0.95)!
   );
 }
+
 
 function PackagesPage() {
   const [rows, setRows] = useState<Pkg[] | null>(null);
