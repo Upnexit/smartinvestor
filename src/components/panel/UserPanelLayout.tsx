@@ -80,13 +80,15 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
         {drawerOpen && (
           <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} />
-            <aside className="absolute inset-y-0 left-0 w-[85%] max-w-xs bg-white shadow-2xl">
-              <div className="flex items-center justify-end p-2">
+            <aside className="absolute inset-y-0 left-0 flex w-[85%] max-w-xs flex-col bg-white shadow-2xl">
+              <div className="flex shrink-0 items-center justify-end p-2">
                 <button onClick={() => setDrawerOpen(false)} aria-label="বন্ধ" className="grid h-9 w-9 place-items-center rounded-xl text-slate-600 hover:bg-slate-100">
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <SidebarContent onNavigate={() => setDrawerOpen(false)} onLogout={handleLogout} pathname={pathname} />
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[max(1rem,env(safe-area-inset-bottom))]">
+                <SidebarContent onNavigate={() => setDrawerOpen(false)} onLogout={handleLogout} pathname={pathname} />
+              </div>
             </aside>
           </div>
         )}
