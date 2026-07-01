@@ -185,7 +185,7 @@ export const updateMyEmail = createServerFn({ method: "POST" })
       return { ok: true, changed: false, email: newEmail };
     }
 
-    const hasServiceRole = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+    const hasServiceRole = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEYS);
 
     if (hasServiceRole) {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
