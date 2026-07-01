@@ -87,21 +87,8 @@ export function AdminLayout({ children }: { children: ReactNode }) {
         <main className="min-w-0 flex-1">
           {/* Desktop top bar */}
           <div className="sticky top-0 z-20 hidden lg:block border-b border-amber-200/70 bg-white/85 backdrop-blur">
-            <div className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="search"
-                  placeholder="ইউজার / প্যাকেজ / ট্রানজেকশন..."
-                  className="w-full rounded-xl border border-amber-200 bg-amber-50/30 pl-9 pr-3 py-2 text-sm outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-300/40"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      const v = (e.target as HTMLInputElement).value.trim();
-                      navigate({ to: "/admin/users", search: v ? { q: v } : {} });
-                    }
-                  }}
-                />
-              </div>
+            <div className="mx-auto flex h-[60px] max-w-7xl items-center gap-3 px-6">
+              <AdminLiveSearch />
               <Link to="/admin/approvals" className="relative grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 transition hover:scale-[1.05]">
                 <Bell className="h-4 w-4" />
                 <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-white animate-pulse" />
@@ -111,6 +98,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
               </Link>
             </div>
           </div>
+
 
           <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-6 sm:py-6 space-y-4">
             {children}
