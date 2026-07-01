@@ -96,13 +96,23 @@ function PackagesPage() {
   };
 
   const uploadImage = async (file: File) => {
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = `pkg-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("package-images").upload(path, file, { upsert: true });
-    if (error) { toast.error(error.message); return; }
-    const { data: signed } = await supabase.storage.from("package-images").createSignedUrl(path, 60 * 60 * 24 * 365);
-    setEdit((e) => e ? { ...e, image_url: signed?.signedUrl ?? path } : e);
+    if (!file.type.startsWith("image/")) { toast.error("শুধু ছবি আপলোড করুন"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("সর্বোচ্চ ৫ MB"); return; }
+    setUploading(true);
+    try {
+      const blob = await resizeImage(file).catch(() => file);
+      const path = `pkg-${Date.now()}.webp`;
+      const { error } = await supabase.storage.from("package-images")
+        .upload(path, blob, { upsert: true, contentType: "image/webp", cacheControl: "31536000" });
+      if (error) throw error;
+      const { data: signed } = await supabase.storage.from("package-images").createSignedUrl(path, 60 * 60 * 24 * 365);
+      setEdit((e) => e ? { ...e, image_url: signed?.signedUrl ?? path } : e);
+      toast.success("ছবি আপলোড হয়েছে");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "আপলোড ব্যর্থ");
+    } finally { setUploading(false); }
   };
+
 
   const tiles = useMemo(() => {
     const total = rows?.length ?? 0;
