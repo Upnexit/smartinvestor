@@ -29,13 +29,12 @@ async function actorId(): Promise<string> {
 /* ============ USERS ============ */
 
 export async function listUsers(q: string) {
-  // Exclude distributors from user management list
-  const { data: distRoleRows } = await supabase
-    .from("user_roles")
-    .select("user_id")
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .eq("role", "distributor" as any);
-  const distIds = ((distRoleRows ?? []) as { user_id: string }[]).map((r) => r.user_id);
+  // Exclude distributors from user management list.
+  // user_roles has RLS restricted to own row — read from `distributors` table instead
+  // (admin has full read access via RLS policy).
+  const { data: distRows } = await supabase.from("distributors").select("user_id");
+  const distIds = ((distRows ?? []) as { user_id: string | null }[])
+    .map((r) => r.user_id).filter((v): v is string => !!v);
 
   let req = supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(200);
   if (distIds.length) {
