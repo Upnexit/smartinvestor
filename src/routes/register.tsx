@@ -58,7 +58,6 @@ function RegisterPage() {
   const site = useSiteSettings();
   const navigate = useNavigate();
   const search = Route.useSearch();
-  const createAccount = useServerFn(createConfirmedUserAccount);
   const [form, setForm] = useState({
     full_name: "", email: "", phone: "",
     payment_method: "bkash" as "bkash" | "nagad" | "rocket",
@@ -83,28 +82,42 @@ function RegisterPage() {
       return;
     }
     setLoading(true);
-    try {
-      await createAccount({
-        data: { ...form, email: form.email.toLowerCase(), ref: search.ref ?? null },
-      });
-    } catch (err) {
+    const email = form.email.toLowerCase();
+    const { data: signup, error: signupError } = await supabase.auth.signUp({
+      email,
+      password: form.password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+        data: {
+          full_name: form.full_name,
+          phone: form.phone,
+          payment_method: form.payment_method,
+          payment_number: form.payment_number,
+          ref: search.ref ?? null,
+        },
+      },
+    });
+    if (signupError) {
       setLoading(false);
-      const msg = mapSignupError(err instanceof Error ? err.message : "রেজিস্ট্রেশন ব্যর্থ হয়েছে");
+      const msg = mapSignupError(signupError.message);
       setError(msg);
       toast.error(msg);
       return;
     }
     if (typeof window !== "undefined") localStorage.setItem("signup_bonus_pending", "1");
-    const { error: loginError } = await supabase.auth.signInWithPassword({
-      email: form.email.toLowerCase(),
-      password: form.password,
-    });
-    if (loginError) {
-      setLoading(false);
-      const msg = mapSignupError(loginError.message);
-      setError(msg);
-      toast.error(msg);
-      return;
+    // If email confirmations are disabled, signUp already returns a session
+    if (!signup.session) {
+      const { error: loginError } = await supabase.auth.signInWithPassword({
+        email,
+        password: form.password,
+      });
+      if (loginError) {
+        setLoading(false);
+        const msg = mapSignupError(loginError.message);
+        setError(msg);
+        toast.error(msg);
+        return;
+      }
     }
     toast.success("একাউন্ট সফলভাবে তৈরি হয়েছে! ৳৩০০ বোনাস যোগ হয়েছে");
     setLoading(false);
