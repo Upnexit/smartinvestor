@@ -166,6 +166,11 @@ function ReferralPage() {
                 <p className="bn-display text-sm text-slate-900 truncate">{f.full_name || "Anonymous"}</p>
                 <p className="text-[11px] text-slate-500 font-mono">{f.user_code} · {new Date(f.created_at).toLocaleDateString("bn-BD")}</p>
               </div>
+              {f.has_active_package ? (
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">প্যাকেজ ✓</span>
+              ) : (
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">অপেক্ষমান</span>
+              )}
             </div>
           ))}
         </div>
