@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Users, Search, Trash2, Eye, FileSpreadsheet, FileText, Printer, FileDown, UserPlus, ShieldCheck, UserCog, Pencil, X, Ban, ShieldOff } from "lucide-react";
+import { Users, Search, Trash2, Eye, FileSpreadsheet, FileText, Printer, FileDown, UserPlus, ShieldCheck, UserCog, Pencil, X, Ban, ShieldOff, BadgeCheck } from "lucide-react";
 import {
   AdminPageHeader, AdminCard, SoftButton, Shimmer, EmptyState, ConfirmDeleteModal,
 } from "@/components/admin/AdminUI";
@@ -19,6 +19,7 @@ type User = {
   avatar_url: string | null; balance: number; locked_balance: number; total_earned: number;
   referral_code: string | null; tasks_completed: number; created_at: string;
   status?: string | null; payment_method?: string | null; payment_number?: string | null;
+  is_distributor?: boolean;
 };
 
 export const Route = createFileRoute("/admin/users/")({
