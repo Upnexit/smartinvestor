@@ -23,6 +23,9 @@ Deno.serve(async (req) => {
     const payment_number = String(body?.payment_number ?? "").trim();
     const password = String(body?.password ?? "");
     const ref = body?.ref ? String(body.ref).trim() : null;
+    const dist = body?.dist ? String(body.dist).trim() : null;
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const distId = dist && UUID_RE.test(dist) ? dist : null;
 
     if (full_name.length < 2 || full_name.length > 80) throw new Error("পুরো নাম দিন");
     if (!EMAIL.test(email) || email.length > 255) throw new Error("সঠিক ইমেইল দিন");
@@ -40,7 +43,7 @@ Deno.serve(async (req) => {
       email,
       password,
       email_confirm: true,
-      user_metadata: { full_name, phone, payment_method, payment_number, ref },
+      user_metadata: { full_name, phone, payment_method, payment_number, ref, dist: distId },
     });
     if (error) {
       const m = error.message.toLowerCase();
@@ -50,6 +53,22 @@ Deno.serve(async (req) => {
         });
       }
       throw error;
+    }
+
+    // Attach distributor if provided (verify distributor exists & is active)
+    if (distId && created.user?.id) {
+      try {
+        const { data: d } = await admin
+          .from("distributors")
+          .select("user_id, status")
+          .eq("user_id", distId)
+          .maybeSingle();
+        if (d && d.status === "active") {
+          // wait for handle_new_user trigger to create profile
+          await new Promise((r) => setTimeout(r, 350));
+          await admin.from("profiles").update({ distributor_id: distId }).eq("id", created.user.id);
+        }
+      } catch (_) { /* non-fatal */ }
     }
     return new Response(JSON.stringify({ ok: true, userId: created.user?.id }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

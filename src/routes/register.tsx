@@ -10,7 +10,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
-type Search = { ref?: string; redirect?: string };
+type Search = { ref?: string; dist?: string; redirect?: string };
 
 function safeRedirect(t?: string | null) {
   if (!t) return null;
@@ -22,6 +22,7 @@ export const Route = createFileRoute("/register")({
   ssr: false,
   validateSearch: (s: Record<string, unknown>): Search => ({
     ref: typeof s.ref === "string" ? s.ref : undefined,
+    dist: typeof s.dist === "string" ? s.dist : undefined,
     redirect: typeof s.redirect === "string" ? s.redirect : undefined,
   }),
   beforeLoad: async ({ search }) => {
@@ -94,6 +95,7 @@ function RegisterPage() {
         payment_number: form.payment_number,
         password: form.password,
         ref: search.ref ?? null,
+        dist: search.dist ?? null,
       },
     });
     const serverMsg = (created as { error?: string } | null)?.error;
