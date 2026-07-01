@@ -2,7 +2,7 @@ import { useState, useEffect, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, Wallet, User as UserIcon, MessagesSquare,
-  LogOut, Menu, X, ChevronRight, Sparkles,
+  LogOut, Menu, X, ChevronRight, Sparkles, ArrowDownToLine,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,7 @@ const NAV: NavItem[] = [
   { to: "/distributor",          label: "ড্যাশবোর্ড",     Icon: LayoutDashboard, accent: "indigo" },
   { to: "/distributor/users",    label: "আমার ইউজার",     Icon: Users,           accent: "sky" },
   { to: "/distributor/earnings", label: "কমিশন ও আয়",     Icon: Wallet,          accent: "emerald" },
+  { to: "/distributor/withdraw", label: "উইথড্র",         Icon: ArrowDownToLine, accent: "rose" },
   { to: "/distributor/support",  label: "সাপোর্ট চ্যাট",   Icon: MessagesSquare,  accent: "fuchsia" },
   { to: "/distributor/profile",  label: "প্রোফাইল",       Icon: UserIcon,        accent: "purple" },
 ];

@@ -1,0 +1,286 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import {
+  ArrowDownToLine, Wallet, Clock, CheckCircle2, XCircle, Loader2,
+  AlertCircle, Smartphone, ShieldCheck,
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { usePaymentBranding } from "@/hooks/use-payment-branding";
+import { cn } from "@/lib/utils";
+
+export const Route = createFileRoute("/distributor/withdraw")({
+  head: () => ({ meta: [{ title: "উইথড্র — Distributor" }] }),
+  component: DistWithdrawPage,
+});
+
+type Method = "bkash" | "nagad" | "rocket";
+
+type DW = {
+  id: string;
+  amount: number;
+  method: Method;
+  account_number: string;
+  status: "pending" | "approved" | "rejected";
+  rejection_reason: string | null;
+  created_at: string;
+};
+
+const BRAND: Record<Method, { name: string; from: string; to: string }> = {
+  bkash:  { name: "bKash",  from: "from-pink-500",    to: "to-rose-600" },
+  nagad:  { name: "Nagad",  from: "from-orange-500",  to: "to-red-600" },
+  rocket: { name: "Rocket", from: "from-purple-500",  to: "to-fuchsia-700" },
+};
+
+const MIN_WITHDRAW = 500;
+
+function DistWithdrawPage() {
+  const [balance, setBalance] = useState(0);
+  const [totalEarned, setTotalEarned] = useState(0);
+  const [method, setMethod] = useState<Method>("bkash");
+  const [amount, setAmount] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [history, setHistory] = useState<DW[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const paymentBranding = usePaymentBranding();
+  const logos = useMemo<Record<Method, string>>(() => ({
+    bkash: paymentBranding.bkash.logo_url ?? "",
+    nagad: paymentBranding.nagad.logo_url ?? "",
+    rocket: paymentBranding.rocket.logo_url ?? "",
+  }), [paymentBranding]);
+
+  async function refresh(uid: string) {
+    const [{ data: d }, { data: w }] = await Promise.all([
+      supabase.from("distributors").select("balance,total_earned,payment_method,payment_number").eq("user_id", uid).maybeSingle(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any).from("distributor_withdrawals").select("*").eq("distributor_id", uid).order("created_at", { ascending: false }).limit(20),
+    ]);
+    if (d) {
+      setBalance(Number(d.balance) || 0);
+      setTotalEarned(Number(d.total_earned) || 0);
+      if (d.payment_method) setMethod(d.payment_method as Method);
+      if (d.payment_number && !accountNumber) setAccountNumber(d.payment_number);
+    }
+    setHistory((w ?? []) as DW[]);
+  }
+
+  useEffect(() => {
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return;
+      setUserId(u.user.id);
+      await refresh(u.user.id);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const available = balance;
+  const numAmount = Number(amount) || 0;
+  const phoneNorm = accountNumber.replace(/\D/g, "");
+  const phoneValid = /^01[3-9]\d{8}$/.test(phoneNorm);
+  const amountValid = numAmount >= MIN_WITHDRAW && numAmount <= available;
+  const fee = useMemo(() => Math.round(numAmount * 0.02), [numAmount]);
+  const willReceive = Math.max(0, numAmount - fee);
+
+  async function handleSubmit() {
+    if (!userId || !phoneValid || !amountValid) return;
+    setSubmitting(true);
+    const tId = toast.loading("রিকোয়েস্ট পাঠানো হচ্ছে…");
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any).from("distributor_withdrawals").insert({
+        distributor_id: userId,
+        amount: numAmount,
+        method,
+        account_number: phoneNorm,
+      });
+      if (error) throw error;
+      toast.success("উইথড্র রিকোয়েস্ট গৃহীত — অ্যাডমিন রিভিউ করবেন", { id: tId });
+      setAmount("");
+      await refresh(userId);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "রিকোয়েস্ট ব্যর্থ", { id: tId });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wider text-indigo-700">DISTRIBUTOR WITHDRAW</p>
+        <h1 className="bn-display mt-1 text-2xl text-slate-900 sm:text-3xl">কমিশন উইথড্র 💸</h1>
+        <p className="mt-1 text-sm text-slate-600">২৪ ঘন্টার মধ্যে আপনার একাউন্টে পাঠানো হবে।</p>
+      </div>
+
+      {/* Balance card */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-500 via-violet-600 to-purple-700 p-5 text-white shadow-pop">
+        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/15 blur-2xl" />
+        <div className="relative flex items-center justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-wider text-white/85">উপলব্ধ কমিশন</p>
+            <p className="bn-display mt-1 text-4xl">৳ {available.toFixed(2)}</p>
+            <p className="mt-1 text-xs text-white/85">মোট আয়: ৳ {totalEarned.toFixed(2)}</p>
+          </div>
+          <Wallet className="h-10 w-10 opacity-80" />
+        </div>
+      </div>
+
+      {/* Form */}
+      <div className="space-y-4 rounded-2xl bg-white p-5 ring-1 ring-slate-200 shadow-soft">
+        <div>
+          <label className="text-sm font-semibold text-slate-700">পেমেন্ট মেথড</label>
+          <div className="mt-2 grid grid-cols-3 gap-2">
+            {(["bkash", "nagad", "rocket"] as Method[]).map((m) => {
+              const b = BRAND[m]; const sel = method === m;
+              return (
+                <button key={m} onClick={() => setMethod(m)}
+                  className={cn("rounded-xl border-2 p-3 text-center transition",
+                    sel ? cn("bg-gradient-to-br text-white border-transparent shadow-md", b.from, b.to)
+                        : "bg-white border-slate-200 text-slate-700 hover:border-slate-300")}>
+                  {logos[m] ? (
+                    <img src={logos[m]} alt={`${b.name} logo`} loading="eager" decoding="async" className={cn("mx-auto h-7 w-7 object-contain rounded", sel && "bg-white/90 p-0.5")} />
+                  ) : (
+                    <Smartphone className={cn("mx-auto h-5 w-5", sel ? "text-white" : "text-slate-500")} />
+                  )}
+                  <p className="mt-1 text-xs font-bold">{b.name}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold text-slate-700">আপনার {BRAND[method].name} নাম্বার</label>
+          <input type="tel" inputMode="numeric" maxLength={14}
+            value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)}
+            placeholder="01XXXXXXXXX"
+            className={cn("mt-1.5 w-full rounded-xl border-2 px-4 py-3 font-mono text-base outline-none transition",
+              accountNumber.length === 0 ? "border-slate-200 focus:border-indigo-400"
+                : phoneValid ? "border-emerald-400 bg-emerald-50/40"
+                : "border-rose-300 bg-rose-50/40")} />
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-semibold text-slate-700">পরিমাণ (৳)</label>
+            <span className="text-[11px] font-semibold text-slate-500">
+              উপলব্ধ: <span className="font-mono text-indigo-700">৳{available.toFixed(2)}</span>
+            </span>
+          </div>
+          <input type="number" min={MIN_WITHDRAW} inputMode="numeric"
+            value={amount} onChange={(e) => setAmount(e.target.value)}
+            disabled={available <= 0}
+            placeholder={available <= 0 ? "ব্যালেন্স নেই" : `সর্বনিম্ন ${MIN_WITHDRAW}`}
+            className={cn("mt-1.5 w-full rounded-xl border-2 px-4 py-3 font-mono text-base outline-none transition disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed",
+              !amount ? "border-slate-200 focus:border-indigo-400"
+                : amountValid ? "border-emerald-400 bg-emerald-50/40"
+                : "border-rose-300 bg-rose-50/40")} />
+          <div className="mt-1.5 flex justify-between text-xs">
+            <span className="text-slate-500">সর্বনিম্ন: ৳{MIN_WITHDRAW}</span>
+            <button type="button"
+              onClick={() => available > 0 && setAmount(String(Math.floor(available)))}
+              disabled={available <= 0}
+              className="font-semibold text-indigo-600 hover:underline disabled:text-slate-400 disabled:no-underline disabled:cursor-not-allowed">
+              সর্বোচ্চ: ৳{available.toFixed(0)}
+            </button>
+          </div>
+
+          {available <= 0 ? (
+            <div className="mt-2 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+              <XCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-bold">পর্যাপ্ত কমিশন নেই</p>
+                <p className="mt-0.5 text-[11px] text-rose-600">নতুন ইউজার রেফার করে কমিশন আয় করুন।</p>
+              </div>
+            </div>
+          ) : numAmount > available ? (
+            <div className="mt-2 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700">
+              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-bold">পর্যাপ্ত টাকা নেই — সীমা অতিক্রান্ত</p>
+                <p className="mt-0.5 text-[11px] text-rose-600 font-mono">
+                  উপলব্ধ ৳{available.toFixed(2)} · অনুরোধ ৳{numAmount.toFixed(2)} · ঘাটতি ৳{(numAmount - available).toFixed(2)}
+                </p>
+              </div>
+            </div>
+          ) : numAmount > 0 && numAmount < MIN_WITHDRAW ? (
+            <div className="mt-2 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <p className="font-semibold">সর্বনিম্ন ৳{MIN_WITHDRAW} উইথড্র করতে হবে</p>
+            </div>
+          ) : null}
+        </div>
+
+        {numAmount > 0 && amountValid && (
+          <div className="rounded-xl bg-slate-50 p-3 text-sm space-y-1">
+            <div className="flex justify-between text-slate-600"><span>পরিমাণ</span><span className="font-mono">৳{numAmount.toFixed(2)}</span></div>
+            <div className="flex justify-between text-slate-600"><span>সার্ভিস চার্জ (২%)</span><span className="font-mono">- ৳{fee.toFixed(2)}</span></div>
+            <div className="flex justify-between text-slate-600"><span>অবশিষ্ট ব্যালেন্স</span><span className="font-mono">৳{(available - numAmount).toFixed(2)}</span></div>
+            <div className="flex justify-between border-t border-slate-200 pt-1 font-bold text-indigo-700"><span>আপনি পাবেন</span><span className="font-mono">৳{willReceive.toFixed(2)}</span></div>
+          </div>
+        )}
+
+        <button onClick={handleSubmit}
+          disabled={submitting || !phoneValid || !amountValid}
+          className="w-full rounded-2xl bg-gradient-to-r from-indigo-500 via-violet-600 to-purple-700 py-3.5 text-base font-bold text-white shadow-lg disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2">
+          {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowDownToLine className="h-5 w-5" />}
+          {submitting ? "পাঠানো হচ্ছে…" : "উইথড্র রিকোয়েস্ট পাঠান"}
+        </button>
+
+        <div className="flex items-start gap-2 rounded-xl bg-indigo-50 ring-1 ring-indigo-200 p-3 text-xs text-indigo-800">
+          <ShieldCheck className="h-4 w-4 mt-0.5 shrink-0" />
+          <span>নিরাপদ ও বিশ্বস্ত — সাধারণত ২৪ ঘন্টার মধ্যে অ্যাপ্রুভ হয়।</span>
+        </div>
+      </div>
+
+      {/* History */}
+      <div>
+        <h2 className="bn-display text-lg text-slate-900">উইথড্র হিস্টোরি</h2>
+        <div className="mt-3 space-y-2">
+          {history.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
+              এখনো কোনো উইথড্র রিকোয়েস্ট নেই
+            </div>
+          ) : (
+            history.map((w) => {
+              const b = BRAND[w.method];
+              return (
+                <div key={w.id} className="rounded-2xl bg-white ring-1 ring-slate-200 p-3 flex items-center gap-3">
+                  <div className={cn("grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br text-white text-xs font-bold", b.from, b.to)}>
+                    {b.name[0]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="bn-display text-sm text-slate-900">৳{Number(w.amount).toFixed(2)} · {b.name}</p>
+                    <p className="text-[11px] text-slate-500 font-mono">{w.account_number} · {new Date(w.created_at).toLocaleString("bn-BD")}</p>
+                    {w.rejection_reason && <p className="text-[11px] text-rose-600 mt-0.5">কারণ: {w.rejection_reason}</p>}
+                  </div>
+                  <StatusBadge status={w.status} />
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: "pending" | "approved" | "rejected" }) {
+  if (status === "approved") return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-bold text-emerald-700">
+      <CheckCircle2 className="h-3 w-3" /> অনুমোদিত
+    </span>
+  );
+  if (status === "rejected") return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-[10px] font-bold text-rose-700">
+      <XCircle className="h-3 w-3" /> বাতিল
+    </span>
+  );
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold text-amber-700">
+      <Clock className="h-3 w-3" /> অপেক্ষমান
+    </span>
+  );
+}
