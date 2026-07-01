@@ -25,10 +25,25 @@ function PackagesPage() {
   const [open, setOpen] = useState(false);
   const [del, setDel] = useState<Pkg | null>(null);
   const [busy, setBusy] = useState(false);
+  const [revenue, setRevenue] = useState<number | null>(null);
 
   const refresh = () => listPackages().then((r) => setRows(r as unknown as Pkg[])).catch((e) => toast.error(e instanceof Error ? e.message : "ব্যর্থ"));
-  useAdminAutoRefresh(refresh);
-  useEffect(() => subscribeTable("packages", refresh), []);
+  const refreshRevenue = async () => {
+    const { data } = await supabase
+      .from("user_packages")
+      .select("package_id, status, packages!inner(price)")
+      .in("status", ["active", "completed"] as never);
+    const sum = (data ?? []).reduce((s: number, r: { packages: { price: number | null } | null }) => s + Number(r.packages?.price ?? 0), 0);
+    setRevenue(sum);
+  };
+  useAdminAutoRefresh(() => { refresh(); refreshRevenue(); });
+  useEffect(() => {
+    const unsub = subscribeTable("packages", refresh);
+    const ch = supabase.channel("admin-pkg-rev").on("postgres_changes", { event: "*", schema: "public", table: "user_packages" }, refreshRevenue).subscribe();
+    refreshRevenue();
+    return () => { unsub?.(); supabase.removeChannel(ch); };
+  }, []);
+
 
   const onAdd = () => { setEdit({ id: "", name: "", price: 0, daily_income: 0, duration_days: 30, image_url: null, active: true, description: null }); setOpen(true); };
   const onEdit = (p: Pkg) => { setEdit({ ...p }); setOpen(true); };
