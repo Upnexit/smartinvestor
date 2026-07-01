@@ -40,7 +40,7 @@ function WithdrawalsPage() {
 
   const refresh = () => {
     supabase.from("withdrawals")
-      .select("id,user_id,amount,method,account_number,status,note,created_at,reviewed_at,profiles!withdrawals_user_id_fkey(full_name,phone)")
+      .select("id,user_id,amount,method,account_number,status,note,created_at,reviewed_at,profiles!withdrawals_user_id_profiles_fkey(full_name,phone)")
       .order("created_at", { ascending: false }).limit(200)
       .then(({ data }) => setRows((data ?? []) as unknown as Row[]));
   };
