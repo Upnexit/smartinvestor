@@ -9,6 +9,7 @@ import {
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { ReferralShareCard } from "@/components/panel/ReferralShareCard";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "ড্যাশবোর্ড — Smart Investor" }] }),
@@ -280,6 +281,10 @@ function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Referral share — quick access from dashboard */}
+      <ReferralShareCard compact />
+
 
       <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-rose-50 to-emerald-50 p-4 text-sm text-amber-900 flex items-center gap-3">
         <Sparkles className="h-5 w-5 shrink-0 text-amber-600" />
