@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Package as PackageIcon, Pencil, Trash2, X, Save, Upload } from "lucide-react";
+import { Plus, Package as PackageIcon, Pencil, Trash2, X, Save, Upload, CheckCircle2, DollarSign, TrendingUp } from "lucide-react";
 import { AdminPageHeader, AdminCard, GradientButton, SoftButton, EmptyState, ConfirmDeleteModal, Shimmer } from "@/components/admin/AdminUI";
 import { listPackages, savePackage, togglePackage, deletePackage, subscribeTable } from "@/lib/admin-client";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
@@ -12,6 +12,7 @@ export const Route = createFileRoute("/admin/packages")({
   head: () => ({ meta: [{ title: "প্যাকেজ — Admin" }] }),
   component: PackagesPage,
 });
+
 
 type Pkg = {
   id: string; name: string; price: number; daily_income: number; duration_days: number;
