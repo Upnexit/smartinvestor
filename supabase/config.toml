@@ -7,3 +7,9 @@ enable_signup = true
 enable_signup = true
 enable_confirmations = false
 double_confirm_changes = false
+
+[functions.auto-confirm-signup]
+verify_jwt = false
+
+[functions.register-user]
+verify_jwt = false

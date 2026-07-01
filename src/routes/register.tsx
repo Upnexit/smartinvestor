@@ -1,5 +1,4 @@
 import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -9,7 +8,6 @@ import {
   ArrowRight, TrendingUp, Banknote, Award, Crown,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { createConfirmedUserAccount } from "@/lib/auth.functions";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
 type Search = { ref?: string; redirect?: string };
@@ -60,7 +58,6 @@ function RegisterPage() {
   const site = useSiteSettings();
   const navigate = useNavigate();
   const search = Route.useSearch();
-  const createAccount = useServerFn(createConfirmedUserAccount);
   const [form, setForm] = useState({
     full_name: "", email: "", phone: "",
     payment_method: "bkash" as "bkash" | "nagad" | "rocket",
@@ -85,20 +82,32 @@ function RegisterPage() {
       return;
     }
     setLoading(true);
-    try {
-      await createAccount({
-        data: { ...form, email: form.email.toLowerCase(), ref: search.ref ?? null },
-      });
-    } catch (err) {
+    const email = form.email.toLowerCase();
+    // Create the account via edge function (uses service role, bypasses
+    // Supabase's public /auth/v1/signup email-confirmation rate limit).
+    const { data: created, error: fnError } = await supabase.functions.invoke("register-user", {
+      body: {
+        full_name: form.full_name,
+        email,
+        phone: form.phone,
+        payment_method: form.payment_method,
+        payment_number: form.payment_number,
+        password: form.password,
+        ref: search.ref ?? null,
+      },
+    });
+    const serverMsg = (created as { error?: string } | null)?.error;
+    if (fnError || serverMsg) {
       setLoading(false);
-      const msg = mapSignupError(err instanceof Error ? err.message : "রেজিস্ট্রেশন ব্যর্থ হয়েছে");
+      const raw = serverMsg || (fnError instanceof Error ? fnError.message : "রেজিস্ট্রেশন ব্যর্থ হয়েছে");
+      const msg = mapSignupError(raw);
       setError(msg);
       toast.error(msg);
       return;
     }
     if (typeof window !== "undefined") localStorage.setItem("signup_bonus_pending", "1");
     const { error: loginError } = await supabase.auth.signInWithPassword({
-      email: form.email.toLowerCase(),
+      email,
       password: form.password,
     });
     if (loginError) {
