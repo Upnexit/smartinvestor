@@ -85,12 +85,43 @@ function PackagesPage() {
     setEdit((e) => e ? { ...e, image_url: signed?.signedUrl ?? path } : e);
   };
 
+  const tiles = useMemo(() => {
+    const total = rows?.length ?? 0;
+    const active = rows?.filter((p) => p.active).length ?? 0;
+    const priceSum = rows?.reduce((s, p) => s + Number(p.price || 0), 0) ?? 0;
+    return [
+      { label: "মোট প্যাকেজ", value: total.toLocaleString("bn-BD"),                        Icon: PackageIcon,  from: "from-fuchsia-500", to: "to-pink-600",    ring: "ring-fuchsia-200/60", shadow: "shadow-fuchsia-500/40" },
+      { label: "অ্যাক্টিভ",    value: active.toLocaleString("bn-BD"),                       Icon: CheckCircle2, from: "from-emerald-500", to: "to-teal-600",    ring: "ring-emerald-200/60", shadow: "shadow-emerald-500/40" },
+      { label: "মোট মূল্য",    value: "৳" + priceSum.toLocaleString("bn-BD"),               Icon: DollarSign,   from: "from-sky-500",     to: "to-indigo-600",  ring: "ring-sky-200/60",     shadow: "shadow-sky-500/40" },
+      { label: "মোট আর্নিং",   value: revenue == null ? "…" : "৳" + revenue.toLocaleString("bn-BD"), Icon: TrendingUp, from: "from-amber-500", to: "to-orange-600", ring: "ring-amber-200/60", shadow: "shadow-amber-500/40" },
+    ];
+  }, [rows, revenue]);
+
   return (
     <>
       <AdminPageHeader accent="fuchsia" Icon={PackageIcon} title="প্যাকেজ ম্যানেজমেন্ট"
         subtitle="মূল্য, দৈনিক আয়, মেয়াদ পরিচালনা"
         action={<GradientButton accent="fuchsia" onClick={onAdd}><Plus className="h-4 w-4" /> নতুন প্যাকেজ</GradientButton>}
       />
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {tiles.map((t) => (
+          <div key={t.label} className={cn("relative overflow-hidden rounded-2xl bg-gradient-to-br p-4 text-white ring-1 shadow-xl animate-admin-pop", t.from, t.to, t.ring, t.shadow)}>
+            <div className="absolute -top-6 -right-6 h-24 w-24 rounded-full bg-white/15 blur-2xl" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.25),transparent_60%)]" />
+            <div className="relative flex items-start justify-between">
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-white/85">{t.label}</p>
+                <p className="mt-1 bn-display text-2xl font-extrabold drop-shadow-sm truncate">{t.value}</p>
+              </div>
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-white/20 ring-1 ring-white/30 backdrop-blur">
+                <t.Icon className="h-5 w-5" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
 
       {!rows ? <Shimmer className="h-40" /> : rows.length === 0 ? (
         <EmptyState Icon={PackageIcon} title="কোনো প্যাকেজ নেই" accent="fuchsia"
