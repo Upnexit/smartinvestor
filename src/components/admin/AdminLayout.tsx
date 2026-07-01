@@ -115,21 +115,22 @@ function SidebarBody({
   const site = useSiteSettings();
   return (
     <div className="flex h-full flex-col p-3">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 p-3 ring-1 ring-amber-200/70">
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 px-2.5 ring-1 ring-amber-200/70 h-[60px] flex items-center">
         <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-400 via-orange-500 to-red-500" />
-        <Link to="/admin" onClick={onNav} className="flex items-center gap-2.5">
-          <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/40 overflow-hidden">
-            {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-6 w-6" />}
+        <Link to="/admin" onClick={onNav} className="flex items-center gap-2 min-w-0 w-full">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 text-white shadow-md shadow-orange-500/40 overflow-hidden">
+            {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-5 w-5" />}
           </div>
-          <div className="min-w-0">
-            <p className="bn-display text-base text-slate-900 leading-none">{site.site_name}</p>
-            <p className="text-[10px] font-bold tracking-[0.18em] text-orange-600 mt-1 flex items-center gap-1.5">
+          <div className="min-w-0 leading-tight">
+            <p className="bn-display text-[13px] text-slate-900 leading-none truncate">{site.site_name}</p>
+            <p className="text-[9px] font-bold tracking-[0.18em] text-orange-600 mt-1 flex items-center gap-1">
               ADMIN PANEL
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             </p>
           </div>
         </Link>
       </div>
+
 
       <p className="px-2 pt-4 pb-1 text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">MENU</p>
       <nav className="flex-1 space-y-1 overflow-y-auto pr-1">
