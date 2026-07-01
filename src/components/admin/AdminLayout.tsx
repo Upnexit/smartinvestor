@@ -169,3 +169,127 @@ function SidebarBody({
     </div>
   );
 }
+
+type SearchRow = {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
+  user_code: string | null;
+  avatar_url: string | null;
+};
+
+function AdminLiveSearch() {
+  const navigate = useNavigate();
+  const [q, setQ] = useState("");
+  const [rows, setRows] = useState<SearchRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const t = q.trim();
+    if (!t) { setRows([]); setLoading(false); return; }
+    setLoading(true);
+    const timer = setTimeout(async () => {
+      const esc = t.replace(/[%,()]/g, "");
+      const parts = [
+        `full_name.ilike.%${esc}%`,
+        `email.ilike.%${esc}%`,
+        `phone.ilike.%${esc}%`,
+        `user_code.ilike.%${esc}%`,
+        `referral_code.ilike.%${esc}%`,
+      ].join(",");
+      const { data } = await supabase
+        .from("profiles")
+        .select("id,full_name,email,phone,user_code,avatar_url")
+        .or(parts)
+        .limit(8);
+      setRows((data ?? []) as SearchRow[]);
+      setLoading(false);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [q]);
+
+  useEffect(() => {
+    function onDown(e: MouseEvent) {
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, []);
+
+  const t = q.trim();
+
+  return (
+    <div ref={boxRef} className="relative flex-1 max-w-md">
+      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <input
+        type="search"
+        value={q}
+        onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        placeholder="নাম, ফোন, ইউজার আইডি দিয়ে সার্চ..."
+        className="w-full rounded-xl border border-amber-200 bg-amber-50/30 pl-9 pr-9 py-2 text-sm outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-300/40"
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            navigate({ to: "/admin/users", search: t ? { q: t } : {} });
+            setOpen(false);
+          }
+          if (e.key === "Escape") setOpen(false);
+        }}
+      />
+      {loading && <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-orange-500" />}
+
+      {open && t && (
+        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-40 max-h-[70vh] overflow-y-auto rounded-2xl border border-amber-200 bg-white/95 backdrop-blur-xl shadow-2xl shadow-orange-500/10 ring-1 ring-amber-100">
+          {loading && rows.length === 0 && (
+            <p className="px-4 py-6 text-center text-sm text-slate-500">খুঁজছি...</p>
+          )}
+          {!loading && rows.length === 0 && (
+            <p className="px-4 py-6 text-center text-sm text-slate-500">কোনো ফলাফল নেই</p>
+          )}
+          {rows.length > 0 && (
+            <>
+              <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                ইউজার ({rows.length})
+              </p>
+              <ul className="pb-2">
+                {rows.map((r) => (
+                  <li key={r.id}>
+                    <button
+                      onClick={() => {
+                        navigate({ to: "/admin/users/$id", params: { id: r.id } });
+                        setOpen(false);
+                      }}
+                      className="flex w-full items-center gap-3 px-3 py-2 text-left transition hover:bg-amber-50"
+                    >
+                      <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-xs font-bold text-white">
+                        {r.avatar_url ? <img src={r.avatar_url} alt="" className="h-full w-full object-cover" /> : (r.full_name || r.email || "U").slice(0, 1).toUpperCase()}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-slate-900">
+                          {r.full_name || "নামহীন"}
+                        </span>
+                        <span className="block truncate text-[11px] text-slate-500">
+                          {[r.user_code, r.phone, r.email].filter(Boolean).join(" • ")}
+                        </span>
+                      </span>
+                      <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => { navigate({ to: "/admin/users", search: { q: t } }); setOpen(false); }}
+                className="block w-full border-t border-amber-100 bg-amber-50/50 px-4 py-2.5 text-center text-xs font-semibold text-orange-700 hover:bg-amber-50"
+              >
+                সব ফলাফল দেখুন →
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
