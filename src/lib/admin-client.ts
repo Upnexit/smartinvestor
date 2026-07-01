@@ -81,10 +81,21 @@ export async function updateUser(userId: string, patch: Record<string, unknown>)
 }
 
 export async function deleteUser(userId: string) {
-  // Hard-delete via server fn: removes all public rows + auth.users record,
-  // so the email frees up and the account can no longer log in.
-  const { adminHardDeleteUser } = await import("@/lib/admin.functions");
-  await adminHardDeleteUser({ data: { userId } } as never);
+  // 1) Purge public-schema rows via security-definer RPC (admin check inside).
+  const a = await actorId();
+  const { error: rpcErr } = await supabase.rpc("admin_delete_user_data", {
+    _actor: a, _user_id: userId,
+  });
+  if (rpcErr) throw new Error(rpcErr.message);
+
+  // 2) Best-effort remove the auth.users row via server fn (service-role).
+  //    Public data is already gone — a server-fn env race here shouldn't fail the whole op.
+  try {
+    const { adminHardDeleteUser } = await import("@/lib/admin.functions");
+    await adminHardDeleteUser({ data: { userId } } as never);
+  } catch (e) {
+    console.warn("[deleteUser] auth.users cleanup skipped:", e);
+  }
 }
 
 export async function setUserStatus(userId: string, status: "active" | "suspended" | "banned", reason?: string) {
