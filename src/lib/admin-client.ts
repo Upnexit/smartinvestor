@@ -176,7 +176,6 @@ export async function createDistributor(input: DistributorInput) {
     const { data, error } = await supabase.functions.invoke("admin-create-distributor", {
       body: {
         actor,
-        email: patch.email,
         password: input.password,
         ...patch,
       },
