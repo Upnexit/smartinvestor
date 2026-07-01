@@ -953,6 +953,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_user_withdraw_history: {
+        Args: { _actor: string; _user_id: string }
+        Returns: Json
+      }
       distributor_stats: { Args: { _user_id: string }; Returns: Json }
       expire_user_packages: { Args: never; Returns: undefined }
       has_role: {
@@ -961,6 +965,16 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      my_referred_friends: {
+        Args: never
+        Returns: {
+          created_at: string
+          full_name: string
+          has_active_package: boolean
+          id: string
+          user_code: string
+        }[]
       }
     }
     Enums: {

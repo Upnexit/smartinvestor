@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/referral")({
 });
 
 type Earning = { id: string; amount: number; created_at: string; referred_user_id: string; source: string | null };
-type Friend = { id: string; full_name: string | null; created_at: string; user_code: string };
+type Friend = { id: string; full_name: string | null; created_at: string; user_code: string; has_active_package?: boolean };
 
 function ReferralPage() {
   const [refCode, setRefCode] = useState<string | null>(null);
@@ -31,12 +31,12 @@ function ReferralPage() {
         supabase.from("profiles").select("referral_code").eq("id", uid).maybeSingle(),
         supabase.from("referral_earnings").select("*").eq("referrer_id", uid)
           .order("created_at", { ascending: false }).limit(50),
-        supabase.from("profiles").select("id,full_name,created_at,user_code").eq("referred_by", uid)
-          .order("created_at", { ascending: false }).limit(50),
+        // RPC bypasses profiles RLS to safely surface only limited fields of referred friends
+        (supabase.rpc as unknown as (name: string) => Promise<{ data: unknown }>)("my_referred_friends"),
       ]);
       if (p) setRefCode(p.referral_code);
       setEarnings((e ?? []) as Earning[]);
-      setFriends((f ?? []) as Friend[]);
+      setFriends(((f as unknown) ?? []) as Friend[]);
     };
 
     (async () => {
@@ -166,6 +166,11 @@ function ReferralPage() {
                 <p className="bn-display text-sm text-slate-900 truncate">{f.full_name || "Anonymous"}</p>
                 <p className="text-[11px] text-slate-500 font-mono">{f.user_code} · {new Date(f.created_at).toLocaleDateString("bn-BD")}</p>
               </div>
+              {f.has_active_package ? (
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">প্যাকেজ ✓</span>
+              ) : (
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">অপেক্ষমান</span>
+              )}
             </div>
           ))}
         </div>
