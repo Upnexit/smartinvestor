@@ -23,21 +23,41 @@ function ReferralPage() {
   const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => {
-    (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
+    let userId: string | null = null;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const load = async (uid: string) => {
       const [{ data: p }, { data: e }, { data: f }] = await Promise.all([
-        supabase.from("profiles").select("referral_code").eq("id", u.user.id).maybeSingle(),
-        supabase.from("referral_earnings").select("*").eq("referrer_id", u.user.id)
+        supabase.from("profiles").select("referral_code").eq("id", uid).maybeSingle(),
+        supabase.from("referral_earnings").select("*").eq("referrer_id", uid)
           .order("created_at", { ascending: false }).limit(50),
-        supabase.from("profiles").select("id,full_name,created_at,user_code").eq("referred_by", u.user.id)
+        supabase.from("profiles").select("id,full_name,created_at,user_code").eq("referred_by", uid)
           .order("created_at", { ascending: false }).limit(50),
       ]);
       if (p) setRefCode(p.referral_code);
       setEarnings((e ?? []) as Earning[]);
       setFriends((f ?? []) as Friend[]);
+    };
+
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return;
+      userId = u.user.id;
+      await load(userId);
+
+      channel = supabase.channel(`referral-${userId}`)
+        .on("postgres_changes",
+          { event: "*", schema: "public", table: "referral_earnings", filter: `referrer_id=eq.${userId}` },
+          () => userId && load(userId))
+        .on("postgres_changes",
+          { event: "*", schema: "public", table: "profiles", filter: `referred_by=eq.${userId}` },
+          () => userId && load(userId))
+        .subscribe();
     })();
+
+    return () => { if (channel) supabase.removeChannel(channel); };
   }, []);
+
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const link = refCode ? `${origin}/register?ref=${refCode}` : "";
