@@ -83,47 +83,39 @@ function RegisterPage() {
     }
     setLoading(true);
     const email = form.email.toLowerCase();
-    const { data: signup, error: signupError } = await supabase.auth.signUp({
-      email,
-      password: form.password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
-        data: {
-          full_name: form.full_name,
-          phone: form.phone,
-          payment_method: form.payment_method,
-          payment_number: form.payment_number,
-          ref: search.ref ?? null,
-        },
+    // Create the account via edge function (uses service role, bypasses
+    // Supabase's public /auth/v1/signup email-confirmation rate limit).
+    const { data: created, error: fnError } = await supabase.functions.invoke("register-user", {
+      body: {
+        full_name: form.full_name,
+        email,
+        phone: form.phone,
+        payment_method: form.payment_method,
+        payment_number: form.payment_number,
+        password: form.password,
+        ref: search.ref ?? null,
       },
     });
-    if (signupError) {
+    const serverMsg = (created as { error?: string } | null)?.error;
+    if (fnError || serverMsg) {
       setLoading(false);
-      const msg = mapSignupError(signupError.message);
+      const raw = serverMsg || (fnError instanceof Error ? fnError.message : "রেজিস্ট্রেশন ব্যর্থ হয়েছে");
+      const msg = mapSignupError(raw);
       setError(msg);
       toast.error(msg);
       return;
     }
     if (typeof window !== "undefined") localStorage.setItem("signup_bonus_pending", "1");
-    // If email confirmations are enabled on Supabase, the signUp above returns
-    // no session. Auto-confirm the user via edge function so login works.
-    if (!signup.session) {
-      try {
-        await supabase.functions.invoke("auto-confirm-signup", { body: { email } });
-      } catch {
-        /* non-fatal — retry sign-in anyway */
-      }
-      const { error: loginError } = await supabase.auth.signInWithPassword({
-        email,
-        password: form.password,
-      });
-      if (loginError) {
-        setLoading(false);
-        const msg = mapSignupError(loginError.message);
-        setError(msg);
-        toast.error(msg);
-        return;
-      }
+    const { error: loginError } = await supabase.auth.signInWithPassword({
+      email,
+      password: form.password,
+    });
+    if (loginError) {
+      setLoading(false);
+      const msg = mapSignupError(loginError.message);
+      setError(msg);
+      toast.error(msg);
+      return;
     }
     toast.success("একাউন্ট সফলভাবে তৈরি হয়েছে! ৳৩০০ বোনাস যোগ হয়েছে");
     setLoading(false);
