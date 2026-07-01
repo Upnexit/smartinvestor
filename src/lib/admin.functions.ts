@@ -289,3 +289,27 @@ export const adminSignedUrl = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { url: signed.signedUrl };
   });
+
+/* Hard-delete: purge public rows + delete auth.users row */
+export const adminHardDeleteUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { userId: string }) => ({ userId: uuid(d.userId) }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    if (data.userId === context.userId) throw new Error("নিজের অ্যাকাউন্ট ডিলিট করা যাবে না");
+
+    // 1) Purge all public-schema data via existing security-definer RPC.
+    const { error: rpcErr } = await context.supabase.rpc("admin_delete_user_data", {
+      _actor: context.userId,
+      _user_id: data.userId,
+    });
+    if (rpcErr) throw new Error(rpcErr.message);
+
+    // 2) Delete the auth.users row so the email can be reused and login is blocked.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error: authErr } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
+    if (authErr && !/not.?found|user.?not.?found/i.test(authErr.message)) {
+      throw new Error(authErr.message);
+    }
+    return { ok: true };
+  });

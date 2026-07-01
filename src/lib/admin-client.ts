@@ -81,9 +81,10 @@ export async function updateUser(userId: string, patch: Record<string, unknown>)
 }
 
 export async function deleteUser(userId: string) {
-  const a = await actorId();
-  const { error } = await supabase.rpc("admin_delete_user_data", { _actor: a, _user_id: userId });
-  if (error) throw new Error(error.message);
+  // Hard-delete via server fn: removes all public rows + auth.users record,
+  // so the email frees up and the account can no longer log in.
+  const { adminHardDeleteUser } = await import("@/lib/admin.functions");
+  await adminHardDeleteUser({ data: { userId } } as never);
 }
 
 export async function setUserStatus(userId: string, status: "active" | "suspended" | "banned", reason?: string) {
