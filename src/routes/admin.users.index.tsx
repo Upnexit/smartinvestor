@@ -169,11 +169,19 @@ function UsersPage() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {users.map((u) => {
             const suspended = u.status === "suspended" || u.status === "banned";
+            const isDist = !!u.is_distributor;
             return (
-              <AdminCard key={u.id} accent="sky" interactive className="p-4">
+              <AdminCard key={u.id} accent="sky" interactive className={cn("p-4 relative overflow-hidden", isDist && "ring-2 ring-indigo-300/70 shadow-indigo-200/40")}>
+                {isDist && (
+                  <div className="absolute -top-px right-3 z-10">
+                    <div className="inline-flex items-center gap-1 rounded-b-lg bg-gradient-to-br from-indigo-500 to-violet-600 px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider text-white shadow-lg ring-1 ring-white/40">
+                      <BadgeCheck className="h-3 w-3" /> ডিস্ট্রিবিউটর
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center gap-3">
                   <div className={cn("grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br text-white font-bold shadow-lg ring-2 ring-white",
-                    suspended ? "from-rose-500 to-red-600" : "from-sky-500 to-indigo-600")}>
+                    suspended ? "from-rose-500 to-red-600" : isDist ? "from-indigo-500 to-violet-600" : "from-sky-500 to-indigo-600")}>
                     {(u.full_name ?? "?").slice(0,1).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
