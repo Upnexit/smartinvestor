@@ -9,6 +9,7 @@ import {
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { ReferralShareCard } from "@/components/panel/ReferralShareCard";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "ড্যাশবোর্ড — Smart Investor" }] }),
