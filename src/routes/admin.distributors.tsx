@@ -218,12 +218,14 @@ function AdminDistributorsPage() {
         }
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatTile label="মোট ডিস্ট্রিবিউটর" value={stats.total} Icon={Users2} accent="indigo" />
-        <StatTile label="সক্রিয়" value={stats.active} Icon={UserCheck} accent="emerald" />
-        <StatTile label="ইউজার পরিচালনা" value={stats.users} Icon={Activity} accent="sky" />
-        <StatTile label="মোট কমিশন" value={`৳${stats.paid.toLocaleString("bn-BD")}`} Icon={Award} accent="fuchsia" />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <VibrantStat label="মোট ডিস্ট্রিবিউটর" value={stats.total.toLocaleString("bn-BD")} Icon={Users2} accent="indigo" />
+        <VibrantStat label="সক্রিয় ডিস্ট্রিবিউটর" value={stats.active.toLocaleString("bn-BD")} Icon={UserCheck} accent="emerald" />
+        <VibrantStat label="ইউজার পরিচালনা" value={stats.users.toLocaleString("bn-BD")} Icon={Activity} accent="sky" hint="ডিস্ট্রিবিউটরের রেফার্ড ইউজার" />
+        <VibrantStat label="মোট কমিশন" value={`৳${stats.commission.toLocaleString("bn-BD")}`} Icon={Award} accent="fuchsia" hint="এজেন্টদের অর্জিত আয়" />
+        <VibrantStat label="মোট পরিশোধ" value={`৳${paidOut.toLocaleString("bn-BD")}`} Icon={HandCoins} accent="amber" hint="ইউজারদের প্রদত্ত টাকা" />
       </div>
+
 
       {/* Tabs */}
       <div className="flex gap-2 rounded-2xl bg-slate-100 p-1">
