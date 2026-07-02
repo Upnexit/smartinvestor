@@ -1,15 +1,47 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Users2, Plus, Edit3, Trash2, Search, MapPin, Phone, Award, UserCheck, Activity, BadgeCheck, ShieldOff, ShieldCheck, Inbox, Eye, Check, X, Mail, FileText, Clock, Wallet } from "lucide-react";
+import { Users2, Plus, Edit3, Trash2, Search, MapPin, Phone, Award, UserCheck, Activity, BadgeCheck, ShieldOff, ShieldCheck, Inbox, Eye, Check, X, Mail, FileText, Clock, Wallet, TrendingUp, HandCoins } from "lucide-react";
 import { toast } from "sonner";
 import {
-  AdminPageHeader, StatTile, AdminCard, GradientButton, SoftButton, EmptyState, Shimmer, ConfirmDeleteModal,
+  AdminPageHeader, AdminCard, GradientButton, SoftButton, EmptyState, Shimmer, ConfirmDeleteModal,
 } from "@/components/admin/AdminUI";
+import { ACCENTS, type AccentKey } from "@/lib/admin-accents";
 import { DistributorFormModal } from "@/components/admin/DistributorFormModal";
 import { deleteDistributor, listDistributors, subscribeTable, updateDistributor } from "@/lib/admin-client";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+
+/* ---------- Vibrant fully-gradient stat tile ---------- */
+function VibrantStat({
+  label, value, accent, Icon, hint,
+}: {
+  label: string; value: React.ReactNode; hint?: string; accent: AccentKey;
+  Icon: React.ComponentType<{ className?: string }>;
+}) {
+  const a = ACCENTS[accent];
+  return (
+    <div className={cn(
+      "group relative overflow-hidden rounded-2xl p-4 text-white shadow-xl animate-admin-pop transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02]",
+      "bg-gradient-to-br", a.gradient, a.glow,
+    )}>
+      <span className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/20 blur-2xl" />
+      <span className="pointer-events-none absolute -left-4 -bottom-8 h-20 w-20 rounded-full bg-black/20 blur-2xl" />
+      <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/85">{label}</p>
+          <p className="mt-1 bn-display text-2xl sm:text-[1.6rem] drop-shadow-sm truncate">{value}</p>
+          {hint && <p className="mt-1 text-[10px] text-white/85">{hint}</p>}
+        </div>
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white/25 backdrop-blur-md ring-1 ring-white/40 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+          <Icon className="h-5 w-5" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 export const Route = createFileRoute("/admin/distributors")({
   head: () => ({ meta: [{ title: "ডিস্ট্রিবিউটর — অ্যাডমিন" }] }),
