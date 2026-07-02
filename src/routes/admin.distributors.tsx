@@ -327,15 +327,16 @@ function AdminDistributorsPage() {
       )}
 
       {tab === "applications" && (
-        apps === null ? (
+        filteredApps === null ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[0,1,2].map(i => <Shimmer key={i} className="h-56" />)}
           </div>
-        ) : apps.length === 0 ? (
-          <EmptyState Icon={Inbox} title="কোনো আবেদন নেই" hint="নতুন আবেদন এলে এখানে দেখাবে" accent="fuchsia" />
+        ) : filteredApps.length === 0 ? (
+          <EmptyState Icon={Inbox} title={q ? "কোনো ফলাফল নেই" : "কোনো আবেদন নেই"} hint={q ? "অন্য কীওয়ার্ড দিয়ে চেষ্টা করুন" : "নতুন আবেদন এলে এখানে দেখাবে"} accent="fuchsia" />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {apps.map((a) => {
+            {filteredApps.map((a) => {
+
               const badge = a.status === "pending" ? { c: "from-amber-500 to-orange-600", t: "পেন্ডিং" }
                 : a.status === "approved" ? { c: "from-emerald-500 to-teal-600", t: "অ্যাপ্রুভড" }
                 : { c: "from-rose-500 to-red-600", t: "রিজেক্টেড" };
