@@ -282,6 +282,9 @@ export async function getDistributorBundle(userId: string) {
     activity: Array<{ id: string; event_type: string; meta: Record<string, unknown>; ip: string | null; user_agent: string | null; created_at: string }>;
     user_activity: Array<{ id: string; user_id: string; event_type: string; meta: Record<string, unknown>; created_at: string; actor_name: string | null; actor_code: string | null }>;
   };
+}
+
+
 
 
 export async function getMyDistributorBundle() {
