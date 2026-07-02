@@ -108,11 +108,14 @@ Deno.serve(async (req) => {
 
     const { data: distributor, error: upsertError } = await admin.rpc("admin_upsert_distributor", {
       _actor: authUser.user.id,
-      _user_id: created.user.id,
+      _user_id: userId,
       _patch: patch,
     });
     if (upsertError) {
-      await admin.auth.admin.deleteUser(created.user.id).catch(() => null);
+      // Only clean up the auth user if we just created it
+      if (created?.user?.id === userId) {
+        await admin.auth.admin.deleteUser(userId).catch(() => null);
+      }
       throw upsertError;
     }
 
@@ -121,7 +124,7 @@ Deno.serve(async (req) => {
       await admin.from("distributors").update({
         balance: initialBalance,
         total_earned: initialBalance,
-      }).eq("user_id", created.user.id);
+      }).eq("user_id", userId);
     }
 
     const applicationId = typeof body.application_id === "string" ? body.application_id : null;
@@ -133,7 +136,8 @@ Deno.serve(async (req) => {
       }).eq("id", applicationId);
     }
 
-    return json({ ok: true, userId: created.user.id, distributor });
+    return json({ ok: true, userId, distributor });
+
   } catch (e) {
     const message = e instanceof Error ? e.message : "ডিস্ট্রিবিউটর তৈরি ব্যর্থ";
     const lower = message.toLowerCase();
