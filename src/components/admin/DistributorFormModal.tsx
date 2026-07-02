@@ -107,8 +107,12 @@ export function DistributorFormModal({
         await updateDistributor(editing.user_id, { ...form, password: undefined });
         toast.success("ডিস্ট্রিবিউটর আপডেট হয়েছে ✓");
       } else {
-        await createDistributor(form);
-        toast.success("নতুন ডিস্ট্রিবিউটর তৈরি হয়েছে ✓");
+        await createDistributor({
+          ...form,
+          initial_balance: initialBalance ?? 0,
+          application_id: applicationId ?? undefined,
+        });
+        toast.success(initialBalance ? `ডিস্ট্রিবিউটর তৈরি — ৳${initialBalance.toLocaleString("bn-BD")} ব্যালেন্স ক্রেডিট ✓` : "নতুন ডিস্ট্রিবিউটর তৈরি হয়েছে ✓");
       }
       onSaved();
       onClose();
