@@ -242,15 +242,23 @@ function AdminDistributorsPage() {
         </button>
       </div>
 
-      {tab === "list" && (
-        <AdminCard accent="indigo" className="p-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="নাম / ইমেইল / ফোন / জেলা..."
-              className="w-full rounded-xl border-2 border-indigo-200 bg-indigo-50/30 pl-9 pr-3 py-2.5 text-sm outline-none focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100" />
-          </div>
-        </AdminCard>
-      )}
+      {/* Unified search — active on both tabs */}
+      <AdminCard accent={tab === "list" ? "indigo" : "fuchsia"} className="p-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input value={q} onChange={(e) => setQ(e.target.value)}
+            placeholder={tab === "list" ? "ডিস্ট্রিবিউটর খুঁজুন — নাম / ইমেইল / ফোন / জেলা..." : "আবেদন খুঁজুন — নাম / ইমেইল / ফোন / জেলা..."}
+            className={cn("w-full rounded-xl border-2 pl-9 pr-9 py-2.5 text-sm outline-none focus:bg-white focus:ring-4",
+              tab === "list" ? "border-indigo-200 bg-indigo-50/30 focus:border-indigo-400 focus:ring-indigo-100"
+                             : "border-fuchsia-200 bg-fuchsia-50/30 focus:border-fuchsia-400 focus:ring-fuchsia-100")} />
+          {q && (
+            <button onClick={() => setQ("")} className="absolute right-2 top-1/2 -translate-y-1/2 grid h-6 w-6 place-items-center rounded-full bg-slate-200 hover:bg-slate-300">
+              <X className="h-3 w-3 text-slate-600" />
+            </button>
+          )}
+        </div>
+      </AdminCard>
+
 
       {tab === "list" && (
         rows === null ? (
