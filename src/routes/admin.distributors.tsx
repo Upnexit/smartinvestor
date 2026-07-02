@@ -394,6 +394,8 @@ function AdminDistributorsPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDeleteModal
         open={!!confirm}
         onClose={() => setConfirm(null)}
         onConfirm={performDelete}
