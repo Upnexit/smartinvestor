@@ -61,14 +61,21 @@ export function DistributorFormModal({
       });
     } else {
       setForm({
-        full_name: "", email: "", password: genPassword(),
-        phone: "", payment_method: "bkash", payment_number: "",
-        district: "", thana: "", address: "",
-        commission_rate: 5, notes: "",
+        full_name: prefill?.full_name ?? "",
+        email: prefill?.email ?? "",
+        password: genPassword(),
+        phone: prefill?.phone ?? "",
+        payment_method: prefill?.payment_method ?? "bkash",
+        payment_number: prefill?.payment_number ?? "",
+        district: prefill?.district ?? "",
+        thana: prefill?.thana ?? "",
+        address: prefill?.address ?? "",
+        commission_rate: 5,
+        notes: prefill?.notes ?? "",
       });
     }
     setShowPw(false); setCopied(false);
-  }, [editing, open]);
+  }, [editing, open, prefill]);
 
   // Form completion meter
   const completion = useMemo(() => {
