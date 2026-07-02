@@ -18,6 +18,8 @@ type DistributorInput = {
   commission_rate?: number;
   status?: string;
   notes?: string | null;
+  initial_balance?: number;
+  application_id?: string;
 };
 
 async function actorId(): Promise<string> {
