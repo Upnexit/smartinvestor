@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          ip: string | null
+          meta: Json
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          ip?: string | null
+          meta?: Json
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          ip?: string | null
+          meta?: Json
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       communities: {
         Row: {
           active: boolean
@@ -815,6 +845,10 @@ export type Database = {
       admin_delete_user_data: {
         Args: { _actor: string; _user_id: string }
         Returns: undefined
+      }
+      admin_distributor_bundle: {
+        Args: { _actor: string; _user_id: string }
+        Returns: Json
       }
       admin_review_user_package: {
         Args: {
