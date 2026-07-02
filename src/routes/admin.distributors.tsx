@@ -116,6 +116,35 @@ function AdminDistributorsPage() {
     finally { setBusy(false); }
   }
 
+  const pendingCount = (apps ?? []).filter((a) => a.status === "pending").length;
+
+  function approveApp(a: AppRow) {
+    setModal({
+      open: true, editing: null, applicationId: a.id, initialBalance: 25000,
+      prefill: {
+        full_name: a.full_name, email: a.email, phone: a.phone,
+        payment_method: a.payment_method, payment_number: a.payment_number,
+        district: a.district, thana: a.thana, address: a.address,
+        notes: a.experience,
+      },
+    });
+  }
+
+  async function submitReject() {
+    if (!rejectApp) return;
+    if (rejectReason.trim().length < 3) { toast.error("কারণ নির্বাচন করুন বা লিখুন"); return; }
+    try {
+      const { data: u } = await supabase.auth.getUser();
+      const { error } = await supabase.from("distributor_applications").update({
+        status: "rejected", rejection_reason: rejectReason.trim(),
+        reviewed_by: u.user?.id, reviewed_at: new Date().toISOString(),
+      }).eq("id", rejectApp.id);
+      if (error) throw error;
+      toast.success("আবেদন বাতিল হয়েছে");
+      setRejectApp(null); setRejectReason(""); loadApps();
+    } catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
+  }
+
   return (
     <div className="space-y-4">
       <AdminPageHeader
