@@ -190,78 +190,210 @@ function AdminDistributorsPage() {
         </AdminCard>
       )}
 
-      {tab === "list" ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {[0,1,2,3,4,5].map(i => <Shimmer key={i} className="h-52" />)}
-        </div>
-      ) : rows.length === 0 ? (
-        <EmptyState Icon={Users2} title="কোন ডিস্ট্রিবিউটর নেই" hint="উপরের বাটন থেকে নতুন তৈরি করুন" accent="indigo" />
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {rows.map((r) => {
-            const suspended = r.status !== "active";
-            return (
-              <AdminCard key={r.user_id} accent="indigo" interactive className="p-4 relative overflow-hidden ring-2 ring-indigo-300/70 shadow-indigo-200/40">
-                <div className="absolute -top-px right-3 z-10">
-                  <div className="inline-flex items-center gap-1 rounded-b-lg bg-gradient-to-br from-indigo-500 to-violet-600 px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider text-white shadow-lg ring-1 ring-white/40">
-                    <BadgeCheck className="h-3 w-3" /> ডিস্ট্রিবিউটর
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className={`grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br text-white font-bold shadow-lg ring-2 ring-white ${suspended ? "from-rose-500 to-red-600" : "from-indigo-500 to-violet-600"}`}>
-                    {(r.full_name?.[0] ?? "?").toUpperCase()}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="bn-display text-base text-slate-900 truncate">{r.full_name}</p>
-                    <p className="text-xs text-slate-500 truncate">{r.email}</p>
-                    <div className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-slate-500">
-                      {r.phone && <span className="inline-flex items-center gap-0.5"><Phone className="h-2.5 w-2.5" />{r.phone}</span>}
-                      {r.district && <span className="inline-flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{r.district}{r.thana ? `, ${r.thana}` : ""}</span>}
+      {tab === "list" && (
+        rows === null ? (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[0,1,2,3,4,5].map(i => <Shimmer key={i} className="h-52" />)}
+          </div>
+        ) : rows.length === 0 ? (
+          <EmptyState Icon={Users2} title="কোন ডিস্ট্রিবিউটর নেই" hint="উপরের বাটন থেকে নতুন তৈরি করুন" accent="indigo" />
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {rows.map((r) => {
+              const suspended = r.status !== "active";
+              return (
+                <AdminCard key={r.user_id} accent="indigo" interactive className="p-4 relative overflow-hidden ring-2 ring-indigo-300/70 shadow-indigo-200/40">
+                  <div className="absolute -top-px right-3 z-10">
+                    <div className="inline-flex items-center gap-1 rounded-b-lg bg-gradient-to-br from-indigo-500 to-violet-600 px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider text-white shadow-lg ring-1 ring-white/40">
+                      <BadgeCheck className="h-3 w-3" /> ডিস্ট্রিবিউটর
                     </div>
                   </div>
-                </div>
-                <div className="mt-3 grid grid-cols-3 gap-2">
-                  <div className="rounded-lg bg-sky-50 p-2 text-center">
-                    <p className="text-[10px] text-sky-600 font-semibold">ইউজার</p>
-                    <p className="text-sm font-bold text-sky-700">{r.users_count}</p>
+                  <div className="flex items-center gap-3">
+                    <div className={`grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br text-white font-bold shadow-lg ring-2 ring-white ${suspended ? "from-rose-500 to-red-600" : "from-indigo-500 to-violet-600"}`}>
+                      {(r.full_name?.[0] ?? "?").toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="bn-display text-base text-slate-900 truncate">{r.full_name}</p>
+                      <p className="text-xs text-slate-500 truncate">{r.email}</p>
+                      <div className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-slate-500">
+                        {r.phone && <span className="inline-flex items-center gap-0.5"><Phone className="h-2.5 w-2.5" />{r.phone}</span>}
+                        {r.district && <span className="inline-flex items-center gap-0.5"><MapPin className="h-2.5 w-2.5" />{r.district}{r.thana ? `, ${r.thana}` : ""}</span>}
+                      </div>
+                    </div>
                   </div>
-                  <div className="rounded-lg bg-emerald-50 p-2 text-center">
-                    <p className="text-[10px] text-emerald-600 font-semibold">কমিশন</p>
-                    <p className="text-sm font-bold text-emerald-700">{r.commission_rate}%</p>
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    <div className="rounded-lg bg-sky-50 p-2 text-center">
+                      <p className="text-[10px] text-sky-600 font-semibold">ইউজার</p>
+                      <p className="text-sm font-bold text-sky-700">{r.users_count}</p>
+                    </div>
+                    <div className="rounded-lg bg-emerald-50 p-2 text-center">
+                      <p className="text-[10px] text-emerald-600 font-semibold">কমিশন</p>
+                      <p className="text-sm font-bold text-emerald-700">{r.commission_rate}%</p>
+                    </div>
+                    <div className="rounded-lg bg-amber-50 p-2 text-center">
+                      <p className="text-[10px] text-amber-600 font-semibold">ব্যালেন্স</p>
+                      <p className="text-sm font-bold text-amber-700">৳{Number(r.balance ?? 0).toFixed(0)}</p>
+                    </div>
                   </div>
-                  <div className="rounded-lg bg-amber-50 p-2 text-center">
-                    <p className="text-[10px] text-amber-600 font-semibold">ব্যালেন্স</p>
-                    <p className="text-sm font-bold text-amber-700">৳{Number(r.balance ?? 0).toFixed(0)}</p>
+                  <div className="mt-3 grid grid-cols-3 gap-1.5">
+                    <button onClick={() => setModal({ open: true, editing: r })} className="inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 px-2 py-1.5 text-[11px] font-bold text-white shadow-md shadow-emerald-500/30 hover:scale-[1.02] transition">
+                      <Edit3 className="h-3.5 w-3.5" /> এডিট
+                    </button>
+                    <button onClick={() => toggleStatus(r)} className={`inline-flex items-center justify-center gap-1 rounded-xl px-2 py-1.5 text-[11px] font-bold text-white shadow-md hover:scale-[1.02] transition ${suspended ? "bg-gradient-to-br from-lime-500 to-emerald-600 shadow-emerald-500/30" : "bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/30"}`}>
+                      {suspended ? <><ShieldCheck className="h-3.5 w-3.5" /> চালু</> : <><ShieldOff className="h-3.5 w-3.5" /> সাসপেন্ড</>}
+                    </button>
+                    <SoftButton onClick={() => setConfirm(r)} accent="rose" className="!from-rose-100 !to-red-200 !text-rose-700 !ring-rose-200 !text-[11px] justify-center">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </SoftButton>
                   </div>
-                </div>
-                <div className="mt-3 grid grid-cols-3 gap-1.5">
-                  <button onClick={() => setModal({ open: true, editing: r })} className="inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 px-2 py-1.5 text-[11px] font-bold text-white shadow-md shadow-emerald-500/30 hover:scale-[1.02] transition">
-                    <Edit3 className="h-3.5 w-3.5" /> এডিট
-                  </button>
-                  <button onClick={() => toggleStatus(r)} className={`inline-flex items-center justify-center gap-1 rounded-xl px-2 py-1.5 text-[11px] font-bold text-white shadow-md hover:scale-[1.02] transition ${suspended ? "bg-gradient-to-br from-lime-500 to-emerald-600 shadow-emerald-500/30" : "bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/30"}`}>
-                    {suspended ? <><ShieldCheck className="h-3.5 w-3.5" /> চালু</> : <><ShieldOff className="h-3.5 w-3.5" /> সাসপেন্ড</>}
-                  </button>
-                  <SoftButton onClick={() => setConfirm(r)} accent="rose" className="!from-rose-100 !to-red-200 !text-rose-700 !ring-rose-200 !text-[11px] justify-center">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </SoftButton>
-                </div>
-                <div className="mt-2 text-[10px] text-slate-500 text-center">
-                  মোট আয়: <b className="text-fuchsia-700">৳{Number(r.total_earned ?? 0).toLocaleString("bn-BD")}</b>
-                </div>
-              </AdminCard>
-            );
-          })}
-        </div>
+                  <div className="mt-2 text-[10px] text-slate-500 text-center">
+                    মোট আয়: <b className="text-fuchsia-700">৳{Number(r.total_earned ?? 0).toLocaleString("bn-BD")}</b>
+                  </div>
+                </AdminCard>
+              );
+            })}
+          </div>
+        )
+      )}
+
+      {tab === "applications" && (
+        apps === null ? (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[0,1,2].map(i => <Shimmer key={i} className="h-56" />)}
+          </div>
+        ) : apps.length === 0 ? (
+          <EmptyState Icon={Inbox} title="কোনো আবেদন নেই" hint="নতুন আবেদন এলে এখানে দেখাবে" accent="fuchsia" />
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {apps.map((a) => {
+              const badge = a.status === "pending" ? { c: "from-amber-500 to-orange-600", t: "পেন্ডিং" }
+                : a.status === "approved" ? { c: "from-emerald-500 to-teal-600", t: "অ্যাপ্রুভড" }
+                : { c: "from-rose-500 to-red-600", t: "রিজেক্টেড" };
+              return (
+                <AdminCard key={a.id} accent="fuchsia" interactive className="p-4 relative overflow-hidden">
+                  <div className="absolute top-2 right-2">
+                    <span className={cn("rounded-full bg-gradient-to-br px-2.5 py-0.5 text-[10px] font-bold uppercase text-white shadow-md", badge.c)}>{badge.t}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-fuchsia-500 to-purple-600 text-white font-bold shadow-lg ring-2 ring-white">
+                      {(a.full_name?.[0] ?? "?").toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="bn-display text-base text-slate-900 truncate">{a.full_name}</p>
+                      <p className="text-[11px] text-slate-500 truncate">{a.email}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 space-y-1 text-[11px] text-slate-600">
+                    <p className="flex items-center gap-1.5"><Phone className="h-3 w-3 text-slate-400" /> {a.phone}</p>
+                    <p className="flex items-center gap-1.5"><MapPin className="h-3 w-3 text-slate-400" /> {a.district}, {a.thana}</p>
+                    <p className="flex items-center gap-1.5"><Wallet className="inline h-3 w-3 text-slate-400" />
+                      <span className="uppercase font-bold">{a.payment_method}</span> · {a.payment_number}</p>
+                  </div>
+                  <p className="mt-2 text-[10px] text-slate-400">{new Date(a.created_at).toLocaleString("bn-BD")}</p>
+                  {a.rejection_reason && <p className="mt-1 text-[11px] text-rose-600">✕ {a.rejection_reason}</p>}
+                  <div className="mt-3 grid grid-cols-3 gap-1.5">
+                    <button onClick={() => setAppDetail(a)} className="inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 px-2 py-1.5 text-[11px] font-bold text-white shadow-md">
+                      <Eye className="h-3.5 w-3.5" /> বিস্তারিত
+                    </button>
+                    {a.status === "pending" ? (
+                      <>
+                        <button onClick={() => approveApp(a)} className="inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 px-2 py-1.5 text-[11px] font-bold text-white shadow-md">
+                          <Check className="h-3.5 w-3.5" /> অ্যাপ্রুভ
+                        </button>
+                        <button onClick={() => { setRejectApp(a); setRejectReason(""); }} className="inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 px-2 py-1.5 text-[11px] font-bold text-white shadow-md">
+                          <X className="h-3.5 w-3.5" /> রিজেক্ট
+                        </button>
+                      </>
+                    ) : <span className="col-span-2" />}
+                  </div>
+                </AdminCard>
+              );
+            })}
+          </div>
+        )
       )}
 
       <DistributorFormModal
         open={modal.open}
         editing={modal.editing}
+        prefill={modal.prefill ?? null}
+        applicationId={modal.applicationId ?? null}
+        initialBalance={modal.initialBalance ?? 0}
         onClose={() => setModal({ open: false, editing: null })}
-        onSaved={refresh}
+        onSaved={() => { refresh(); loadApps(); }}
       />
 
-      <ConfirmDeleteModal
+      {/* Application detail modal */}
+      {appDetail && (
+        <div className="fixed inset-0 z-50 grid place-items-end sm:place-items-center bg-slate-900/60 backdrop-blur-sm sm:p-4">
+          <div className="w-full sm:max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white shadow-2xl">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white/95 px-5 py-3 backdrop-blur">
+              <h3 className="bn-display text-lg text-slate-900">আবেদন বিস্তারিত</h3>
+              <button onClick={() => setAppDetail(null)} className="grid h-9 w-9 place-items-center rounded-full bg-slate-100 hover:bg-slate-200"><X className="h-4 w-4" /></button>
+            </div>
+            <div className="p-5 space-y-3">
+              <div className="rounded-2xl bg-gradient-to-br from-fuchsia-500 to-purple-600 p-4 text-white shadow-lg">
+                <p className="bn-display text-xl">{appDetail.full_name}</p>
+                {appDetail.father_name && <p className="text-xs text-white/85">পিতা: {appDetail.father_name}</p>}
+                <p className="text-[11px] text-white/85 mt-1">{new Date(appDetail.created_at).toLocaleString("bn-BD")}</p>
+              </div>
+              <DetailRow icon={<Mail className="h-4 w-4" />} label="ইমেইল" value={appDetail.email} />
+              <DetailRow icon={<Phone className="h-4 w-4" />} label="ফোন" value={appDetail.phone} />
+              <DetailRow icon={<MapPin className="h-4 w-4" />} label="ঠিকানা" value={`${appDetail.district}, ${appDetail.thana} — ${appDetail.address}`} />
+              <DetailRow icon={<Wallet className="h-4 w-4" />} label="পেমেন্ট" value={`${appDetail.payment_method.toUpperCase()} · ${appDetail.payment_number}`} />
+              {appDetail.experience && <DetailRow icon={<FileText className="h-4 w-4" />} label="অভিজ্ঞতা" value={appDetail.experience} />}
+              {appDetail.status === "pending" && (
+                <div className="flex gap-2 pt-2">
+                  <GradientButton accent="emerald" className="flex-1" onClick={() => { const a = appDetail; setAppDetail(null); approveApp(a); }}>
+                    <Check className="h-4 w-4" /> অ্যাপ্রুভ (৳২৫,০০০ ব্যালেন্স সহ)
+                  </GradientButton>
+                  <GradientButton accent="rose" className="flex-1" onClick={() => { setRejectApp(appDetail); setRejectReason(""); setAppDetail(null); }}>
+                    <X className="h-4 w-4" /> রিজেক্ট
+                  </GradientButton>
+                </div>
+              )}
+              {appDetail.status !== "pending" && (
+                <div className="rounded-xl bg-slate-50 p-3 text-center text-xs text-slate-600 flex items-center justify-center gap-2">
+                  <Clock className="h-3.5 w-3.5" /> স্ট্যাটাস: <b>{appDetail.status}</b>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject modal */}
+      {rejectApp && (
+        <div className="fixed inset-0 z-[60] grid place-items-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-3xl bg-white p-5 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h3 className="bn-display text-lg text-slate-900">আবেদন বাতিল</h3>
+              <button onClick={() => { setRejectApp(null); setRejectReason(""); }} className="grid h-8 w-8 place-items-center rounded-full bg-slate-100"><X className="h-4 w-4" /></button>
+            </div>
+            <p className="mt-1 text-xs text-slate-500">দ্রুত নির্বাচন করতে chip-এ ক্লিক করুন</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {REJECT_PRESETS.map((r) => {
+                const active = rejectReason === r;
+                return (
+                  <button key={r} onClick={() => setRejectReason(r)} className={cn(
+                    "rounded-full border px-3 py-1.5 text-xs transition",
+                    active ? "bg-gradient-to-r from-rose-500 to-red-600 border-transparent text-white shadow-md"
+                      : "border-slate-200 bg-slate-50 text-slate-700 hover:border-rose-300 hover:bg-rose-50",
+                  )}>{r}</button>
+                );
+              })}
+            </div>
+            <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows={3} placeholder="কাস্টম কারণ..."
+              className="mt-3 w-full rounded-xl border-2 border-slate-200 p-3 text-sm outline-none focus:border-rose-400" />
+            <div className="mt-4 flex gap-2">
+              <SoftButton className="flex-1" onClick={() => { setRejectApp(null); setRejectReason(""); }}>বাতিল</SoftButton>
+              <GradientButton accent="rose" className="flex-1" onClick={submitReject}>
+                <X className="h-4 w-4" /> নিশ্চিত করুন
+              </GradientButton>
+            </div>
+          </div>
+        </div>
+      )}
         open={!!confirm}
         onClose={() => setConfirm(null)}
         onConfirm={performDelete}
