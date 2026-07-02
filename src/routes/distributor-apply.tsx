@@ -31,8 +31,10 @@ function DistributorApplyPage() {
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const [showPw, setShowPw] = useState(false);
   const [form, setForm] = useState({
     full_name: "", father_name: "", phone: "", email: "",
+    password: "", confirm_password: "",
     district: "", thana: "", address: "",
     payment_method: "bkash" as "bkash"|"nagad"|"rocket",
     payment_number: "", experience: "",
