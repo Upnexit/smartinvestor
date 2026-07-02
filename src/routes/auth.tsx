@@ -108,17 +108,35 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50/30 to-rose-50/40">
+    <div className="relative min-h-screen overflow-hidden">
       <style>{`
         @keyframes si-gradient-shift { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
-        @keyframes si-wave { 0%,60%,100%{transform:rotate(0deg)} 10%,30%{transform:rotate(18deg)} 20%{transform:rotate(-10deg)} }
-        @keyframes si-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
         @keyframes si-blob { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(20px,-15px) scale(1.08)} 66%{transform:translate(-15px,10px) scale(0.95)} }
-        .si-anim-bg{background:linear-gradient(120deg,#fde68a,#fca5a5,#c4b5fd,#7dd3fc,#86efac,#fde68a);background-size:300% 300%;animation:si-gradient-shift 14s ease-in-out infinite}
-        .si-wave-hand{transform-origin:140px 140px;animation:si-wave 2.6s ease-in-out infinite}
-        .si-float{animation:si-float 3.5s ease-in-out infinite}
+        @keyframes si-arm-dangle { 0%,100%{transform:rotate(-6deg)} 50%{transform:rotate(6deg)} }
+        @keyframes si-arm-dangle-2 { 0%,100%{transform:rotate(5deg)} 50%{transform:rotate(-7deg)} }
+        @keyframes si-leg-swing { 0%,100%{transform:rotate(-14deg)} 50%{transform:rotate(18deg)} }
+        @keyframes si-leg-swing-2 { 0%,100%{transform:rotate(16deg)} 50%{transform:rotate(-12deg)} }
+        @keyframes si-blink { 0%,92%,100%{transform:scaleY(1)} 95%{transform:scaleY(0.1)} }
+        @keyframes si-breathe { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-2px) scale(1.01)} }
+        .si-anim-bg{background:linear-gradient(120deg,#fde68a,#fca5a5,#c4b5fd,#7dd3fc,#86efac,#fbcfe8,#fde68a);background-size:400% 400%;animation:si-gradient-shift 18s ease-in-out infinite}
         .si-blob{animation:si-blob 12s ease-in-out infinite}
+        .si-arm-l{transform-origin:82px 118px;animation:si-arm-dangle 3.2s ease-in-out infinite}
+        .si-arm-r{transform-origin:138px 118px;animation:si-arm-dangle-2 3.2s ease-in-out infinite}
+        .si-leg-l{transform-origin:92px 168px;animation:si-leg-swing 2.4s ease-in-out infinite}
+        .si-leg-r{transform-origin:128px 168px;animation:si-leg-swing-2 2.4s ease-in-out infinite}
+        .si-eye{transform-origin:center;animation:si-blink 5s ease-in-out infinite}
+        .si-breathe{animation:si-breathe 4s ease-in-out infinite}
       `}</style>
+
+      {/* Full-page animated gradient background (mobile + desktop) */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute inset-0 si-anim-bg" />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-white/20 to-white/50" />
+        <div className="absolute -top-24 -left-24 h-80 w-80 rounded-full bg-fuchsia-300/40 blur-3xl si-blob" />
+        <div className="absolute top-1/3 -right-24 h-96 w-96 rounded-full bg-sky-300/40 blur-3xl si-blob" style={{ animationDelay: "-4s" }} />
+        <div className="absolute -bottom-24 left-1/4 h-96 w-96 rounded-full bg-emerald-300/40 blur-3xl si-blob" style={{ animationDelay: "-8s" }} />
+      </div>
+
       <div className="grid min-h-screen lg:grid-cols-5">
         <aside
           className="relative hidden overflow-hidden lg:col-span-2 lg:flex lg:flex-col lg:justify-between p-10 text-white"
@@ -180,27 +198,22 @@ function AuthPage() {
         </aside>
 
         <main className="relative flex items-start lg:items-center justify-center px-5 py-6 sm:px-10 lg:col-span-3 lg:py-10">
-          {/* Mobile-only animated colorful background */}
-          <div className="pointer-events-none absolute inset-0 lg:hidden overflow-hidden">
-            <div className="absolute inset-0 si-anim-bg opacity-70" />
-            <div className="absolute -top-16 -left-16 h-64 w-64 rounded-full bg-fuchsia-300/50 blur-3xl si-blob" />
-            <div className="absolute top-40 -right-20 h-72 w-72 rounded-full bg-sky-300/50 blur-3xl si-blob" style={{ animationDelay: "-4s" }} />
-            <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-emerald-300/50 blur-3xl si-blob" style={{ animationDelay: "-8s" }} />
-          </div>
-
           <div className="relative w-full max-w-md">
-            {/* Mobile hero: waving character + centered brand */}
+            {/* Mobile hero: realistic character sitting on the logo */}
             <div className="lg:hidden flex flex-col items-center text-center">
-              <div className="si-float">
-                <WavingCharacter />
-              </div>
-              <Link to="/" aria-label="হোম" className="mt-2 flex flex-col items-center gap-2">
-                <div className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-fuchsia-600 text-white shadow-xl ring-2 ring-white/60 overflow-hidden">
-                  {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-7 w-7" />}
+              <div className="relative flex flex-col items-center">
+                <div className="si-breathe">
+                  <SittingCharacter />
                 </div>
-                <span className="bn-display text-2xl text-slate-900 drop-shadow-sm">{site.site_name}</span>
-              </Link>
-              <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/70 backdrop-blur px-3 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-200 shadow-sm">
+                {/* Logo the character sits on — overlaps upward so feet rest on top */}
+                <Link to="/" aria-label="হোম" className="-mt-4 flex flex-col items-center gap-2">
+                  <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-fuchsia-600 text-white shadow-2xl ring-2 ring-white/70 overflow-hidden">
+                    {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-8 w-8" />}
+                  </div>
+                  <span className="bn-display text-2xl text-slate-900 drop-shadow-sm">{site.site_name}</span>
+                </Link>
+              </div>
+              <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur px-3 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-200 shadow-sm">
                 <Sparkles className="h-3.5 w-3.5" /> SMART NETWORK BD
               </span>
               <h1 className="bn-display mt-3 text-2xl text-slate-900">আপনার একাউন্টে লগইন</h1>
@@ -216,10 +229,10 @@ function AuthPage() {
               <p className="mt-2 text-sm text-slate-600">আবার স্বাগতম! আপনার ড্যাশবোর্ডে প্রবেশ করুন।</p>
             </div>
 
-            {/* Form card — colorful frame on mobile */}
+            {/* Form card — white glass on both mobile and desktop */}
             <div
-              className="mt-5 rounded-3xl bg-white/85 backdrop-blur-xl p-5 sm:p-6 shadow-2xl ring-1 ring-white/60 lg:bg-transparent lg:shadow-none lg:ring-0 lg:p-0 lg:backdrop-blur-none lg:mt-7"
-              style={{ boxShadow: "0 20px 60px -20px rgba(244, 114, 182, 0.35), 0 10px 30px -15px rgba(59, 130, 246, 0.25)" }}
+              className="mt-5 rounded-3xl bg-white/90 backdrop-blur-xl p-5 sm:p-6 shadow-2xl ring-1 ring-white/60 lg:mt-7 lg:p-7"
+              style={{ boxShadow: "0 25px 70px -25px rgba(244, 114, 182, 0.4), 0 15px 40px -20px rgba(59, 130, 246, 0.3)" }}
             >
               <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                 <Field
@@ -301,44 +314,105 @@ function AuthPage() {
   );
 }
 
-function WavingCharacter() {
+function SittingCharacter() {
+  // Realistic-style cartoon person sitting: hands dangle, legs swing. viewBox 220x220.
   return (
-    <svg width="140" height="140" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+    <svg width="170" height="170" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" aria-hidden>
       <defs>
-        <linearGradient id="siBodyGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#8b5cf6" />
-          <stop offset="100%" stopColor="#ec4899" />
+        <linearGradient id="siSkin" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#fde3c7" />
+          <stop offset="100%" stopColor="#f2c19a" />
         </linearGradient>
-        <linearGradient id="siHeadGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#fde68a" />
-          <stop offset="100%" stopColor="#fbbf24" />
+        <linearGradient id="siShirt" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#3b82f6" />
+          <stop offset="100%" stopColor="#8b5cf6" />
         </linearGradient>
+        <linearGradient id="siPants" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#1e293b" />
+          <stop offset="100%" stopColor="#0f172a" />
+        </linearGradient>
+        <radialGradient id="siCheek" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0%" stopColor="#fb7185" stopOpacity="0.7" />
+          <stop offset="100%" stopColor="#fb7185" stopOpacity="0" />
+        </radialGradient>
       </defs>
-      <circle cx="100" cy="100" r="86" fill="#ffffff" opacity="0.4" />
-      <path d="M55 175 C55 135, 145 135, 145 175 Z" fill="url(#siBodyGrad)" />
-      <circle cx="100" cy="88" r="38" fill="url(#siHeadGrad)" stroke="#f59e0b" strokeWidth="2" />
-      <path d="M72 72 Q100 50 128 72 Q112 60 100 62 Q88 60 72 72Z" fill="#7c2d12" />
-      <circle cx="88" cy="88" r="4" fill="#1f2937" />
-      <circle cx="112" cy="88" r="4" fill="#1f2937" />
-      <circle cx="89" cy="87" r="1.3" fill="#fff" />
-      <circle cx="113" cy="87" r="1.3" fill="#fff" />
-      <path d="M88 102 Q100 112 112 102" stroke="#7c2d12" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      <circle cx="80" cy="100" r="4" fill="#fb7185" opacity="0.7" />
-      <circle cx="120" cy="100" r="4" fill="#fb7185" opacity="0.7" />
-      <path d="M60 145 Q50 160 55 175" stroke="url(#siBodyGrad)" strokeWidth="12" fill="none" strokeLinecap="round" />
-      <g className="si-wave-hand">
-        <path d="M140 145 Q158 120 155 95" stroke="url(#siBodyGrad)" strokeWidth="12" fill="none" strokeLinecap="round" />
-        <circle cx="155" cy="90" r="11" fill="#fde68a" stroke="#f59e0b" strokeWidth="2" />
+
+      {/* Soft shadow under seat */}
+      <ellipse cx="110" cy="205" rx="55" ry="6" fill="#000" opacity="0.12" />
+
+      {/* Legs (swinging) — drawn first so torso sits on top */}
+      <g className="si-leg-l">
+        <rect x="86" y="165" width="14" height="42" rx="7" fill="url(#siPants)" />
+        <ellipse cx="93" cy="210" rx="11" ry="5" fill="#0b0f19" />
       </g>
+      <g className="si-leg-r">
+        <rect x="120" y="165" width="14" height="42" rx="7" fill="url(#siPants)" />
+        <ellipse cx="127" cy="210" rx="11" ry="5" fill="#0b0f19" />
+      </g>
+
+      {/* Torso / shirt */}
+      <path d="M75 118 Q75 100 90 96 L130 96 Q145 100 145 118 L148 168 Q110 178 72 168 Z" fill="url(#siShirt)" />
+      {/* Shirt collar */}
+      <path d="M100 96 Q110 108 120 96 Z" fill="#1e3a8a" opacity="0.35" />
+      {/* Shirt shading */}
+      <path d="M75 118 Q80 140 78 168 L72 168 Z" fill="#000" opacity="0.08" />
+
+      {/* Arms (dangling / swinging) */}
+      <g className="si-arm-l">
+        <path d="M82 118 Q70 145 74 165" stroke="url(#siShirt)" strokeWidth="14" fill="none" strokeLinecap="round" />
+        <circle cx="74" cy="167" r="8" fill="url(#siSkin)" stroke="#c98a5b" strokeWidth="1" />
+      </g>
+      <g className="si-arm-r">
+        <path d="M138 118 Q150 145 146 165" stroke="url(#siShirt)" strokeWidth="14" fill="none" strokeLinecap="round" />
+        <circle cx="146" cy="167" r="8" fill="url(#siSkin)" stroke="#c98a5b" strokeWidth="1" />
+      </g>
+
+      {/* Neck */}
+      <rect x="102" y="86" width="16" height="16" fill="url(#siSkin)" />
+
+      {/* Head */}
+      <ellipse cx="110" cy="66" rx="34" ry="36" fill="url(#siSkin)" stroke="#c98a5b" strokeWidth="1.2" />
+      {/* Hair */}
+      <path d="M76 60 Q78 32 110 28 Q142 32 144 60 Q138 46 122 44 Q112 40 98 44 Q82 46 76 60 Z" fill="#2b1a10" />
+      {/* Ears */}
+      <ellipse cx="76" cy="68" rx="5" ry="7" fill="url(#siSkin)" stroke="#c98a5b" strokeWidth="1" />
+      <ellipse cx="144" cy="68" rx="5" ry="7" fill="url(#siSkin)" stroke="#c98a5b" strokeWidth="1" />
+
+      {/* Eyebrows */}
+      <path d="M92 58 Q99 54 106 58" stroke="#2b1a10" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+      <path d="M114 58 Q121 54 128 58" stroke="#2b1a10" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+
+      {/* Eyes (blinking) */}
+      <g className="si-eye" style={{ transformOrigin: "99px 68px" }}>
+        <ellipse cx="99" cy="68" rx="4" ry="5" fill="#1f2937" />
+        <circle cx="100" cy="66.5" r="1.3" fill="#fff" />
+      </g>
+      <g className="si-eye" style={{ transformOrigin: "121px 68px", animationDelay: "0.05s" }}>
+        <ellipse cx="121" cy="68" rx="4" ry="5" fill="#1f2937" />
+        <circle cx="122" cy="66.5" r="1.3" fill="#fff" />
+      </g>
+
+      {/* Nose */}
+      <path d="M110 72 Q108 80 112 82" stroke="#c98a5b" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+
+      {/* Cheeks */}
+      <circle cx="90" cy="80" r="6" fill="url(#siCheek)" />
+      <circle cx="130" cy="80" r="6" fill="url(#siCheek)" />
+
+      {/* Smile */}
+      <path d="M100 86 Q110 92 120 86" stroke="#7c2d12" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+
+      {/* Small sparkles */}
       <g fill="#fbbf24">
-        <circle cx="40" cy="60" r="2.5" />
-        <circle cx="170" cy="70" r="2" />
-        <circle cx="30" cy="120" r="2" />
-        <circle cx="175" cy="130" r="2.5" />
+        <circle cx="40" cy="50" r="2" />
+        <circle cx="185" cy="55" r="1.8" />
+        <circle cx="30" cy="130" r="1.8" />
+        <circle cx="190" cy="140" r="2" />
       </g>
     </svg>
   );
 }
+
 
 function InlineError({ msg }: { msg: string }) {
   return (
