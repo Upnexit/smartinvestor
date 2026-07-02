@@ -81,21 +81,41 @@ Deno.serve(async (req) => {
       notes: optional(body.notes, 500),
     };
 
+    // Create the auth user — or reuse if this email already has an account.
+    let userId: string;
     const { data: created, error: createError } = await admin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
       user_metadata: { full_name, phone: patch.phone ?? "", role: "distributor" },
     });
-    if (createError || !created.user) throw createError ?? new Error("auth create failed");
+    if (createError || !created?.user) {
+      const msg = (createError?.message ?? "").toLowerCase();
+      const alreadyExists = msg.includes("already") || msg.includes("registered") || msg.includes("exists") || msg.includes("duplicate");
+      if (!alreadyExists) throw createError ?? new Error("auth create failed");
+      // Look up the existing auth user by email and reuse it.
+      const { data: list, error: listErr } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
+      if (listErr) throw listErr;
+      const existing = list.users.find((u) => (u.email ?? "").toLowerCase() === email);
+      if (!existing) throw new Error("এই ইমেইল আগে থেকেই ব্যবহার করা হয়েছে");
+      userId = existing.id;
+      // Update password so the applicant's chosen password works.
+      await admin.auth.admin.updateUserById(userId, { password, email_confirm: true }).catch(() => null);
+    } else {
+      userId = created.user.id;
+    }
+
 
     const { data: distributor, error: upsertError } = await admin.rpc("admin_upsert_distributor", {
       _actor: authUser.user.id,
-      _user_id: created.user.id,
+      _user_id: userId,
       _patch: patch,
     });
     if (upsertError) {
-      await admin.auth.admin.deleteUser(created.user.id).catch(() => null);
+      // Only clean up the auth user if we just created it
+      if (created?.user?.id === userId) {
+        await admin.auth.admin.deleteUser(userId).catch(() => null);
+      }
       throw upsertError;
     }
 
@@ -104,7 +124,7 @@ Deno.serve(async (req) => {
       await admin.from("distributors").update({
         balance: initialBalance,
         total_earned: initialBalance,
-      }).eq("user_id", created.user.id);
+      }).eq("user_id", userId);
     }
 
     const applicationId = typeof body.application_id === "string" ? body.application_id : null;
@@ -116,7 +136,8 @@ Deno.serve(async (req) => {
       }).eq("id", applicationId);
     }
 
-    return json({ ok: true, userId: created.user.id, distributor });
+    return json({ ok: true, userId, distributor });
+
   } catch (e) {
     const message = e instanceof Error ? e.message : "ডিস্ট্রিবিউটর তৈরি ব্যর্থ";
     const lower = message.toLowerCase();

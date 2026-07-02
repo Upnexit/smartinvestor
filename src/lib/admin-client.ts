@@ -202,9 +202,24 @@ export async function createDistributor(input: DistributorInput) {
         application_id: input.application_id ?? null,
       },
     } as never);
+    // supabase-js wraps non-2xx as FunctionsHttpError with a Response on .context
+    // — parse the body so the real Bengali error surfaces instead of "non-2xx".
+    if (error) {
+      let serverMsg: string | null = null;
+      const ctx = (error as unknown as { context?: Response }).context;
+      if (ctx && typeof ctx.text === "function") {
+        try {
+          const txt = await ctx.clone().text();
+          const parsed = JSON.parse(txt);
+          serverMsg = parsed?.error ?? parsed?.message ?? txt;
+        } catch { /* keep null */ }
+      }
+      throw new Error(serverMsg || error.message || "ডিস্ট্রিবিউটর তৈরি ব্যর্থ");
+    }
     const serverError = (data as { error?: string } | null)?.error;
-    if (error || serverError) throw new Error(serverError || error?.message || "ডিস্ট্রিবিউটর তৈরি ব্যর্থ");
+    if (serverError) throw new Error(serverError);
     return (data as { distributor?: unknown } | null)?.distributor ?? data;
+
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     if (/already|registered|exists|user_exists|duplicate/i.test(msg)) {
