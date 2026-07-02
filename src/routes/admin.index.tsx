@@ -195,6 +195,8 @@ function DashboardPage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "withdrawals" }, refresh)
       .on("postgres_changes", { event: "*", schema: "public", table: "task_submissions" }, refresh)
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "distributor_applications" }, refresh)
+
       .subscribe();
     return () => { supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
