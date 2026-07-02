@@ -24,13 +24,14 @@ const PAYMENT_OPTIONS = [
 ] as const;
 
 export function DistributorFormModal({
-  open, onClose, onSaved, editing, prefill, applicationId, initialBalance,
+  open, onClose, onSaved, editing, prefill, applicationId, initialBalance, initialPassword,
 }: {
   open: boolean; onClose: () => void; onSaved: () => void;
   editing?: DistributorRow | null;
   prefill?: Partial<DistributorRow> | null;
   applicationId?: string | null;
   initialBalance?: number;
+  initialPassword?: string | null;
 }) {
   const isEdit = !!editing;
 
@@ -65,7 +66,7 @@ export function DistributorFormModal({
       setForm({
         full_name: prefill?.full_name ?? "",
         email: prefill?.email ?? "",
-        password: genPassword(),
+        password: initialPassword && initialPassword.length >= 6 ? initialPassword : genPassword(),
         phone: prefill?.phone ?? "",
         payment_method: prefill?.payment_method ?? "bkash",
         payment_number: prefill?.payment_number ?? "",
@@ -78,7 +79,7 @@ export function DistributorFormModal({
       });
     }
     setShowPw(false); setCopied(false);
-  }, [editing, open, prefill]);
+  }, [editing, open, prefill, initialPassword]);
 
   // Form completion meter
   const completion = useMemo(() => {

@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { toast, Toaster } from "sonner";
 import {
   Crown, User, Phone, Mail, MapPin, Wallet, ArrowLeft, ArrowRight,
-  Loader2, CheckCircle2, Home, Sparkles, FileText,
+  Loader2, CheckCircle2, Home, Sparkles, FileText, Lock, Eye, EyeOff,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { BD_DISTRICTS } from "@/lib/bd-districts";
@@ -31,8 +31,10 @@ function DistributorApplyPage() {
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const [showPw, setShowPw] = useState(false);
   const [form, setForm] = useState({
     full_name: "", father_name: "", phone: "", email: "",
+    password: "", confirm_password: "",
     district: "", thana: "", address: "",
     payment_method: "bkash" as "bkash"|"nagad"|"rocket",
     payment_number: "", experience: "",
@@ -46,6 +48,8 @@ function DistributorApplyPage() {
     if (form.full_name.trim().length < 2) return toast.error("পুরো নাম দিন");
     if (!/^01[0-9]{9}$/.test(form.phone)) return toast.error("সঠিক ফোন নম্বর দিন (01XXXXXXXXX)");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return toast.error("সঠিক ইমেইল দিন");
+    if (form.password.length < 6) return toast.error("পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে");
+    if (form.password !== form.confirm_password) return toast.error("পাসওয়ার্ড মিলছে না");
     if (!form.district) return toast.error("জেলা নির্বাচন করুন");
     if (!form.thana) return toast.error("উপজেলা নির্বাচন করুন");
     if (form.address.trim().length < 5) return toast.error("বিস্তারিত ঠিকানা দিন");
@@ -58,6 +62,7 @@ function DistributorApplyPage() {
         father_name: form.father_name.trim() || null,
         phone: form.phone,
         email: form.email.toLowerCase().trim(),
+        password: form.password,
         district: form.district,
         thana: form.thana,
         address: form.address.trim(),
@@ -140,6 +145,38 @@ function DistributorApplyPage() {
             <Field label="পিতার নাম" icon={<User className="h-4 w-4" />} value={form.father_name} onChange={(v) => set("father_name", v)} placeholder="মোঃ ..." />
             <Field label="মোবাইল নম্বর *" icon={<Phone className="h-4 w-4" />} value={form.phone} onChange={(v) => set("phone", v.replace(/\D/g, "").slice(0, 11))} placeholder="01XXXXXXXXX" />
             <Field label="ইমেইল *" icon={<Mail className="h-4 w-4" />} value={form.email} onChange={(v) => set("email", v)} placeholder="you@example.com" type="email" />
+          </div>
+
+          {/* Account Password */}
+          <SectionTitle icon={<Lock className="h-4 w-4" />}>অ্যাকাউন্ট পাসওয়ার্ড</SectionTitle>
+          <div className="rounded-2xl bg-gradient-to-br from-indigo-50 to-fuchsia-50 p-3 ring-1 ring-indigo-100">
+            <p className="mb-2 text-[11px] font-semibold text-indigo-700">
+              অ্যাপ্রুভ হলে এই ইমেইল ও পাসওয়ার্ড দিয়েই আপনি ডিস্ট্রিবিউটর প্যানেলে লগইন করতে পারবেন।
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1.5 block text-xs font-bold text-slate-700">পাসওয়ার্ড * (৬+ অক্ষর)</label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Lock className="h-4 w-4" /></span>
+                  <input type={showPw ? "text" : "password"} value={form.password}
+                    onChange={(e) => set("password", e.target.value)} placeholder="••••••••"
+                    className="w-full rounded-xl border-2 border-slate-200 bg-white pl-9 pr-10 py-2.5 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100" />
+                  <button type="button" onClick={() => setShowPw((s) => !s)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 hover:bg-slate-100">
+                    {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-bold text-slate-700">পাসওয়ার্ড নিশ্চিত করুন *</label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><Lock className="h-4 w-4" /></span>
+                  <input type={showPw ? "text" : "password"} value={form.confirm_password}
+                    onChange={(e) => set("confirm_password", e.target.value)} placeholder="••••••••"
+                    className="w-full rounded-xl border-2 border-slate-200 bg-white pl-9 pr-3 py-2.5 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100" />
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Location */}

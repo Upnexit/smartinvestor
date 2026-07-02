@@ -26,6 +26,7 @@ type DRow = {
 
 type AppRow = {
   id: string; full_name: string; father_name: string | null; phone: string; email: string;
+  password: string | null;
   district: string; thana: string; address: string;
   payment_method: string; payment_number: string;
   experience: string | null; status: "pending"|"approved"|"rejected";
@@ -44,7 +45,7 @@ const REJECT_PRESETS = [
 function AdminDistributorsPage() {
   const [rows, setRows] = useState<DRow[] | null>(null);
   const [q, setQ] = useState("");
-  const [modal, setModal] = useState<{ open: boolean; editing: DRow | null; prefill?: Partial<DRow> | null; applicationId?: string | null; initialBalance?: number }>({ open: false, editing: null });
+  const [modal, setModal] = useState<{ open: boolean; editing: DRow | null; prefill?: Partial<DRow> | null; applicationId?: string | null; initialBalance?: number; initialPassword?: string | null }>({ open: false, editing: null });
   const [confirm, setConfirm] = useState<DRow | null>(null);
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<"list"|"applications">("list");
@@ -121,6 +122,7 @@ function AdminDistributorsPage() {
   function approveApp(a: AppRow) {
     setModal({
       open: true, editing: null, applicationId: a.id, initialBalance: 25000,
+      initialPassword: a.password,
       prefill: {
         full_name: a.full_name, email: a.email, phone: a.phone,
         payment_method: a.payment_method, payment_number: a.payment_number,
@@ -319,6 +321,7 @@ function AdminDistributorsPage() {
         prefill={modal.prefill ?? null}
         applicationId={modal.applicationId ?? null}
         initialBalance={modal.initialBalance ?? 0}
+        initialPassword={modal.initialPassword ?? null}
         onClose={() => setModal({ open: false, editing: null })}
         onSaved={() => { refresh(); loadApps(); }}
       />

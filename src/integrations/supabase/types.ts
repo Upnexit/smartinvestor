@@ -112,6 +112,7 @@ export type Database = {
           father_name: string | null
           full_name: string
           id: string
+          password: string | null
           payment_method: Database["public"]["Enums"]["payment_method"]
           payment_number: string
           phone: string
@@ -132,6 +133,7 @@ export type Database = {
           father_name?: string | null
           full_name: string
           id?: string
+          password?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"]
           payment_number: string
           phone: string
@@ -152,6 +154,7 @@ export type Database = {
           father_name?: string | null
           full_name?: string
           id?: string
+          password?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"]
           payment_number?: string
           phone?: string
