@@ -79,7 +79,7 @@ export function DistributorFormModal({
       });
     }
     setShowPw(false); setCopied(false);
-  }, [editing, open, prefill]);
+  }, [editing, open, prefill, initialPassword]);
 
   // Form completion meter
   const completion = useMemo(() => {
