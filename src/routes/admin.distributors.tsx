@@ -406,3 +406,15 @@ function AdminDistributorsPage() {
     </div>
   );
 }
+
+function DetailRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-start gap-3 rounded-xl bg-slate-50 p-3">
+      <div className="mt-0.5 grid h-7 w-7 place-items-center rounded-lg bg-white text-slate-500 shadow-sm ring-1 ring-slate-200">{icon}</div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
+        <p className="text-sm text-slate-800 break-words">{value}</p>
+      </div>
+    </div>
+  );
+}
