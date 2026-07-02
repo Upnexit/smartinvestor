@@ -35,6 +35,7 @@ import { Route as AdminProfileRouteImport } from './routes/admin.profile'
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
 import { Route as AdminMonitorRouteImport } from './routes/admin.monitor'
+import { Route as AdminDistributorsRouteImport } from './routes/admin.distributors'
 import { Route as AdminCommunityRouteImport } from './routes/admin.community'
 import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
 import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticated/withdraw'
@@ -180,6 +181,11 @@ const AdminMonitorRoute = AdminMonitorRouteImport.update({
   path: '/monitor',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDistributorsRoute = AdminDistributorsRouteImport.update({
+  id: '/distributors',
+  path: '/distributors',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCommunityRoute = AdminCommunityRouteImport.update({
   id: '/community',
   path: '/community',
@@ -236,9 +242,9 @@ const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
   getParentRoute: () => AdminUsersRoute,
 } as any)
 const AdminDistributorsIndexRoute = AdminDistributorsIndexRouteImport.update({
-  id: '/distributors/',
-  path: '/distributors/',
-  getParentRoute: () => AdminRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminDistributorsRoute,
 } as any)
 const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
   id: '/$id',
@@ -246,9 +252,9 @@ const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
   getParentRoute: () => AdminUsersRoute,
 } as any)
 const AdminDistributorsIdRoute = AdminDistributorsIdRouteImport.update({
-  id: '/distributors/$id',
-  path: '/distributors/$id',
-  getParentRoute: () => AdminRoute,
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AdminDistributorsRoute,
 } as any)
 const AuthenticatedPackagesIdRoute = AuthenticatedPackagesIdRouteImport.update({
   id: '/$id',
@@ -275,6 +281,7 @@ export interface FileRoutesByFullPath {
   '/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/community': typeof AdminCommunityRoute
+  '/admin/distributors': typeof AdminDistributorsRouteWithChildren
   '/admin/monitor': typeof AdminMonitorRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/payments': typeof AdminPaymentsRoute
@@ -358,6 +365,7 @@ export interface FileRoutesById {
   '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/community': typeof AdminCommunityRoute
+  '/admin/distributors': typeof AdminDistributorsRouteWithChildren
   '/admin/monitor': typeof AdminMonitorRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/payments': typeof AdminPaymentsRoute
@@ -402,6 +410,7 @@ export interface FileRouteTypes {
     | '/withdraw'
     | '/admin/approvals'
     | '/admin/community'
+    | '/admin/distributors'
     | '/admin/monitor'
     | '/admin/packages'
     | '/admin/payments'
@@ -484,6 +493,7 @@ export interface FileRouteTypes {
     | '/_authenticated/withdraw'
     | '/admin/approvals'
     | '/admin/community'
+    | '/admin/distributors'
     | '/admin/monitor'
     | '/admin/packages'
     | '/admin/payments'
@@ -704,6 +714,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMonitorRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/distributors': {
+      id: '/admin/distributors'
+      path: '/distributors'
+      fullPath: '/admin/distributors'
+      preLoaderRoute: typeof AdminDistributorsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/community': {
       id: '/admin/community'
       path: '/community'
@@ -783,10 +800,10 @@ declare module '@tanstack/react-router' {
     }
     '/admin/distributors/': {
       id: '/admin/distributors/'
-      path: '/distributors'
+      path: '/'
       fullPath: '/admin/distributors/'
       preLoaderRoute: typeof AdminDistributorsIndexRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminDistributorsRoute
     }
     '/admin/users/$id': {
       id: '/admin/users/$id'
@@ -797,10 +814,10 @@ declare module '@tanstack/react-router' {
     }
     '/admin/distributors/$id': {
       id: '/admin/distributors/$id'
-      path: '/distributors/$id'
+      path: '/$id'
       fullPath: '/admin/distributors/$id'
       preLoaderRoute: typeof AdminDistributorsIdRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminDistributorsRoute
     }
     '/_authenticated/packages/$id': {
       id: '/_authenticated/packages/$id'
@@ -850,6 +867,19 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface AdminDistributorsRouteChildren {
+  AdminDistributorsIdRoute: typeof AdminDistributorsIdRoute
+  AdminDistributorsIndexRoute: typeof AdminDistributorsIndexRoute
+}
+
+const AdminDistributorsRouteChildren: AdminDistributorsRouteChildren = {
+  AdminDistributorsIdRoute: AdminDistributorsIdRoute,
+  AdminDistributorsIndexRoute: AdminDistributorsIndexRoute,
+}
+
+const AdminDistributorsRouteWithChildren =
+  AdminDistributorsRoute._addFileChildren(AdminDistributorsRouteChildren)
+
 interface AdminUsersRouteChildren {
   AdminUsersIdRoute: typeof AdminUsersIdRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
@@ -867,6 +897,7 @@ const AdminUsersRouteWithChildren = AdminUsersRoute._addFileChildren(
 interface AdminRouteChildren {
   AdminApprovalsRoute: typeof AdminApprovalsRoute
   AdminCommunityRoute: typeof AdminCommunityRoute
+  AdminDistributorsRoute: typeof AdminDistributorsRouteWithChildren
   AdminMonitorRoute: typeof AdminMonitorRoute
   AdminPackagesRoute: typeof AdminPackagesRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
@@ -878,13 +909,12 @@ interface AdminRouteChildren {
   AdminUsersRoute: typeof AdminUsersRouteWithChildren
   AdminWithdrawalsRoute: typeof AdminWithdrawalsRoute
   AdminIndexRoute: typeof AdminIndexRoute
-  AdminDistributorsIdRoute: typeof AdminDistributorsIdRoute
-  AdminDistributorsIndexRoute: typeof AdminDistributorsIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminApprovalsRoute: AdminApprovalsRoute,
   AdminCommunityRoute: AdminCommunityRoute,
+  AdminDistributorsRoute: AdminDistributorsRouteWithChildren,
   AdminMonitorRoute: AdminMonitorRoute,
   AdminPackagesRoute: AdminPackagesRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
@@ -896,8 +926,6 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminUsersRoute: AdminUsersRouteWithChildren,
   AdminWithdrawalsRoute: AdminWithdrawalsRoute,
   AdminIndexRoute: AdminIndexRoute,
-  AdminDistributorsIdRoute: AdminDistributorsIdRoute,
-  AdminDistributorsIndexRoute: AdminDistributorsIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
