@@ -235,7 +235,7 @@ function DashboardPage() {
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
             <div className="min-w-0">
               <h2 className="bn-display text-lg text-slate-900">অ্যানালিটিক্স — ৩০ দিন</h2>
-              <p className="text-xs text-slate-500 mt-0.5">সাইনআপ · রেভিনিউ · টপআপ — এক ভিউতে</p>
+              <p className="text-xs text-slate-500 mt-0.5">সাইনআপ · রেভিনিউ · টপআপ · ডিস্ট্রিবিউটর আবেদন — এক ভিউতে</p>
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
               {SERIES.map((s) => (
