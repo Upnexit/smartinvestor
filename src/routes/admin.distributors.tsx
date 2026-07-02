@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Users2, Plus, Edit3, Trash2, Search, MapPin, Phone, Award, UserCheck, Activity, BadgeCheck, ShieldOff, ShieldCheck } from "lucide-react";
+import { Users2, Plus, Edit3, Trash2, Search, MapPin, Phone, Award, UserCheck, Activity, BadgeCheck, ShieldOff, ShieldCheck, Inbox, Eye, Check, X, Mail, FileText, Clock } from "lucide-react";
 import { toast } from "sonner";
 import {
   AdminPageHeader, StatTile, AdminCard, GradientButton, SoftButton, EmptyState, Shimmer, ConfirmDeleteModal,
@@ -8,6 +8,8 @@ import {
 import { DistributorFormModal } from "@/components/admin/DistributorFormModal";
 import { deleteDistributor, listDistributors, subscribeTable, updateDistributor } from "@/lib/admin-client";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/distributors")({
   head: () => ({ meta: [{ title: "ডিস্ট্রিবিউটর — অ্যাডমিন" }] }),

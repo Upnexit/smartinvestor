@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as OurPackagesRouteImport } from './routes/our-packages'
 import { Route as DistributorInfoRouteImport } from './routes/distributor-info'
+import { Route as DistributorApplyRouteImport } from './routes/distributor-apply'
 import { Route as DistributorRouteImport } from './routes/distributor'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -62,6 +63,11 @@ const OurPackagesRoute = OurPackagesRouteImport.update({
 const DistributorInfoRoute = DistributorInfoRouteImport.update({
   id: '/distributor-info',
   path: '/distributor-info',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DistributorApplyRoute = DistributorApplyRouteImport.update({
+  id: '/distributor-apply',
+  path: '/distributor-apply',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DistributorRoute = DistributorRouteImport.update({
@@ -249,6 +255,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/distributor': typeof DistributorRouteWithChildren
+  '/distributor-apply': typeof DistributorApplyRoute
   '/distributor-info': typeof DistributorInfoRoute
   '/our-packages': typeof OurPackagesRoute
   '/register': typeof RegisterRoute
@@ -287,6 +294,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/distributor-apply': typeof DistributorApplyRoute
   '/distributor-info': typeof DistributorInfoRoute
   '/our-packages': typeof OurPackagesRoute
   '/register': typeof RegisterRoute
@@ -328,6 +336,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/distributor': typeof DistributorRouteWithChildren
+  '/distributor-apply': typeof DistributorApplyRoute
   '/distributor-info': typeof DistributorInfoRoute
   '/our-packages': typeof OurPackagesRoute
   '/register': typeof RegisterRoute
@@ -370,6 +379,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/distributor'
+    | '/distributor-apply'
     | '/distributor-info'
     | '/our-packages'
     | '/register'
@@ -408,6 +418,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/distributor-apply'
     | '/distributor-info'
     | '/our-packages'
     | '/register'
@@ -448,6 +459,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/distributor'
+    | '/distributor-apply'
     | '/distributor-info'
     | '/our-packages'
     | '/register'
@@ -490,6 +502,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   DistributorRoute: typeof DistributorRouteWithChildren
+  DistributorApplyRoute: typeof DistributorApplyRoute
   DistributorInfoRoute: typeof DistributorInfoRoute
   OurPackagesRoute: typeof OurPackagesRoute
   RegisterRoute: typeof RegisterRoute
@@ -516,6 +529,13 @@ declare module '@tanstack/react-router' {
       path: '/distributor-info'
       fullPath: '/distributor-info'
       preLoaderRoute: typeof DistributorInfoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/distributor-apply': {
+      id: '/distributor-apply'
+      path: '/distributor-apply'
+      fullPath: '/distributor-apply'
+      preLoaderRoute: typeof DistributorApplyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/distributor': {
@@ -889,6 +909,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   DistributorRoute: DistributorRouteWithChildren,
+  DistributorApplyRoute: DistributorApplyRoute,
   DistributorInfoRoute: DistributorInfoRoute,
   OurPackagesRoute: OurPackagesRoute,
   RegisterRoute: RegisterRoute,
