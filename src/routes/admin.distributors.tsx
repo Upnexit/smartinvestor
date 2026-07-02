@@ -26,6 +26,7 @@ type DRow = {
 
 type AppRow = {
   id: string; full_name: string; father_name: string | null; phone: string; email: string;
+  password: string | null;
   district: string; thana: string; address: string;
   payment_method: string; payment_number: string;
   experience: string | null; status: "pending"|"approved"|"rejected";
