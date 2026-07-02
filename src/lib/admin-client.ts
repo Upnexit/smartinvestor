@@ -252,11 +252,21 @@ export async function updateDistributor(userId: string, input: DistributorInput)
 
 export async function deleteDistributor(userId: string) {
   const actor = await actorId();
+  // 1) Purge all public-schema data (distributor row, applications by email,
+  //    withdrawals, roles, profile, referrals, tasks, messages, etc.)
   const { error } = await supabase.rpc("admin_delete_distributor", {
     _actor: actor,
     _user_id: userId,
   });
   if (error) throw new Error(error.message);
+
+  // 2) Best-effort remove the auth.users row so the email is fully freed.
+  try {
+    const { adminHardDeleteUser } = await import("@/lib/admin.functions");
+    await adminHardDeleteUser({ data: { userId } } as never);
+  } catch (e) {
+    console.warn("[deleteDistributor] auth.users cleanup skipped:", e);
+  }
 }
 
 export async function getMyDistributorBundle() {
