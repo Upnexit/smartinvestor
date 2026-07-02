@@ -1,0 +1,1 @@
+ALTER TABLE public.distributor_applications ADD COLUMN IF NOT EXISTS password text;

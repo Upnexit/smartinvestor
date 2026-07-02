@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { toast, Toaster } from "sonner";
 import {
   Crown, User, Phone, Mail, MapPin, Wallet, ArrowLeft, ArrowRight,
-  Loader2, CheckCircle2, Home, Sparkles, FileText,
+  Loader2, CheckCircle2, Home, Sparkles, FileText, Lock, Eye, EyeOff,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { BD_DISTRICTS } from "@/lib/bd-districts";
