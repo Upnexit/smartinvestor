@@ -62,12 +62,20 @@ function AdminDistributorsPage() {
       });
   };
 
+  const loadApps = () => {
+    supabase.from("distributor_applications")
+      .select("*").order("created_at", { ascending: false }).limit(200)
+      .then(({ data }) => setApps((data ?? []) as AppRow[]));
+  };
+
   useAdminAutoRefresh(refresh);
 
   useEffect(() => {
     const offDistributors = subscribeTable("distributors", refresh);
     const offProfiles = subscribeTable("profiles", refresh);
-    return () => { offDistributors(); offProfiles(); };
+    const offApps = subscribeTable("distributor_applications", loadApps);
+    loadApps();
+    return () => { offDistributors(); offProfiles(); offApps(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
