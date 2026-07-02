@@ -121,13 +121,40 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      // Fire-and-forget activity log (login / logout).
+      try {
+        if (event === "SIGNED_IN" && session?.user?.id) {
+          const last = typeof window !== "undefined" ? window.sessionStorage.getItem("si_logged_signin") : null;
+          if (last !== session.user.id) {
+            window.sessionStorage.setItem("si_logged_signin", session.user.id);
+            supabase.from("activity_logs").insert({
+              user_id: session.user.id,
+              event_type: "login",
+              meta: { path: typeof window !== "undefined" ? window.location.pathname : null },
+              user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 300) : null,
+            } as never).then(() => void 0, () => void 0);
+          }
+        } else if (event === "SIGNED_OUT") {
+          const uid = typeof window !== "undefined" ? window.sessionStorage.getItem("si_logged_signin") : null;
+          if (uid) {
+            window.sessionStorage.removeItem("si_logged_signin");
+            supabase.from("activity_logs").insert({
+              user_id: uid,
+              event_type: "logout",
+              meta: {},
+              user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 300) : null,
+            } as never).then(() => void 0, () => void 0);
+          }
+        }
+      } catch { /* ignore */ }
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
     });
     return () => sub.subscription.unsubscribe();
   }, [router, queryClient]);
+
 
   return (
     <QueryClientProvider client={queryClient}>
