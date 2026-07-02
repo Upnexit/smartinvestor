@@ -86,9 +86,25 @@ function AdminDistributorsPage() {
   const [rejectApp, setRejectApp] = useState<AppRow | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
+  const [paidOut, setPaidOut] = useState<number>(0);
+  const [rejectApp, setRejectApp] = useState<AppRow | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+
   const refresh = () => {
     listDistributors(q)
-      .then((data) => setRows(data as DRow[]))
+      .then(async (data) => {
+        const list = data as DRow[];
+        setRows(list);
+        // Compute total paid out (approved withdrawals) across users referred by any distributor
+        const ids = list.map((r) => r.user_id).filter(Boolean);
+        if (ids.length === 0) { setPaidOut(0); return; }
+        const { data: profs } = await supabase.from("profiles").select("id").in("distributor_id", ids);
+        const userIds = (profs ?? []).map((p) => p.id);
+        if (userIds.length === 0) { setPaidOut(0); return; }
+        const { data: ws } = await supabase.from("withdrawals").select("amount, status").in("user_id", userIds);
+        const total = (ws ?? []).filter((w) => w.status === "approved" || w.status === "paid").reduce((a, w) => a + Number(w.amount ?? 0), 0);
+        setPaidOut(total);
+      })
       .catch((e) => {
         toast.error(e instanceof Error ? e.message : "ডিস্ট্রিবিউটর লোড ব্যর্থ");
         setRows([]);
@@ -107,8 +123,9 @@ function AdminDistributorsPage() {
     const offDistributors = subscribeTable("distributors", refresh);
     const offProfiles = subscribeTable("profiles", refresh);
     const offApps = subscribeTable("distributor_applications", loadApps);
+    const offW = subscribeTable("withdrawals", refresh);
     loadApps();
-    return () => { offDistributors(); offProfiles(); offApps(); };
+    return () => { offDistributors(); offProfiles(); offApps(); offW(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
@@ -125,9 +142,19 @@ function AdminDistributorsPage() {
       total: r.length,
       active: r.filter(x => x.status === "active").length,
       users: r.reduce((a, x) => a + (x.users_count ?? 0), 0),
-      paid: r.reduce((a, x) => a + Number(x.total_earned ?? 0), 0),
+      commission: r.reduce((a, x) => a + Number(x.total_earned ?? 0), 0),
     };
   }, [rows]);
+
+  const filteredApps = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!apps) return null;
+    if (!s) return apps;
+    return apps.filter((a) =>
+      [a.full_name, a.email, a.phone, a.district, a.thana, a.payment_number].some((f) => (f ?? "").toLowerCase().includes(s)),
+    );
+  }, [apps, q]);
+
 
   async function toggleStatus(row: DRow) {
     try {
