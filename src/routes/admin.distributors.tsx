@@ -87,8 +87,7 @@ function AdminDistributorsPage() {
   const [rejectReason, setRejectReason] = useState("");
 
   const [paidOut, setPaidOut] = useState<number>(0);
-  const [rejectApp, setRejectApp] = useState<AppRow | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
+
 
   const refresh = () => {
     listDistributors(q)
