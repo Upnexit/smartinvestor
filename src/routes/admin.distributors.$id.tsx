@@ -249,7 +249,7 @@ function SectionCard({ title, Icon, accent, children }: {
     amber:    "from-amber-500 to-orange-600",
   } as const;
   return (
-    <AdminCard accent={accent === "indigo" ? "sky" : accent === "amber" ? "amber" : accent} className="p-4">
+    <AdminCard accent={accent} className="p-4">
       <div className="mb-3 flex items-center gap-2">
         <div className={cn("grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br text-white shadow-md", map[accent])}>
           <Icon className="h-4 w-4" />
