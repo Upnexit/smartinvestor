@@ -3,12 +3,13 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, ArrowDownToLine, Package, ShieldCheck, CreditCard,
   ListChecks, MessagesSquare, BarChart3, Activity, Settings, User as UserIcon,
-  LogOut, Menu, X, Bell, Search, ChevronRight, Sparkles, Users2, Loader2,
+  LogOut, Menu, X, Search, ChevronRight, Sparkles, Users2, Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { ACCENTS, type AccentKey } from "@/lib/admin-accents";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { NotificationBell } from "@/components/admin/NotificationBell";
 
 type NavItem = { to: string; label: string; Icon: typeof LayoutDashboard; accent: AccentKey };
 
@@ -56,10 +57,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           </div>
         </Link>
         <div className="flex items-center gap-1.5">
-          <Link to="/admin/approvals" className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/30">
-            <Bell className="h-4 w-4" />
-            <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
-          </Link>
+          <NotificationBell />
           <button onClick={() => setDrawer(true)} aria-label="মেনু খুলুন"
             className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-lg">
             <Menu className="h-5 w-5" />
@@ -87,15 +85,20 @@ export function AdminLayout({ children }: { children: ReactNode }) {
         <main className="min-w-0 flex-1">
           {/* Desktop top bar */}
           <div className="sticky top-0 z-20 hidden lg:block border-b border-amber-200/70 bg-white/85 backdrop-blur">
-            <div className="mx-auto flex h-[60px] max-w-7xl items-center gap-3 px-6">
-              <AdminLiveSearch />
-              <Link to="/admin/approvals" className="relative grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/30 transition hover:scale-[1.05]">
-                <Bell className="h-4 w-4" />
-                <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-white animate-pulse" />
-              </Link>
-              <Link to="/admin/profile" className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-lg transition hover:scale-[1.05]">
-                <UserIcon className="h-4 w-4" />
-              </Link>
+            <div className="mx-auto grid h-[60px] max-w-7xl grid-cols-[1fr_minmax(0,560px)_1fr] items-center gap-3 px-6">
+              {/* left spacer */}
+              <div />
+              {/* centered search */}
+              <div className="flex justify-center">
+                <AdminLiveSearch />
+              </div>
+              {/* right actions */}
+              <div className="flex items-center justify-end gap-2">
+                <NotificationBell />
+                <Link to="/admin/profile" aria-label="প্রোফাইল" className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-lg transition hover:scale-[1.05]">
+                  <UserIcon className="h-4 w-4" />
+                </Link>
+              </div>
             </div>
           </div>
 
@@ -219,7 +222,7 @@ function AdminLiveSearch() {
   const t = q.trim();
 
   return (
-    <div ref={boxRef} className="relative flex-1 max-w-md">
+    <div ref={boxRef} className="relative w-full max-w-[560px]">
       <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
       <input
         type="search"

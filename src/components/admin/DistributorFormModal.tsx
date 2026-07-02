@@ -14,6 +14,7 @@ type DistributorRow = {
   payment_method: string | null; payment_number: string | null;
   district: string | null; thana: string | null; address: string | null;
   commission_rate: number; status: string; notes: string | null;
+  balance?: number | null;
 };
 
 const PAYMENT_OPTIONS = [
@@ -37,7 +38,7 @@ export function DistributorFormModal({
     full_name: "", email: "", password: "",
     phone: "", payment_method: "bkash", payment_number: "",
     district: "", thana: "", address: "",
-    commission_rate: 5, notes: "",
+    commission_rate: 5, notes: "", balance: 0,
   });
   const [showPw, setShowPw] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -58,6 +59,7 @@ export function DistributorFormModal({
         address: editing.address ?? "",
         commission_rate: editing.commission_rate ?? 5,
         notes: editing.notes ?? "",
+        balance: Number(editing.balance ?? 0),
       });
     } else {
       setForm({
@@ -72,6 +74,7 @@ export function DistributorFormModal({
         address: prefill?.address ?? "",
         commission_rate: 5,
         notes: prefill?.notes ?? "",
+        balance: initialBalance ?? 0,
       });
     }
     setShowPw(false); setCopied(false);
@@ -107,12 +110,13 @@ export function DistributorFormModal({
         await updateDistributor(editing.user_id, { ...form, password: undefined });
         toast.success("ডিস্ট্রিবিউটর আপডেট হয়েছে ✓");
       } else {
+        const startBalance = Number(form.balance) || 0;
         await createDistributor({
           ...form,
-          initial_balance: initialBalance ?? 0,
+          initial_balance: startBalance,
           application_id: applicationId ?? undefined,
         });
-        toast.success(initialBalance ? `ডিস্ট্রিবিউটর তৈরি — ৳${initialBalance.toLocaleString("bn-BD")} ব্যালেন্স ক্রেডিট ✓` : "নতুন ডিস্ট্রিবিউটর তৈরি হয়েছে ✓");
+        toast.success(startBalance ? `ডিস্ট্রিবিউটর তৈরি — ৳${startBalance.toLocaleString("bn-BD")} ব্যালেন্স ক্রেডিট ✓` : "নতুন ডিস্ট্রিবিউটর তৈরি হয়েছে ✓");
       }
       onSaved();
       onClose();
@@ -226,6 +230,34 @@ export function DistributorFormModal({
                   </p>
                 </div>
               )}
+              {/* Balance — editable next to login account */}
+              <div className={isEdit ? "sm:col-span-1" : "sm:col-span-2"}>
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <Wallet className="h-3.5 w-3.5 text-emerald-600" />
+                  ব্যালেন্স (৳) <span className="ml-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700">এডিটযোগ্য</span>
+                </label>
+                <div className="relative mt-1.5">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-emerald-600">৳</span>
+                  <input
+                    type="number" min={0} step="1" inputMode="numeric"
+                    value={form.balance}
+                    onChange={(e) => setForm({ ...form, balance: Number(e.target.value || 0) })}
+                    className="w-full rounded-xl border-2 border-emerald-200 bg-emerald-50/40 px-3 py-2.5 pl-7 text-sm font-bold tabular-nums text-emerald-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                  />
+                  <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                    {[500, 1000, 5000, 25000].map((v) => (
+                      <button key={v} type="button"
+                        onClick={() => setForm({ ...form, balance: Number(form.balance || 0) + v })}
+                        className="hidden sm:inline-flex rounded-md bg-white px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-100">
+                        +{v >= 1000 ? `${v/1000}k` : v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  {isEdit ? "বর্তমান ব্যালেন্স পরিবর্তন করুন — সংরক্ষণে সরাসরি প্রয়োগ হবে।" : "এজেন্ট তৈরির সাথে সাথে এই ব্যালেন্স ক্রেডিট হবে।"}
+                </p>
+              </div>
             </div>
           </Section>
 
