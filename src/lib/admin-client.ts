@@ -20,6 +20,7 @@ type DistributorInput = {
   notes?: string | null;
   initial_balance?: number;
   application_id?: string;
+  balance?: number | null;
 };
 
 async function actorId(): Promise<string> {
