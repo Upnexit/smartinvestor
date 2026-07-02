@@ -23,10 +23,13 @@ const PAYMENT_OPTIONS = [
 ] as const;
 
 export function DistributorFormModal({
-  open, onClose, onSaved, editing,
+  open, onClose, onSaved, editing, prefill, applicationId, initialBalance,
 }: {
   open: boolean; onClose: () => void; onSaved: () => void;
   editing?: DistributorRow | null;
+  prefill?: Partial<DistributorRow> | null;
+  applicationId?: string | null;
+  initialBalance?: number;
 }) {
   const isEdit = !!editing;
 
@@ -58,14 +61,21 @@ export function DistributorFormModal({
       });
     } else {
       setForm({
-        full_name: "", email: "", password: genPassword(),
-        phone: "", payment_method: "bkash", payment_number: "",
-        district: "", thana: "", address: "",
-        commission_rate: 5, notes: "",
+        full_name: prefill?.full_name ?? "",
+        email: prefill?.email ?? "",
+        password: genPassword(),
+        phone: prefill?.phone ?? "",
+        payment_method: prefill?.payment_method ?? "bkash",
+        payment_number: prefill?.payment_number ?? "",
+        district: prefill?.district ?? "",
+        thana: prefill?.thana ?? "",
+        address: prefill?.address ?? "",
+        commission_rate: 5,
+        notes: prefill?.notes ?? "",
       });
     }
     setShowPw(false); setCopied(false);
-  }, [editing, open]);
+  }, [editing, open, prefill]);
 
   // Form completion meter
   const completion = useMemo(() => {
@@ -97,8 +107,12 @@ export function DistributorFormModal({
         await updateDistributor(editing.user_id, { ...form, password: undefined });
         toast.success("ডিস্ট্রিবিউটর আপডেট হয়েছে ✓");
       } else {
-        await createDistributor(form);
-        toast.success("নতুন ডিস্ট্রিবিউটর তৈরি হয়েছে ✓");
+        await createDistributor({
+          ...form,
+          initial_balance: initialBalance ?? 0,
+          application_id: applicationId ?? undefined,
+        });
+        toast.success(initialBalance ? `ডিস্ট্রিবিউটর তৈরি — ৳${initialBalance.toLocaleString("bn-BD")} ব্যালেন্স ক্রেডিট ✓` : "নতুন ডিস্ট্রিবিউটর তৈরি হয়েছে ✓");
       }
       onSaved();
       onClose();

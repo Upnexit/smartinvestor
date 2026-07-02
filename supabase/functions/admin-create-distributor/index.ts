@@ -99,6 +99,23 @@ Deno.serve(async (req) => {
       throw upsertError;
     }
 
+    const initialBalance = Math.max(0, Number(body.initial_balance ?? 0));
+    if (initialBalance > 0) {
+      await admin.from("distributors").update({
+        balance: initialBalance,
+        total_earned: initialBalance,
+      }).eq("user_id", created.user.id);
+    }
+
+    const applicationId = typeof body.application_id === "string" ? body.application_id : null;
+    if (applicationId) {
+      await admin.from("distributor_applications").update({
+        status: "approved",
+        reviewed_by: authUser.user.id,
+        reviewed_at: new Date().toISOString(),
+      }).eq("id", applicationId);
+    }
+
     return json({ ok: true, userId: created.user.id, distributor });
   } catch (e) {
     const message = e instanceof Error ? e.message : "ডিস্ট্রিবিউটর তৈরি ব্যর্থ";

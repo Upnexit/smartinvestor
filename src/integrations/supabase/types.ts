@@ -101,6 +101,69 @@ export type Database = {
         }
         Relationships: []
       }
+      distributor_applications: {
+        Row: {
+          address: string
+          created_at: string
+          district: string
+          division: string | null
+          email: string
+          experience: string | null
+          father_name: string | null
+          full_name: string
+          id: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          payment_number: string
+          phone: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          thana: string
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          district: string
+          division?: string | null
+          email: string
+          experience?: string | null
+          father_name?: string | null
+          full_name: string
+          id?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          payment_number: string
+          phone: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          thana: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          district?: string
+          division?: string | null
+          email?: string
+          experience?: string | null
+          father_name?: string | null
+          full_name?: string
+          id?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          payment_number?: string
+          phone?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          thana?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       distributor_withdrawals: {
         Row: {
           account_number: string

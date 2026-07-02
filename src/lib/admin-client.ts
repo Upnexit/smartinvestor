@@ -18,6 +18,8 @@ type DistributorInput = {
   commission_rate?: number;
   status?: string;
   notes?: string | null;
+  initial_balance?: number;
+  application_id?: string;
 };
 
 async function actorId(): Promise<string> {
@@ -189,6 +191,8 @@ export async function createDistributor(input: DistributorInput) {
         actor,
         password: input.password,
         ...patch,
+        initial_balance: input.initial_balance ?? 0,
+        application_id: input.application_id ?? null,
       },
     } as never);
     const serverError = (data as { error?: string } | null)?.error;
