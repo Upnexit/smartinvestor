@@ -28,8 +28,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       if (roles.includes("admin")) throw redirect({ to: "/admin" });
       if (roles.includes("distributor")) throw redirect({ to: "/distributor" });
     } catch (e) {
-      // rethrow router redirects
-      if (e && typeof e === "object" && "isRedirect" in e) throw e;
+      if (isRedirect(e)) throw e;
     }
   },
   component: DashboardPage,
