@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/packages/$id")({
 type Pkg = {
   id: string; name: string; price: number; daily_tasks: number;
   daily_income: number; duration_days: number; description: string | null;
-  featured: boolean;
+  featured: boolean; image_url: string | null;
 };
 const bn = (n: number) => Number(n).toLocaleString("en-BD");
 
