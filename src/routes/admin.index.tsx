@@ -148,9 +148,11 @@ const SERIES = [
   { key: "signups", label: "দৈনিক সাইনআপ", color: "#0284c7", accent: "sky" as AccentKey },
   { key: "revenue", label: "রেভিনিউ (৳)",   color: "#f59e0b", accent: "amber" as AccentKey },
   { key: "topups",  label: "দৈনিক টপআপ",    color: "#c026d3", accent: "fuchsia" as AccentKey },
+  { key: "apps",    label: "ডিস্ট্রি. আবেদন", color: "#6366f1", accent: "indigo" as AccentKey },
 ];
 
-type ComboPoint = { date: string; signups: number; revenue: number; topups: number };
+type ComboPoint = { date: string; signups: number; revenue: number; topups: number; apps: number };
+
 
 function ComboTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name?: string; dataKey?: string; value?: number; color?: string }>; label?: string }) {
   if (!active || !payload?.length) return null;
