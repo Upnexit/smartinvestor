@@ -48,6 +48,8 @@ function DistributorApplyPage() {
     if (form.full_name.trim().length < 2) return toast.error("পুরো নাম দিন");
     if (!/^01[0-9]{9}$/.test(form.phone)) return toast.error("সঠিক ফোন নম্বর দিন (01XXXXXXXXX)");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return toast.error("সঠিক ইমেইল দিন");
+    if (form.password.length < 6) return toast.error("পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে");
+    if (form.password !== form.confirm_password) return toast.error("পাসওয়ার্ড মিলছে না");
     if (!form.district) return toast.error("জেলা নির্বাচন করুন");
     if (!form.thana) return toast.error("উপজেলা নির্বাচন করুন");
     if (form.address.trim().length < 5) return toast.error("বিস্তারিত ঠিকানা দিন");
@@ -60,6 +62,7 @@ function DistributorApplyPage() {
         father_name: form.father_name.trim() || null,
         phone: form.phone,
         email: form.email.toLowerCase().trim(),
+        password: form.password,
         district: form.district,
         thana: form.thana,
         address: form.address.trim(),
