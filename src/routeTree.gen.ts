@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as OurPackagesRouteImport } from './routes/our-packages'
+import { Route as DistributorInfoRouteImport } from './routes/distributor-info'
 import { Route as DistributorRouteImport } from './routes/distributor'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -56,6 +57,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const OurPackagesRoute = OurPackagesRouteImport.update({
   id: '/our-packages',
   path: '/our-packages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DistributorInfoRoute = DistributorInfoRouteImport.update({
+  id: '/distributor-info',
+  path: '/distributor-info',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DistributorRoute = DistributorRouteImport.update({
@@ -243,6 +249,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/distributor': typeof DistributorRouteWithChildren
+  '/distributor-info': typeof DistributorInfoRoute
   '/our-packages': typeof OurPackagesRoute
   '/register': typeof RegisterRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
@@ -280,6 +287,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/distributor-info': typeof DistributorInfoRoute
   '/our-packages': typeof OurPackagesRoute
   '/register': typeof RegisterRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
@@ -320,6 +328,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/distributor': typeof DistributorRouteWithChildren
+  '/distributor-info': typeof DistributorInfoRoute
   '/our-packages': typeof OurPackagesRoute
   '/register': typeof RegisterRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
@@ -361,6 +370,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/distributor'
+    | '/distributor-info'
     | '/our-packages'
     | '/register'
     | '/checkout'
@@ -398,6 +408,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/distributor-info'
     | '/our-packages'
     | '/register'
     | '/checkout'
@@ -437,6 +448,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/distributor'
+    | '/distributor-info'
     | '/our-packages'
     | '/register'
     | '/_authenticated/checkout'
@@ -478,6 +490,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   DistributorRoute: typeof DistributorRouteWithChildren
+  DistributorInfoRoute: typeof DistributorInfoRoute
   OurPackagesRoute: typeof OurPackagesRoute
   RegisterRoute: typeof RegisterRoute
 }
@@ -496,6 +509,13 @@ declare module '@tanstack/react-router' {
       path: '/our-packages'
       fullPath: '/our-packages'
       preLoaderRoute: typeof OurPackagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/distributor-info': {
+      id: '/distributor-info'
+      path: '/distributor-info'
+      fullPath: '/distributor-info'
+      preLoaderRoute: typeof DistributorInfoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/distributor': {
@@ -869,6 +889,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   DistributorRoute: DistributorRouteWithChildren,
+  DistributorInfoRoute: DistributorInfoRoute,
   OurPackagesRoute: OurPackagesRoute,
   RegisterRoute: RegisterRoute,
 }
