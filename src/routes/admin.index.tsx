@@ -25,7 +25,9 @@ type Stats = {
   signupSeries: { date: string; count: number }[];
   revenueSeries: { date: string; amount: number }[];
   topupSeries: { date: string; count: number }[];
+  appsSeries: { date: string; count: number }[];
 };
+
 
 const fmtBDT = (n: number) => "৳" + Math.round(n).toLocaleString("bn-BD");
 const fmtBN = (n: number) => n.toLocaleString("bn-BD");
