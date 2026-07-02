@@ -128,7 +128,7 @@ function cleanSearch(value: string) {
 }
 
 function normalizeDistributorPatch(input: DistributorInput) {
-  return {
+  const base: Record<string, unknown> = {
     full_name: input.full_name?.trim() ?? "",
     email: input.email?.trim().toLowerCase() ?? "",
     phone: input.phone?.trim() || null,
@@ -141,6 +141,10 @@ function normalizeDistributorPatch(input: DistributorInput) {
     status: input.status ?? "active",
     notes: input.notes?.trim() || null,
   };
+  if (input.balance !== undefined && input.balance !== null) {
+    base.balance = Math.max(Number(input.balance) || 0, 0);
+  }
+  return base;
 }
 
 export async function listDistributors(q: string) {
