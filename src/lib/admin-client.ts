@@ -269,6 +269,21 @@ export async function deleteDistributor(userId: string) {
   }
 }
 
+export async function getDistributorBundle(userId: string) {
+  const a = await actorId();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase as any).rpc("admin_distributor_bundle", { _actor: a, _user_id: userId });
+  if (error) throw new Error(error.message);
+  return data as {
+    distributor: Record<string, unknown> | null;
+    profile: Record<string, unknown> | null;
+    stats: Record<string, unknown> | null;
+    users: Array<{ id: string; full_name: string | null; email: string | null; phone: string | null; user_code: string | null; balance: number | string | null; total_earned: number | string | null; status: string | null; created_at: string; has_active_package: boolean }>;
+    activity: Array<{ id: string; event_type: string; meta: Record<string, unknown>; ip: string | null; user_agent: string | null; created_at: string }>;
+    user_activity: Array<{ id: string; user_id: string; event_type: string; meta: Record<string, unknown>; created_at: string; actor_name: string | null; actor_code: string | null }>;
+  };
+
+
 export async function getMyDistributorBundle() {
   const userId = await actorId();
   const [profileRes, statsRes] = await Promise.all([
