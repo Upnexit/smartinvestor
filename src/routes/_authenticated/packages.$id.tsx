@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/packages/$id")({
 type Pkg = {
   id: string; name: string; price: number; daily_tasks: number;
   daily_income: number; duration_days: number; description: string | null;
-  featured: boolean;
+  featured: boolean; image_url: string | null;
 };
 const bn = (n: number) => Number(n).toLocaleString("en-BD");
 
@@ -56,21 +56,36 @@ function PackageDetailPage() {
       )}>
         <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
         <div className="absolute -left-8 bottom-0 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
-        <div className="relative">
-          {isVip && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur">
-              <Star className="h-3 w-3 fill-white" /> Featured
-            </span>
+        <div className="relative flex flex-col sm:flex-row sm:items-center gap-5">
+          {p.image_url && (
+            <div className="shrink-0 mx-auto sm:mx-0">
+              <div className="h-28 w-28 sm:h-36 sm:w-36 rounded-2xl overflow-hidden ring-4 ring-white/40 shadow-2xl bg-white/10 backdrop-blur">
+                <img
+                  src={p.image_url}
+                  alt={p.name}
+                  loading="lazy"
+                  className="h-full w-full object-cover"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                />
+              </div>
+            </div>
           )}
-          <h1 className="bn-display mt-3 text-3xl sm:text-4xl drop-shadow-sm">{p.name}</h1>
-          {p.description && <p className="mt-2 max-w-xl text-sm text-white/90">{p.description}</p>}
-          <div className="mt-4 flex items-end gap-2">
-            <span className="bn-display text-4xl sm:text-5xl">৳{bn(Number(p.price))}</span>
-            <span className="mb-1 text-xs text-white/80">এককালীন</span>
+          <div className="flex-1 min-w-0">
+            {isVip && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider backdrop-blur">
+                <Star className="h-3 w-3 fill-white" /> Featured
+              </span>
+            )}
+            <h1 className="bn-display mt-3 text-3xl sm:text-4xl drop-shadow-sm">{p.name}</h1>
+            {p.description && <p className="mt-2 max-w-xl text-sm text-white/90">{p.description}</p>}
+            <div className="mt-4 flex items-end gap-2">
+              <span className="bn-display text-4xl sm:text-5xl">৳{bn(Number(p.price))}</span>
+              <span className="mb-1 text-xs text-white/80">এককালীন</span>
+            </div>
+            <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur">
+              <Sparkles className="h-3 w-3" /> {roi}% ROI ৪৫ দিনে
+            </span>
           </div>
-          <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur">
-            <Sparkles className="h-3 w-3" /> {roi}% ROI ৪৫ দিনে
-          </span>
         </div>
       </header>
 
