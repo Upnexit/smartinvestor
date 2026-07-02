@@ -321,6 +321,7 @@ function AdminDistributorsPage() {
         prefill={modal.prefill ?? null}
         applicationId={modal.applicationId ?? null}
         initialBalance={modal.initialBalance ?? 0}
+        initialPassword={modal.initialPassword ?? null}
         onClose={() => setModal({ open: false, editing: null })}
         onSaved={() => { refresh(); loadApps(); }}
       />
