@@ -305,7 +305,10 @@ function AdminDistributorsPage() {
                       <p className="text-sm font-bold text-amber-700">৳{Number(r.balance ?? 0).toFixed(0)}</p>
                     </div>
                   </div>
-                  <div className="mt-3 grid grid-cols-3 gap-1.5">
+                  <div className="mt-3 grid grid-cols-4 gap-1.5">
+                    <Link to="/admin/distributors/$id" params={{ id: r.user_id }} className="inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 px-2 py-1.5 text-[11px] font-bold text-white shadow-md shadow-sky-500/30 hover:scale-[1.02] transition">
+                      <Eye className="h-3.5 w-3.5" /> ডিটেইল
+                    </Link>
                     <button onClick={() => setModal({ open: true, editing: r })} className="inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 px-2 py-1.5 text-[11px] font-bold text-white shadow-md shadow-emerald-500/30 hover:scale-[1.02] transition">
                       <Edit3 className="h-3.5 w-3.5" /> এডিট
                     </button>
@@ -316,6 +319,7 @@ function AdminDistributorsPage() {
                       <Trash2 className="h-3.5 w-3.5" />
                     </SoftButton>
                   </div>
+
                   <div className="mt-2 text-[10px] text-slate-500 text-center">
                     মোট আয়: <b className="text-fuchsia-700">৳{Number(r.total_earned ?? 0).toLocaleString("bn-BD")}</b>
                   </div>
