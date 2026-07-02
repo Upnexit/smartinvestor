@@ -75,12 +75,37 @@ export function DistributorLayout({ children }: { children: ReactNode }) {
           </div>
         )}
 
-        <main className="min-w-0 flex-1">
+        <main className="min-w-0 flex-1 pb-24 lg:pb-6">
           <div className="mx-auto w-full max-w-6xl px-3 py-4 sm:px-6 sm:py-6 space-y-4">
             {children}
           </div>
         </main>
       </div>
+
+      {/* Mobile bottom nav */}
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/40 bg-gradient-to-r from-indigo-50 via-violet-50 to-fuchsia-50 backdrop-blur-xl px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_-12px_rgba(15,23,42,0.15)] lg:hidden">
+        <ul className="grid grid-cols-5">
+          {BOTTOM_NAV.map((item) => {
+            const active = item.to === "/distributor" ? pathname === "/distributor" : pathname.startsWith(item.to);
+            const a = ACCENTS[item.accent];
+            return (
+              <li key={item.to}>
+                <Link to={item.to} className="relative flex flex-col items-center gap-1 rounded-xl px-1 py-1 text-[10px] font-semibold">
+                  {active && <span className={cn("absolute -top-1.5 h-1 w-7 rounded-full bg-gradient-to-r shadow-md", a.chip)} />}
+                  <span className={cn(
+                    "grid h-10 w-10 place-items-center rounded-[14px] text-white bg-gradient-to-br shadow-md transition-all duration-300",
+                    a.chip, a.glow,
+                    active ? "scale-110 ring-2 ring-white shadow-lg saturate-150 -translate-y-0.5" : "saturate-110 hover:scale-105",
+                  )}>
+                    <item.Icon className="h-[18px] w-[18px]" />
+                  </span>
+                  <span className={cn("transition-colors", active ? "text-slate-900" : "text-slate-600")}>{item.short}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
     </div>
   );
 }
