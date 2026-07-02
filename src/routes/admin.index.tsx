@@ -25,7 +25,9 @@ type Stats = {
   signupSeries: { date: string; count: number }[];
   revenueSeries: { date: string; amount: number }[];
   topupSeries: { date: string; count: number }[];
+  appsSeries: { date: string; count: number }[];
 };
+
 
 const fmtBDT = (n: number) => "৳" + Math.round(n).toLocaleString("bn-BD");
 const fmtBN = (n: number) => n.toLocaleString("bn-BD");
@@ -51,12 +53,13 @@ async function loadStats(): Promise<Stats> {
   let signupQ = supabase.from("profiles").select("created_at").gte("created_at", since);
   if (inList) signupQ = signupQ.not("id", "in", inList);
 
-  const [totalU, activeU, revRows, pendRows, signupRows] = await Promise.all([
+  const [totalU, activeU, revRows, pendRows, signupRows, appRows] = await Promise.all([
     totalQ,
     activeQ,
     supabase.from("user_packages").select("created_at, status, packages(price)").gte("created_at", since),
     supabase.from("user_packages").select("id", { count: "exact", head: true }).eq("status", "pending"),
     signupQ,
+    supabase.from("distributor_applications").select("created_at").gte("created_at", since),
   ]);
 
   const day = (d: string) => d.slice(0, 10);
@@ -65,6 +68,9 @@ async function loadStats(): Promise<Stats> {
 
   const signupMap = new Map<string, number>();
   (signupRows.data ?? []).forEach((r) => signupMap.set(day(r.created_at!), (signupMap.get(day(r.created_at!)) ?? 0) + 1));
+
+  const appsMap = new Map<string, number>();
+  (appRows.data ?? []).forEach((r) => appsMap.set(day(r.created_at!), (appsMap.get(day(r.created_at!)) ?? 0) + 1));
 
   const revMap = new Map<string, number>();
   const topupMap = new Map<string, number>();
@@ -87,8 +93,10 @@ async function loadStats(): Promise<Stats> {
     signupSeries: days.map((d) => ({ date: d.slice(5), count: signupMap.get(d) ?? 0 })),
     revenueSeries: days.map((d) => ({ date: d.slice(5), amount: revMap.get(d) ?? 0 })),
     topupSeries: days.map((d) => ({ date: d.slice(5), count: topupMap.get(d) ?? 0 })),
+    appsSeries: days.map((d) => ({ date: d.slice(5), count: appsMap.get(d) ?? 0 })),
   };
 }
+
 
 /* ---------- Vibrant fully-gradient stat tile ---------- */
 function VibrantStat({
@@ -140,9 +148,11 @@ const SERIES = [
   { key: "signups", label: "দৈনিক সাইনআপ", color: "#0284c7", accent: "sky" as AccentKey },
   { key: "revenue", label: "রেভিনিউ (৳)",   color: "#f59e0b", accent: "amber" as AccentKey },
   { key: "topups",  label: "দৈনিক টপআপ",    color: "#c026d3", accent: "fuchsia" as AccentKey },
+  { key: "apps",    label: "ডিস্ট্রি. আবেদন", color: "#6366f1", accent: "indigo" as AccentKey },
 ];
 
-type ComboPoint = { date: string; signups: number; revenue: number; topups: number };
+type ComboPoint = { date: string; signups: number; revenue: number; topups: number; apps: number };
+
 
 function ComboTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name?: string; dataKey?: string; value?: number; color?: string }>; label?: string }) {
   if (!active || !payload?.length) return null;
@@ -185,6 +195,8 @@ function DashboardPage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "withdrawals" }, refresh)
       .on("postgres_changes", { event: "*", schema: "public", table: "task_submissions" }, refresh)
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "distributor_applications" }, refresh)
+
       .subscribe();
     return () => { supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -197,8 +209,10 @@ function DashboardPage() {
       signups: s.count,
       revenue: stats.revenueSeries[i]?.amount ?? 0,
       topups: stats.topupSeries[i]?.count ?? 0,
+      apps: stats.appsSeries[i]?.count ?? 0,
     }));
   }, [stats]);
+
 
   return (
     <>
@@ -223,7 +237,7 @@ function DashboardPage() {
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
             <div className="min-w-0">
               <h2 className="bn-display text-lg text-slate-900">অ্যানালিটিক্স — ৩০ দিন</h2>
-              <p className="text-xs text-slate-500 mt-0.5">সাইনআপ · রেভিনিউ · টপআপ — এক ভিউতে</p>
+              <p className="text-xs text-slate-500 mt-0.5">সাইনআপ · রেভিনিউ · টপআপ · ডিস্ট্রিবিউটর আবেদন — এক ভিউতে</p>
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
               {SERIES.map((s) => (
@@ -257,6 +271,8 @@ function DashboardPage() {
                 <Bar  yAxisId="right" dataKey="revenue" name="রেভিনিউ (৳)"  fill="url(#g-rev)" radius={[6, 6, 0, 0]} barSize={14} />
                 <Area yAxisId="left"  dataKey="signups" name="দৈনিক সাইনআপ" type="monotone" stroke="#0284c7" strokeWidth={2.25} fill="url(#g-signups)" />
                 <Line yAxisId="left"  dataKey="topups"  name="দৈনিক টপআপ"   type="monotone" stroke="#c026d3" strokeWidth={2.5} dot={{ r: 2.5, fill: "#c026d3" }} activeDot={{ r: 5 }} />
+                <Line yAxisId="left"  dataKey="apps"    name="ডিস্ট্রি. আবেদন" type="monotone" stroke="#6366f1" strokeWidth={2.5} strokeDasharray="5 4" dot={{ r: 2.5, fill: "#6366f1" }} activeDot={{ r: 5 }} />
+
               </ComposedChart>
             </ResponsiveContainer>
           )}

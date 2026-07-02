@@ -1,15 +1,47 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Users2, Plus, Edit3, Trash2, Search, MapPin, Phone, Award, UserCheck, Activity, BadgeCheck, ShieldOff, ShieldCheck, Inbox, Eye, Check, X, Mail, FileText, Clock, Wallet } from "lucide-react";
+import { Users2, Plus, Edit3, Trash2, Search, MapPin, Phone, Award, UserCheck, Activity, BadgeCheck, ShieldOff, ShieldCheck, Inbox, Eye, Check, X, Mail, FileText, Clock, Wallet, TrendingUp, HandCoins } from "lucide-react";
 import { toast } from "sonner";
 import {
-  AdminPageHeader, StatTile, AdminCard, GradientButton, SoftButton, EmptyState, Shimmer, ConfirmDeleteModal,
+  AdminPageHeader, AdminCard, GradientButton, SoftButton, EmptyState, Shimmer, ConfirmDeleteModal,
 } from "@/components/admin/AdminUI";
+import { ACCENTS, type AccentKey } from "@/lib/admin-accents";
 import { DistributorFormModal } from "@/components/admin/DistributorFormModal";
 import { deleteDistributor, listDistributors, subscribeTable, updateDistributor } from "@/lib/admin-client";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+
+/* ---------- Vibrant fully-gradient stat tile ---------- */
+function VibrantStat({
+  label, value, accent, Icon, hint,
+}: {
+  label: string; value: React.ReactNode; hint?: string; accent: AccentKey;
+  Icon: React.ComponentType<{ className?: string }>;
+}) {
+  const a = ACCENTS[accent];
+  return (
+    <div className={cn(
+      "group relative overflow-hidden rounded-2xl p-4 text-white shadow-xl animate-admin-pop transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02]",
+      "bg-gradient-to-br", a.gradient, a.glow,
+    )}>
+      <span className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/20 blur-2xl" />
+      <span className="pointer-events-none absolute -left-4 -bottom-8 h-20 w-20 rounded-full bg-black/20 blur-2xl" />
+      <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.25),transparent_60%)]" />
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/85">{label}</p>
+          <p className="mt-1 bn-display text-2xl sm:text-[1.6rem] drop-shadow-sm truncate">{value}</p>
+          {hint && <p className="mt-1 text-[10px] text-white/85">{hint}</p>}
+        </div>
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white/25 backdrop-blur-md ring-1 ring-white/40 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+          <Icon className="h-5 w-5" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 export const Route = createFileRoute("/admin/distributors")({
   head: () => ({ meta: [{ title: "ডিস্ট্রিবিউটর — অ্যাডমিন" }] }),
@@ -54,9 +86,24 @@ function AdminDistributorsPage() {
   const [rejectApp, setRejectApp] = useState<AppRow | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
+  const [paidOut, setPaidOut] = useState<number>(0);
+
+
   const refresh = () => {
     listDistributors(q)
-      .then((data) => setRows(data as DRow[]))
+      .then(async (data) => {
+        const list = data as DRow[];
+        setRows(list);
+        // Compute total paid out (approved withdrawals) across users referred by any distributor
+        const ids = list.map((r) => r.user_id).filter(Boolean);
+        if (ids.length === 0) { setPaidOut(0); return; }
+        const { data: profs } = await supabase.from("profiles").select("id").in("distributor_id", ids);
+        const userIds = (profs ?? []).map((p) => p.id);
+        if (userIds.length === 0) { setPaidOut(0); return; }
+        const { data: ws } = await supabase.from("withdrawals").select("amount, status").in("user_id", userIds);
+        const total = (ws ?? []).filter((w) => w.status === "approved" || w.status === "paid").reduce((a, w) => a + Number(w.amount ?? 0), 0);
+        setPaidOut(total);
+      })
       .catch((e) => {
         toast.error(e instanceof Error ? e.message : "ডিস্ট্রিবিউটর লোড ব্যর্থ");
         setRows([]);
@@ -75,8 +122,9 @@ function AdminDistributorsPage() {
     const offDistributors = subscribeTable("distributors", refresh);
     const offProfiles = subscribeTable("profiles", refresh);
     const offApps = subscribeTable("distributor_applications", loadApps);
+    const offW = subscribeTable("withdrawals", refresh);
     loadApps();
-    return () => { offDistributors(); offProfiles(); offApps(); };
+    return () => { offDistributors(); offProfiles(); offApps(); offW(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
@@ -93,9 +141,19 @@ function AdminDistributorsPage() {
       total: r.length,
       active: r.filter(x => x.status === "active").length,
       users: r.reduce((a, x) => a + (x.users_count ?? 0), 0),
-      paid: r.reduce((a, x) => a + Number(x.total_earned ?? 0), 0),
+      commission: r.reduce((a, x) => a + Number(x.total_earned ?? 0), 0),
     };
   }, [rows]);
+
+  const filteredApps = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!apps) return null;
+    if (!s) return apps;
+    return apps.filter((a) =>
+      [a.full_name, a.email, a.phone, a.district, a.thana, a.payment_number].some((f) => (f ?? "").toLowerCase().includes(s)),
+    );
+  }, [apps, q]);
+
 
   async function toggleStatus(row: DRow) {
     try {
@@ -160,12 +218,14 @@ function AdminDistributorsPage() {
         }
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatTile label="মোট ডিস্ট্রিবিউটর" value={stats.total} Icon={Users2} accent="indigo" />
-        <StatTile label="সক্রিয়" value={stats.active} Icon={UserCheck} accent="emerald" />
-        <StatTile label="ইউজার পরিচালনা" value={stats.users} Icon={Activity} accent="sky" />
-        <StatTile label="মোট কমিশন" value={`৳${stats.paid.toLocaleString("bn-BD")}`} Icon={Award} accent="fuchsia" />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <VibrantStat label="মোট ডিস্ট্রিবিউটর" value={stats.total.toLocaleString("bn-BD")} Icon={Users2} accent="indigo" />
+        <VibrantStat label="সক্রিয় ডিস্ট্রিবিউটর" value={stats.active.toLocaleString("bn-BD")} Icon={UserCheck} accent="emerald" />
+        <VibrantStat label="ইউজার পরিচালনা" value={stats.users.toLocaleString("bn-BD")} Icon={Activity} accent="sky" hint="ডিস্ট্রিবিউটরের রেফার্ড ইউজার" />
+        <VibrantStat label="মোট কমিশন" value={`৳${stats.commission.toLocaleString("bn-BD")}`} Icon={Award} accent="fuchsia" hint="এজেন্টদের অর্জিত আয়" />
+        <VibrantStat label="মোট পরিশোধ" value={`৳${paidOut.toLocaleString("bn-BD")}`} Icon={HandCoins} accent="amber" hint="ইউজারদের প্রদত্ত টাকা" />
       </div>
+
 
       {/* Tabs */}
       <div className="flex gap-2 rounded-2xl bg-slate-100 p-1">
@@ -182,15 +242,23 @@ function AdminDistributorsPage() {
         </button>
       </div>
 
-      {tab === "list" && (
-        <AdminCard accent="indigo" className="p-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="নাম / ইমেইল / ফোন / জেলা..."
-              className="w-full rounded-xl border-2 border-indigo-200 bg-indigo-50/30 pl-9 pr-3 py-2.5 text-sm outline-none focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100" />
-          </div>
-        </AdminCard>
-      )}
+      {/* Unified search — active on both tabs */}
+      <AdminCard accent={tab === "list" ? "indigo" : "fuchsia"} className="p-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input value={q} onChange={(e) => setQ(e.target.value)}
+            placeholder={tab === "list" ? "ডিস্ট্রিবিউটর খুঁজুন — নাম / ইমেইল / ফোন / জেলা..." : "আবেদন খুঁজুন — নাম / ইমেইল / ফোন / জেলা..."}
+            className={cn("w-full rounded-xl border-2 pl-9 pr-9 py-2.5 text-sm outline-none focus:bg-white focus:ring-4",
+              tab === "list" ? "border-indigo-200 bg-indigo-50/30 focus:border-indigo-400 focus:ring-indigo-100"
+                             : "border-fuchsia-200 bg-fuchsia-50/30 focus:border-fuchsia-400 focus:ring-fuchsia-100")} />
+          {q && (
+            <button onClick={() => setQ("")} className="absolute right-2 top-1/2 -translate-y-1/2 grid h-6 w-6 place-items-center rounded-full bg-slate-200 hover:bg-slate-300">
+              <X className="h-3 w-3 text-slate-600" />
+            </button>
+          )}
+        </div>
+      </AdminCard>
+
 
       {tab === "list" && (
         rows === null ? (
@@ -259,15 +327,16 @@ function AdminDistributorsPage() {
       )}
 
       {tab === "applications" && (
-        apps === null ? (
+        filteredApps === null ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[0,1,2].map(i => <Shimmer key={i} className="h-56" />)}
           </div>
-        ) : apps.length === 0 ? (
-          <EmptyState Icon={Inbox} title="কোনো আবেদন নেই" hint="নতুন আবেদন এলে এখানে দেখাবে" accent="fuchsia" />
+        ) : filteredApps.length === 0 ? (
+          <EmptyState Icon={Inbox} title={q ? "কোনো ফলাফল নেই" : "কোনো আবেদন নেই"} hint={q ? "অন্য কীওয়ার্ড দিয়ে চেষ্টা করুন" : "নতুন আবেদন এলে এখানে দেখাবে"} accent="fuchsia" />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {apps.map((a) => {
+            {filteredApps.map((a) => {
+
               const badge = a.status === "pending" ? { c: "from-amber-500 to-orange-600", t: "পেন্ডিং" }
                 : a.status === "approved" ? { c: "from-emerald-500 to-teal-600", t: "অ্যাপ্রুভড" }
                 : { c: "from-rose-500 to-red-600", t: "রিজেক্টেড" };
