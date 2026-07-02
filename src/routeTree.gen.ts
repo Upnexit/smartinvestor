@@ -48,6 +48,7 @@ import { Route as AuthenticatedCommunityRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin.users.index'
 import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
+import { Route as AdminDistributorsIdRouteImport } from './routes/admin.distributors.$id'
 import { Route as AuthenticatedPackagesIdRouteImport } from './routes/_authenticated/packages.$id'
 
 const RegisterRoute = RegisterRouteImport.update({
@@ -244,6 +245,11 @@ const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AdminUsersRoute,
 } as any)
+const AdminDistributorsIdRoute = AdminDistributorsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AdminDistributorsRoute,
+} as any)
 const AuthenticatedPackagesIdRoute = AuthenticatedPackagesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -269,7 +275,7 @@ export interface FileRoutesByFullPath {
   '/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/community': typeof AdminCommunityRoute
-  '/admin/distributors': typeof AdminDistributorsRoute
+  '/admin/distributors': typeof AdminDistributorsRouteWithChildren
   '/admin/monitor': typeof AdminMonitorRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/payments': typeof AdminPaymentsRoute
@@ -288,6 +294,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/distributor/': typeof DistributorIndexRoute
   '/packages/$id': typeof AuthenticatedPackagesIdRoute
+  '/admin/distributors/$id': typeof AdminDistributorsIdRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/admin/users/': typeof AdminUsersIndexRoute
 }
@@ -308,7 +315,7 @@ export interface FileRoutesByTo {
   '/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/community': typeof AdminCommunityRoute
-  '/admin/distributors': typeof AdminDistributorsRoute
+  '/admin/distributors': typeof AdminDistributorsRouteWithChildren
   '/admin/monitor': typeof AdminMonitorRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/payments': typeof AdminPaymentsRoute
@@ -326,6 +333,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/distributor': typeof DistributorIndexRoute
   '/packages/$id': typeof AuthenticatedPackagesIdRoute
+  '/admin/distributors/$id': typeof AdminDistributorsIdRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/admin/users': typeof AdminUsersIndexRoute
 }
@@ -350,7 +358,7 @@ export interface FileRoutesById {
   '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/community': typeof AdminCommunityRoute
-  '/admin/distributors': typeof AdminDistributorsRoute
+  '/admin/distributors': typeof AdminDistributorsRouteWithChildren
   '/admin/monitor': typeof AdminMonitorRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/payments': typeof AdminPaymentsRoute
@@ -369,6 +377,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/distributor/': typeof DistributorIndexRoute
   '/_authenticated/packages/$id': typeof AuthenticatedPackagesIdRoute
+  '/admin/distributors/$id': typeof AdminDistributorsIdRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/admin/users/': typeof AdminUsersIndexRoute
 }
@@ -412,6 +421,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/distributor/'
     | '/packages/$id'
+    | '/admin/distributors/$id'
     | '/admin/users/$id'
     | '/admin/users/'
   fileRoutesByTo: FileRoutesByTo
@@ -450,6 +460,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/distributor'
     | '/packages/$id'
+    | '/admin/distributors/$id'
     | '/admin/users/$id'
     | '/admin/users'
   id:
@@ -492,6 +503,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/distributor/'
     | '/_authenticated/packages/$id'
+    | '/admin/distributors/$id'
     | '/admin/users/$id'
     | '/admin/users/'
   fileRoutesById: FileRoutesById
@@ -783,6 +795,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersIdRouteImport
       parentRoute: typeof AdminUsersRoute
     }
+    '/admin/distributors/$id': {
+      id: '/admin/distributors/$id'
+      path: '/$id'
+      fullPath: '/admin/distributors/$id'
+      preLoaderRoute: typeof AdminDistributorsIdRouteImport
+      parentRoute: typeof AdminDistributorsRoute
+    }
     '/_authenticated/packages/$id': {
       id: '/_authenticated/packages/$id'
       path: '/$id'
@@ -831,6 +850,17 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface AdminDistributorsRouteChildren {
+  AdminDistributorsIdRoute: typeof AdminDistributorsIdRoute
+}
+
+const AdminDistributorsRouteChildren: AdminDistributorsRouteChildren = {
+  AdminDistributorsIdRoute: AdminDistributorsIdRoute,
+}
+
+const AdminDistributorsRouteWithChildren =
+  AdminDistributorsRoute._addFileChildren(AdminDistributorsRouteChildren)
+
 interface AdminUsersRouteChildren {
   AdminUsersIdRoute: typeof AdminUsersIdRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
@@ -848,7 +878,7 @@ const AdminUsersRouteWithChildren = AdminUsersRoute._addFileChildren(
 interface AdminRouteChildren {
   AdminApprovalsRoute: typeof AdminApprovalsRoute
   AdminCommunityRoute: typeof AdminCommunityRoute
-  AdminDistributorsRoute: typeof AdminDistributorsRoute
+  AdminDistributorsRoute: typeof AdminDistributorsRouteWithChildren
   AdminMonitorRoute: typeof AdminMonitorRoute
   AdminPackagesRoute: typeof AdminPackagesRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
@@ -865,7 +895,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminApprovalsRoute: AdminApprovalsRoute,
   AdminCommunityRoute: AdminCommunityRoute,
-  AdminDistributorsRoute: AdminDistributorsRoute,
+  AdminDistributorsRoute: AdminDistributorsRouteWithChildren,
   AdminMonitorRoute: AdminMonitorRoute,
   AdminPackagesRoute: AdminPackagesRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
@@ -917,13 +947,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
