@@ -269,6 +269,8 @@ function DashboardPage() {
                 <Bar  yAxisId="right" dataKey="revenue" name="রেভিনিউ (৳)"  fill="url(#g-rev)" radius={[6, 6, 0, 0]} barSize={14} />
                 <Area yAxisId="left"  dataKey="signups" name="দৈনিক সাইনআপ" type="monotone" stroke="#0284c7" strokeWidth={2.25} fill="url(#g-signups)" />
                 <Line yAxisId="left"  dataKey="topups"  name="দৈনিক টপআপ"   type="monotone" stroke="#c026d3" strokeWidth={2.5} dot={{ r: 2.5, fill: "#c026d3" }} activeDot={{ r: 5 }} />
+                <Line yAxisId="left"  dataKey="apps"    name="ডিস্ট্রি. আবেদন" type="monotone" stroke="#6366f1" strokeWidth={2.5} strokeDasharray="5 4" dot={{ r: 2.5, fill: "#6366f1" }} activeDot={{ r: 5 }} />
+
               </ComposedChart>
             </ResponsiveContainer>
           )}
