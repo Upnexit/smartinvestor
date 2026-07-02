@@ -24,12 +24,34 @@ type DRow = {
   status: string; notes: string | null; users_count: number;
 };
 
+type AppRow = {
+  id: string; full_name: string; father_name: string | null; phone: string; email: string;
+  district: string; thana: string; address: string;
+  payment_method: string; payment_number: string;
+  experience: string | null; status: "pending"|"approved"|"rejected";
+  rejection_reason: string | null; created_at: string;
+};
+
+const REJECT_PRESETS = [
+  "তথ্য অসম্পূর্ণ / যাচাইযোগ্য নয়",
+  "প্রদত্ত এলাকায় ইতিমধ্যে এজেন্ট রয়েছেন",
+  "সন্দেহজনক তথ্য",
+  "ফোন নম্বরে যোগাযোগ সম্ভব হয়নি",
+  "যোগ্যতা পূরণ হয়নি",
+  "ডুপ্লিকেট আবেদন",
+];
+
 function AdminDistributorsPage() {
   const [rows, setRows] = useState<DRow[] | null>(null);
   const [q, setQ] = useState("");
-  const [modal, setModal] = useState<{ open: boolean; editing: DRow | null }>({ open: false, editing: null });
+  const [modal, setModal] = useState<{ open: boolean; editing: DRow | null; prefill?: Partial<DRow> | null; applicationId?: string | null; initialBalance?: number }>({ open: false, editing: null });
   const [confirm, setConfirm] = useState<DRow | null>(null);
   const [busy, setBusy] = useState(false);
+  const [tab, setTab] = useState<"list"|"applications">("list");
+  const [apps, setApps] = useState<AppRow[] | null>(null);
+  const [appDetail, setAppDetail] = useState<AppRow | null>(null);
+  const [rejectApp, setRejectApp] = useState<AppRow | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
 
   const refresh = () => {
     listDistributors(q)
