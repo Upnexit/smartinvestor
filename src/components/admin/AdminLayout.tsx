@@ -57,10 +57,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           </div>
         </Link>
         <div className="flex items-center gap-1.5">
-          <Link to="/admin/approvals" className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-orange-500/30">
-            <Bell className="h-4 w-4" />
-            <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
-          </Link>
+          <NotificationBell />
           <button onClick={() => setDrawer(true)} aria-label="মেনু খুলুন"
             className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-lg">
             <Menu className="h-5 w-5" />
