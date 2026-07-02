@@ -53,12 +53,13 @@ async function loadStats(): Promise<Stats> {
   let signupQ = supabase.from("profiles").select("created_at").gte("created_at", since);
   if (inList) signupQ = signupQ.not("id", "in", inList);
 
-  const [totalU, activeU, revRows, pendRows, signupRows] = await Promise.all([
+  const [totalU, activeU, revRows, pendRows, signupRows, appRows] = await Promise.all([
     totalQ,
     activeQ,
     supabase.from("user_packages").select("created_at, status, packages(price)").gte("created_at", since),
     supabase.from("user_packages").select("id", { count: "exact", head: true }).eq("status", "pending"),
     signupQ,
+    supabase.from("distributor_applications").select("created_at").gte("created_at", since),
   ]);
 
   const day = (d: string) => d.slice(0, 10);
@@ -67,6 +68,9 @@ async function loadStats(): Promise<Stats> {
 
   const signupMap = new Map<string, number>();
   (signupRows.data ?? []).forEach((r) => signupMap.set(day(r.created_at!), (signupMap.get(day(r.created_at!)) ?? 0) + 1));
+
+  const appsMap = new Map<string, number>();
+  (appRows.data ?? []).forEach((r) => appsMap.set(day(r.created_at!), (appsMap.get(day(r.created_at!)) ?? 0) + 1));
 
   const revMap = new Map<string, number>();
   const topupMap = new Map<string, number>();
@@ -89,8 +93,10 @@ async function loadStats(): Promise<Stats> {
     signupSeries: days.map((d) => ({ date: d.slice(5), count: signupMap.get(d) ?? 0 })),
     revenueSeries: days.map((d) => ({ date: d.slice(5), amount: revMap.get(d) ?? 0 })),
     topupSeries: days.map((d) => ({ date: d.slice(5), count: topupMap.get(d) ?? 0 })),
+    appsSeries: days.map((d) => ({ date: d.slice(5), count: appsMap.get(d) ?? 0 })),
   };
 }
+
 
 /* ---------- Vibrant fully-gradient stat tile ---------- */
 function VibrantStat({
