@@ -20,6 +20,14 @@ const NAV: NavItem[] = [
   { to: "/distributor/profile",  label: "প্রোফাইল",       Icon: UserIcon,        accent: "purple" },
 ];
 
+const BOTTOM_NAV: { to: string; short: string; Icon: typeof LayoutDashboard; accent: AccentKey }[] = [
+  { to: "/distributor",          short: "হোম",     Icon: LayoutDashboard, accent: "indigo" },
+  { to: "/distributor/users",    short: "ইউজার",   Icon: Users,           accent: "sky" },
+  { to: "/distributor/earnings", short: "আয়",      Icon: Wallet,          accent: "emerald" },
+  { to: "/distributor/withdraw", short: "উইথড্র",  Icon: ArrowDownToLine, accent: "rose" },
+  { to: "/distributor/profile",  short: "প্রোফাইল", Icon: UserIcon,        accent: "purple" },
+];
+
 export function DistributorLayout({ children }: { children: ReactNode }) {
   const [drawer, setDrawer] = useState(false);
   const navigate = useNavigate();
