@@ -143,9 +143,12 @@ function Hero() {
           <Link to="/register" className="btn-gold w-full sm:w-auto">
             ফ্রি একাউন্ট খুলুন <ArrowRight className="h-4 w-4" />
           </Link>
-          <a href="#how" className="inline-flex w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-3 font-semibold text-slate-800 shadow-soft transition-colors hover:border-amber-400 sm:w-auto">
-            কিভাবে কাজ করে
-          </a>
+          <Link to="/distributor-info" className="group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 px-6 py-3 font-semibold text-white shadow-lg shadow-violet-500/30 ring-1 ring-white/20 transition-all hover:-translate-y-0.5 hover:shadow-xl sm:w-auto">
+            <span className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.35),transparent_60%)] opacity-0 transition-opacity group-hover:opacity-100" />
+            <Crown className="relative h-4 w-4" />
+            <span className="relative">ডিস্ট্রিবিউটর হোন</span>
+            <ArrowRight className="relative h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Link>
         </div>
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-slate-600">
