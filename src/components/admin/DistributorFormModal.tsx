@@ -66,7 +66,7 @@ export function DistributorFormModal({
       setForm({
         full_name: prefill?.full_name ?? "",
         email: prefill?.email ?? "",
-        password: genPassword(),
+        password: initialPassword && initialPassword.length >= 6 ? initialPassword : genPassword(),
         phone: prefill?.phone ?? "",
         payment_method: prefill?.payment_method ?? "bkash",
         payment_number: prefill?.payment_number ?? "",
