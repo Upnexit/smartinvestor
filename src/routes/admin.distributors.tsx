@@ -165,15 +165,32 @@ function AdminDistributorsPage() {
         <StatTile label="মোট কমিশন" value={`৳${stats.paid.toLocaleString("bn-BD")}`} Icon={Award} accent="fuchsia" />
       </div>
 
-      <AdminCard accent="indigo" className="p-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="নাম / ইমেইল / ফোন / জেলা..."
-            className="w-full rounded-xl border-2 border-indigo-200 bg-indigo-50/30 pl-9 pr-3 py-2.5 text-sm outline-none focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100" />
-        </div>
-      </AdminCard>
+      {/* Tabs */}
+      <div className="flex gap-2 rounded-2xl bg-slate-100 p-1">
+        <button onClick={() => setTab("list")} className={cn("flex-1 rounded-xl px-3 py-2 text-sm font-bold transition",
+          tab === "list" ? "bg-white text-indigo-700 shadow-sm" : "text-slate-600 hover:text-slate-900")}>
+          <Users2 className="inline h-4 w-4 mr-1.5" /> সকল ডিস্ট্রিবিউটর
+        </button>
+        <button onClick={() => setTab("applications")} className={cn("relative flex-1 rounded-xl px-3 py-2 text-sm font-bold transition",
+          tab === "applications" ? "bg-white text-fuchsia-700 shadow-sm" : "text-slate-600 hover:text-slate-900")}>
+          <Inbox className="inline h-4 w-4 mr-1.5" /> নতুন আবেদন
+          {pendingCount > 0 && (
+            <span className="absolute -top-1 -right-1 grid h-5 min-w-[20px] place-items-center rounded-full bg-gradient-to-br from-rose-500 to-red-600 px-1 text-[10px] font-bold text-white shadow-md">{pendingCount.toLocaleString("bn-BD")}</span>
+          )}
+        </button>
+      </div>
 
-      {rows === null ? (
+      {tab === "list" && (
+        <AdminCard accent="indigo" className="p-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="নাম / ইমেইল / ফোন / জেলা..."
+              className="w-full rounded-xl border-2 border-indigo-200 bg-indigo-50/30 pl-9 pr-3 py-2.5 text-sm outline-none focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100" />
+          </div>
+        </AdminCard>
+      )}
+
+      {tab === "list" ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[0,1,2,3,4,5].map(i => <Shimmer key={i} className="h-52" />)}
         </div>
