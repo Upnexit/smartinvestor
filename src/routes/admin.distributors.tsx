@@ -122,6 +122,7 @@ function AdminDistributorsPage() {
   function approveApp(a: AppRow) {
     setModal({
       open: true, editing: null, applicationId: a.id, initialBalance: 25000,
+      initialPassword: a.password,
       prefill: {
         full_name: a.full_name, email: a.email, phone: a.phone,
         payment_method: a.payment_method, payment_number: a.payment_number,
