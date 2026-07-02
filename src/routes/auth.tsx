@@ -26,7 +26,22 @@ export const Route = createFileRoute("/auth")({
   beforeLoad: async ({ search }) => {
     const { data } = await supabase.auth.getSession();
     if (data.session) {
-      const dest = safeRedirect(search.redirect) ?? "/dashboard";
+      let dest = safeRedirect(search.redirect);
+      if (!dest) {
+        const user = data.session.user;
+        const email = user.email?.toLowerCase() ?? "";
+        // Determine best destination based on role
+        let isAdmin = email === "upnex360@gmail.com";
+        let isDistributor = false;
+        try {
+          const { data: roleRows } = await supabase
+            .from("user_roles").select("role").eq("user_id", user.id);
+          const roles = (roleRows ?? []).map((r) => r.role as string);
+          if (roles.includes("admin")) isAdmin = true;
+          if (roles.includes("distributor")) isDistributor = true;
+        } catch { /* ignore */ }
+        dest = isAdmin ? "/admin" : isDistributor ? "/distributor" : "/dashboard";
+      }
       throw redirect({ to: dest });
     }
   },

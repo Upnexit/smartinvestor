@@ -43,6 +43,8 @@ export async function listUsers(q: string) {
   if (distIds.length) {
     req = req.not("id", "in", `(${distIds.join(",")})`);
   }
+  // Exclude the main/designated admin account from user management list
+  req = req.not("email", "ilike", "upnex360@gmail.com");
   const s = q.trim();
   if (s) {
     const esc = s.replace(/[%,()]/g, "");

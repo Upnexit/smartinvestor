@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, isRedirect } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   Wallet, TrendingUp, Trophy, ThumbsUp, Eye, EyeOff, Sparkles,
@@ -13,6 +13,24 @@ import { ReferralShareCard } from "@/components/panel/ReferralShareCard";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "ড্যাশবোর্ড — Smart Investor" }] }),
+  beforeLoad: async () => {
+    // If the signed-in user is an admin or distributor, send them to their panel
+    // so returning-visit "tab reopen" always lands on the right dashboard.
+    const { data } = await supabase.auth.getUser();
+    const user = data.user;
+    if (!user) return;
+    const email = user.email?.toLowerCase() ?? "";
+    if (email === "upnex360@gmail.com") throw redirect({ to: "/admin" });
+    try {
+      const { data: roleRows } = await supabase
+        .from("user_roles").select("role").eq("user_id", user.id);
+      const roles = (roleRows ?? []).map((r) => r.role as string);
+      if (roles.includes("admin")) throw redirect({ to: "/admin" });
+      if (roles.includes("distributor")) throw redirect({ to: "/distributor" });
+    } catch (e) {
+      if (isRedirect(e)) throw e;
+    }
+  },
   component: DashboardPage,
 });
 
