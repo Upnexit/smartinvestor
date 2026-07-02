@@ -14,6 +14,7 @@ type DistributorRow = {
   payment_method: string | null; payment_number: string | null;
   district: string | null; thana: string | null; address: string | null;
   commission_rate: number; status: string; notes: string | null;
+  balance?: number | null;
 };
 
 const PAYMENT_OPTIONS = [
