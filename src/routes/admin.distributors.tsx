@@ -45,7 +45,7 @@ const REJECT_PRESETS = [
 function AdminDistributorsPage() {
   const [rows, setRows] = useState<DRow[] | null>(null);
   const [q, setQ] = useState("");
-  const [modal, setModal] = useState<{ open: boolean; editing: DRow | null; prefill?: Partial<DRow> | null; applicationId?: string | null; initialBalance?: number }>({ open: false, editing: null });
+  const [modal, setModal] = useState<{ open: boolean; editing: DRow | null; prefill?: Partial<DRow> | null; applicationId?: string | null; initialBalance?: number; initialPassword?: string | null }>({ open: false, editing: null });
   const [confirm, setConfirm] = useState<DRow | null>(null);
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<"list"|"applications">("list");
