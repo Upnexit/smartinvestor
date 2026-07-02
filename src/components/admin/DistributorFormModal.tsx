@@ -59,6 +59,7 @@ export function DistributorFormModal({
         address: editing.address ?? "",
         commission_rate: editing.commission_rate ?? 5,
         notes: editing.notes ?? "",
+        balance: Number(editing.balance ?? 0),
       });
     } else {
       setForm({
@@ -73,6 +74,7 @@ export function DistributorFormModal({
         address: prefill?.address ?? "",
         commission_rate: 5,
         notes: prefill?.notes ?? "",
+        balance: initialBalance ?? 0,
       });
     }
     setShowPw(false); setCopied(false);
