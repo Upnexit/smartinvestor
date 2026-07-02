@@ -43,7 +43,7 @@ function VibrantStat({
 }
 
 
-export const Route = createFileRoute("/admin/distributors")({
+export const Route = createFileRoute("/admin/distributors/")({
   head: () => ({ meta: [{ title: "ডিস্ট্রিবিউটর — অ্যাডমিন" }] }),
   component: AdminDistributorsPage,
 });
