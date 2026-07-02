@@ -1,110 +1,57 @@
-## Distributor System — Plan
+# Distributor Onboarding System
 
-A new role-based panel for regional distributors/agents who manage users in their territory. Distributors log in via the same login page and are auto-routed to their own panel.
+Add a complete public-facing distributor recruitment flow with admin approval.
 
-### 1. Database (one migration)
+## 1. Homepage change
+- Replace the "কিভাবে কাজ করব" button with **"ডিস্ট্রিবিউটর হোন"** (gradient CTA)
+- Links to new route `/distributor-info`
 
-**Extend `app_role` enum** — add `'distributor'`.
+## 2. New public page: `/distributor-info`
+Matches homepage design language (same fonts, gradient theme, glassmorphism). Sections:
+- **Hero** — "ডিস্ট্রিবিউটর হোন, নিজের এলাকায় ব্যবসা শুরু করুন"
+- **Benefits grid** — ৳২৫,০০০ ইনস্ট্যান্ট ব্যালেন্স, ৫% কমিশন, নিজস্ব রেফারেল লিংক, ইউজার ম্যানেজমেন্ট প্যানেল, উইথড্র সুবিধা, ট্রেনিং সাপোর্ট
+- **কাজের ধরন** — ৪-স্টেপ (রেজিস্টার → রিভিউ → অ্যাপ্রুভাল → ইনকাম)
+- **যোগ্যতা** — বয়স, স্মার্টফোন, সময়, এলাকা কভারেজ
+- **FAQ** — সাধারণ প্রশ্ন
+- **CTA** — বড় "আবেদন করুন" button → `/distributor-apply`
 
-**New table `public.distributors`** (1:1 with auth user):
-- `user_id` (PK, FK → auth.users), `full_name`, `email`, `phone`
-- `payment_method` (bkash/nagad/rocket), `payment_number`
-- `district`, `thana` (upazila), `address`
-- `commission_rate` (default 5%), `total_users`, `total_earned`, `balance`
-- `status` (active/suspended), `notes`, `created_by` (admin uuid)
-- GRANT to authenticated + service_role; RLS: distributors read own row, admins manage all.
+## 3. Application page: `/distributor-apply`
+Professional multi-field glassmorphism form:
+- পূর্ণ নাম, পিতার নাম
+- বিভাগ → জেলা → উপজেলা (cascading dropdowns, existing `bd-districts.ts` / `bd-thanas.ts`)
+- বিস্তারিত ঠিকানা (textarea)
+- মোবাইল, ইমেইল
+- পেমেন্ট মেথড (বিকাশ/নগদ/রকেট) + নম্বর
+- পাসওয়ার্ড (min 6)
+- অভিজ্ঞতা/মন্তব্য (optional)
+- Submits to `distributor_applications` table with `status='pending'` (no auth account yet)
 
-**Extend `profiles`** — add `distributor_id uuid` (nullable, FK → distributors.user_id) so each user belongs to one distributor.
+## 4. Database
+New table `distributor_applications`:
+- personal info fields, location, payment info, hashed reference, notes
+- `status`: pending | approved | rejected
+- `rejection_reason`, `reviewed_by`, `reviewed_at`
+- RLS: public INSERT (anonymous can apply), admin SELECT/UPDATE
+- Realtime enabled
 
-**RPCs (SECURITY DEFINER, admin-only):**
-- `admin_create_distributor(email, password, full_name, phone, payment_method, payment_number, district, thana, commission_rate)` — uses `auth.admin.create_user` via service role (called from server fn, not RPC) — actually: do auth creation in server fn, then RPC `admin_upsert_distributor` to insert distributors row + grant `distributor` role in `user_roles`.
-- `admin_update_distributor(_actor, _user_id, _patch)`
-- `admin_delete_distributor(_actor, _user_id)` — remove role + row; profiles.distributor_id set null.
-- `distributor_my_users(_user_id)` — returns users where `profiles.distributor_id = _user_id` (only accessible to that distributor or admin).
-- `distributor_stats(_user_id)` — counts, total deposit, total withdrawal, active packages under their tree.
+## 5. Admin section on `/admin/distributors`
+New tab/section "নতুন আবেদন" with badge count:
+- Grid of pending application cards (name, area, phone, method, submitted time)
+- "বিস্তারিত" modal → full info view
+- **Approve** → calls edge function `admin-create-distributor` with application data (creates auth user, profile, distributor row with ৳25,000 balance, deletes application)
+- **Reject** → prebuilt reason chips + custom textarea, marks status
 
-### 2. Server functions (`src/lib/distributor.functions.ts`)
+## Technical notes
+- Public form uses anonymous Supabase insert (no login required)
+- Password stored temporarily encrypted in application row; consumed by approval edge function to create auth user
+- On approval: reuse existing `admin-create-distributor` edge function, pass balance=25000
+- Homepage button gets `<Link to="/distributor-info">` — replacing existing "কিভাবে কাজ করব" scroll anchor
+- All pages inherit homepage's font stack (Baloo Da 2) and OKLCH gradient tokens
 
-Admin-only:
-- `adminListDistributors({ q, limit })`
-- `adminCreateDistributor({ email, password, ...fields })` — uses `supabaseAdmin.auth.admin.createUser` (email-confirmed), then upserts distributors row + assigns `distributor` role.
-- `adminUpdateDistributor({ userId, patch })`
-- `adminDeleteDistributor({ userId })` — best-effort delete from auth + clean tables.
-- `adminToggleDistributorStatus({ userId, status })`
-
-Distributor self (uses `requireSupabaseAuth` + role check):
-- `distributorGetMe()` — profile + stats
-- `distributorListMyUsers({ q })`
-- `distributorGetUser({ userId })` — only if that user's `distributor_id = me`
-- `distributorListSupportTickets()` — support_messages from their users
-
-### 3. Routing
-
-**Login routing logic** (`auth.tsx`): after sign-in, check role priority: admin → `/admin`, distributor → `/distributor`, else → `/dashboard`.
-
-**New route tree `src/routes/distributor.tsx`** (layout with `DistributorAuthGate`) + children:
-- `distributor.index.tsx` — Dashboard: stat tiles (total users, active packages, monthly earnings, support open), recent signups under them, quick links.
-- `distributor.users.tsx` — list of users under them with search, balance, package, last activity.
-- `distributor.users.$id.tsx` — single user view (read-only profile + activity).
-- `distributor.support.tsx` — support chat with their users (reuses support_messages).
-- `distributor.earnings.tsx` — commission history + withdrawal request.
-- `distributor.profile.tsx` — edit own contact info, payment number.
-
-Visual language: vibrant gradient (indigo/violet) to distinguish from admin (orange) and user panel (amber/emerald).
-
-### 4. Admin panel additions
-
-**Sidebar link**: "ডিস্ট্রিবিউটর" (Distributors) — between Users and Packages.
-
-**`admin.distributors.tsx`**:
-- Header with gradient tiles: Total Distributors, Active, Total Users Managed, Total Commission Paid.
-- Data table: name, email, phone, district, users count, balance, status, actions (Edit, Suspend, Delete).
-- Search + filter by district.
-- "Add New Distributor" button → modal with form:
-  - Full name, email, password (auto-suggest + show)
-  - Phone, payment method (bkash/nagad/rocket), payment number
-  - District (dropdown of 64 BD districts), Thana (text)
-  - Commission rate %, Notes
-  - Submit → creates auth user (email-confirmed) + distributor row + role.
-
-**`admin.distributors.$id.tsx`** (optional drill-down): view distributor + their referred users + recent activity.
-
-### 5. Auth gate for distributor panel
-
-`src/routes/distributor.tsx`:
-- `ssr: false`, `beforeLoad` redirects to `/auth` if no session.
-- Component checks `has_role(uid, 'distributor')`; if not, redirects to `/dashboard` or `/admin`.
-- Renders `DistributorLayout` (sidebar + topbar + Outlet).
-
-### 6. UI components
-
-- `src/components/distributor/DistributorLayout.tsx` — sidebar with logo, nav links, logout.
-- `src/components/admin/DistributorFormModal.tsx` — create/edit form with BD district dropdown.
-- Reuse `GradientButton`, AdminUI primitives for consistency.
-
-### 7. Files created/changed
-
-**New:**
-- `supabase/migrations/<ts>_distributor_system.sql`
-- `src/lib/distributor.functions.ts`
-- `src/lib/bd-districts.ts` (64 districts constant)
-- `src/components/distributor/DistributorLayout.tsx`
-- `src/components/admin/DistributorFormModal.tsx`
-- `src/routes/distributor.tsx`
-- `src/routes/distributor.index.tsx`
-- `src/routes/distributor.users.tsx`
-- `src/routes/distributor.users.$id.tsx`
-- `src/routes/distributor.support.tsx`
-- `src/routes/distributor.earnings.tsx`
-- `src/routes/distributor.profile.tsx`
-- `src/routes/admin.distributors.tsx`
-
-**Modified:**
-- `src/components/admin/AdminLayout.tsx` — add Distributors nav link
-- `src/routes/auth.tsx` — role-based post-login redirect
-
-### Technical notes
-
-- Distributor creation uses `supabaseAdmin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata })` — must be called inside server fn handler with dynamic import of `client.server`.
-- Existing `handle_new_user` trigger will create a profile row; we then upsert distributor row + role + clear referral defaults (no signup bonus for distributors — handled by conditionally deleting/skipping).
-- Use Bengali district names with English value codes for searchability.
+## Files to create/modify
+- `src/routes/distributor-info.tsx` (new)
+- `src/routes/distributor-apply.tsx` (new)
+- `src/routes/index.tsx` (button swap)
+- `src/routes/admin.distributors.tsx` (add applications tab)
+- Migration: `distributor_applications` table + RLS + realtime
+- `supabase/functions/admin-create-distributor/index.ts` (accept `application_id` + balance param, delete on success)
