@@ -110,12 +110,13 @@ export function DistributorFormModal({
         await updateDistributor(editing.user_id, { ...form, password: undefined });
         toast.success("ডিস্ট্রিবিউটর আপডেট হয়েছে ✓");
       } else {
+        const startBalance = Number(form.balance) || 0;
         await createDistributor({
           ...form,
-          initial_balance: initialBalance ?? 0,
+          initial_balance: startBalance,
           application_id: applicationId ?? undefined,
         });
-        toast.success(initialBalance ? `ডিস্ট্রিবিউটর তৈরি — ৳${initialBalance.toLocaleString("bn-BD")} ব্যালেন্স ক্রেডিট ✓` : "নতুন ডিস্ট্রিবিউটর তৈরি হয়েছে ✓");
+        toast.success(startBalance ? `ডিস্ট্রিবিউটর তৈরি — ৳${startBalance.toLocaleString("bn-BD")} ব্যালেন্স ক্রেডিট ✓` : "নতুন ডিস্ট্রিবিউটর তৈরি হয়েছে ✓");
       }
       onSaved();
       onClose();
