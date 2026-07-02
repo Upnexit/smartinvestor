@@ -24,13 +24,14 @@ const PAYMENT_OPTIONS = [
 ] as const;
 
 export function DistributorFormModal({
-  open, onClose, onSaved, editing, prefill, applicationId, initialBalance,
+  open, onClose, onSaved, editing, prefill, applicationId, initialBalance, initialPassword,
 }: {
   open: boolean; onClose: () => void; onSaved: () => void;
   editing?: DistributorRow | null;
   prefill?: Partial<DistributorRow> | null;
   applicationId?: string | null;
   initialBalance?: number;
+  initialPassword?: string | null;
 }) {
   const isEdit = !!editing;
 
