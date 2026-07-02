@@ -207,8 +207,10 @@ function DashboardPage() {
       signups: s.count,
       revenue: stats.revenueSeries[i]?.amount ?? 0,
       topups: stats.topupSeries[i]?.count ?? 0,
+      apps: stats.appsSeries[i]?.count ?? 0,
     }));
   }, [stats]);
+
 
   return (
     <>
