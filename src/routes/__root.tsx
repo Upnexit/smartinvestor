@@ -13,6 +13,14 @@ import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { MaintenanceScreen } from "@/components/MaintenanceScreen";
+
+// ============================================================
+// MAINTENANCE MODE TOGGLE
+// Set to `false` to restore normal site access. When `true`,
+// every visitor sees the MaintenanceScreen instead of the app.
+// ============================================================
+const MAINTENANCE_MODE = true;
 
 function NotFoundComponent() {
   return (
