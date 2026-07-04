@@ -166,7 +166,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      {MAINTENANCE_MODE ? <MaintenanceScreen /> : <Outlet />}
       <Toaster />
     </QueryClientProvider>
   );
