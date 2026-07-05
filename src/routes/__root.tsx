@@ -14,6 +14,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { MaintenanceScreen } from "@/components/MaintenanceScreen";
+import { MobileInstallPrompt } from "@/components/MobileInstallPrompt";
 import { registerPWA } from "../lib/pwa-register";
 
 // ============================================================
