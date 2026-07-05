@@ -3,7 +3,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, ArrowDownToLine, Package, ShieldCheck, CreditCard,
   ListChecks, MessagesSquare, BarChart3, Activity, Settings, User as UserIcon,
-  LogOut, Menu, X, Search, ChevronRight, Sparkles, Users2, Loader2,
+  LogOut, Menu, X, Search, ChevronRight, Sparkles, Users2, Loader2, Smartphone,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
