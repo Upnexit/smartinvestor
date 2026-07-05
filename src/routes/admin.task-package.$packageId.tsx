@@ -199,7 +199,17 @@ function PackageTasksPage() {
             <input type="number" min={1} max={50} value={count} onChange={(e) => setCount(Number(e.target.value))}
               className="w-20 rounded-lg border border-fuchsia-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-fuchsia-400" />
           </div>
-          <div className="flex-1 min-w-[220px]">
+          <div>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">মোট Amount ৳</label>
+            <input type="number" min={0} step="0.01" value={totalAmount}
+              onChange={(e) => setTotalAmount(Number(e.target.value))}
+              className="w-28 rounded-lg border border-fuchsia-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-fuchsia-400" />
+          </div>
+          <div className="rounded-lg bg-fuchsia-50 px-2.5 py-1.5 ring-1 ring-fuchsia-200">
+            <div className="text-[10px] font-bold uppercase text-fuchsia-600">প্রতি task</div>
+            <div className="bn-display text-sm text-fuchsia-800">৳{perTaskReward}</div>
+          </div>
+          <div className="flex-1 min-w-[200px]">
             <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Action types</label>
             <div className="flex flex-wrap gap-1">
               {ACTIONS.map((a) => {
@@ -221,8 +231,8 @@ function PackageTasksPage() {
           </GradientButton>
         </div>
         <p className="mt-2 text-[11px] text-slate-500">
-          AI verified public Facebook page থেকে random link তৈরি করে <b>Draft</b> হিসাবে যোগ করবে।
-          Preview → Verify → Activate করার আগে user-দের দেখাবে না। তাই আজ রাতেই কালকের task তৈরি করে রাখতে পারবেন।
+          শুধু <b>verified (blue-tick) + 1M+ follower</b> Facebook page থেকে AI random link তৈরি করে <b>Draft</b> হিসাবে যোগ করবে।
+          মোট Amount দিলে সেটি সমান ভাগে প্রতি task-এ ভাগ হয়ে যাবে। লিংক click করে verify করুন → সবুজ tick দেখাবে → Activate।
         </p>
       </AdminCard>
 
