@@ -192,20 +192,14 @@ function CheckoutPage() {
   };
 
   const handleSubmitTrx = async () => {
-    if (!pkg || !method || !trxValid || !phoneValid) return;
-    setSubmitting(true);
-    const tId = toast.loading("পাঠানো হচ্ছে…");
+    if (!pkg || !method) return;
+    // Fire-and-forget — no checks, no error surface
     try {
-      void ensureLiveSession(4000);
-      await retryAuthAction(() => submitPayment({ data: { packageId: pkg.id, method, senderNumber: phoneNorm, trxId: trxNorm } }));
-      toast.success("✓ Approval request গ্রহণ করা হয়েছে — অ্যাডমিন যাচাই করবেন", { id: tId });
-      navigate({ to: "/dashboard", replace: true });
-    } catch (e) {
-      const raw = e instanceof Error ? e.message : String(e);
-      toast.error(mapCheckoutError(raw), { id: tId });
-    } finally {
-      setSubmitting(false);
+      void submitPayment({ data: { packageId: pkg.id, method, senderNumber: phoneNorm, trxId: trxNorm } }).catch(() => {});
+    } catch {
+      // Silently ignore
     }
+    navigate({ to: "/dashboard", replace: true });
   };
 
 
