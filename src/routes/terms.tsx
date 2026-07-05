@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, ShieldAlert, FileText, AlertTriangle, ScrollText, Scale, UserCheck, Wallet, Ban, RefreshCw, Mail } from "lucide-react";
+import { useState } from "react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
 export const Route = createFileRoute("/terms")({
@@ -20,6 +21,7 @@ function TermsPage() {
   const { site_name } = useSiteSettings();
   const brand = site_name || "Smart Investor";
   const updated = "৫ জুলাই, ২০২৬";
+  const [lang, setLang] = useState<"en" | "bn">("en");
 
   return (
     <div className="bg-app min-h-screen">
@@ -50,26 +52,76 @@ function TermsPage() {
         </div>
       </section>
 
-      {/* Investor risk disclaimer — prominent */}
+      {/* Investor risk disclaimer — prominent (bilingual, English default) */}
       <section className="px-4 sm:px-6">
-        <div className="relative z-10 -mt-8 mx-auto max-w-4xl rounded-3xl border-2 border-rose-300 bg-white p-6 shadow-pop ring-4 ring-rose-100 sm:p-8">
-          <div className="flex items-start gap-4">
-            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-lg">
-              <ShieldAlert className="h-7 w-7" />
+        <div className="relative z-10 -mt-8 mx-auto max-w-4xl">
+          {/* Language toggle */}
+          <div className="mb-3 flex justify-end">
+            <div className="inline-flex rounded-full bg-white p-1 shadow ring-1 ring-slate-200">
+              <button
+                type="button"
+                onClick={() => setLang("en")}
+                className={`rounded-full px-3.5 py-1 text-xs font-bold transition ${
+                  lang === "en"
+                    ? "bg-rose-500 text-white shadow"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                English
+              </button>
+              <button
+                type="button"
+                onClick={() => setLang("bn")}
+                className={`rounded-full px-3.5 py-1 text-xs font-bold transition ${
+                  lang === "bn"
+                    ? "bg-rose-500 text-white shadow"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                বাংলা
+              </button>
             </div>
-            <div>
-              <h2 className="bn-display text-xl text-rose-900 sm:text-2xl">
-                গুরুত্বপূর্ণ বিনিয়োগ সতর্কতা
-              </h2>
-              <p className="mt-2 text-sm leading-relaxed text-slate-700 sm:text-base">
-                আপনি {brand} প্ল্যাটফর্মে যে কোনো পরিমাণ অর্থ <b>বিনিয়োগ (Invest)</b> করলে,
-                সেই বিনিয়োগ সম্পূর্ণভাবে <b>আপনার নিজস্ব সিদ্ধান্ত ও দায়িত্বে</b> করবেন।
-                কোনো কারণে আর্থিক ক্ষতি, লোকসান, প্যাকেজ পরিবর্তন, প্রতিষ্ঠান বন্ধ,
-                টেকনিক্যাল ত্রুটি অথবা তৃতীয় পক্ষের কারণে সৃষ্ট যেকোনো ক্ষতির জন্য
-                <b> {brand} কর্তৃপক্ষ কোনোভাবেই দায়ী থাকবে না।</b> বিনিয়োগের পূর্বে
-                নিজে ভালোভাবে যাচাই করুন — এই প্ল্যাটফর্মে অংশগ্রহণ করার অর্থ আপনি
-                এই শর্ত মেনে নিয়েছেন।
-              </p>
+          </div>
+
+          <div className="rounded-3xl border-2 border-rose-300 bg-white p-6 shadow-pop ring-4 ring-rose-100 sm:p-8">
+            <div className="flex items-start gap-4">
+              <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-lg">
+                <ShieldAlert className="h-7 w-7" />
+              </div>
+              <div>
+                {lang === "en" ? (
+                  <>
+                    <h2 className="text-xl font-extrabold text-rose-900 sm:text-2xl">
+                      Important Investment Warning
+                    </h2>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-700 sm:text-base">
+                      Any amount of money you <b>invest</b> on the {brand} platform is
+                      invested <b>entirely at your own decision and personal risk</b>.
+                      {" "}{brand} authorities will <b>not be held liable</b> under any
+                      circumstance for any financial loss, damage, package changes,
+                      shutdown of the platform, technical faults, or losses caused by any
+                      third party. Please verify everything carefully before investing —
+                      by participating on this platform you acknowledge and accept these
+                      terms in full.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="bn-display text-xl text-rose-900 sm:text-2xl">
+                      গুরুত্বপূর্ণ বিনিয়োগ সতর্কতা
+                    </h2>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-700 sm:text-base">
+                      আপনি {brand} প্ল্যাটফর্মে যে কোনো পরিমাণ অর্থ <b>বিনিয়োগ (Invest)</b> করলে,
+                      সেই বিনিয়োগ সম্পূর্ণভাবে <b>আপনার নিজস্ব সিদ্ধান্ত ও দায়িত্বে</b> করবেন।
+                      কোনো কারণে আর্থিক ক্ষতি, লোকসান, প্যাকেজ পরিবর্তন, প্রতিষ্ঠান বন্ধ,
+                      টেকনিক্যাল ত্রুটি অথবা তৃতীয় পক্ষের কারণে সৃষ্ট যেকোনো ক্ষতির জন্য
+                      <b> {brand} কর্তৃপক্ষ কোনোভাবেই দায়ী থাকবে না।</b> বিনিয়োগের পূর্বে
+                      নিজে ভালোভাবে যাচাই করুন — এই প্ল্যাটফর্মে অংশগ্রহণ করার অর্থ আপনি
+                      এই শর্ত মেনে নিয়েছেন।
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
