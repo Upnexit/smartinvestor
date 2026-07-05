@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { X, Megaphone, AlertTriangle, Info, Clock, CalendarDays, ChevronRight } from "lucide-react";
 import { listActiveNoticesForMe, dismissNotice, type NoticeRow } from "@/lib/notices.functions";
