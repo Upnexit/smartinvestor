@@ -208,7 +208,7 @@ function TasksPage() {
             {packages.map((p) => {
               const c = pkgTaskCounts.get(p.id) ?? { total: 0, todayActive: 0 };
               return (
-                <Link key={p.id} to="/admin/tasks/package/$packageId" params={{ packageId: p.id }}
+                <Link key={p.id} to="/admin/task-package/$packageId" params={{ packageId: p.id }}
                   className="group relative flex items-center gap-3 rounded-2xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-rose-500 p-[1.5px] hover:scale-[1.02] transition">
                   <div className="flex w-full items-center gap-3 rounded-[14px] bg-white px-3 py-2.5">
                     <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-100 to-fuchsia-100 text-indigo-700">

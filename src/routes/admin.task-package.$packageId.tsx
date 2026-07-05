@@ -11,7 +11,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { generateFbLinkTasks, type GeneratedTask } from "@/lib/admin-tasks.functions";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/admin/tasks/package/$packageId")({
+export const Route = createFileRoute("/admin/task-package/$packageId")({
   head: () => ({ meta: [{ title: "প্যাকেজ টাস্ক ম্যানেজ — Admin" }] }),
   component: PackageTasksPage,
 });
@@ -38,7 +38,7 @@ function todayBD(): string {
 }
 
 function PackageTasksPage() {
-  const { packageId } = useParams({ from: "/admin/tasks/package/$packageId" });
+  const { packageId } = useParams({ from: "/admin/task-package/$packageId" });
   const [pkg, setPkg] = useState<Pkg | null>(null);
   const [date, setDate] = useState<string>(todayBD());
   const [tasks, setTasks] = useState<Task[] | null>(null);

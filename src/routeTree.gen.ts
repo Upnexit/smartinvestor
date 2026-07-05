@@ -54,9 +54,9 @@ import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticat
 import { Route as AdminUsersIndexRouteImport } from './routes/admin.users.index'
 import { Route as AdminDistributorsIndexRouteImport } from './routes/admin.distributors.index'
 import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
+import { Route as AdminTaskPackagePackageIdRouteImport } from './routes/admin.task-package.$packageId'
 import { Route as AdminDistributorsIdRouteImport } from './routes/admin.distributors.$id'
 import { Route as AuthenticatedPackagesIdRouteImport } from './routes/_authenticated/packages.$id'
-import { Route as AdminTasksPackagePackageIdRouteImport } from './routes/admin.tasks.package.$packageId'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -282,6 +282,12 @@ const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AdminUsersRoute,
 } as any)
+const AdminTaskPackagePackageIdRoute =
+  AdminTaskPackagePackageIdRouteImport.update({
+    id: '/task-package/$packageId',
+    path: '/task-package/$packageId',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminDistributorsIdRoute = AdminDistributorsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -292,12 +298,6 @@ const AuthenticatedPackagesIdRoute = AuthenticatedPackagesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedPackagesRoute,
 } as any)
-const AdminTasksPackagePackageIdRoute =
-  AdminTasksPackagePackageIdRouteImport.update({
-    id: '/package/$packageId',
-    path: '/package/$packageId',
-    getParentRoute: () => AdminTasksRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -331,7 +331,7 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/support': typeof AdminSupportRoute
-  '/admin/tasks': typeof AdminTasksRouteWithChildren
+  '/admin/tasks': typeof AdminTasksRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/distributor/earnings': typeof DistributorEarningsRoute
@@ -343,10 +343,10 @@ export interface FileRoutesByFullPath {
   '/distributor/': typeof DistributorIndexRoute
   '/packages/$id': typeof AuthenticatedPackagesIdRoute
   '/admin/distributors/$id': typeof AdminDistributorsIdRoute
+  '/admin/task-package/$packageId': typeof AdminTaskPackagePackageIdRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
-  '/admin/tasks/package/$packageId': typeof AdminTasksPackagePackageIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -377,7 +377,7 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/support': typeof AdminSupportRoute
-  '/admin/tasks': typeof AdminTasksRouteWithChildren
+  '/admin/tasks': typeof AdminTasksRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/distributor/earnings': typeof DistributorEarningsRoute
   '/distributor/profile': typeof DistributorProfileRoute
@@ -388,10 +388,10 @@ export interface FileRoutesByTo {
   '/distributor': typeof DistributorIndexRoute
   '/packages/$id': typeof AuthenticatedPackagesIdRoute
   '/admin/distributors/$id': typeof AdminDistributorsIdRoute
+  '/admin/task-package/$packageId': typeof AdminTaskPackagePackageIdRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/admin/distributors': typeof AdminDistributorsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
-  '/admin/tasks/package/$packageId': typeof AdminTasksPackagePackageIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -427,7 +427,7 @@ export interface FileRoutesById {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/support': typeof AdminSupportRoute
-  '/admin/tasks': typeof AdminTasksRouteWithChildren
+  '/admin/tasks': typeof AdminTasksRoute
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/distributor/earnings': typeof DistributorEarningsRoute
@@ -439,10 +439,10 @@ export interface FileRoutesById {
   '/distributor/': typeof DistributorIndexRoute
   '/_authenticated/packages/$id': typeof AuthenticatedPackagesIdRoute
   '/admin/distributors/$id': typeof AdminDistributorsIdRoute
+  '/admin/task-package/$packageId': typeof AdminTaskPackagePackageIdRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
-  '/admin/tasks/package/$packageId': typeof AdminTasksPackagePackageIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -490,10 +490,10 @@ export interface FileRouteTypes {
     | '/distributor/'
     | '/packages/$id'
     | '/admin/distributors/$id'
+    | '/admin/task-package/$packageId'
     | '/admin/users/$id'
     | '/admin/distributors/'
     | '/admin/users/'
-    | '/admin/tasks/package/$packageId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -535,10 +535,10 @@ export interface FileRouteTypes {
     | '/distributor'
     | '/packages/$id'
     | '/admin/distributors/$id'
+    | '/admin/task-package/$packageId'
     | '/admin/users/$id'
     | '/admin/distributors'
     | '/admin/users'
-    | '/admin/tasks/package/$packageId'
   id:
     | '__root__'
     | '/'
@@ -585,10 +585,10 @@ export interface FileRouteTypes {
     | '/distributor/'
     | '/_authenticated/packages/$id'
     | '/admin/distributors/$id'
+    | '/admin/task-package/$packageId'
     | '/admin/users/$id'
     | '/admin/distributors/'
     | '/admin/users/'
-    | '/admin/tasks/package/$packageId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -924,6 +924,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersIdRouteImport
       parentRoute: typeof AdminUsersRoute
     }
+    '/admin/task-package/$packageId': {
+      id: '/admin/task-package/$packageId'
+      path: '/task-package/$packageId'
+      fullPath: '/admin/task-package/$packageId'
+      preLoaderRoute: typeof AdminTaskPackagePackageIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/distributors/$id': {
       id: '/admin/distributors/$id'
       path: '/$id'
@@ -937,13 +944,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/packages/$id'
       preLoaderRoute: typeof AuthenticatedPackagesIdRouteImport
       parentRoute: typeof AuthenticatedPackagesRoute
-    }
-    '/admin/tasks/package/$packageId': {
-      id: '/admin/tasks/package/$packageId'
-      path: '/package/$packageId'
-      fullPath: '/admin/tasks/package/$packageId'
-      preLoaderRoute: typeof AdminTasksPackagePackageIdRouteImport
-      parentRoute: typeof AdminTasksRoute
     }
   }
 }
@@ -999,18 +999,6 @@ const AdminDistributorsRouteChildren: AdminDistributorsRouteChildren = {
 const AdminDistributorsRouteWithChildren =
   AdminDistributorsRoute._addFileChildren(AdminDistributorsRouteChildren)
 
-interface AdminTasksRouteChildren {
-  AdminTasksPackagePackageIdRoute: typeof AdminTasksPackagePackageIdRoute
-}
-
-const AdminTasksRouteChildren: AdminTasksRouteChildren = {
-  AdminTasksPackagePackageIdRoute: AdminTasksPackagePackageIdRoute,
-}
-
-const AdminTasksRouteWithChildren = AdminTasksRoute._addFileChildren(
-  AdminTasksRouteChildren,
-)
-
 interface AdminUsersRouteChildren {
   AdminUsersIdRoute: typeof AdminUsersIdRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
@@ -1037,10 +1025,11 @@ interface AdminRouteChildren {
   AdminReportsRoute: typeof AdminReportsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminSupportRoute: typeof AdminSupportRoute
-  AdminTasksRoute: typeof AdminTasksRouteWithChildren
+  AdminTasksRoute: typeof AdminTasksRoute
   AdminUsersRoute: typeof AdminUsersRouteWithChildren
   AdminWithdrawalsRoute: typeof AdminWithdrawalsRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminTaskPackagePackageIdRoute: typeof AdminTaskPackagePackageIdRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -1055,10 +1044,11 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminReportsRoute: AdminReportsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminSupportRoute: AdminSupportRoute,
-  AdminTasksRoute: AdminTasksRouteWithChildren,
+  AdminTasksRoute: AdminTasksRoute,
   AdminUsersRoute: AdminUsersRouteWithChildren,
   AdminWithdrawalsRoute: AdminWithdrawalsRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminTaskPackagePackageIdRoute: AdminTaskPackagePackageIdRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
