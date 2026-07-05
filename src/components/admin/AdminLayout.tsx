@@ -3,7 +3,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, ArrowDownToLine, Package, ShieldCheck, CreditCard,
   ListChecks, MessagesSquare, BarChart3, Activity, Settings, User as UserIcon,
-  LogOut, Menu, X, Search, ChevronRight, Sparkles, Users2, Loader2, Smartphone,
+  LogOut, Menu, X, Search, ChevronRight, Sparkles, Users2, Loader2, Smartphone, Megaphone,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -23,6 +23,7 @@ export const ADMIN_NAV: NavItem[] = [
   { to: "/admin/payments",     label: "পেমেন্ট গেটওয়ে",      Icon: CreditCard,      accent: "pink" },
   { to: "/admin/tasks",        label: "টাস্ক লিংক",          Icon: ListChecks,      accent: "rose" },
   { to: "/admin/community",    label: "কমিউনিটি চ্যাট",      Icon: MessagesSquare,  accent: "purple" },
+  { to: "/admin/notices",      label: "নোটিশ ম্যানেজমেন্ট",   Icon: Megaphone,       accent: "fuchsia" },
   { to: "/admin/support",      label: "সাপোর্ট চ্যাট",       Icon: MessagesSquare,  accent: "rose" },
   { to: "/admin/reports",      label: "রিপোর্ট",            Icon: BarChart3,       accent: "indigo" },
   { to: "/admin/app-installs", label: "অ্যাপ ইনস্টল",         Icon: Smartphone,      accent: "cyan" },
