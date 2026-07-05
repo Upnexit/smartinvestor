@@ -144,9 +144,16 @@ function UsersPage() {
 
   const tiles: Array<{ label: string; value: string; Icon: typeof Users; from: string; to: string; ring: string; shadow: string }> = [
     { label: "মোট ইউজার",    value: stats.total.toLocaleString("bn-BD"),   Icon: Users,       from: "from-sky-500",     to: "to-indigo-600",  ring: "ring-sky-200/60",     shadow: "shadow-sky-500/30" },
-    { label: "আর্নিং ইউজার",  value: stats.earners.toLocaleString("bn-BD"), Icon: ShieldCheck, from: "from-emerald-500", to: "to-teal-600",    ring: "ring-emerald-200/60", shadow: "shadow-emerald-500/30" },
+    { label: "প্যাকেজ অ্যাক্টিভ", value: stats.activePkg.toLocaleString("bn-BD"), Icon: BadgeCheck, from: "from-violet-500", to: "to-fuchsia-600", ring: "ring-violet-200/60", shadow: "shadow-violet-500/30" },
     { label: "আজকের সাইনআপ", value: stats.newToday.toLocaleString("bn-BD"), Icon: UserPlus,    from: "from-rose-500",    to: "to-pink-600",    ring: "ring-rose-200/60",    shadow: "shadow-rose-500/30" },
     { label: "মোট আর্নিং",    value: users ? "৳" + totalEarnedSum.toLocaleString("bn-BD") : "—", Icon: UserCog, from: "from-amber-500", to: "to-orange-600", ring: "ring-amber-200/60", shadow: "shadow-amber-500/30" },
+  ];
+
+  const filterChips: Array<{ id: "all" | "active" | "inactive" | "suspended"; label: string; count: number; from: string; to: string }> = [
+    { id: "all",       label: "সব ইউজার",         count: users?.length ?? 0,                                                                     from: "from-slate-500",  to: "to-slate-700"    },
+    { id: "active",    label: "প্যাকেজ অ্যাক্টিভ", count: stats.activePkg,                                                                        from: "from-emerald-500", to: "to-teal-600"     },
+    { id: "inactive",  label: "প্যাকেজ নেই",      count: (users?.length ?? 0) - stats.activePkg,                                                  from: "from-slate-400",  to: "to-slate-600"    },
+    { id: "suspended", label: "সাসপেন্ডেড",       count: users?.filter((u) => u.status === "suspended" || u.status === "banned").length ?? 0,   from: "from-rose-500",   to: "to-red-600"      },
   ];
 
   return (
