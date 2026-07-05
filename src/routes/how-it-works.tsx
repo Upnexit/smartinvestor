@@ -51,6 +51,8 @@ const STEPS = [
       "প্রথম লগইনের পর প্রোফাইল সম্পূর্ণ করুন এবং পেমেন্ট মেথড (bKash / Nagad / Rocket) যুক্ত করুন।",
     ],
     tip: "সঠিক পেমেন্ট নম্বর দিন — যেই নম্বরে টাকা তুলতে চান শুধু সেটিই ব্যবহার করবেন।",
+    ctaLabel: "এখনই একাউন্ট তৈরি করুন",
+    ctaTo: "/auth",
   },
   {
     id: 2,
@@ -68,6 +70,8 @@ const STEPS = [
       "প্রতিটি টাস্কের পাশে নির্দিষ্ট আয় (৳) দেখানো থাকে, বুঝে-শুনে পছন্দমতো নিন।",
     ],
     tip: "প্রতিদিন লগইন করলে ডেইলি বোনাস পাবেন — সাথে সাথে আয় বাড়বে।",
+    ctaLabel: "টাস্ক শুরু করুন",
+    ctaTo: "/dashboard",
   },
   {
     id: 3,
@@ -85,6 +89,8 @@ const STEPS = [
       "পেমেন্ট হিস্ট্রি সবসময় “Transactions” পেজে দেখতে পাবেন।",
     ],
     tip: "একই দিনে একাধিকবারও উইথড্র করা যায় — কোনো লুকানো চার্জ নেই।",
+    ctaLabel: "উইথড্র পদ্ধতি দেখুন",
+    ctaTo: "/dashboard",
   },
 ] as const;
 
@@ -193,6 +199,15 @@ function HowItWorksPage() {
                   <div className={`mt-6 rounded-2xl ${t.chip} px-4 py-3 text-sm`}>
                     <span className="font-bold">💡 টিপস: </span>
                     {s.tip}
+                  </div>
+
+                  <div className="mt-5">
+                    <Link
+                      to={s.ctaTo}
+                      className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${t.grad} px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:brightness-110 active:scale-[0.98]`}
+                    >
+                      {s.ctaLabel} <ArrowRight className="h-4 w-4" />
+                    </Link>
                   </div>
                 </div>
               </div>
