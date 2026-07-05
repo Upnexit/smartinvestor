@@ -51,22 +51,24 @@ function PackagesPage() {
   const [revenue, setRevenue] = useState<number | null>(null);
 
 
-  const refresh = () => listPackages().then((r) => setRows(r as unknown as Pkg[])).catch((e) => toast.error(e instanceof Error ? e.message : "ব্যর্থ"));
+  const refresh = () => listPackages().then((r) => setRows(r as unknown as Pkg[])).catch((e) => { setRows([]); toast.error(e instanceof Error ? e.message : "ব্যর্থ"); });
   const refreshRevenue = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("user_packages")
       .select("package_id, status, packages!inner(price)")
       .in("status", ["active", "completed"] as never);
+    if (error) { setRevenue(0); return; }
     const sum = (data ?? []).reduce((s: number, r: { packages: { price: number | null } | null }) => s + Number(r.packages?.price ?? 0), 0);
     setRevenue(sum);
   };
-  useAdminAutoRefresh(() => { refresh(); refreshRevenue(); });
+  const adminReady = useAdminAutoRefresh(() => { refresh(); refreshRevenue(); });
   useEffect(() => {
+    if (!adminReady) return;
     const unsub = subscribeTable("packages", refresh);
     const ch = supabase.channel("admin-pkg-rev").on("postgres_changes", { event: "*", schema: "public", table: "user_packages" }, refreshRevenue).subscribe();
     refreshRevenue();
     return () => { unsub?.(); supabase.removeChannel(ch); };
-  }, []);
+  }, [adminReady]);
 
 
   const onAdd = () => { setEdit({ id: "", name: "", price: 0, daily_income: 0, duration_days: 30, image_url: null, active: true, description: null }); setOpen(true); };
@@ -157,7 +159,7 @@ function PackagesPage() {
       </div>
 
 
-      {!rows ? <Shimmer className="h-40" /> : rows.length === 0 ? (
+      {!adminReady || !rows ? <Shimmer className="h-40" /> : rows.length === 0 ? (
         <EmptyState Icon={PackageIcon} title="কোনো প্যাকেজ নেই" accent="fuchsia"
           action={<GradientButton accent="fuchsia" onClick={onAdd}><Plus className="h-4 w-4" /> নতুন তৈরি করুন</GradientButton>} />
       ) : (

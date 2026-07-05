@@ -27,7 +27,8 @@ function TasksPage() {
   const [busy, setBusy] = useState(false);
 
   const refresh = async () => {
-    const { data } = await supabase.from("link_tasks").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("link_tasks").select("*").order("created_at", { ascending: false });
+    if (error) { setRows([]); setStats({ done: 0, paid: 0 }); return; }
     setRows((data ?? []) as unknown as Task[]);
     const today = new Date(); today.setHours(0,0,0,0);
     const { data: subs } = await supabase.from("task_submissions").select("status, link_tasks(reward)")
@@ -36,7 +37,15 @@ function TasksPage() {
     const paid = (subs ?? []).reduce((s: number, r: { link_tasks: { reward: number } | null }) => s + Number(r.link_tasks?.reward ?? 0), 0);
     setStats({ done, paid });
   };
-  useAdminAutoRefresh(refresh);
+  const adminReady = useAdminAutoRefresh(refresh);
+
+  useEffect(() => {
+    if (!adminReady) return;
+    const offTasks = subscribeTable("link_tasks", refresh);
+    const offSubs = subscribeTable("task_submissions", refresh);
+    return () => { offTasks(); offSubs(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminReady]);
 
   const totals = useMemo(() => ({
     total: rows?.length ?? 0,
@@ -81,7 +90,7 @@ function TasksPage() {
         <StatTile label="আজ পেমেন্ট ৳" value={stats?.paid ?? "—"} accent="fuchsia" Icon={Link2} />
       </div>
 
-      {!rows ? <Shimmer className="h-32" /> : rows.length === 0 ? (
+      {!adminReady || !rows ? <Shimmer className="h-32" /> : rows.length === 0 ? (
         <EmptyState Icon={Link2} title="কোনো টাস্ক নেই" accent="rose"
           action={<GradientButton accent="rose" onClick={() => setEdit({ ...EMPTY })}><Plus className="h-4 w-4" /> তৈরি করুন</GradientButton>} />
       ) : (

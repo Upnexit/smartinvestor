@@ -6,6 +6,7 @@ import { AdminPageHeader, AdminCard, GradientButton, Shimmer } from "@/component
 import { supabase } from "@/integrations/supabase/client";
 import { saveSetting } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
+import { useAuthReady } from "@/hooks/use-auth-ready";
 
 export const Route = createFileRoute("/admin/payments")({
   head: () => ({ meta: [{ title: "পেমেন্ট গেটওয়ে — Admin" }] }),
@@ -21,8 +22,9 @@ const LABEL: Record<Method, string> = { bkash: "বিকাশ", nagad: "নগ
 function PaymentsPage() {
   const [state, setState] = useState<Record<Method, Cfg> | null>(null);
   const [busy, setBusy] = useState<Method | null>(null);
+  const authReady = useAuthReady();
 
-  useEffect(() => { void (async () => {
+  useEffect(() => { if (!authReady) return; void (async () => {
     const { data } = await supabase.from("site_settings").select("key,value").in("key", ["payment_bkash","payment_nagad","payment_rocket"]);
     const s: Record<Method, Cfg> = { bkash: { ...DEFAULT }, nagad: { ...DEFAULT }, rocket: { ...DEFAULT } };
     (data ?? []).forEach((r) => {
@@ -30,7 +32,7 @@ function PaymentsPage() {
       if (m in s && r.value) s[m] = { ...DEFAULT, ...(r.value as Cfg) };
     });
     setState(s);
-  })(); }, []);
+  })(); }, [authReady]);
 
   const upd = (m: Method, p: Partial<Cfg>) => setState((s) => s ? { ...s, [m]: { ...s[m], ...p } } : s);
 
@@ -55,7 +57,7 @@ function PaymentsPage() {
       <AdminPageHeader accent="pink" Icon={CreditCard} title="পেমেন্ট গেটওয়ে"
         subtitle="বিকাশ / নগদ / রকেট মার্চেন্ট নম্বর ম্যানেজ করুন" />
 
-      {!state ? <Shimmer className="h-40" /> : (
+      {!authReady || !state ? <Shimmer className="h-40" /> : (
         <div className="grid gap-3 lg:grid-cols-3">
           {(["bkash","nagad","rocket"] as Method[]).map((m) => {
             const c = state[m];

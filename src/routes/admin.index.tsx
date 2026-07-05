@@ -187,9 +187,10 @@ function DashboardPage() {
     loadStats().then(setStats).catch(() => {});
     loadActivity().then(setActivity).catch(() => {});
   };
-  useAdminAutoRefresh(refresh);
+  const adminReady = useAdminAutoRefresh(refresh);
 
   useEffect(() => {
+    if (!adminReady) return;
     const ch = supabase.channel("admin-dash")
       .on("postgres_changes", { event: "*", schema: "public", table: "user_packages" }, () => { refresh(); emitAdminRefresh(); })
       .on("postgres_changes", { event: "*", schema: "public", table: "withdrawals" }, refresh)
@@ -200,7 +201,7 @@ function DashboardPage() {
       .subscribe();
     return () => { supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [adminReady]);
 
   const combo: ComboPoint[] = useMemo(() => {
     if (!stats) return [];

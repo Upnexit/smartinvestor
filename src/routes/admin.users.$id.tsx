@@ -6,6 +6,7 @@ import { AdminCard, Shimmer } from "@/components/admin/AdminUI";
 import { getUserBundle, setUserStatus } from "@/lib/admin-client";
 import { UserEditDrawer } from "@/components/admin/UserEditDrawer";
 import { cn } from "@/lib/utils";
+import { useAuthReady } from "@/hooks/use-auth-ready";
 
 type EditSearch = { edit?: number };
 
@@ -24,11 +25,12 @@ function UserDetailPage() {
   const [data, setData] = useState<Bundle | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const authReady = useAuthReady();
 
   const load = () => {
     getUserBundle(id).then(setData).catch((e) => toast.error(e instanceof Error ? e.message : "ব্যর্থ"));
   };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [id]);
+  useEffect(() => { if (authReady) load(); /* eslint-disable-next-line */ }, [id, authReady]);
 
   useEffect(() => {
     if (editParam === 1) {
@@ -37,7 +39,7 @@ function UserDetailPage() {
     }
   }, [editParam, navigate]);
 
-  if (!data) return (<><Shimmer className="h-24" /><Shimmer className="h-64" /></>);
+  if (!authReady || !data) return (<><Shimmer className="h-24" /><Shimmer className="h-64" /></>);
   const p = data.profile;
   const suspended = (p as unknown as { status?: string })?.status === "suspended" || (p as unknown as { status?: string })?.status === "banned";
 

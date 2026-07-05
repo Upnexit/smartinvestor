@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { User, Save, LogOut, Lock, Shield } from "lucide-react";
 import { AdminPageHeader, AdminCard, GradientButton, SoftButton, Shimmer } from "@/components/admin/AdminUI";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuthReady } from "@/hooks/use-auth-ready";
 
 export const Route = createFileRoute("/admin/profile")({
   head: () => ({ meta: [{ title: "অ্যাডমিন প্রোফাইল" }] }),
@@ -16,14 +17,15 @@ function ProfilePage() {
   const [pwd, setPwd] = useState({ new: "", confirm: "" });
   const [lock, setLock] = useState("");
   const [busy, setBusy] = useState(false);
+  const authReady = useAuthReady();
 
-  useEffect(() => { void (async () => {
+  useEffect(() => { if (!authReady) return; void (async () => {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
     const { data } = await supabase.from("profiles").select("full_name,email,phone").eq("id", u.user.id).maybeSingle();
     setProfile({ full_name: data?.full_name ?? "", email: data?.email ?? u.user.email ?? "", phone: data?.phone ?? "" });
     setLock(localStorage.getItem("admin_lock_pwd") ?? "");
-  })(); }, []);
+  })(); }, [authReady]);
 
   const saveProfile = async () => {
     if (!profile) return;
@@ -64,7 +66,7 @@ function ProfilePage() {
     nav({ to: "/auth" });
   };
 
-  if (!profile) return <Shimmer className="h-64" />;
+  if (!authReady || !profile) return <Shimmer className="h-64" />;
 
   return (
     <>

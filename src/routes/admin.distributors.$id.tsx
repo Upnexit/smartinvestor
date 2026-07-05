@@ -9,6 +9,7 @@ import {
 import { AdminCard, Shimmer } from "@/components/admin/AdminUI";
 import { getDistributorBundle } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
+import { useAuthReady } from "@/hooks/use-auth-ready";
 
 export const Route = createFileRoute("/admin/distributors/$id")({
   head: () => ({ meta: [{ title: "ডিস্ট্রিবিউটর ডিটেইল — Admin" }] }),
@@ -20,13 +21,14 @@ type Bundle = Awaited<ReturnType<typeof getDistributorBundle>>;
 function DistributorDetailPage() {
   const { id } = Route.useParams();
   const [data, setData] = useState<Bundle | null>(null);
+  const authReady = useAuthReady();
 
   const load = () => {
     getDistributorBundle(id).then(setData).catch((e) => toast.error(e instanceof Error ? e.message : "ব্যর্থ"));
   };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [id]);
+  useEffect(() => { if (authReady) load(); /* eslint-disable-next-line */ }, [id, authReady]);
 
-  if (!data) return (<><Shimmer className="h-24" /><Shimmer className="h-64" /></>);
+  if (!authReady || !data) return (<><Shimmer className="h-24" /><Shimmer className="h-64" /></>);
 
   const d = (data.distributor ?? {}) as Record<string, unknown>;
   const p = (data.profile ?? {}) as Record<string, unknown>;

@@ -77,21 +77,25 @@ function WithdrawalsPage() {
     supabase.from("withdrawals")
       .select("id,user_id,amount,method,account_number,status,note,rejection_reason,created_at,reviewed_at,profiles!withdrawals_user_id_profiles_fkey(full_name,phone,user_code)")
       .order("created_at", { ascending: false }).limit(200)
-      .then(({ data }) => setRows((data ?? []) as unknown as Row[]));
+      .then(({ data, error }) => {
+        if (error) throw error;
+        setRows((data ?? []) as unknown as Row[]);
+      }, (e: unknown) => { setRows([]); toast.error(e instanceof Error ? e.message : "লোড ব্যর্থ"); });
   };
-  useAdminAutoRefresh(refresh);
+  const adminReady = useAdminAutoRefresh(refresh);
 
   useEffect(() => {
+    if (!adminReady) return;
     const ch = supabase.channel("admin-wd")
       .on("postgres_changes", { event: "*", schema: "public", table: "withdrawals" }, refresh)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [adminReady]);
 
   // Load detail data when a row is opened
   useEffect(() => {
-    if (!detail) { setDetailData(null); return; }
+    if (!detail || !adminReady) { setDetailData(null); return; }
     let cancelled = false;
     (async () => {
       setDetailData(null);
@@ -106,7 +110,7 @@ function WithdrawalsPage() {
       setDetailData(data as DetailData);
     })();
     return () => { cancelled = true; };
-  }, [detail]);
+  }, [detail, adminReady]);
 
   const counts = useMemo(() => ({
     pending: rows?.filter((r) => r.status === "pending").length ?? 0,
@@ -180,7 +184,7 @@ function WithdrawalsPage() {
         })}
       </div>
 
-      {!filtered ? <Shimmer className="h-40" /> : filtered.length === 0 ? (
+      {!adminReady || !filtered ? <Shimmer className="h-40" /> : filtered.length === 0 ? (
         <EmptyState Icon={ArrowDownToLine} title="কোনো রিকোয়েস্ট নেই" accent="emerald" />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
