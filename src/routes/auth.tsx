@@ -294,6 +294,7 @@ function AuthPage() {
 
               <Link
                 to="/register"
+                search={search.redirect ? { redirect: search.redirect } : {}}
                 className="mt-5 flex items-center justify-between rounded-2xl border-2 border-dashed border-amber-300 bg-gradient-to-r from-amber-50 via-rose-50 to-fuchsia-50 px-4 py-3 text-sm font-medium text-amber-900 hover:from-amber-100 hover:to-fuchsia-100 transition"
               >
                 <span className="flex items-center gap-2">
