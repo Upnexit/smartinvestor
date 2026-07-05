@@ -2,12 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Calendar, Coins, TrendingUp, ListChecks, ShieldCheck, Sparkles, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/packages/$id")({
   head: () => ({ meta: [{ title: "প্যাকেজ বিবরণ — Smart Investor" }] }),
   component: PackageDetailPage,
 });
+
 
 type Pkg = {
   id: string; name: string; price: number; daily_tasks: number;
