@@ -114,8 +114,8 @@ function TasksPage() {
   }
 
   function openTaskLink() {
-    if (!activeTask) return;
-    window.open(activeTask.link_url, "_blank", "noopener,noreferrer");
+    // The <a target="_blank"> handles the actual navigation — never blocked.
+    // We only track that the user clicked so the countdown/Submit unlocks.
     setLinkOpened(true);
   }
 
