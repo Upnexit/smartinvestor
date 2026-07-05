@@ -19,6 +19,7 @@ type Task = {
   id: string; title: string; link_url: string; reward: number; category: string | null;
   action_type: string; daily_limit: number; active: boolean; description: string | null;
   required_package_id: string | null;
+  is_draft?: boolean; scheduled_date?: string | null;
 };
 type Pkg = { id: string; name: string; price: number; active: boolean };
 
