@@ -111,11 +111,26 @@ function CheckoutPage() {
     if (!pkg || !method || !phoneValid) return;
     setCreating(true);
     try {
+      // Proactively ensure a live session — the confirm step is where users
+      // most often hit expired-token errors.
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session?.access_token) {
+        toast.error("সেশন মেয়াদ শেষ — আবার লগইন করুন");
+        navigate({ to: "/auth", search: { redirect: `/checkout?pkg=${pkg.id}` } });
+        return;
+      }
       const r = await createOrder({ data: { packageId: pkg.id, method, senderNumber: phoneNorm } });
       setOrderId(r.orderId);
       setStep("waiting");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "অর্ডার তৈরি ব্যর্থ");
+      const raw = e instanceof Error ? e.message : String(e);
+      const msg = mapCheckoutError(raw);
+      if (/সেশন|লগইন/.test(msg) && pkg) {
+        toast.error(msg);
+        navigate({ to: "/auth", search: { redirect: `/checkout?pkg=${pkg.id}` } });
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setCreating(false);
     }
@@ -126,14 +141,22 @@ function CheckoutPage() {
     setSubmitting(true);
     const tId = toast.loading("পাঠানো হচ্ছে…");
     try {
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session?.access_token) {
+        toast.error("সেশন মেয়াদ শেষ — আবার লগইন করুন", { id: tId });
+        navigate({ to: "/auth", search: { redirect: `/checkout?pkg=${pkg.id}` } });
+        return;
+      }
       await submitPayment({ data: { packageId: pkg.id, method, senderNumber: phoneNorm, trxId: trxNorm } });
       toast.success("✓ Approval request গ্রহণ করা হয়েছে — অ্যাডমিন যাচাই করবেন", { id: tId });
       navigate({ to: "/dashboard", replace: true });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "সাবমিট ব্যর্থ", { id: tId });
+      const raw = e instanceof Error ? e.message : String(e);
+      toast.error(mapCheckoutError(raw), { id: tId });
       setSubmitting(false);
     }
   };
+
 
   const handleCancel = async () => {
     if (orderId) {
