@@ -15,7 +15,7 @@ export const Route = createFileRoute("/admin/payments")({
 });
 
 type Method = "bkash" | "nagad" | "rocket";
-type Cfg = { number: string; agent_number?: string; type: "personal" | "merchant"; instructions: string; logo_url?: string; active: boolean };
+type Cfg = { number: string; agent_number?: string; type: "personal" | "merchant" | "payment"; instructions: string; logo_url?: string; active: boolean };
 const DEFAULT: Cfg = { number: "", type: "personal", instructions: "", active: true };
 const GRAD: Record<Method, string> = { bkash: "from-pink-500 to-rose-600", nagad: "from-orange-500 to-amber-600", rocket: "from-purple-500 to-violet-600" };
 const LABEL: Record<Method, string> = { bkash: "বিকাশ", nagad: "নগদ", rocket: "রকেট" };
