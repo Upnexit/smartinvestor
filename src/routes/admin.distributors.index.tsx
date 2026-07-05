@@ -114,7 +114,7 @@ function AdminDistributorsPage() {
     supabase.from("distributor_applications")
       .select("*").order("created_at", { ascending: false }).limit(200)
       .then(({ data, error }) => {
-        if (error) throw error;
+        if (error) { setApps([]); return; }
         setApps((data ?? []) as AppRow[]);
       }, () => setApps([]));
   };
