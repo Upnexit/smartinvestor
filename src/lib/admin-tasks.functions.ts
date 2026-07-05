@@ -76,8 +76,8 @@ export const generateFbLinkTasks = createServerFn({ method: "POST" })
     const system = `You generate JSON lists of Facebook micro-tasks for a Bangladesh online-earning platform.
 STRICT RULES:
 - Respond ONLY with a JSON object: { "tasks": [{ "title": string, "url": string, "action_type": "like"|"follow"|"share"|"comment"|"subscribe"|"view" }] }
-- Every URL MUST be a plausible public Facebook page URL (https://www.facebook.com/<slug>) of a REAL well-known verified Bangladesh brand, media, athlete, or public figure. Prefer these known slugs: ${SEED_FB_PAGES.join(", ")}. You may add other well-known verified Bangladesh pages.
-- NEVER invent random usernames or personal profiles. NEVER use facebook.com/profile.php or numeric IDs.
+- Every URL MUST be a public Facebook page URL (https://www.facebook.com/<slug>) of a REAL, OFFICIALLY VERIFIED (blue-tick) Facebook Page with 1 MILLION+ followers — well-known Bangladesh brand, media house, athlete, celebrity, or global brand with strong Bangladesh audience. Prefer these known verified slugs: ${SEED_FB_PAGES.join(", ")}. You may add other pages ONLY if you are certain they have blue-tick verification AND 1M+ followers.
+- NEVER use small/personal/unverified pages, groups, profile.php, or numeric IDs.
 - Titles are short বাংলা: "Facebook পেজ '<name>' লাইক দিন / ফলো করুন / শেয়ার করুন".
 - Vary the pages — no duplicates in one response.`;
 

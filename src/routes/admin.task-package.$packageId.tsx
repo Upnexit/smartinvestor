@@ -45,8 +45,10 @@ function PackageTasksPage() {
   const [genBusy, setGenBusy] = useState(false);
   const [batchBusy, setBatchBusy] = useState(false);
   const [count, setCount] = useState(10);
+  const [totalAmount, setTotalAmount] = useState<number>(0);
   const [selectedActions, setSelectedActions] = useState<GeneratedTask["action_type"][]>(["like", "follow", "share"]);
   const [edit, setEdit] = useState<Task | null>(null);
+  const [visited, setVisited] = useState<Set<string>>(new Set());
   const genFn = useServerFn(generateFbLinkTasks);
 
   const load = async () => {
@@ -56,15 +58,18 @@ function PackageTasksPage() {
     ]);
     setPkg(p as Pkg | null);
     setTasks((t ?? []) as Task[]);
+    if (p && !totalAmount) setTotalAmount(Number((p as Pkg).daily_income ?? 0));
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [packageId, date]);
 
   const daily = pkg?.daily_tasks ?? 0;
   const perTaskReward = useMemo(() => {
+    const n = Math.max(1, Math.min(50, count));
+    if (totalAmount > 0) return Math.round((totalAmount / n) * 100) / 100;
     if (!pkg || !daily) return 0;
     return Math.round(((pkg.daily_income ?? 0) / daily) * 100) / 100;
-  }, [pkg, daily]);
+  }, [pkg, daily, totalAmount, count]);
 
   const draftCount = tasks?.filter((t) => t.is_draft).length ?? 0;
   const activeCount = tasks?.filter((t) => !t.is_draft && t.active).length ?? 0;
@@ -194,7 +199,17 @@ function PackageTasksPage() {
             <input type="number" min={1} max={50} value={count} onChange={(e) => setCount(Number(e.target.value))}
               className="w-20 rounded-lg border border-fuchsia-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-fuchsia-400" />
           </div>
-          <div className="flex-1 min-w-[220px]">
+          <div>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">মোট Amount ৳</label>
+            <input type="number" min={0} step="0.01" value={totalAmount}
+              onChange={(e) => setTotalAmount(Number(e.target.value))}
+              className="w-28 rounded-lg border border-fuchsia-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-fuchsia-400" />
+          </div>
+          <div className="rounded-lg bg-fuchsia-50 px-2.5 py-1.5 ring-1 ring-fuchsia-200">
+            <div className="text-[10px] font-bold uppercase text-fuchsia-600">প্রতি task</div>
+            <div className="bn-display text-sm text-fuchsia-800">৳{perTaskReward}</div>
+          </div>
+          <div className="flex-1 min-w-[200px]">
             <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Action types</label>
             <div className="flex flex-wrap gap-1">
               {ACTIONS.map((a) => {
@@ -216,8 +231,8 @@ function PackageTasksPage() {
           </GradientButton>
         </div>
         <p className="mt-2 text-[11px] text-slate-500">
-          AI verified public Facebook page থেকে random link তৈরি করে <b>Draft</b> হিসাবে যোগ করবে।
-          Preview → Verify → Activate করার আগে user-দের দেখাবে না। তাই আজ রাতেই কালকের task তৈরি করে রাখতে পারবেন।
+          শুধু <b>verified (blue-tick) + 1M+ follower</b> Facebook page থেকে AI random link তৈরি করে <b>Draft</b> হিসাবে যোগ করবে।
+          মোট Amount দিলে সেটি সমান ভাগে প্রতি task-এ ভাগ হয়ে যাবে। লিংক click করে verify করুন → সবুজ tick দেখাবে → Activate।
         </p>
       </AdminCard>
 
@@ -240,7 +255,9 @@ function PackageTasksPage() {
           action={<GradientButton accent="fuchsia" onClick={runGenerate} busy={genBusy}><Sparkles className="h-4 w-4" /> এখনই তৈরি</GradientButton>} />
       ) : (
         <div className="grid gap-2">
-          {tasks.map((t) => (
+          {tasks.map((t) => {
+            const seen = visited.has(t.id);
+            return (
             <AdminCard key={t.id} accent={t.is_draft ? "amber" : "emerald"} className="p-3">
               <div className="flex flex-wrap items-center gap-2">
                 <span className={cn("rounded-md px-2 py-0.5 text-[10px] font-bold uppercase text-white",
@@ -248,13 +265,21 @@ function PackageTasksPage() {
                   {t.is_draft ? "DRAFT" : t.active ? "ACTIVE" : "OFF"}
                 </span>
                 <span className="rounded bg-sky-100 px-1.5 py-0.5 text-[10px] uppercase text-sky-700">{t.action_type}</span>
+                {seen && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-300 animate-admin-pop">
+                    <CheckCircle2 className="h-3 w-3" /> Verified
+                  </span>
+                )}
                 <span className="bn-display text-sm text-slate-900 flex-1 truncate">{t.title}</span>
                 <span className="bn-display text-sm bg-gradient-to-br from-fuchsia-600 to-purple-600 bg-clip-text text-transparent">৳{t.reward}</span>
               </div>
               <div className="mt-1 flex items-center gap-2">
                 <a href={t.link_url} target="_blank" rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-sky-600 hover:underline truncate">
-                  <ExternalLink className="h-3 w-3" /> {t.link_url}
+                  onClick={() => setVisited((s) => { const n = new Set(s); n.add(t.id); return n; })}
+                  className={cn("inline-flex items-center gap-1 text-xs truncate hover:underline",
+                    seen ? "text-emerald-700 font-semibold" : "text-sky-600")}>
+                  {seen ? <CheckCircle2 className="h-3.5 w-3.5" /> : <ExternalLink className="h-3 w-3" />}
+                  {t.link_url}
                 </a>
                 <div className="ml-auto flex gap-1">
                   <SoftButton onClick={() => setEdit({ ...t })}><Pencil className="h-3.5 w-3.5" /></SoftButton>
@@ -267,7 +292,8 @@ function PackageTasksPage() {
                 </div>
               </div>
             </AdminCard>
-          ))}
+            );
+          })}
         </div>
       )}
 
