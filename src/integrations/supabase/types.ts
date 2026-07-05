@@ -424,6 +424,77 @@ export type Database = {
           },
         ]
       }
+      notice_dismissals: {
+        Row: {
+          dismissed_at: string
+          id: string
+          notice_id: string
+          user_id: string
+        }
+        Insert: {
+          dismissed_at?: string
+          id?: string
+          notice_id: string
+          user_id: string
+        }
+        Update: {
+          dismissed_at?: string
+          id?: string
+          notice_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notice_dismissals_notice_id_fkey"
+            columns: ["notice_id"]
+            isOneToOne: false
+            referencedRelation: "notices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notices: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          priority: string
+          published: boolean
+          target_all_users: boolean
+          target_package_ids: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          priority?: string
+          published?: boolean
+          target_all_users?: boolean
+          target_package_ids?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          priority?: string
+          published?: boolean
+          target_all_users?: boolean
+          target_package_ids?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       packages: {
         Row: {
           active: boolean
