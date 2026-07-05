@@ -111,11 +111,26 @@ function CheckoutPage() {
     if (!pkg || !method || !phoneValid) return;
     setCreating(true);
     try {
+      // Proactively ensure a live session — the confirm step is where users
+      // most often hit expired-token errors.
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session?.access_token) {
+        toast.error("সেশন মেয়াদ শেষ — আবার লগইন করুন");
+        navigate({ to: "/auth", search: { redirect: `/checkout?pkg=${pkg.id}` } });
+        return;
+      }
       const r = await createOrder({ data: { packageId: pkg.id, method, senderNumber: phoneNorm } });
       setOrderId(r.orderId);
       setStep("waiting");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "অর্ডার তৈরি ব্যর্থ");
+      const raw = e instanceof Error ? e.message : String(e);
+      const msg = mapCheckoutError(raw);
+      if (/সেশন|লগইন/.test(msg) && pkg) {
+        toast.error(msg);
+        navigate({ to: "/auth", search: { redirect: `/checkout?pkg=${pkg.id}` } });
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setCreating(false);
     }
@@ -126,14 +141,22 @@ function CheckoutPage() {
     setSubmitting(true);
     const tId = toast.loading("পাঠানো হচ্ছে…");
     try {
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session?.access_token) {
+        toast.error("সেশন মেয়াদ শেষ — আবার লগইন করুন", { id: tId });
+        navigate({ to: "/auth", search: { redirect: `/checkout?pkg=${pkg.id}` } });
+        return;
+      }
       await submitPayment({ data: { packageId: pkg.id, method, senderNumber: phoneNorm, trxId: trxNorm } });
       toast.success("✓ Approval request গ্রহণ করা হয়েছে — অ্যাডমিন যাচাই করবেন", { id: tId });
       navigate({ to: "/dashboard", replace: true });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "সাবমিট ব্যর্থ", { id: tId });
+      const raw = e instanceof Error ? e.message : String(e);
+      toast.error(mapCheckoutError(raw), { id: tId });
       setSubmitting(false);
     }
   };
+
 
   const handleCancel = async () => {
     if (orderId) {
@@ -205,7 +228,23 @@ function applyPaymentBranding(accounts: PayAccounts, branding: PaymentBranding):
   return next;
 }
 
+function mapCheckoutError(raw: string): string {
+  const s = raw || "";
+  if (/Unauthorized|Missing Supabase|No authorization|Invalid token|JWT/i.test(s)) {
+    return "সেশন মেয়াদ শেষ — আবার লগইন করুন";
+  }
+  if (/network|fetch|Failed to fetch|NetworkError/i.test(s)) {
+    return "ইন্টারনেট সংযোগে সমস্যা — আবার চেষ্টা করুন";
+  }
+  if (/invalid.*phone|Bangladeshi/i.test(s)) return "সঠিক ১১-সংখ্যার বাংলাদেশী মোবাইল নাম্বার দিন";
+  if (/invalid.*trx|Transaction ID/i.test(s)) return "সঠিক Transaction ID দিন";
+  if (/invalid method/i.test(s)) return "পেমেন্ট মেথড সিলেক্ট করুন";
+  if (/invalid id/i.test(s)) return "প্যাকেজ শনাক্ত করা যায়নি";
+  return s.length > 0 && s.length < 140 ? s : "অনুরোধ ব্যর্থ — আবার চেষ্টা করুন";
+}
+
 /* ============ Copy helper ============ */
+
 function CopyPill({ value, className }: { value: string; className?: string }) {
   const [copied, setCopied] = useState(false);
   return (
