@@ -37,6 +37,7 @@ function InstallPage() {
   const [installed, setInstalled] = useState(false);
   const [platform, setPlatform] = useState<"android" | "ios" | "desktop">("desktop");
   const [busy, setBusy] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
 
   useEffect(() => {
     setPlatform(detectPlatform());
@@ -60,19 +61,26 @@ function InstallPage() {
   }, []);
 
   const handleInstall = async () => {
-    if (!deferred) return;
-    setBusy(true);
-    try {
-      await deferred.prompt();
-      const choice = await deferred.userChoice;
-      if (choice.outcome === "accepted") setInstalled(true);
-      setDeferred(null);
-    } finally {
-      setBusy(false);
+    // If native install prompt is available, fire it immediately.
+    if (deferred) {
+      setBusy(true);
+      try {
+        await deferred.prompt();
+        const choice = await deferred.userChoice;
+        if (choice.outcome === "accepted") setInstalled(true);
+        setDeferred(null);
+      } finally {
+        setBusy(false);
+      }
+      return;
     }
+    // Otherwise reveal the step-by-step install section right below.
+    setShowFallback(true);
+    setTimeout(() => {
+      document.getElementById("install-steps")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
   };
 
-  const canPrompt = !!deferred && !installed;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 px-4 py-6 sm:py-10">
