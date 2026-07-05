@@ -73,13 +73,19 @@ function DashboardPage() {
 
       const { data: up } = await supabase
         .from("user_packages")
-        .select("id, status, package_id, activated_at, packages(name)")
+        .select("id, status, package_id, activated_at, packages(name, price)")
         .eq("user_id", uid)
         .eq("status", "active")
         .order("activated_at", { ascending: false })
         .limit(1);
-      const active = (up ?? [])[0] as { id: string; package_id: string; packages?: { name?: string } | null } | undefined;
+      const active = (up ?? [])[0] as { id: string; package_id: string; packages?: { name?: string; price?: number } | null } | undefined;
       setHasActivePackage(!!active);
+      setActivePkgPrice(active?.packages?.price != null ? Number(active.packages.price) : null);
+
+      // Highest-priced active package available (to detect upgrade opportunity)
+      const { data: pkgs } = await supabase
+        .from("packages").select("price").eq("active", true).order("price", { ascending: false }).limit(1);
+      setMaxPkgPrice((pkgs?.[0]?.price != null) ? Number(pkgs[0].price) : null);
 
       // Show congratulations once per activation
       if (active && typeof window !== "undefined") {
@@ -91,42 +97,48 @@ function DashboardPage() {
         }
       }
 
+      // Approved task count — real-time from task_submissions
+      const { count: approvedCount } = await supabase
+        .from("task_submissions")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", uid)
+        .eq("status", "approved");
+      setTasksApproved(approvedCount ?? 0);
 
-      // 7-day chart data
+      // 7-day chart data — real data from task_submissions (approved) + referral_earnings
       const days: { day: string; income: number; referral: number; tasks: number }[] = [];
-      const labels = ["শনি","রবি","সোম","মঙ্গল","বুধ","বৃহ","শুক্র"];
+      const labels = ["রবি","সোম","মঙ্গল","বুধ","বৃহ","শুক্র","শনি"];
       const today = new Date();
       for (let i = 6; i >= 0; i--) {
         const d = new Date(today); d.setDate(today.getDate() - i);
-        days.push({
-          day: labels[d.getDay()],
-          income: 0, referral: 0, tasks: 0,
-        });
+        days.push({ day: labels[d.getDay()], income: 0, referral: 0, tasks: 0 });
       }
       try {
         const since = new Date(); since.setDate(since.getDate() - 6); since.setHours(0,0,0,0);
-        const sb = supabase as unknown as {
-          from: (t: string) => {
-            select: (s: string) => {
-              eq: (c: string, v: string) => { gte: (c: string, v: string) => Promise<{ data: Array<Record<string, unknown>> | null }> };
-            };
-          };
-        };
-        const [{ data: txs }, { data: refs }] = await Promise.all([
-          sb.from("transactions").select("amount, type, created_at").eq("user_id", uid).gte("created_at", since.toISOString()),
-          sb.from("referrals").select("commission, created_at").eq("referrer_id", uid).gte("created_at", since.toISOString()),
+        const [subsRes, refsRes] = await Promise.all([
+          supabase.from("task_submissions")
+            .select("created_at, status, link_tasks(reward)")
+            .eq("user_id", uid).eq("status", "approved")
+            .gte("created_at", since.toISOString()),
+          supabase.from("referral_earnings")
+            .select("created_at, amount")
+            .eq("referrer_id", uid)
+            .gte("created_at", since.toISOString()),
         ]);
-        (txs ?? []).forEach((t) => {
-          const idx = 6 - Math.floor((today.getTime() - new Date(t.created_at as string).getTime()) / 86400000);
+        const subs = (subsRes.data ?? []) as Array<{ created_at: string; link_tasks: { reward: number | string | null } | null }>;
+        const refs = (refsRes.data ?? []) as Array<{ created_at: string; amount: number | string | null }>;
+        subs.forEach((t) => {
+          const idx = 6 - Math.floor((today.setHours(23,59,59,999), today.getTime() - new Date(t.created_at).getTime()) / 86400000);
           if (idx >= 0 && idx < 7) {
-            if (t.type === "task_reward") { days[idx].income += Number(t.amount) || 0; days[idx].tasks += 1; }
+            days[idx].income += Number(t.link_tasks?.reward ?? 0);
+            days[idx].tasks += 1;
           }
         });
-        (refs ?? []).forEach((r) => {
-          const idx = 6 - Math.floor((today.getTime() - new Date(r.created_at as string).getTime()) / 86400000);
-          if (idx >= 0 && idx < 7) days[idx].referral += Number(r.commission) || 0;
+        refs.forEach((r) => {
+          const idx = 6 - Math.floor((today.getTime() - new Date(r.created_at).getTime()) / 86400000);
+          if (idx >= 0 && idx < 7) days[idx].referral += Number(r.amount ?? 0);
         });
-      } catch { /* tables may differ; keep zeros */ }
+      } catch { /* keep zeros */ }
       setChart(days);
     })();
   }, []);
