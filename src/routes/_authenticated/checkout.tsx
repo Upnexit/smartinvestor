@@ -73,9 +73,14 @@ function CheckoutPage() {
       const merged: PayAccounts = { ...base };
       (perMethod ?? []).forEach((r) => {
         const m = (r.key as string).replace("payment_", "") as Method;
-        const v = r.value as { number?: string; logo_url?: string; active?: boolean } | null;
-        if (!v || v.active === false) return;
-        if (v.number && !merged[m]) merged[m] = v.number;
+        const v = r.value as { number?: string; agent_number?: string; instructions?: string; logo_url?: string; active?: boolean } | null;
+        if (!v || v.active === false) {
+          merged[m] = "";
+          delete logos[m];
+          return;
+        }
+        merged[m] = (v.number || v.agent_number || "").replace(/\D/g, "");
+        if (v.instructions) merged.guides = { ...(merged.guides ?? {}), [m]: v.instructions };
         if (v.logo_url) logos[m] = v.logo_url;
       });
       merged.logos = logos;
