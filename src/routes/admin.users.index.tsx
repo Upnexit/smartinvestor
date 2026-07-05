@@ -13,13 +13,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { exportCsv, exportExcel, exportPrint, exportPdf } from "@/lib/users-export";
 
-type Search = { q?: string };
+type Search = { q?: string; filter?: string };
 type User = {
   id: string; full_name: string | null; email: string | null; phone: string | null;
   avatar_url: string | null; balance: number; locked_balance: number; total_earned: number;
   referral_code: string | null; tasks_completed: number; created_at: string;
   status?: string | null; payment_method?: string | null; payment_number?: string | null;
   is_distributor?: boolean;
+  has_active_package?: boolean;
+  active_package_name?: string | null;
 };
 
 export const Route = createFileRoute("/admin/users/")({
