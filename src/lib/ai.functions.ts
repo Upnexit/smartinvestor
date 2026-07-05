@@ -94,7 +94,7 @@ export const askSmartAI = createServerFn({ method: "POST" })
   });
 
 type Method = "bkash" | "nagad" | "rocket";
-type AcctType = "personal" | "merchant";
+type AcctType = "personal" | "merchant" | "payment";
 
 const METHOD_BN: Record<Method, string> = { bkash: "বিকাশ", nagad: "নগদ", rocket: "রকেট" };
 
