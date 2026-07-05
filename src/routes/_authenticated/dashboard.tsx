@@ -160,6 +160,29 @@ function DashboardPage() {
         </div>
       )}
 
+      {showActivated && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/60 backdrop-blur-sm px-4" role="dialog" aria-modal="true">
+          <div className="w-full max-w-sm overflow-hidden rounded-3xl bg-white shadow-2xl">
+            <div className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 px-6 py-8 text-center text-white">
+              <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-white text-emerald-600 shadow-xl">
+                <Trophy className="h-8 w-8" />
+              </div>
+              <h2 className="bn-display mt-4 text-2xl">অভিনন্দন! 🎉</h2>
+              <p className="mt-2 text-sm font-semibold text-white/95">
+                আপনার <span className="font-black">{activatedPkgName}</span> প্যাকেজটি সফলভাবে active হয়েছে।
+              </p>
+            </div>
+            <div className="p-5 text-center">
+              <p className="text-sm text-slate-700">
+                এখন আপনি প্রতিদিন Task সম্পন্ন করে আয় করতে পারবেন, referral commission উপার্জন করতে পারবেন এবং যেকোনো সময় withdraw করতে পারবেন।
+              </p>
+              <button onClick={() => setShowActivated(false)} className="btn-gold mt-5 w-full">শুরু করুন</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
       {/* Welcome header */}
       <div>
         <p className="text-xs font-semibold uppercase tracking-wider text-amber-700">DASHBOARD</p>
