@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Download, Smartphone, Wifi, Zap, CheckCircle2, ArrowLeft, Share2, Loader2 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import type {} from "@/lib/install-prompt";
 
 
 export const Route = createFileRoute("/install")({
