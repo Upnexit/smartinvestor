@@ -563,9 +563,15 @@ function StepAccount({
           autoFocus
           className="mt-3 w-full rounded-xl bg-white px-4 py-3.5 text-center font-mono text-lg font-bold text-slate-900 outline-none focus:ring-4 focus:ring-white/40"
         />
-        <p className="mt-3 text-center text-xs text-white/95">
-          Confirm and proceed, <a className="font-semibold underline underline-offset-2">terms & conditions</a>
+        <div className="mt-3 rounded-xl bg-white/15 px-3 py-2 ring-1 ring-white/25">
+          <p className="text-center text-[12px] font-semibold text-white leading-snug">
+            📱 আপনি যে {b.name} নাম্বার থেকে টাকা পাঠাবেন সেই নাম্বারটি এখানে দিন
+          </p>
+        </div>
+        <p className="mt-3 text-center text-[11px] text-white/90">
+          Confirm করে এগিয়ে যান — <a className="font-semibold underline underline-offset-2">terms & conditions</a>
         </p>
+
         {false && senderNumber.length > 0 && !phoneValid && (
           <p className="mt-2 text-center text-xs text-yellow-100 font-semibold">সঠিক ১১-সংখ্যার নাম্বার দিন</p>
         )}
@@ -616,8 +622,8 @@ function StepWaiting({
 
       {/* colored body */}
       <div className="px-5 py-5 text-white" style={{ background: b.gradient }}>
-        {/* payment header — which method + compact amount pill */}
-        <div className="flex items-center justify-between gap-3">
+        {/* payment header — which method */}
+        <div className="flex items-center justify-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 shadow-md ring-1 ring-white/40">
             <span className="grid h-5 w-5 place-items-center rounded-full text-white text-[10px] font-black" style={{ background: b.gradient }}>
               {b.name[0]}
@@ -625,10 +631,6 @@ function StepWaiting({
             <span className="text-[13px] font-black uppercase tracking-wide text-slate-900">
               {b.name} — পেমেন্ট করুন
             </span>
-          </div>
-          <div className="inline-flex items-center gap-1 rounded-full bg-yellow-300 px-2.5 py-1 shadow ring-1 ring-yellow-400/60">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-700">Amount</span>
-            <span className="bn-display text-sm font-black text-slate-900 leading-none">৳{pkg.price}</span>
           </div>
         </div>
 
@@ -642,6 +644,18 @@ function StepWaiting({
           </div>
           <CopyPill value={activeNumber} />
         </div>
+
+        {/* amount pill — small, bottom-left under merchant number */}
+        <div className="mt-2 flex justify-start">
+          <div className="inline-flex items-center gap-2 rounded-xl bg-yellow-300 px-2.5 py-1.5 shadow ring-1 ring-yellow-400/60">
+            <div className="leading-tight">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-700">Amount</p>
+              <p className="bn-display text-base font-black text-slate-900 leading-none">৳{pkg.price}</p>
+            </div>
+            <CopyPill value={String(pkg.price)} className="!h-7 !w-7 !bg-white" />
+          </div>
+        </div>
+
 
 
         {/* instructions from database (step by step) */}
