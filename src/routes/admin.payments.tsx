@@ -91,8 +91,9 @@ function PaymentsPage() {
                     <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">টাইপ</span>
                     <select value={c.type} onChange={(e) => upd(m, { type: e.target.value as Cfg["type"] })}
                       className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm">
-                      <option value="personal">পার্সোনাল</option>
-                      <option value="merchant">মার্চেন্ট</option>
+                      <option value="personal">পার্সোনাল (Send Money)</option>
+                      <option value="merchant">মার্চেন্ট (Merchant)</option>
+                      <option value="payment">পেমেন্ট (Payment)</option>
                     </select>
                   </label>
                   <label className="block">
