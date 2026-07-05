@@ -10,7 +10,6 @@ import { usePaymentBranding, type PaymentBranding } from "@/hooks/use-payment-br
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { cn } from "@/lib/utils";
 import {
-  createPendingCheckoutOrder,
   submitCheckoutPayment,
 } from "@/lib/checkout.functions";
 
@@ -41,7 +40,6 @@ type PayAccounts = {
 function CheckoutPage() {
   const { pkg: pkgId } = useSearch({ from: "/_authenticated/checkout" });
   const navigate = useNavigate();
-  const createOrder = useServerFn(createPendingCheckoutOrder);
   const submitPayment = useServerFn(submitCheckoutPayment);
 
   const [pkg, setPkg] = useState<Pkg | null>(null);
@@ -188,20 +186,9 @@ function CheckoutPage() {
   };
 
   const handleConfirmNumber = async () => {
-    if (!pkg || !method || !phoneValid) return;
-    setCreating(true);
-    try {
-      // Warm the session in the background but never block the click on it.
-      void ensureLiveSession(4000);
-      const r = await retryAuthAction(() => createOrder({ data: { packageId: pkg.id, method, senderNumber: phoneNorm } }));
-      setOrderId(r.orderId);
-      setStep("waiting");
-    } catch (e) {
-      const raw = e instanceof Error ? e.message : String(e);
-      toast.error(mapCheckoutError(raw));
-    } finally {
-      setCreating(false);
-    }
+    if (!pkg || !method) return;
+    setOrderId((prev) => prev ?? `checkout-${pkg.id}-${method}-${Date.now()}`);
+    setStep("waiting");
   };
 
   const handleSubmitTrx = async () => {
@@ -517,7 +504,7 @@ function StepAccount({
         <p className="mt-3 text-center text-xs text-white/95">
           Confirm and proceed, <a className="font-semibold underline underline-offset-2">terms & conditions</a>
         </p>
-        {senderNumber.length > 0 && !phoneValid && (
+        {false && senderNumber.length > 0 && !phoneValid && (
           <p className="mt-2 text-center text-xs text-yellow-100 font-semibold">সঠিক ১১-সংখ্যার নাম্বার দিন</p>
         )}
       </div>
@@ -530,11 +517,11 @@ function StepAccount({
         >Cancel</button>
         <button
           onClick={onConfirm}
-          disabled={!phoneValid || creating}
-          style={{ background: phoneValid && !creating ? b.gradient : undefined }}
+          disabled={creating}
+          style={{ background: !creating ? b.gradient : undefined }}
           className={cn(
             "rounded-xl py-3 text-sm font-bold text-white shadow transition flex items-center justify-center gap-2",
-            (!phoneValid || creating) && "bg-slate-300 cursor-not-allowed",
+            creating && "bg-slate-300 cursor-not-allowed",
           )}
         >
           {creating ? <><Loader2 className="h-4 w-4 animate-spin" /> Please wait…</> : "Confirm"}
