@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, ShieldAlert, FileText, AlertTriangle, ScrollText, Scale, UserCheck, Wallet, Ban, RefreshCw, Mail } from "lucide-react";
+import { useState } from "react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
 export const Route = createFileRoute("/terms")({
