@@ -82,8 +82,8 @@ function PackageCard({ p, idx }: { p: Pkg; idx: number }) {
 
   return (
     <Link
-      to="/checkout"
-      search={{ pkg: p.id }}
+      to="/packages/$id"
+      params={{ id: p.id }}
       className={cn(
         "group relative flex flex-col overflow-hidden rounded-2xl p-3.5 sm:p-4 text-white shadow-lg transition-all duration-300",
         "bg-gradient-to-br", g.from, g.via, g.to,
