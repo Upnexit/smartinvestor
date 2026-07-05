@@ -688,6 +688,48 @@ function Dots() {
   );
 }
 
+function parseInstructions(
+  raw: string | undefined,
+  fallback: { amount: number; method: string },
+): string[] {
+  const text = (raw ?? "").trim();
+  if (text) {
+    const lines = text
+      .split(/\r?\n+/)
+      .map((l) => l.replace(/^\s*(?:[0-9]+[.\)]|[-•*])\s*/, "").trim())
+      .filter(Boolean);
+    if (lines.length > 0) return lines;
+  }
+  return [
+    "উপরের মার্চেন্ট অ্যাকাউন্ট নম্বর কপি করুন",
+    `${fallback.method} অ্যাপ থেকে "Send Money" সিলেক্ট করুন`,
+    `নম্বর পেস্ট করে ৳${fallback.amount} Send Money করুন`,
+    "Transaction ID কপি করে পরবর্তী ধাপে দিন",
+  ];
+}
+
+function highlightAmount(line: string, amount: number): React.ReactNode {
+  const patterns = [String(amount), `৳${amount}`, `${amount} BDT`, `${amount}BDT`, `${amount} টাকা`];
+  let matchIdx = -1;
+  let matched = "";
+  for (const p of patterns) {
+    const idx = line.indexOf(p);
+    if (idx !== -1 && (matchIdx === -1 || idx < matchIdx)) {
+      matchIdx = idx;
+      matched = p;
+    }
+  }
+  if (matchIdx === -1) return line;
+  return (
+    <>
+      {line.slice(0, matchIdx)}
+      <b className="rounded bg-yellow-300 px-1.5 py-0.5 text-slate-900 font-black">{matched}</b>
+      {line.slice(matchIdx + matched.length)}
+    </>
+  );
+}
+
+
 /* ============ Step 4: Submit Transaction ID ============ */
 function StepTrx({
   pkg, method, accounts, activeNumber, brandName, brandLogo, trxId, setTrxId, trxValid, submitting, invoiceShort, onCancel, onSubmit,
