@@ -6,6 +6,7 @@ import { AdminPageHeader, AdminCard, GradientButton, Shimmer } from "@/component
 import { supabase } from "@/integrations/supabase/client";
 import { saveSetting } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
+import { useAuthReady } from "@/hooks/use-auth-ready";
 
 export const Route = createFileRoute("/admin/settings")({
   head: () => ({ meta: [{ title: "সাইট সেটিংস — Admin" }] }),
@@ -27,13 +28,14 @@ const DEF: Site = {
 function SettingsPage() {
   const [s, setS] = useState<Site | null>(null);
   const [busy, setBusy] = useState(false);
+  const authReady = useAuthReady();
 
-  useEffect(() => { void (async () => {
+  useEffect(() => { if (!authReady) return; void (async () => {
     const { data } = await supabase.from("site_settings").select("key,value")
       .in("key", ["site"]);
     const v = (data?.[0]?.value ?? {}) as Partial<Site>;
     setS({ ...DEF, ...v });
-  })(); }, []);
+  })(); }, [authReady]);
 
   const upd = (p: Partial<Site>) => setS((x) => x ? { ...x, ...p } : x);
 
@@ -53,7 +55,7 @@ function SettingsPage() {
     upd(kind === "logo" ? { logo_url: data?.signedUrl ?? "" } : { favicon_url: data?.signedUrl ?? "" });
   };
 
-  if (!s) return <Shimmer className="h-64" />;
+  if (!authReady || !s) return <Shimmer className="h-64" />;
 
   return (
     <>

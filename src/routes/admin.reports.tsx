@@ -15,6 +15,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { cn } from "@/lib/utils";
+import { useAuthReady } from "@/hooks/use-auth-ready";
 
 export const Route = createFileRoute("/admin/reports")({
   head: () => ({ meta: [{ title: "রিপোর্ট ও অ্যানালিটিক্স — Admin" }] }),
@@ -59,6 +60,7 @@ const fmtKey = (s: string) => new Date(s).toISOString().slice(5, 10);
 /* ============== PAGE ============== */
 function ReportsPage() {
   const settings = useSiteSettings();
+  const authReady = useAuthReady();
   const [days, setDays] = useState(30);
   const [snap, setSnap] = useState<Snapshot | null>(null);
   const [series, setSeries] = useState<DayBucket[] | null>(null);
@@ -67,6 +69,7 @@ function ReportsPage() {
 
   /* ---------- Load all data ---------- */
   useEffect(() => {
+    if (!authReady) return;
     void (async () => {
       const since = new Date(Date.now() - days * 86400_000).toISOString();
       setSnap(null); setSeries(null);
@@ -166,10 +169,11 @@ function ReportsPage() {
       // unused helper variables silenced
       void pkgs;
     })();
-  }, [days]);
+  }, [days, authReady]);
 
   /* ---------- Leaderboards ---------- */
   useEffect(() => {
+    if (!authReady) return;
     void supabase.from("profiles").select("id,full_name,total_earned,balance")
       .order("total_earned", { ascending: false }).limit(10)
       .then(({ data }) => setLeaders((data ?? []) as Leader[]));
@@ -194,7 +198,7 @@ function ReportsPage() {
       })).sort((a, b) => b.earned - a.earned).slice(0, 10);
       setReferrers(merged);
     })();
-  }, []);
+  }, [authReady]);
 
   /* ---------- Derived: forecast (linear regression on revenue series) ---------- */
   const forecast = useMemo(() => {

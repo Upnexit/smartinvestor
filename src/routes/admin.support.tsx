@@ -5,6 +5,7 @@ import { MessagesSquare, Send, User as UserIcon, Loader2 } from "lucide-react";
 import { AdminPageHeader, AdminCard, EmptyState } from "@/components/admin/AdminUI";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useAuthReady } from "@/hooks/use-auth-ready";
 
 type Msg = { id: string; user_id: string; sender: "user" | "admin"; body: string; created_at: string };
 type Thread = { user_id: string; full_name: string | null; email: string | null; user_code: string | null; last: string; at: string; status?: string | null };
@@ -21,6 +22,7 @@ function SupportPage() {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const authReady = useAuthReady();
 
   const loadThreads = async () => {
     const { data: msgs } = await supabase.from("support_messages").select("user_id, body, created_at").order("created_at", { ascending: false }).limit(500);
@@ -39,15 +41,16 @@ function SupportPage() {
   };
 
   useEffect(() => {
+    if (!authReady) return;
     loadThreads();
     const ch = supabase.channel("admin-support-watch")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "support_messages" }, () => loadThreads())
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, []);
+  }, [authReady]);
 
   useEffect(() => {
-    if (!active) return;
+    if (!active || !authReady) return;
     supabase.from("support_messages").select("*").eq("user_id", active.user_id).order("created_at", { ascending: true }).limit(300)
       .then(({ data }) => setMessages((data as Msg[]) ?? []));
     const ch = supabase.channel(`admin-thread-${active.user_id}`)
@@ -56,7 +59,7 @@ function SupportPage() {
       })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [active]);
+  }, [active, authReady]);
 
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }); }, [messages]);
 
@@ -77,7 +80,7 @@ function SupportPage() {
 
       <div className="grid gap-3 lg:grid-cols-[320px_1fr]">
         <AdminCard accent="rose" className="p-2 h-[600px] overflow-y-auto">
-          {!threads ? <p className="p-4 text-sm text-slate-500">লোড হচ্ছে...</p> :
+          {!authReady || !threads ? <p className="p-4 text-sm text-slate-500">লোড হচ্ছে...</p> :
            threads.length === 0 ? <EmptyState Icon={MessagesSquare} title="কোনো বার্তা নেই" accent="rose" /> :
            <ul className="space-y-1">
             {threads.map((t) => (

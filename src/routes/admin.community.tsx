@@ -6,6 +6,7 @@ import { AdminPageHeader, AdminCard, GradientButton, SoftButton, EmptyState, Shi
 import { supabase } from "@/integrations/supabase/client";
 import { deleteMessage, banUser as banUserApi } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
+import { useAuthReady } from "@/hooks/use-auth-ready";
 
 export const Route = createFileRoute("/admin/community")({
   head: () => ({ meta: [{ title: "কমিউনিটি মডারেশন — Admin" }] }),
@@ -23,6 +24,7 @@ function CommunityPage() {
   const [reason, setReason] = useState("");
   const [hours, setHours] = useState(24);
   const [busy, setBusy] = useState<string | null>(null);
+  const authReady = useAuthReady();
 
   const refresh = () => supabase.from("community_messages")
     .select("id,user_id,content,created_at,profiles!community_messages_user_id_fkey(full_name)")
@@ -30,10 +32,11 @@ function CommunityPage() {
     .then(({ data }) => setMsgs((data ?? []) as unknown as Msg[]));
 
   useEffect(() => {
+    if (!authReady) return;
     refresh();
     const ch = supabase.channel("admin-cmty").on("postgres_changes", { event: "*", schema: "public", table: "community_messages" }, refresh).subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, []);
+  }, [authReady]);
 
   const handleDel = async (id: string) => {
     setBusy(id);
@@ -53,7 +56,7 @@ function CommunityPage() {
     <>
       <AdminPageHeader accent="purple" Icon={MessageSquare} title="কমিউনিটি চ্যাট মডারেশন"
         subtitle="মেসেজ ডিলিট ও ইউজার ব্যান করুন" />
-      {!msgs ? <Shimmer className="h-32" /> : msgs.length === 0 ? (
+      {!authReady || !msgs ? <Shimmer className="h-32" /> : msgs.length === 0 ? (
         <EmptyState Icon={MessageSquare} title="কোনো মেসেজ নেই" accent="purple" />
       ) : (
         <div className="space-y-2">
