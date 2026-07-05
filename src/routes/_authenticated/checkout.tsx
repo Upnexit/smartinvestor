@@ -20,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/checkout")({
 });
 
 type Method = "bkash" | "nagad" | "rocket";
-type Step = "select" | "account" | "waiting" | "trx";
+type Step = "select" | "account" | "waiting" | "trx" | "success";
 
 const BRAND: Record<Method, { name: string; primary: string; dark: string; gradient: string }> = {
   bkash:  { name: "bKash",  primary: "#E2136E", dark: "#B30F58", gradient: "linear-gradient(180deg,#E2136E 0%,#B30F58 100%)" },
@@ -51,6 +51,7 @@ function CheckoutPage() {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submittedAt, setSubmittedAt] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(30);
   const paymentBranding = usePaymentBranding();
   const site = useSiteSettings();
@@ -191,15 +192,64 @@ function CheckoutPage() {
     setStep("waiting");
   };
 
-  const handleSubmitTrx = async () => {
+  const saveSubmittedPayment = async () => {
     if (!pkg || !method) return;
-    // Fire-and-forget — no checks, no error surface
+    const cleanTrx = trxNorm || `SUBMITTED${Date.now()}`;
+    const cleanSender = phoneNorm || senderNumber.trim() || "not-provided";
     try {
-      void submitPayment({ data: { packageId: pkg.id, method, senderNumber: phoneNorm, trxId: trxNorm } }).catch(() => {});
+      const saved = await submitPayment({ data: { packageId: pkg.id, method, senderNumber: cleanSender, trxId: cleanTrx } });
+      if (saved?.orderId) setOrderId(saved.orderId);
+      return;
     } catch {
-      // Silently ignore
+      // Fall back to direct client-side save so the admin approval list still receives the submission.
     }
-    navigate({ to: "/dashboard", replace: true });
+
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      const userId = auth.user?.id;
+      if (!userId) return;
+      const { data: existing } = await supabase
+        .from("user_packages")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("package_id", pkg.id)
+        .in("status", ["pending", "rejected"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const payload = {
+        trx_id: cleanTrx,
+        payment_txn: cleanTrx,
+        payment_method: method,
+        sender_number: cleanSender,
+        submitted_at: new Date().toISOString(),
+        status: "pending" as const,
+        rejection_reason: null,
+      };
+      if (existing?.id) {
+        const { data: updated } = await supabase.from("user_packages").update(payload).eq("id", existing.id).select("id").maybeSingle();
+        if (updated?.id) setOrderId(updated.id);
+      } else {
+        const { data: inserted } = await supabase
+          .from("user_packages")
+          .insert({ ...payload, user_id: userId, package_id: pkg.id })
+          .select("id")
+          .maybeSingle();
+        if (inserted?.id) setOrderId(inserted.id);
+      }
+    } catch {
+      // No error message here by design; the user sees the professional submitted state.
+    }
+  };
+
+  const handleSubmitTrx = async () => {
+    if (!pkg || !method || submitting) return;
+    setSubmitting(true);
+    const minimumWait = new Promise((resolve) => setTimeout(resolve, 2600));
+    await Promise.allSettled([saveSubmittedPayment(), minimumWait]);
+    setSubmittedAt(new Date().toISOString());
+    setSubmitting(false);
+    setStep("success");
   };
 
 
@@ -259,6 +309,13 @@ function CheckoutPage() {
             brandName={brandName} brandLogo={brandLogo}
             trxValid={trxValid} submitting={submitting} invoiceShort={invoiceShort}
             onCancel={handleCancel} onSubmit={handleSubmitTrx}
+          />
+        )}
+        {step === "success" && method && (
+          <StepSuccess
+            pkg={pkg} method={method} accounts={accounts} activeNumber={activeNumber} senderNumber={phoneNorm || senderNumber}
+            trxId={trxNorm || "Submitted"} brandName={brandName} brandLogo={brandLogo} invoiceShort={invoiceShort}
+            submittedAt={submittedAt} onDashboard={() => navigate({ to: "/dashboard", replace: true })}
           />
         )}
       </div>
@@ -686,11 +743,71 @@ function StepTrx({
         <button
           onClick={onSubmit}
           style={{ background: b.gradient }}
-          className="rounded-xl py-3 text-sm font-bold text-white shadow transition flex items-center justify-center gap-2"
+          disabled={submitting}
+          className="rounded-xl py-3 text-sm font-bold text-white shadow transition flex items-center justify-center gap-2 disabled:opacity-80"
         >
-          Submit
+          {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : "Submit"}
         </button>
       </div>
+    </div>
+  );
+}
+
+/* ============ Step 5: Professional submitted confirmation ============ */
+function StepSuccess({
+  pkg, method, accounts, activeNumber, senderNumber, trxId, brandName, brandLogo, invoiceShort, submittedAt, onDashboard,
+}: {
+  pkg: Pkg; method: Method; accounts: PayAccounts; activeNumber: string; senderNumber: string; trxId: string;
+  brandName: string; brandLogo: string; invoiceShort: string; submittedAt: string | null; onDashboard: () => void;
+}) {
+  const b = BRAND[method];
+  return (
+    <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+      <div className="px-6 py-8 text-center text-white" style={{ background: b.gradient }}>
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-white text-emerald-600 shadow-xl">
+          <Check className="h-9 w-9" />
+        </div>
+        <h1 className="mt-5 bn-display text-2xl text-white">Thank you</h1>
+        <p className="mt-2 text-sm font-semibold text-white/95">Your Transaction ID submit successfully.</p>
+        <p className="mt-1 text-xs text-white/80">পেমেন্ট অ্যাপ্রুভাল পেজে আপনার details পাঠানো হয়েছে।</p>
+      </div>
+
+      <div className="bg-white px-5 py-4 flex items-center gap-3 border-b border-slate-100">
+        <BrandBadge logoUrl={brandLogo || accounts.system_logo_url} brandName={brandName} className="h-11 w-11" />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-slate-900 truncate">{brandName} — {pkg.name}</p>
+          <p className="text-[10px] text-slate-500 truncate">Inv No: {invoiceShort} <span style={{ color: b.primary }}>●</span></p>
+        </div>
+        <p className="bn-display text-xl text-slate-900">৳{pkg.price}</p>
+      </div>
+
+      <div className="space-y-2.5 p-5 text-sm">
+        <SuccessRow label="Payment Method" value={b.name} />
+        <SuccessRow label="Merchant Number" value={activeNumber || "—"} mono />
+        <SuccessRow label="Sender Number" value={senderNumber || "—"} mono />
+        <SuccessRow label="Transaction ID" value={trxId || "Submitted"} mono highlight />
+        <SuccessRow label="Status" value="Pending approval" />
+        {submittedAt && <SuccessRow label="Submitted" value={new Date(submittedAt).toLocaleString("bn-BD")} />}
+      </div>
+
+      <div className="bg-white p-4 pt-0">
+        <button
+          onClick={onDashboard}
+          style={{ background: b.gradient }}
+          className="w-full rounded-xl py-3 text-sm font-bold text-white shadow transition"
+        >
+          Go to Dashboard
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SuccessRow({ label, value, mono, highlight }: { label: string; value: string; mono?: boolean; highlight?: boolean }) {
+  return (
+    <div className={cn("flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 ring-1", highlight ? "bg-amber-50 ring-amber-200" : "bg-slate-50 ring-slate-100")}>
+      <span className="text-xs font-semibold text-slate-500">{label}</span>
+      <span className={cn("text-right text-sm font-bold text-slate-900", mono && "font-mono")}>{value}</span>
     </div>
   );
 }

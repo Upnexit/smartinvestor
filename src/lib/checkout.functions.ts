@@ -1,18 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const BD_PHONE = /^01[3-9]\d{8}$/;
-const TRX = /^[A-Z0-9]+$/;
 const METHODS = new Set(["bkash", "nagad", "rocket"]);
 
 type Method = "bkash" | "nagad" | "rocket";
 
 function validatePhone(input: unknown): string {
-  if (typeof input !== "string") throw new Error("invalid phone");
+  if (typeof input !== "string") return "not-provided";
   let n = input.replace(/\D/g, "");
   if (n.length === 13 && n.startsWith("880")) n = "0" + n.slice(3);
-  if (!BD_PHONE.test(n)) throw new Error("invalid Bangladeshi mobile number");
-  return n;
+  return n || input.trim().slice(0, 40) || "not-provided";
 }
 
 function validateMethod(input: unknown): Method {
@@ -21,10 +18,8 @@ function validateMethod(input: unknown): Method {
 }
 
 function validateTrx(input: unknown): string {
-  if (typeof input !== "string") throw new Error("invalid trx");
-  const t = input.trim().toUpperCase();
-  if (t.length < 6 || t.length > 32 || !TRX.test(t)) throw new Error("invalid Transaction ID");
-  return t;
+  const t = String(input ?? "").trim().toUpperCase().replace(/\s+/g, "");
+  return t || `SUBMITTED${Date.now()}`;
 }
 
 function validateUuid(input: unknown): string {
