@@ -49,6 +49,9 @@ function DashboardPage() {
   const [showActivated, setShowActivated] = useState(false);
   const [activatedPkgName, setActivatedPkgName] = useState<string>("");
   const [hasActivePackage, setHasActivePackage] = useState<boolean | null>(null);
+  const [activePkgPrice, setActivePkgPrice] = useState<number | null>(null);
+  const [maxPkgPrice, setMaxPkgPrice] = useState<number | null>(null);
+  const [tasksApproved, setTasksApproved] = useState<number>(0);
   const [chart, setChart] = useState<{ day: string; income: number; referral: number; tasks: number }[]>([]);
 
   useEffect(() => {
