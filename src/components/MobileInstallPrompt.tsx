@@ -20,6 +20,9 @@ function isAlreadyInstalled() {
   return standalone || iosStandalone;
 }
 
+// Routes where the install modal must NOT auto-open (would block CTAs)
+const BLOCKED_PATHS = ["/our-packages", "/packages", "/checkout", "/auth", "/register", "/install"];
+
 export function MobileInstallPrompt() {
   const [open, setOpen] = useState(false);
 
@@ -27,13 +30,17 @@ export function MobileInstallPrompt() {
     if (typeof window === "undefined") return;
     if (isAlreadyInstalled()) return;
     if (!isMobileViewport()) return;
+    // Do not interrupt the purchase / auth flow
+    const path = window.location.pathname;
+    if (BLOCKED_PATHS.some((p) => path === p || path.startsWith(p + "/"))) return;
     try {
       if (window.localStorage.getItem(STORAGE_KEY)) return;
     } catch { /* ignore */ }
 
-    const t = window.setTimeout(() => setOpen(true), 900);
+    const t = window.setTimeout(() => setOpen(true), 2500);
     return () => window.clearTimeout(t);
   }, []);
+
 
   const dismiss = () => {
     setOpen(false);
