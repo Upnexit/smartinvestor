@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Download, Smartphone, Wifi, Zap, CheckCircle2, ArrowLeft, Share2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Download, Smartphone, Wifi, Zap, CheckCircle2, ArrowLeft, Share2, Loader2 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+
 
 export const Route = createFileRoute("/install")({
   ssr: false,
@@ -38,6 +39,10 @@ function InstallPage() {
   const [platform, setPlatform] = useState<"android" | "ios" | "desktop">("desktop");
   const [busy, setBusy] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
+  const [installing, setInstalling] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [statusText, setStatusText] = useState("");
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
     setPlatform(detectPlatform());
@@ -51,24 +56,77 @@ function InstallPage() {
       e.preventDefault();
       setDeferred(e as BIPEvent);
     };
-    const onInstalled = () => setInstalled(true);
+    const onInstalled = () => {
+      // Real install confirmed by the OS.
+      timersRef.current.forEach(clearTimeout);
+      timersRef.current = [];
+      setProgress(100);
+      setStatusText("অ্যাপ সফলভাবে ইনস্টল হয়েছে!");
+      setTimeout(() => {
+        setInstalling(false);
+        setInstalled(true);
+      }, 600);
+    };
     window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
     return () => {
       window.removeEventListener("beforeinstallprompt", onPrompt);
       window.removeEventListener("appinstalled", onInstalled);
+      timersRef.current.forEach(clearTimeout);
     };
   }, []);
 
+  const runInstallingAnimation = (onComplete?: () => void) => {
+    setInstalling(true);
+    setProgress(0);
+    const steps: Array<{ p: number; t: string; delay: number }> = [
+      { p: 15, t: "ইনস্টলেশন প্রস্তুত করা হচ্ছে…", delay: 300 },
+      { p: 40, t: "অ্যাপ ফাইল ডাউনলোড হচ্ছে…", delay: 900 },
+      { p: 70, t: "হোম স্ক্রিনে যোগ করা হচ্ছে…", delay: 1600 },
+      { p: 92, t: "ফাইনালাইজিং…", delay: 2300 },
+    ];
+    steps.forEach((s) => {
+      const id = setTimeout(() => {
+        setProgress(s.p);
+        setStatusText(s.t);
+      }, s.delay);
+      timersRef.current.push(id);
+    });
+    if (onComplete) {
+      const id = setTimeout(onComplete, 2800);
+      timersRef.current.push(id);
+    }
+  };
+
   const handleInstall = async () => {
-    // If native install prompt is available, fire it immediately.
+    // Native install prompt path (Android Chrome / desktop Chrome/Edge).
     if (deferred) {
       setBusy(true);
+      runInstallingAnimation();
       try {
         await deferred.prompt();
         const choice = await deferred.userChoice;
-        if (choice.outcome === "accepted") setInstalled(true);
         setDeferred(null);
+        if (choice.outcome === "accepted") {
+          // Wait for the 'appinstalled' event to flip UI to success.
+          // Fallback: if it doesn't fire within 6s, show success anyway.
+          const fallback = setTimeout(() => {
+            setProgress(100);
+            setStatusText("অ্যাপ সফলভাবে ইনস্টল হয়েছে!");
+            setTimeout(() => {
+              setInstalling(false);
+              setInstalled(true);
+            }, 500);
+          }, 6000);
+          timersRef.current.push(fallback);
+        } else {
+          // User dismissed the OS prompt — cancel animation.
+          timersRef.current.forEach(clearTimeout);
+          timersRef.current = [];
+          setInstalling(false);
+          setProgress(0);
+          setStatusText("");
+        }
       } finally {
         setBusy(false);
       }
@@ -80,6 +138,7 @@ function InstallPage() {
       document.getElementById("install-steps")?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 50);
   };
+
 
 
   return (
