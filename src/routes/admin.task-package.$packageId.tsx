@@ -61,7 +61,7 @@ function PackageTasksPage() {
 
   const daily = pkg?.daily_tasks ?? 0;
   const perTaskReward = useMemo(() => {
-    const n = Math.max(1, Math.min(50, count));
+    const n = Math.max(1, Math.min(200, count));
     if (totalAmount > 0) return Math.round((totalAmount / n) * 100) / 100;
     if (!pkg || !daily) return 0;
     return Math.round(((pkg.daily_income ?? 0) / daily) * 100) / 100;
@@ -72,11 +72,21 @@ function PackageTasksPage() {
 
   const runGenerate = async () => {
     if (!pkg) return;
-    const n = Math.max(1, Math.min(50, count));
+    const n = Math.max(1, Math.min(200, count));
     setGenBusy(true);
     const tId = toast.loading(`AI ${n}টি Facebook link তৈরি করছে…`);
     try {
-      const res = await genFn({ data: { count: n, actions: selectedActions.length ? selectedActions : ["like"] } });
+      // Collect existing URLs for this package (any date) so AI never repeats them.
+      const { data: existing } = await supabase.from("link_tasks")
+        .select("link_url").eq("required_package_id", packageId).limit(2000);
+      const existingUrls = ((existing ?? []) as { link_url: string }[])
+        .map((r) => r.link_url).filter(Boolean);
+
+      const res = await genFn({ data: {
+        count: n,
+        actions: selectedActions.length ? selectedActions : ["like"],
+        existingUrls,
+      } });
       const rows = res.tasks.map((g) => ({
         title: g.title,
         link_url: g.url,
@@ -98,6 +108,7 @@ function PackageTasksPage() {
       toast.error(e instanceof Error ? e.message : "ব্যর্থ", { id: tId });
     } finally { setGenBusy(false); }
   };
+
 
   const activateBatch = async () => {
     if (!tasks?.length) return;
@@ -192,7 +203,7 @@ function PackageTasksPage() {
         <div className="flex flex-wrap items-end gap-3">
           <div>
             <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">কতটি task</label>
-            <input type="number" min={1} max={50} value={count} onChange={(e) => setCount(Number(e.target.value))}
+            <input type="number" min={1} max={200} value={count} onChange={(e) => setCount(Number(e.target.value))}
               className="w-20 rounded-lg border border-fuchsia-200 bg-white px-2 py-1.5 text-sm outline-none focus:border-fuchsia-400" />
           </div>
           <div>
@@ -227,8 +238,9 @@ function PackageTasksPage() {
           </GradientButton>
         </div>
         <p className="mt-2 text-[11px] text-slate-500">
-          শুধু <b>verified (blue-tick) + 1M+ follower</b> Facebook page থেকে AI random link তৈরি করে <b>Draft</b> হিসাবে যোগ করবে।
-          মোট Amount দিলে সেটি সমান ভাগে প্রতি task-এ ভাগ হয়ে যাবে। লিংক click করে verify করুন → সবুজ tick দেখাবে → Activate।
+          শুধু <b>verified (blue-tick) + 1M+ follower</b> Facebook page থেকে AI random link তৈরি করে <b>Draft</b> হিসাবে যোগ করবে (সর্বোচ্চ ২০০)।
+          বেশিরভাগ US verified account, বাকিটা BD verified। <b>একই link কখনো repeat হবে না</b> — আগের সব link exclude করা থাকে।
+          মোট Amount দিলে সেটি সমান ভাগে প্রতি task-এ ভাগ হয়ে যাবে। লিংক click করে verify → সবুজ tick → Activate।
         </p>
       </AdminCard>
 
