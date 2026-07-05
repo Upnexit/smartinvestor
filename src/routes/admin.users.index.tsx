@@ -25,7 +25,10 @@ type User = {
 };
 
 export const Route = createFileRoute("/admin/users/")({
-  validateSearch: (s: Record<string, unknown>): Search => ({ q: typeof s.q === "string" ? s.q : undefined }),
+  validateSearch: (s: Record<string, unknown>): Search => ({
+    q: typeof s.q === "string" ? s.q : undefined,
+    filter: typeof s.filter === "string" ? s.filter : undefined,
+  }),
   head: () => ({ meta: [{ title: "ইউজার — Smart Investor Admin" }] }),
   component: UsersPage,
 });
