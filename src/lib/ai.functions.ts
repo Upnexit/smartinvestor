@@ -194,6 +194,59 @@ Write clear Bengali instructions telling the user how to send money to this ${mB
     return { instruction: localInstruction(method, type, number, agent_number), source: "local" as const };
   });
 
+// ============ Generate detailed task instruction for admin ============
+export const generateTaskDescription = createServerFn({ method: "POST" })
+  .validator((d: { title: string; category?: string; action_type?: string; hint?: string; url?: string }) => ({
+    title: String(d?.title ?? "").slice(0, 200),
+    category: String(d?.category ?? "").slice(0, 40),
+    action_type: String(d?.action_type ?? "").slice(0, 20),
+    hint: String(d?.hint ?? "").slice(0, 500),
+    url: String(d?.url ?? "").slice(0, 400),
+  }))
+  .handler(async ({ data }) => {
+    const { title, category, action_type, hint, url } = data;
+    const system = `You write clear, step-by-step Bengali task instructions for a Bangladesh online-earning micro-task platform.
+- Respond ONLY with the instruction body (6-9 short bullet lines starting with "•").
+- Simple বাংলা, friendly tone. No preface, no markdown headings, no code fences.
+- Include: what to click, how to complete (like/comment/share/view), what proof/screenshot to keep, and a warning that fake work will be rejected.`;
+    const user = `Task title: ${title}
+Platform/category: ${category || "N/A"}
+Action type: ${action_type || "N/A"}
+Task URL: ${url || "N/A"}
+Admin's short hint: ${hint || "(none)"}
+
+Write detailed step-by-step Bengali instructions for the user to complete this task correctly.`;
+
+    const geminiKey = process.env.GEMINI_API_KEY;
+    const lovableKey = process.env.LOVABLE_API_KEY;
+    if (lovableKey) {
+      try {
+        const out = await callLovableRaw(system, user, lovableKey);
+        if (out) return { description: out, source: "lovable" as const };
+      } catch (e) { console.warn("gen task lovable:", (e as Error).message); }
+    }
+    if (geminiKey) {
+      try {
+        const out = await callGeminiRaw(system, user, geminiKey);
+        if (out) return { description: out, source: "gemini" as const };
+      } catch (e) { console.warn("gen task gemini:", (e as Error).message); }
+    }
+    // Local fallback
+    const lines = [
+      `• উপরের লিংকে ক্লিক করে ${category || "প্ল্যাটফর্ম"}-এ প্রবেশ করুন।`,
+      `• প্রয়োজন হলে নিজের অ্যাকাউন্টে লগইন করুন।`,
+      action_type === "comment" ? `• পোস্টে একটি অর্থপূর্ণ কমেন্ট করুন (স্প্যাম নয়)।`
+        : action_type === "share" ? `• পোস্টটি নিজের প্রোফাইলে/টাইমলাইনে শেয়ার করুন।`
+        : action_type === "view" ? `• সম্পূর্ণ ভিডিও/পোস্টটি শেষ পর্যন্ত দেখুন।`
+        : `• পোস্টে Like/Follow বাটনে ক্লিক করুন।`,
+      hint ? `• অতিরিক্ত নির্দেশনা: ${hint}` : `• কাজ শেষে অ্যাপে ফিরে আসুন।`,
+      `• কাজের একটি স্ক্রিনশট প্রমাণস্বরূপ সংরক্ষণ করুন।`,
+      `• "Submit" বাটনে ক্লিক করে টাস্কটি জমা দিন।`,
+      `• ভুয়া/অসম্পূর্ণ কাজ রিজেক্ট হবে — সাবধানে সম্পন্ন করুন।`,
+    ];
+    return { description: lines.join("\n"), source: "local" as const };
+  });
+
 function buildLocalSmartReply(messages: Msg[], degraded: boolean): string {
   const last = [...messages].reverse().find((m) => m.role === "user")?.content.toLowerCase() ?? "";
   const note = degraded ? "\n\n(লাইভ AI সাময়িকভাবে ব্যস্ত, তাই Smart Investor quick assistant থেকে উত্তর দিচ্ছি।)" : "";
