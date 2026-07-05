@@ -406,17 +406,21 @@ function TaskDetailModal({
             ))}
           </ol>
 
-          {/* Open link button — big */}
-          <button
+          {/* Open link — real <a> tag so browsers never block on first click */}
+          <a
+            href={task.link_url}
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={onOpenLink}
+            onAuxClick={onOpenLink}
             className={cn(
-              "mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-br px-5 py-4 text-base font-bold text-white shadow-lg transition hover:scale-[1.01]",
+              "mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-br px-5 py-4 text-base font-bold text-white shadow-lg transition hover:scale-[1.01] active:scale-[0.99]",
               meta.from, meta.to,
             )}
           >
             <ExternalLink className="h-5 w-5" />
             {linkOpened ? "আবার লিংক খুলুন" : "লিংকে যান ও কাজ শুরু করুন"}
-          </button>
+          </a>
 
           {linkOpened && (
             <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
