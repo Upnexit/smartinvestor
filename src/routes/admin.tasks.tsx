@@ -65,6 +65,8 @@ function TasksPage() {
   const [del, setDel] = useState<Task | null>(null);
   const [busy, setBusy] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"all" | "active" | "inactive" | "draft" | "today">("all");
   const genDesc = useServerFn(generateTaskDescription);
 
   const refresh = async () => {
