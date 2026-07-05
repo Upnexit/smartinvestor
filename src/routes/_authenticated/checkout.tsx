@@ -622,8 +622,8 @@ function StepWaiting({
 
       {/* colored body */}
       <div className="px-5 py-5 text-white" style={{ background: b.gradient }}>
-        {/* payment header — which method + compact amount pill */}
-        <div className="flex items-center justify-between gap-3">
+        {/* payment header — which method */}
+        <div className="flex items-center justify-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 shadow-md ring-1 ring-white/40">
             <span className="grid h-5 w-5 place-items-center rounded-full text-white text-[10px] font-black" style={{ background: b.gradient }}>
               {b.name[0]}
@@ -631,10 +631,6 @@ function StepWaiting({
             <span className="text-[13px] font-black uppercase tracking-wide text-slate-900">
               {b.name} — পেমেন্ট করুন
             </span>
-          </div>
-          <div className="inline-flex items-center gap-1 rounded-full bg-yellow-300 px-2.5 py-1 shadow ring-1 ring-yellow-400/60">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-700">Amount</span>
-            <span className="bn-display text-sm font-black text-slate-900 leading-none">৳{pkg.price}</span>
           </div>
         </div>
 
@@ -648,6 +644,18 @@ function StepWaiting({
           </div>
           <CopyPill value={activeNumber} />
         </div>
+
+        {/* amount pill — small, bottom-left under merchant number */}
+        <div className="mt-2 flex justify-start">
+          <div className="inline-flex items-center gap-2 rounded-xl bg-yellow-300 px-2.5 py-1.5 shadow ring-1 ring-yellow-400/60">
+            <div className="leading-tight">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-slate-700">Amount</p>
+              <p className="bn-display text-base font-black text-slate-900 leading-none">৳{pkg.price}</p>
+            </div>
+            <CopyPill value={String(pkg.price)} className="!h-7 !w-7 !bg-white" />
+          </div>
+        </div>
+
 
 
         {/* instructions from database (step by step) */}
