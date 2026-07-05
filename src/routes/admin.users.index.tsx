@@ -92,14 +92,14 @@ function UsersPage() {
   useEffect(() => {
     const t = setTimeout(() => {
       const next = query.trim();
-      if ((q ?? "") !== next) navigate({ search: (prev) => ({ ...prev, q: next || undefined }) });
+      if ((q ?? "") !== next) navigate({ search: (prev: Search) => ({ ...prev, q: next || undefined }) });
     }, 300);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
   const setFilter = (f: "all" | "active" | "inactive" | "suspended") => {
-    navigate({ search: (prev) => ({ ...prev, filter: f === "all" ? undefined : f }) });
+    navigate({ search: (prev: Search) => ({ ...prev, filter: f === "all" ? undefined : f }) });
   };
 
 
