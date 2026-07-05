@@ -44,8 +44,7 @@ function ApprovalsPage() {
     .then(({data, error}) => {
       if (error) throw error;
       setRows((data ?? []) as unknown as Row[]);
-    })
-    .catch((e) => { setRows([]); toast.error(e instanceof Error ? e.message : "লোড ব্যর্থ"); });
+    }, (e: unknown) => { setRows([]); toast.error(e instanceof Error ? e.message : "লোড ব্যর্থ"); });
   const adminReady = useAdminAutoRefresh(refresh);
   useEffect(() => {
     if (!adminReady) return;

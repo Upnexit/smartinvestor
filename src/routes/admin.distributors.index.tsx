@@ -116,8 +116,7 @@ function AdminDistributorsPage() {
       .then(({ data, error }) => {
         if (error) throw error;
         setApps((data ?? []) as AppRow[]);
-      })
-      .catch(() => setApps([]));
+      }, () => setApps([]));
   };
 
   const adminReady = useAdminAutoRefresh(refresh);
