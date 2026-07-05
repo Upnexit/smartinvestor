@@ -47,9 +47,26 @@ function PackageDetailPage() {
 
   return (
     <div className="space-y-5 pb-8">
-      <Link to="/packages" className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-slate-900">
-        <ArrowLeft className="h-4 w-4" /> সব প্যাকেজ
-      </Link>
+      {/* Smart Investor brand header */}
+      <div className="flex items-center justify-between rounded-2xl bg-white/80 ring-1 ring-amber-200 px-4 py-2.5 backdrop-blur">
+        <div className="flex items-center gap-2.5">
+          {site.logo_url ? (
+            <img src={site.logo_url} alt={site.site_name} className="h-9 w-9 rounded-xl object-cover ring-1 ring-amber-200" />
+          ) : (
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-400 to-rose-500 text-white shadow-md">
+              <Sparkles className="h-5 w-5" />
+            </div>
+          )}
+          <div className="leading-tight">
+            <p className="bn-display text-sm text-slate-900">{site.site_name || "Smart Investor"}</p>
+            {site.tagline && <p className="text-[10px] text-slate-500">{site.tagline}</p>}
+          </div>
+        </div>
+        <Link to="/packages" className="inline-flex items-center gap-1 text-xs text-slate-600 hover:text-slate-900">
+          <ArrowLeft className="h-3.5 w-3.5" /> সব প্যাকেজ
+        </Link>
+      </div>
+
 
       <header className={cn(
         "relative overflow-hidden rounded-3xl ring-1 shadow-2xl text-white",
