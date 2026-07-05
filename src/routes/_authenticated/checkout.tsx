@@ -107,14 +107,31 @@ function CheckoutPage() {
 
   const availableMethods = (["bkash", "nagad", "rocket"] as Method[]).filter((m) => accounts[m]);
 
+  const ensureLiveSession = async (): Promise<boolean> => {
+    // Fast path — session already in memory
+    const { data: s1 } = await supabase.auth.getSession();
+    if (s1.session?.access_token) return true;
+    // Try a refresh (handles near-expiry / tab-idle cases)
+    try {
+      const { data: r } = await supabase.auth.refreshSession();
+      if (r.session?.access_token) return true;
+    } catch { /* fall through */ }
+    // Short wait for INITIAL_SESSION hydration (hard-refresh race)
+    const token = await new Promise<string | null>((resolve) => {
+      let done = false;
+      const finish = (t: string | null) => { if (done) return; done = true; try { sub.data.subscription.unsubscribe(); } catch { /* noop */ } clearTimeout(timer); resolve(t); };
+      const sub = supabase.auth.onAuthStateChange((_e, sess) => { if (sess?.access_token) finish(sess.access_token); });
+      const timer = setTimeout(() => finish(null), 1500);
+    });
+    return !!token;
+  };
+
   const handleConfirmNumber = async () => {
     if (!pkg || !method || !phoneValid) return;
     setCreating(true);
     try {
-      // Proactively ensure a live session — the confirm step is where users
-      // most often hit expired-token errors.
-      const { data: sess } = await supabase.auth.getSession();
-      if (!sess.session?.access_token) {
+      const alive = await ensureLiveSession();
+      if (!alive) {
         toast.error("সেশন মেয়াদ শেষ — আবার লগইন করুন");
         navigate({ to: "/auth", search: { redirect: `/checkout?pkg=${pkg.id}` } });
         return;
@@ -126,8 +143,17 @@ function CheckoutPage() {
       const raw = e instanceof Error ? e.message : String(e);
       const msg = mapCheckoutError(raw);
       if (/সেশন|লগইন/.test(msg) && pkg) {
-        toast.error(msg);
-        navigate({ to: "/auth", search: { redirect: `/checkout?pkg=${pkg.id}` } });
+        // one silent retry after refresh before bouncing the user
+        try {
+          await supabase.auth.refreshSession();
+          const r = await createOrder({ data: { packageId: pkg.id, method, senderNumber: phoneNorm } });
+          setOrderId(r.orderId);
+          setStep("waiting");
+          return;
+        } catch {
+          toast.error(msg);
+          navigate({ to: "/auth", search: { redirect: `/checkout?pkg=${pkg.id}` } });
+        }
       } else {
         toast.error(msg);
       }
@@ -141,8 +167,8 @@ function CheckoutPage() {
     setSubmitting(true);
     const tId = toast.loading("পাঠানো হচ্ছে…");
     try {
-      const { data: sess } = await supabase.auth.getSession();
-      if (!sess.session?.access_token) {
+      const alive = await ensureLiveSession();
+      if (!alive) {
         toast.error("সেশন মেয়াদ শেষ — আবার লগইন করুন", { id: tId });
         navigate({ to: "/auth", search: { redirect: `/checkout?pkg=${pkg.id}` } });
         return;
@@ -152,10 +178,21 @@ function CheckoutPage() {
       navigate({ to: "/dashboard", replace: true });
     } catch (e) {
       const raw = e instanceof Error ? e.message : String(e);
-      toast.error(mapCheckoutError(raw), { id: tId });
+      const msg = mapCheckoutError(raw);
+      if (/সেশন|লগইন/.test(msg) && pkg) {
+        try {
+          await supabase.auth.refreshSession();
+          await submitPayment({ data: { packageId: pkg.id, method, senderNumber: phoneNorm, trxId: trxNorm } });
+          toast.success("✓ Approval request গ্রহণ করা হয়েছে — অ্যাডমিন যাচাই করবেন", { id: tId });
+          navigate({ to: "/dashboard", replace: true });
+          return;
+        } catch { /* fall through to toast */ }
+      }
+      toast.error(msg, { id: tId });
       setSubmitting(false);
     }
   };
+
 
 
   const handleCancel = async () => {
