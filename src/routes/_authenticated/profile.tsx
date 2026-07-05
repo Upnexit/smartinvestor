@@ -185,12 +185,21 @@ function ProfilePage() {
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="bn-display text-xl truncate">{profile.full_name || "—"}</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="bn-display text-xl truncate">{profile.full_name || "—"}</p>
+              {activePkg && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white shadow ring-1 ring-white/40">
+                  <Crown className="h-3 w-3" />
+                  {activePkg.name}
+                </span>
+              )}
+            </div>
             <p className="text-xs text-white/90 truncate">{profile.email}</p>
             <button onClick={() => copy(profile.user_code, "uc")} className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-white/20 px-2 py-0.5 text-[11px] font-mono">
               {profile.user_code} {copied === "uc" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
             </button>
           </div>
+
         </div>
 
         {/* Completion progress strip */}
