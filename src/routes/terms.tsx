@@ -21,6 +21,7 @@ function TermsPage() {
   const { site_name } = useSiteSettings();
   const brand = site_name || "Smart Investor";
   const updated = "৫ জুলাই, ২০২৬";
+  const [lang, setLang] = useState<"en" | "bn">("en");
 
   return (
     <div className="bg-app min-h-screen">
