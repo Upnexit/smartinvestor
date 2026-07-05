@@ -198,7 +198,7 @@ function RegisterPage() {
                 </div>
                 <span className="bn-display text-lg text-slate-900">{site.site_name}</span>
               </Link>
-              <Link to="/auth" search={{ mode: "login" }} className="text-sm font-medium text-amber-700">লগইন →</Link>
+              <Link to="/auth" search={{ mode: "login", ...(search.redirect ? { redirect: search.redirect } : {}) }} className="text-sm font-medium text-amber-700">লগইন →</Link>
             </div>
 
             <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
