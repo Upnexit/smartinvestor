@@ -60,11 +60,25 @@ export async function listUsers(q: string) {
   const { data, error } = await req;
   if (error) throw new Error(error.message);
   const rows = (data ?? []) as Record<string, unknown>[];
-  return rows.map((r) => ({ ...r, is_distributor: false }));
+  // Fetch active packages to mark users
+  const { data: activePkgs } = await supabase
+    .from("user_packages")
+    .select("user_id, packages(name)")
+    .eq("status", "active");
+  const activeMap = new Map<string, string>();
+  ((activePkgs ?? []) as Array<{ user_id: string; packages: { name: string } | null }>).forEach((p) => {
+    if (p.user_id && !activeMap.has(p.user_id)) activeMap.set(p.user_id, p.packages?.name ?? "Package");
+  });
+  return rows.map((r) => ({
+    ...r,
+    is_distributor: false,
+    has_active_package: activeMap.has(r.id as string),
+    active_package_name: activeMap.get(r.id as string) ?? null,
+  }));
 }
 
 export async function getUserBundle(userId: string) {
-  const [profile, packages, withdrawals, tasks, refs, referredUsers, totalRefCount, totalRefEarned] = await Promise.all([
+  const [profile, packages, withdrawals, tasks, refs, referredUsers, totalRefCount, totalRefEarned, activity] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
     supabase.from("user_packages").select("*, packages(name,price)").eq("user_id", userId).order("created_at", { ascending: false }),
     supabase.from("withdrawals").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
@@ -73,6 +87,7 @@ export async function getUserBundle(userId: string) {
     supabase.from("profiles").select("id,full_name,email,phone,user_code,created_at,total_earned").eq("referred_by", userId).order("created_at", { ascending: false }).limit(200),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("referred_by", userId),
     supabase.from("referral_earnings").select("amount").eq("referrer_id", userId),
+    supabase.from("activity_logs").select("id,event_type,meta,ip,user_agent,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(100),
   ]);
   const earnedSum = (totalRefEarned.data ?? []).reduce((s: number, r: { amount: number | string | null }) => s + Number(r.amount || 0), 0);
   return {
@@ -84,6 +99,7 @@ export async function getUserBundle(userId: string) {
     referredUsers: referredUsers.data ?? [],
     referralCount: totalRefCount.count ?? 0,
     referralEarnedTotal: earnedSum,
+    activity: activity.data ?? [],
   };
 }
 

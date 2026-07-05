@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, User as UserIcon, Wallet, Package, ListChecks, ArrowDownToLine, Users as UsersIcon, Pencil, Mail, Phone, Hash, Calendar, Banknote, TrendingUp, Ban, ShieldCheck, ShieldOff, ExternalLink } from "lucide-react";
+import { ArrowLeft, User as UserIcon, Wallet, Package, ListChecks, ArrowDownToLine, Users as UsersIcon, Pencil, Mail, Phone, Hash, Calendar, Banknote, TrendingUp, Ban, ShieldCheck, ShieldOff, ExternalLink, Activity, LogIn, LogOut } from "lucide-react";
 import { AdminCard, Shimmer } from "@/components/admin/AdminUI";
 import { getUserBundle, setUserStatus } from "@/lib/admin-client";
 import { UserEditDrawer } from "@/components/admin/UserEditDrawer";
@@ -230,6 +230,47 @@ function UserDetailPage() {
           </ul>
         )}
       </SectionCard>
+
+      {/* ACTIVITY LOG: login / logout / other events */}
+      <SectionCard title="অ্যাক্টিভিটি লগ (লগইন / লগআউট)" Icon={Activity} accent="sky">
+        {(!data.activity || data.activity.length === 0) ? (
+          <p className="text-xs text-slate-500 text-center py-4">এখনো কোনো অ্যাক্টিভিটি রেকর্ড হয়নি</p>
+        ) : (
+          <ul className="space-y-1.5 max-h-96 overflow-y-auto pr-1">
+            {data.activity.map((a: { id: string; event_type: string; ip: string | null; user_agent: string | null; created_at: string }) => {
+              const isLogin = a.event_type === "login";
+              const isLogout = a.event_type === "logout";
+              const Icon = isLogin ? LogIn : isLogout ? LogOut : Activity;
+              const color = isLogin ? "emerald" : isLogout ? "rose" : "sky";
+              const label = isLogin ? "লগইন" : isLogout ? "লগআউট" : a.event_type;
+              const ua = a.user_agent ?? "";
+              const device = /Android/i.test(ua) ? "Android" : /iPhone|iPad/i.test(ua) ? "iOS" : /Windows/i.test(ua) ? "Windows" : /Mac/i.test(ua) ? "Mac" : /Linux/i.test(ua) ? "Linux" : "—";
+              const browser = /Chrome/i.test(ua) ? "Chrome" : /Firefox/i.test(ua) ? "Firefox" : /Safari/i.test(ua) ? "Safari" : /Edg/i.test(ua) ? "Edge" : "—";
+              return (
+                <li key={a.id} className={cn("flex items-center gap-2 rounded-lg ring-1 px-2.5 py-1.5",
+                  color === "emerald" && "ring-emerald-100 bg-emerald-50/40",
+                  color === "rose" && "ring-rose-100 bg-rose-50/40",
+                  color === "sky" && "ring-sky-100 bg-sky-50/40")}>
+                  <div className={cn("grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br text-white shrink-0",
+                    color === "emerald" && "from-emerald-500 to-teal-600",
+                    color === "rose" && "from-rose-500 to-red-600",
+                    color === "sky" && "from-sky-500 to-indigo-600")}>
+                    <Icon className="h-3.5 w-3.5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-slate-900">{label} <span className="text-[10px] font-normal text-slate-500">· {device} · {browser}</span></p>
+                    <p className="text-[10px] text-slate-500 truncate">
+                      {new Date(a.created_at).toLocaleString("bn-BD")}
+                      {a.ip ? <> · <span className="font-mono">{a.ip}</span></> : null}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </SectionCard>
+
 
       {editOpen && p && (
         <UserEditDrawer userId={id} initial={p as never} onClose={() => setEditOpen(false)} onSaved={() => { setEditOpen(false); load(); }} />

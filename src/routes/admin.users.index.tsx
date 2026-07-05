@@ -13,23 +13,28 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { exportCsv, exportExcel, exportPrint, exportPdf } from "@/lib/users-export";
 
-type Search = { q?: string };
+type Search = { q?: string; filter?: string };
 type User = {
   id: string; full_name: string | null; email: string | null; phone: string | null;
   avatar_url: string | null; balance: number; locked_balance: number; total_earned: number;
   referral_code: string | null; tasks_completed: number; created_at: string;
   status?: string | null; payment_method?: string | null; payment_number?: string | null;
   is_distributor?: boolean;
+  has_active_package?: boolean;
+  active_package_name?: string | null;
 };
 
 export const Route = createFileRoute("/admin/users/")({
-  validateSearch: (s: Record<string, unknown>): Search => ({ q: typeof s.q === "string" ? s.q : undefined }),
+  validateSearch: (s: Record<string, unknown>): Search => ({
+    q: typeof s.q === "string" ? s.q : undefined,
+    filter: typeof s.filter === "string" ? s.filter : undefined,
+  }),
   head: () => ({ meta: [{ title: "ইউজার — Smart Investor Admin" }] }),
   component: UsersPage,
 });
 
 function UsersPage() {
-  const { q } = Route.useSearch();
+  const { q, filter } = Route.useSearch();
   const navigate = Route.useNavigate();
   const [query, setQuery] = useState(q ?? "");
   const [users, setUsers] = useState<User[] | null>(null);
@@ -39,8 +44,10 @@ function UsersPage() {
   const [edit, setEdit] = useState<User | null>(null);
   const [suspendTarget, setSuspendTarget] = useState<User | null>(null);
 
+  const activeFilter = (filter as "all" | "active" | "inactive" | "suspended" | undefined) ?? "all";
+
   const refresh = () => {
-    listUsers(q ?? "").then((rows) => setUsers(rows as User[])).catch((e) => { setUsers([]); toast.error(e instanceof Error ? e.message : "ব্যর্থ"); });
+    listUsers(q ?? "").then((rows) => setUsers(rows as unknown as User[])).catch((e) => { setUsers([]); toast.error(e instanceof Error ? e.message : "ব্যর্থ"); });
     const since = new Date(); since.setHours(0,0,0,0);
     supabase.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since.toISOString()).then(({ count }) => setTodayCount(count ?? 0));
   };
@@ -48,27 +55,53 @@ function UsersPage() {
 
   useEffect(() => {
     if (!adminReady) return;
-    const unsub = subscribeTable("profiles", refresh);
-    return unsub;
+    const unsub1 = subscribeTable("profiles", refresh);
+    const unsub2 = subscribeTable("user_packages", refresh);
+    return () => { unsub1(); unsub2(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, adminReady]);
 
   useEffect(() => { setQuery(q ?? ""); }, [q]);
 
+  const filteredUsers = useMemo(() => {
+    if (!users) return null;
+    // Real-time client-side filter on query (in addition to server search)
+    const s = query.trim().toLowerCase();
+    let list = users;
+    if (s) {
+      list = list.filter((u) =>
+        (u.full_name ?? "").toLowerCase().includes(s) ||
+        (u.email ?? "").toLowerCase().includes(s) ||
+        (u.phone ?? "").toLowerCase().includes(s) ||
+        (u.referral_code ?? "").toLowerCase().includes(s)
+      );
+    }
+    if (activeFilter === "active") list = list.filter((u) => u.has_active_package);
+    else if (activeFilter === "inactive") list = list.filter((u) => !u.has_active_package);
+    else if (activeFilter === "suspended") list = list.filter((u) => u.status === "suspended" || u.status === "banned");
+    return list;
+  }, [users, query, activeFilter]);
+
   const stats = useMemo(() => ({
     total: users?.length ?? 0,
     earners: users?.filter((u) => u.total_earned > 0).length ?? 0,
     newToday: todayCount,
+    activePkg: users?.filter((u) => u.has_active_package).length ?? 0,
   }), [users, todayCount]);
 
   useEffect(() => {
     const t = setTimeout(() => {
       const next = query.trim();
-      if ((q ?? "") !== next) navigate({ search: next ? { q: next } : {} });
+      if ((q ?? "") !== next) navigate({ search: (prev: Search) => ({ ...prev, q: next || undefined }) });
     }, 300);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
+
+  const setFilter = (f: "all" | "active" | "inactive" | "suspended") => {
+    navigate({ search: (prev: Search) => ({ ...prev, filter: f === "all" ? undefined : f }) });
+  };
+
 
   const handleDelete = async () => {
     if (!del) return;
@@ -111,9 +144,16 @@ function UsersPage() {
 
   const tiles: Array<{ label: string; value: string; Icon: typeof Users; from: string; to: string; ring: string; shadow: string }> = [
     { label: "মোট ইউজার",    value: stats.total.toLocaleString("bn-BD"),   Icon: Users,       from: "from-sky-500",     to: "to-indigo-600",  ring: "ring-sky-200/60",     shadow: "shadow-sky-500/30" },
-    { label: "আর্নিং ইউজার",  value: stats.earners.toLocaleString("bn-BD"), Icon: ShieldCheck, from: "from-emerald-500", to: "to-teal-600",    ring: "ring-emerald-200/60", shadow: "shadow-emerald-500/30" },
+    { label: "প্যাকেজ অ্যাক্টিভ", value: stats.activePkg.toLocaleString("bn-BD"), Icon: BadgeCheck, from: "from-violet-500", to: "to-fuchsia-600", ring: "ring-violet-200/60", shadow: "shadow-violet-500/30" },
     { label: "আজকের সাইনআপ", value: stats.newToday.toLocaleString("bn-BD"), Icon: UserPlus,    from: "from-rose-500",    to: "to-pink-600",    ring: "ring-rose-200/60",    shadow: "shadow-rose-500/30" },
     { label: "মোট আর্নিং",    value: users ? "৳" + totalEarnedSum.toLocaleString("bn-BD") : "—", Icon: UserCog, from: "from-amber-500", to: "to-orange-600", ring: "ring-amber-200/60", shadow: "shadow-amber-500/30" },
+  ];
+
+  const filterChips: Array<{ id: "all" | "active" | "inactive" | "suspended"; label: string; count: number; from: string; to: string }> = [
+    { id: "all",       label: "সব ইউজার",         count: users?.length ?? 0,                                                                     from: "from-slate-500",  to: "to-slate-700"    },
+    { id: "active",    label: "প্যাকেজ অ্যাক্টিভ", count: stats.activePkg,                                                                        from: "from-emerald-500", to: "to-teal-600"     },
+    { id: "inactive",  label: "প্যাকেজ নেই",      count: (users?.length ?? 0) - stats.activePkg,                                                  from: "from-slate-400",  to: "to-slate-600"    },
+    { id: "suspended", label: "সাসপেন্ডেড",       count: users?.filter((u) => u.status === "suspended" || u.status === "banned").length ?? 0,   from: "from-rose-500",   to: "to-red-600"      },
   ];
 
   return (
@@ -147,36 +187,70 @@ function UsersPage() {
       </div>
 
       <AdminCard accent="sky" className="p-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)}
-            placeholder="নাম, ইমেইল, ফোন, ইউজার-কোড (SN-...) বা রেফারেল কোড লিখুন — রিয়েল-টাইম সার্চ"
-            className="w-full rounded-xl border border-sky-200 bg-sky-50/30 pl-9 pr-10 py-2.5 text-sm outline-none focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-300/40" />
-          {query && (
-            <button onClick={() => setQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 grid h-7 w-7 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700">
-              <X className="h-4 w-4" />
-            </button>
-          )}
+        <div className="grid gap-3 lg:grid-cols-2">
+          {/* LEFT: Real-time search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)}
+              placeholder="নাম, ইমেইল, ফোন, ইউজার-কোড (SN-...) বা রেফারেল কোড — রিয়েল-টাইম সার্চ"
+              className="w-full rounded-xl border border-sky-200 bg-sky-50/30 pl-9 pr-10 py-2.5 text-sm outline-none focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-300/40" />
+            {query && (
+              <button onClick={() => setQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 grid h-7 w-7 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          {/* RIGHT: Filter chips */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            {filterChips.map((c) => {
+              const active = activeFilter === c.id;
+              return (
+                <button key={c.id} onClick={() => setFilter(c.id)}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ring-1",
+                    active
+                      ? cn("bg-gradient-to-br text-white shadow-lg ring-white/40 scale-[1.02]", c.from, c.to)
+                      : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50 hover:scale-[1.02]"
+                  )}
+                >
+                  {c.label}
+                  <span className={cn("rounded-md px-1.5 py-0.5 text-[10px] font-extrabold",
+                    active ? "bg-white/25 text-white" : "bg-slate-100 text-slate-600")}>
+                    {c.count.toLocaleString("bn-BD")}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </AdminCard>
 
-      {!adminReady || !users ? (
+      {!adminReady || !users || !filteredUsers ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[0,1,2,3,4,5].map((i) => <Shimmer key={i} className="h-40" />)}
         </div>
-      ) : users.length === 0 ? (
+      ) : filteredUsers.length === 0 ? (
         <EmptyState Icon={Users} title="কোনো ইউজার পাওয়া যায়নি" hint="অন্য কীওয়ার্ডে চেষ্টা করুন" accent="sky" />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {users.map((u) => {
+          {filteredUsers.map((u) => {
             const suspended = u.status === "suspended" || u.status === "banned";
             const isDist = !!u.is_distributor;
+            const hasActivePkg = !!u.has_active_package;
             return (
-              <AdminCard key={u.id} accent="sky" interactive className={cn("p-4 relative overflow-hidden", isDist && "ring-2 ring-indigo-300/70 shadow-indigo-200/40")}>
-                {isDist && (
+              <AdminCard key={u.id} accent="sky" interactive className={cn("p-4 relative overflow-hidden",
+                isDist && "ring-2 ring-indigo-300/70 shadow-indigo-200/40",
+                hasActivePkg && !isDist && "ring-2 ring-emerald-300/70 shadow-emerald-200/40")}>
+                {isDist ? (
                   <div className="absolute -top-px right-3 z-10">
                     <div className="inline-flex items-center gap-1 rounded-b-lg bg-gradient-to-br from-indigo-500 to-violet-600 px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider text-white shadow-lg ring-1 ring-white/40">
                       <BadgeCheck className="h-3 w-3" /> ডিস্ট্রিবিউটর
+                    </div>
+                  </div>
+                ) : hasActivePkg && (
+                  <div className="absolute -top-px right-3 z-10">
+                    <div className="inline-flex items-center gap-1 rounded-b-lg bg-gradient-to-br from-emerald-500 to-teal-600 px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider text-white shadow-lg ring-1 ring-white/40">
+                      <BadgeCheck className="h-3 w-3" /> অ্যাক্টিভ {u.active_package_name ? `· ${u.active_package_name}` : ""}
                     </div>
                   </div>
                 )}
