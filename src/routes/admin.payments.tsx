@@ -54,6 +54,19 @@ function PaymentsPage() {
     upd(m, { logo_url: data?.signedUrl ?? path });
   };
 
+  const handleAIGenerate = async (m: Method) => {
+    if (!state) return;
+    const c = state[m];
+    if (!c.number?.trim()) { toast.error("প্রথমে নম্বর দিন"); return; }
+    setAiBusy(m);
+    try {
+      const r = await generatePaymentInstruction({ data: { method: m, type: c.type, number: c.number, agent_number: c.agent_number } });
+      upd(m, { instructions: r.instruction });
+      toast.success(r.source === "local" ? "AI ব্যস্ত — ডিফল্ট নির্দেশনা বসানো হলো" : "AI নির্দেশনা তৈরি হয়েছে");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "AI ব্যর্থ"); }
+    finally { setAiBusy(null); }
+  };
+
   return (
     <>
       <AdminPageHeader accent="pink" Icon={CreditCard} title="পেমেন্ট গেটওয়ে"
