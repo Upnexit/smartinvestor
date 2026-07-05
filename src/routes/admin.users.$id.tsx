@@ -53,6 +53,22 @@ function UserDetailPage() {
     finally { setBusy(false); }
   };
 
+  const impersonate = async () => {
+    setBusy(true);
+    const w = window.open("about:blank", "_blank");
+    try {
+      const { adminImpersonateUser } = await import("@/lib/admin.functions");
+      const redirectTo = `${window.location.origin}/dashboard`;
+      const res = await adminImpersonateUser({ data: { userId: id, redirectTo } });
+      if (w) w.location.href = res.url;
+      else window.open(res.url, "_blank");
+      toast.success("ইউজারের প্যানেল নতুন ট্যাবে খোলা হয়েছে");
+    } catch (e) {
+      if (w) w.close();
+      toast.error(e instanceof Error ? e.message : "ব্যর্থ");
+    } finally { setBusy(false); }
+  };
+
   return (
     <>
       {/* Top action bar — only back + action buttons, no admin header */}
@@ -61,14 +77,11 @@ function UserDetailPage() {
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div className="flex-1" />
-        <a
-          href={`/dashboard?as=${id}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-sky-500/30 hover:scale-[1.03] transition ring-1 ring-sky-300/40"
+        <button onClick={impersonate} disabled={busy}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-sky-500/30 hover:scale-[1.03] transition ring-1 ring-sky-300/40 disabled:opacity-60"
         >
           <ExternalLink className="h-4 w-4" /> প্যানেলে প্রবেশ
-        </a>
+        </button>
         <button onClick={toggleSuspend} disabled={busy}
           className={cn("inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold text-white shadow-lg hover:scale-[1.03] transition ring-1 ring-white/40 disabled:opacity-60",
             suspended ? "bg-gradient-to-br from-lime-500 to-emerald-600 shadow-emerald-500/30" : "bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/30")}>

@@ -313,3 +313,28 @@ export const adminHardDeleteUser = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+/* =====================  IMPERSONATION  ===================== */
+
+export const adminImpersonateUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { userId: string; redirectTo?: string }) => ({
+    userId: uuid(d.userId),
+    redirectTo: typeof d?.redirectTo === "string" ? d.redirectTo.slice(0, 500) : undefined,
+  }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Resolve the target user's email from auth.users
+    const { data: u, error: uErr } = await supabaseAdmin.auth.admin.getUserById(data.userId);
+    if (uErr || !u?.user?.email) throw new Error(uErr?.message ?? "user not found");
+
+    const { data: link, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
+      type: "magiclink",
+      email: u.user.email,
+      options: { redirectTo: data.redirectTo ?? undefined },
+    });
+    if (linkErr || !link?.properties?.action_link) throw new Error(linkErr?.message ?? "link failed");
+    return { url: link.properties.action_link };
+  });
