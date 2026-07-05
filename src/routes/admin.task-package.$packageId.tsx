@@ -294,18 +294,6 @@ function PackageTasksPage() {
             </AdminCard>
             );
           })}
-                <div className="ml-auto flex gap-1">
-                  <SoftButton onClick={() => setEdit({ ...t })}><Pencil className="h-3.5 w-3.5" /></SoftButton>
-                  <SoftButton onClick={() => toggleOne(t)}>
-                    {t.is_draft ? <><CheckCircle2 className="h-3.5 w-3.5" /> Activate</> : t.active ? "Off" : "On"}
-                  </SoftButton>
-                  <SoftButton className="!from-rose-100 !to-red-200 !text-rose-700 !ring-rose-200" onClick={() => deleteOne(t.id)}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </SoftButton>
-                </div>
-              </div>
-            </AdminCard>
-          ))}
         </div>
       )}
 
