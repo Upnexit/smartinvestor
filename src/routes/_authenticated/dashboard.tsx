@@ -70,11 +70,24 @@ function DashboardPage() {
 
       const { data: up } = await supabase
         .from("user_packages")
-        .select("id, status")
+        .select("id, status, package_id, activated_at, packages(name)")
         .eq("user_id", uid)
         .eq("status", "active")
+        .order("activated_at", { ascending: false })
         .limit(1);
-      setHasActivePackage(!!up && up.length > 0);
+      const active = (up ?? [])[0] as { id: string; package_id: string; packages?: { name?: string } | null } | undefined;
+      setHasActivePackage(!!active);
+
+      // Show congratulations once per activation
+      if (active && typeof window !== "undefined") {
+        const key = `smartinv:activated:${active.id}`;
+        if (!localStorage.getItem(key)) {
+          setActivatedPkgName(active.packages?.name ?? "আপনার প্যাকেজ");
+          setShowActivated(true);
+          localStorage.setItem(key, "1");
+        }
+      }
+
 
       // 7-day chart data
       const days: { day: string; income: number; referral: number; tasks: number }[] = [];
