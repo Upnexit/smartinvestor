@@ -118,17 +118,18 @@ function PackageDetailPage() {
         </div>
       </section>
 
-      <button
-        onClick={() => navigate({ to: "/checkout", search: { pkg: p.id } })}
+      <Link
+        to="/checkout"
+        search={{ pkg: p.id }}
         className={cn(
-          "w-full inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-base font-bold text-white shadow-xl transition hover:scale-[1.01]",
+          "w-full inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-4 text-base font-bold text-white shadow-xl transition hover:scale-[1.01] active:scale-[0.99]",
           isVip
             ? "bg-gradient-to-br from-amber-500 via-orange-500 to-rose-600 shadow-amber-400/40"
             : "bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-400/40",
         )}
       >
-        চেকআউটে যান — ৳{bn(Number(p.price))}
-      </button>
+        এই প্যাকেজ ক্রয় করুন — ৳{bn(Number(p.price))} <ArrowRight className="h-5 w-5" />
+      </Link>
     </div>
   );
 }
