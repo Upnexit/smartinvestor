@@ -341,18 +341,21 @@ type Pkg = {
 };
 
 function Earnings() {
-  const fallback: (Pkg & { image_url: string | null })[] = [
-    { name: "VIP", Icon: Crown, gradient: "from-amber-400 via-orange-500 to-red-500", badge: { label: "POPULAR", classes: "bg-rose-600 text-white" }, price: "৳ ৯,৯৯৯", daily: "৳ ৪৫০", total: "৳ ২০,২৫০", tasks: "১৫", image_url: null },
-    { name: "Gold", Icon: Trophy, gradient: "from-amber-300 via-yellow-400 to-amber-500", price: "৳ ৪,৯৯৯", daily: "৳ ২২০", total: "৳ ৯,৯০০", tasks: "১০", image_url: null },
-    { name: "Diamond", Icon: Gem, gradient: "from-cyan-400 via-sky-500 to-blue-600", price: "৳ ১৪,৯৯৯", daily: "৳ ৬৮০", total: "৳ ৩০,৬০০", tasks: "২০", image_url: null },
-    { name: "Crazy", Icon: Rocket, gradient: "from-pink-500 via-rose-500 to-orange-500", badge: { label: "NEW", classes: "bg-pink-600 text-white" }, price: "৳ ৫২০", daily: "৳ ২০", total: "৳ ৯০০", tasks: "৫", image_url: null },
+  const fallback: (Pkg & { id: string | null; image_url: string | null })[] = [
+    { id: null, name: "VIP", Icon: Crown, gradient: "from-amber-400 via-orange-500 to-red-500", badge: { label: "POPULAR", classes: "bg-rose-600 text-white" }, price: "৳ ৯,৯৯৯", daily: "৳ ৪৫০", total: "৳ ২০,২৫০", tasks: "১৫", image_url: null },
+    { id: null, name: "Gold", Icon: Trophy, gradient: "from-amber-300 via-yellow-400 to-amber-500", price: "৳ ৪,৯৯৯", daily: "৳ ২২০", total: "৳ ৯,৯০০", tasks: "১০", image_url: null },
+    { id: null, name: "Diamond", Icon: Gem, gradient: "from-cyan-400 via-sky-500 to-blue-600", price: "৳ ১৪,৯৯৯", daily: "৳ ৬৮০", total: "৳ ৩০,৬০০", tasks: "২০", image_url: null },
+    { id: null, name: "Crazy", Icon: Rocket, gradient: "from-pink-500 via-rose-500 to-orange-500", badge: { label: "NEW", classes: "bg-pink-600 text-white" }, price: "৳ ৫২০", daily: "৳ ২০", total: "৳ ৯০০", tasks: "৫", image_url: null },
   ];
-  const [pkgs, setPkgs] = useState<(Pkg & { image_url: string | null })[]>(fallback);
+  const [pkgs, setPkgs] = useState<(Pkg & { id: string | null; image_url: string | null })[]>(fallback);
+  const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const { supabase } = await import("@/integrations/supabase/client");
+      const { data: sess } = await supabase.auth.getSession();
+      if (!cancelled) setAuthed(!!sess.session);
       const { data } = await supabase.from("packages")
         .select("id,name,price,daily_income,daily_tasks,duration_days,image_url,featured,sort_order")
         .eq("active", true)
@@ -369,6 +372,7 @@ function Earnings() {
       const icons = [Crown, Trophy, Gem, Rocket];
       const bn = (n: number) => Number(n).toLocaleString("bn-BD");
       setPkgs(data.map((r, i) => ({
+        id: r.id,
         name: r.name,
         Icon: icons[i % icons.length],
         gradient: gradients[i % gradients.length],
@@ -382,6 +386,7 @@ function Earnings() {
     })();
     return () => { cancelled = true; };
   }, []);
+
 
   return (
     <section id="earning" className="bg-honey px-4 py-20 sm:px-6">
@@ -421,9 +426,22 @@ function Earnings() {
                 <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-600" />দৈনিক {p.tasks}টি টাস্ক</li>
                 <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-600" />মোট আয় {p.total}</li>
               </ul>
-              <Link to="/our-packages" className={`mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${p.gradient} px-4 py-2.5 text-sm font-bold text-white shadow-soft transition-transform hover:scale-[1.02]`}>
-                বিস্তারিত দেখুন <ArrowRight className="h-4 w-4" />
-              </Link>
+              {p.id ? (
+                authed ? (
+                  <Link to="/packages/$id" params={{ id: p.id }} className={`mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${p.gradient} px-4 py-2.5 text-sm font-bold text-white shadow-soft transition-transform hover:scale-[1.02]`}>
+                    বিস্তারিত দেখুন <ArrowRight className="h-4 w-4" />
+                  </Link>
+                ) : (
+                  <Link to="/auth" search={{ redirect: `/packages/${p.id}` }} className={`mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${p.gradient} px-4 py-2.5 text-sm font-bold text-white shadow-soft transition-transform hover:scale-[1.02]`}>
+                    বিস্তারিত দেখুন <ArrowRight className="h-4 w-4" />
+                  </Link>
+                )
+              ) : (
+                <Link to="/our-packages" className={`mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${p.gradient} px-4 py-2.5 text-sm font-bold text-white shadow-soft transition-transform hover:scale-[1.02]`}>
+                  বিস্তারিত দেখুন <ArrowRight className="h-4 w-4" />
+                </Link>
+              )}
+
             </div>
           </article>
         ))}
