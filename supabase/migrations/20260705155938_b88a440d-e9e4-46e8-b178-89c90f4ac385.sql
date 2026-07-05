@@ -1,0 +1,2 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS app_installed_at timestamptz;
+CREATE INDEX IF NOT EXISTS idx_profiles_app_installed_at ON public.profiles(app_installed_at) WHERE app_installed_at IS NOT NULL;

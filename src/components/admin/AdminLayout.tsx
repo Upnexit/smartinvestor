@@ -3,7 +3,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, ArrowDownToLine, Package, ShieldCheck, CreditCard,
   ListChecks, MessagesSquare, BarChart3, Activity, Settings, User as UserIcon,
-  LogOut, Menu, X, Search, ChevronRight, Sparkles, Users2, Loader2,
+  LogOut, Menu, X, Search, ChevronRight, Sparkles, Users2, Loader2, Smartphone,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,7 @@ export const ADMIN_NAV: NavItem[] = [
   { to: "/admin/community",    label: "কমিউনিটি চ্যাট",      Icon: MessagesSquare,  accent: "purple" },
   { to: "/admin/support",      label: "সাপোর্ট চ্যাট",       Icon: MessagesSquare,  accent: "rose" },
   { to: "/admin/reports",      label: "রিপোর্ট",            Icon: BarChart3,       accent: "indigo" },
+  { to: "/admin/app-installs", label: "অ্যাপ ইনস্টল",         Icon: Smartphone,      accent: "cyan" },
   { to: "/admin/monitor",      label: "সিস্টেম মনিটর",       Icon: Activity,        accent: "lime" },
   { to: "/admin/settings",     label: "হোমপেজ সেটিংস",       Icon: Settings,        accent: "teal" },
   { to: "/admin/profile",      label: "অ্যাডমিন প্রোফাইল",     Icon: UserIcon,        accent: "slate" },

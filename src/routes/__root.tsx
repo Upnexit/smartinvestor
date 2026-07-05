@@ -16,6 +16,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { MaintenanceScreen } from "@/components/MaintenanceScreen";
 import { MobileInstallPrompt } from "@/components/MobileInstallPrompt";
 import { registerPWA } from "../lib/pwa-register";
+import { initInstallPromptCapture } from "../lib/install-prompt";
 
 // ============================================================
 // MAINTENANCE MODE TOGGLE
@@ -137,7 +138,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
 
-  useEffect(() => { registerPWA(); }, []);
+  useEffect(() => { registerPWA(); initInstallPromptCapture(); }, []);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {

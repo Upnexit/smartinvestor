@@ -468,6 +468,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          app_installed_at: string | null
           avatar_url: string | null
           balance: number
           created_at: string
@@ -491,6 +492,7 @@ export type Database = {
           user_code: string
         }
         Insert: {
+          app_installed_at?: string | null
           avatar_url?: string | null
           balance?: number
           created_at?: string
@@ -514,6 +516,7 @@ export type Database = {
           user_code: string
         }
         Update: {
+          app_installed_at?: string | null
           avatar_url?: string | null
           balance?: number
           created_at?: string
@@ -946,6 +949,7 @@ export type Database = {
           _user_id: string
         }
         Returns: {
+          app_installed_at: string | null
           avatar_url: string | null
           balance: number
           created_at: string
@@ -1002,6 +1006,7 @@ export type Database = {
       admin_update_user_profile: {
         Args: { _actor: string; _patch: Json; _user_id: string }
         Returns: {
+          app_installed_at: string | null
           avatar_url: string | null
           balance: number
           created_at: string
