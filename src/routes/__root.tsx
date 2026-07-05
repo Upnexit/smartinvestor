@@ -20,7 +20,7 @@ import { MaintenanceScreen } from "@/components/MaintenanceScreen";
 // Set to `false` to restore normal site access. When `true`,
 // every visitor sees the MaintenanceScreen instead of the app.
 // ============================================================
-const MAINTENANCE_MODE = true;
+const MAINTENANCE_MODE = false;
 
 function NotFoundComponent() {
   return (
