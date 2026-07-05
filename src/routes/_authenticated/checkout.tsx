@@ -35,6 +35,7 @@ type PayAccounts = {
   instructions?: string; system_logo_url?: string;
   logos?: Partial<Record<Method, string>>;
   guides?: Partial<Record<Method, string>>;
+  methodInstructions?: Partial<Record<Method, string>>;
 };
 
 function CheckoutPage() {
@@ -73,9 +74,14 @@ function CheckoutPage() {
       const merged: PayAccounts = { ...base };
       (perMethod ?? []).forEach((r) => {
         const m = (r.key as string).replace("payment_", "") as Method;
-        const v = r.value as { number?: string; logo_url?: string; active?: boolean } | null;
-        if (!v || v.active === false) return;
-        if (v.number && !merged[m]) merged[m] = v.number;
+        const v = r.value as { number?: string; agent_number?: string; instructions?: string; logo_url?: string; active?: boolean } | null;
+        if (!v || v.active === false) {
+          merged[m] = "";
+          delete logos[m];
+          return;
+        }
+        merged[m] = (v.number || v.agent_number || "").replace(/\D/g, "");
+        if (v.instructions) merged.methodInstructions = { ...(merged.methodInstructions ?? {}), [m]: v.instructions };
         if (v.logo_url) logos[m] = v.logo_url;
       });
       merged.logos = logos;
@@ -315,7 +321,7 @@ function applyPaymentBranding(accounts: PayAccounts, branding: PaymentBranding, 
     const cfg = branding[method];
     if (cfg.active === false) return;
     if (cfg.number && !next[method]) next[method] = cfg.number;
-    if (cfg.instructions) next.guides = { ...(next.guides ?? {}), [method]: cfg.instructions };
+    if (cfg.instructions) next.methodInstructions = { ...(next.methodInstructions ?? {}), [method]: cfg.instructions };
     if (cfg.logo_url) next.logos = { ...(next.logos ?? {}), [method]: cfg.logo_url };
   });
   return next;
@@ -607,6 +613,12 @@ function StepWaiting({
           <InstrRow n={3}>নম্বর পেস্ট করে <b>৳{pkg.price}</b> Send Money করুন</InstrRow>
           <InstrRow n={4}>Transaction ID কপি করে পরবর্তী ধাপে দিন</InstrRow>
         </ol>
+
+        {accounts.methodInstructions?.[method] && (
+          <div className="mt-4 rounded-xl bg-white/15 p-3 text-xs font-semibold text-white ring-1 ring-white/20">
+            {accounts.methodInstructions[method]}
+          </div>
+        )}
 
         {/* guide image */}
         {accounts.guides?.[method] && (
