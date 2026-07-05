@@ -18,7 +18,6 @@ const bn = (n: number) => Number(n).toLocaleString("en-BD");
 
 function PackageDetailPage() {
   const { id } = Route.useParams();
-  const navigate = useNavigate();
   const [p, setP] = useState<Pkg | null>(null);
   const [missing, setMissing] = useState(false);
 
