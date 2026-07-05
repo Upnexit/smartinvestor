@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, User as UserIcon, Wallet, Package, ListChecks, ArrowDownToLine, Users as UsersIcon, Pencil, Mail, Phone, Hash, Calendar, Banknote, TrendingUp, Ban, ShieldCheck, ShieldOff } from "lucide-react";
+import { ArrowLeft, User as UserIcon, Wallet, Package, ListChecks, ArrowDownToLine, Users as UsersIcon, Pencil, Mail, Phone, Hash, Calendar, Banknote, TrendingUp, Ban, ShieldCheck, ShieldOff, ExternalLink } from "lucide-react";
 import { AdminCard, Shimmer } from "@/components/admin/AdminUI";
 import { getUserBundle, setUserStatus } from "@/lib/admin-client";
 import { UserEditDrawer } from "@/components/admin/UserEditDrawer";
@@ -61,6 +61,14 @@ function UserDetailPage() {
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div className="flex-1" />
+        <a
+          href={`/dashboard?as=${id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-sky-500/30 hover:scale-[1.03] transition ring-1 ring-sky-300/40"
+        >
+          <ExternalLink className="h-4 w-4" /> প্যানেলে প্রবেশ
+        </a>
         <button onClick={toggleSuspend} disabled={busy}
           className={cn("inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold text-white shadow-lg hover:scale-[1.03] transition ring-1 ring-white/40 disabled:opacity-60",
             suspended ? "bg-gradient-to-br from-lime-500 to-emerald-600 shadow-emerald-500/30" : "bg-gradient-to-br from-amber-500 to-orange-600 shadow-amber-500/30")}>
