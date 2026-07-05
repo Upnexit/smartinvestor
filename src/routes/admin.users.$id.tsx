@@ -237,7 +237,7 @@ function UserDetailPage() {
           <p className="text-xs text-slate-500 text-center py-4">এখনো কোনো অ্যাক্টিভিটি রেকর্ড হয়নি</p>
         ) : (
           <ul className="space-y-1.5 max-h-96 overflow-y-auto pr-1">
-            {data.activity.map((a: { id: string; event_type: string; meta: Record<string, unknown> | null; ip: string | null; user_agent: string | null; created_at: string }) => {
+            {data.activity.map((a: { id: string; event_type: string; ip: string | null; user_agent: string | null; created_at: string }) => {
               const isLogin = a.event_type === "login";
               const isLogout = a.event_type === "logout";
               const Icon = isLogin ? LogIn : isLogout ? LogOut : Activity;
