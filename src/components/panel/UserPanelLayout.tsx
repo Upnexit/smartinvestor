@@ -150,21 +150,8 @@ function SidebarContent({
         </div>
       </Link>
 
-      {/* Home — go back to the public website */}
-      <Link
-        to="/"
-        onClick={onNavigate}
-        className="mt-4 group relative flex items-center gap-3 overflow-hidden rounded-2xl border border-sky-200 bg-gradient-to-r from-sky-50 via-cyan-50 to-blue-50 px-3 py-2.5 text-sm font-semibold text-slate-800 shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
-      >
-        <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-md transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110">
-          <Home className="h-[18px] w-[18px]" />
-        </span>
-        <span className="relative flex-1">হোম পেজ</span>
-        <ChevronRight className="relative h-4 w-4 text-slate-500 transition-transform duration-300 group-hover:translate-x-0.5" />
-      </Link>
-
       {/* Nav — neutral row, gradient icon tile, professional hover */}
-      <nav className="mt-4 flex-1 space-y-1.5 overflow-y-auto pr-1">
+      <nav className="mt-5 flex-1 space-y-1.5 overflow-y-auto pr-1">
         {NAV.map((item) => {
           const active = pathname.startsWith(item.to);
           return (
@@ -193,6 +180,19 @@ function SidebarContent({
             </Link>
           );
         })}
+
+        {/* Home — placed last, inside the scroll area so it scrolls with the rest */}
+        <Link
+          to="/"
+          onClick={onNavigate}
+          className="group relative mt-2 flex items-center gap-3 overflow-hidden rounded-2xl border border-sky-200 bg-gradient-to-r from-sky-50 via-cyan-50 to-blue-50 px-3 py-2.5 text-sm font-semibold text-slate-800 shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+        >
+          <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-md transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110">
+            <Home className="h-[18px] w-[18px]" />
+          </span>
+          <span className="relative flex-1">হোম পেজ</span>
+          <ChevronRight className="relative h-4 w-4 text-slate-500 transition-transform duration-300 group-hover:translate-x-0.5" />
+        </Link>
       </nav>
 
       {/* Promo */}

@@ -65,9 +65,11 @@ function PublicPackages() {
 
   const handleBuy = (id: string) => {
     setBusyId(id);
-    const target = `/packages/${id}`;
+    // Always send the user straight to the checkout flow for that package.
+    // Unauthenticated users bounce through /auth and come back to /checkout.
+    const target = `/checkout?pkg=${encodeURIComponent(id)}`;
     if (authed) {
-      navigate({ to: "/packages/$id", params: { id } });
+      navigate({ to: "/checkout", search: { pkg: id } });
     } else {
       navigate({ to: "/auth", search: { redirect: target } });
     }
