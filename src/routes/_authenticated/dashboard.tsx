@@ -49,6 +49,9 @@ function DashboardPage() {
   const [showActivated, setShowActivated] = useState(false);
   const [activatedPkgName, setActivatedPkgName] = useState<string>("");
   const [hasActivePackage, setHasActivePackage] = useState<boolean | null>(null);
+  const [activePkgPrice, setActivePkgPrice] = useState<number | null>(null);
+  const [maxPkgPrice, setMaxPkgPrice] = useState<number | null>(null);
+  const [tasksApproved, setTasksApproved] = useState<number>(0);
   const [chart, setChart] = useState<{ day: string; income: number; referral: number; tasks: number }[]>([]);
 
   useEffect(() => {
@@ -70,13 +73,19 @@ function DashboardPage() {
 
       const { data: up } = await supabase
         .from("user_packages")
-        .select("id, status, package_id, activated_at, packages(name)")
+        .select("id, status, package_id, activated_at, packages(name, price)")
         .eq("user_id", uid)
         .eq("status", "active")
         .order("activated_at", { ascending: false })
         .limit(1);
-      const active = (up ?? [])[0] as { id: string; package_id: string; packages?: { name?: string } | null } | undefined;
+      const active = (up ?? [])[0] as { id: string; package_id: string; packages?: { name?: string; price?: number } | null } | undefined;
       setHasActivePackage(!!active);
+      setActivePkgPrice(active?.packages?.price != null ? Number(active.packages.price) : null);
+
+      // Highest-priced active package available (to detect upgrade opportunity)
+      const { data: pkgs } = await supabase
+        .from("packages").select("price").eq("active", true).order("price", { ascending: false }).limit(1);
+      setMaxPkgPrice((pkgs?.[0]?.price != null) ? Number(pkgs[0].price) : null);
 
       // Show congratulations once per activation
       if (active && typeof window !== "undefined") {
@@ -88,42 +97,50 @@ function DashboardPage() {
         }
       }
 
+      // Approved task count — real-time from task_submissions
+      const { count: approvedCount } = await supabase
+        .from("task_submissions")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", uid)
+        .eq("status", "approved");
+      setTasksApproved(approvedCount ?? 0);
 
-      // 7-day chart data
-      const days: { day: string; income: number; referral: number; tasks: number }[] = [];
-      const labels = ["শনি","রবি","সোম","মঙ্গল","বুধ","বৃহ","শুক্র"];
-      const today = new Date();
+      // 7-day chart data — real data from task_submissions (approved) + referral_earnings
+      const days: { day: string; income: number; referral: number; tasks: number; key: string }[] = [];
+      const labels = ["রবি","সোম","মঙ্গল","বুধ","বৃহ","শুক্র","শনি"];
+      const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
       for (let i = 6; i >= 0; i--) {
-        const d = new Date(today); d.setDate(today.getDate() - i);
-        days.push({
-          day: labels[d.getDay()],
-          income: 0, referral: 0, tasks: 0,
-        });
+        const d = new Date(startOfToday); d.setDate(startOfToday.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        days.push({ day: labels[d.getDay()], income: 0, referral: 0, tasks: 0, key });
       }
+      const dayIdx = (iso: string) => {
+        const k = new Date(iso).toISOString().slice(0, 10);
+        return days.findIndex((x) => x.key === k);
+      };
       try {
-        const since = new Date(); since.setDate(since.getDate() - 6); since.setHours(0,0,0,0);
-        const sb = supabase as unknown as {
-          from: (t: string) => {
-            select: (s: string) => {
-              eq: (c: string, v: string) => { gte: (c: string, v: string) => Promise<{ data: Array<Record<string, unknown>> | null }> };
-            };
-          };
-        };
-        const [{ data: txs }, { data: refs }] = await Promise.all([
-          sb.from("transactions").select("amount, type, created_at").eq("user_id", uid).gte("created_at", since.toISOString()),
-          sb.from("referrals").select("commission, created_at").eq("referrer_id", uid).gte("created_at", since.toISOString()),
+        const since = new Date(startOfToday); since.setDate(startOfToday.getDate() - 6);
+        const [subsRes, refsRes] = await Promise.all([
+          supabase.from("task_submissions")
+            .select("created_at, status, link_tasks(reward)")
+            .eq("user_id", uid).eq("status", "approved")
+            .gte("created_at", since.toISOString()),
+          supabase.from("referral_earnings")
+            .select("created_at, amount")
+            .eq("referrer_id", uid)
+            .gte("created_at", since.toISOString()),
         ]);
-        (txs ?? []).forEach((t) => {
-          const idx = 6 - Math.floor((today.getTime() - new Date(t.created_at as string).getTime()) / 86400000);
-          if (idx >= 0 && idx < 7) {
-            if (t.type === "task_reward") { days[idx].income += Number(t.amount) || 0; days[idx].tasks += 1; }
-          }
+        const subs = (subsRes.data ?? []) as Array<{ created_at: string; link_tasks: { reward: number | string | null } | null }>;
+        const refs = (refsRes.data ?? []) as Array<{ created_at: string; amount: number | string | null }>;
+        subs.forEach((t) => {
+          const i = dayIdx(t.created_at);
+          if (i >= 0) { days[i].income += Number(t.link_tasks?.reward ?? 0); days[i].tasks += 1; }
         });
-        (refs ?? []).forEach((r) => {
-          const idx = 6 - Math.floor((today.getTime() - new Date(r.created_at as string).getTime()) / 86400000);
-          if (idx >= 0 && idx < 7) days[idx].referral += Number(r.commission) || 0;
+        refs.forEach((r) => {
+          const i = dayIdx(r.created_at);
+          if (i >= 0) days[i].referral += Number(r.amount ?? 0);
         });
-      } catch { /* tables may differ; keep zeros */ }
+      } catch { /* keep zeros */ }
       setChart(days);
     })();
   }, []);
@@ -132,8 +149,10 @@ function DashboardPage() {
     { Icon: Wallet,     label: "মোট ব্যালেন্স", value: profile?.balance ?? 0,        from: "from-amber-400",   via: "via-orange-500",  to: "to-rose-500" },
     { Icon: TrendingUp, label: "মোট আয়",       value: profile?.total_earned ?? 0,   from: "from-emerald-400", via: "via-teal-500",    to: "to-green-600" },
     { Icon: Trophy,     label: "লকড বোনাস",     value: profile?.locked_balance ?? 0, from: "from-fuchsia-400", via: "via-purple-500",  to: "to-indigo-600" },
-    { Icon: ThumbsUp,   label: "সম্পন্ন টাস্ক",  value: profile?.tasks_completed ?? 0, from: "from-sky-400",     via: "via-blue-500",    to: "to-cyan-600", isCount: true },
-  ]), [profile]);
+    { Icon: ThumbsUp,   label: "সম্পন্ন টাস্ক",  value: Math.max(tasksApproved, profile?.tasks_completed ?? 0), from: "from-sky-400",     via: "via-blue-500",    to: "to-cyan-600", isCount: true },
+  ]), [profile, tasksApproved]);
+
+  const canUpgrade = hasActivePackage === true && activePkgPrice != null && maxPkgPrice != null && activePkgPrice < maxPkgPrice;
 
   const quick = [
     { to: "/tasks",    Icon: ListChecks,      label: "আজকের টাস্ক", desc: "ইনকাম শুরু",  from: "from-sky-400",     to_: "to-blue-600" },
@@ -192,8 +211,8 @@ function DashboardPage() {
         <p className="mt-1 text-sm text-slate-600">আজকে লাইক ও কমেন্ট করে আয় শুরু করুন।</p>
       </div>
 
-      {/* Upgrade ad — only when no active package */}
-      {hasActivePackage === false && (
+      {/* Promotion — different copy for no-package vs. upgrade-available */}
+      {(hasActivePackage === false || canUpgrade) && (
         <Link
           to="/packages"
           className="group relative block overflow-hidden rounded-3xl p-[1.5px] bg-gradient-to-r from-amber-400 via-fuchsia-500 to-emerald-500 shadow-pop"
@@ -205,12 +224,22 @@ function DashboardPage() {
               <Crown className="h-6 w-6" />
             </div>
             <div className="relative min-w-0 flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-amber-300">SPECIAL OFFER</p>
-              <p className="bn-display truncate text-base text-white sm:text-lg">প্যাকেজ আপগ্রেড করুন — ৫× আয় বাড়ান</p>
-              <p className="mt-0.5 text-xs text-white/75">৪৫ দিনে ১১০% পর্যন্ত রিটার্ন · দৈনিক টাস্ক unlock</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-amber-300">
+                {canUpgrade ? "UPGRADE OFFER" : "SPECIAL OFFER"}
+              </p>
+              <p className="bn-display truncate text-base text-white sm:text-lg">
+                {canUpgrade
+                  ? "আরো আয় বাড়াতে প্যাকেজ upgrade করুন"
+                  : "প্যাকেজ ক্রয় করুন — দৈনিক টাস্ক শুরু করুন"}
+              </p>
+              <p className="mt-0.5 text-xs text-white/75">
+                {canUpgrade
+                  ? "উপরের প্যাকেজে দৈনিক আয় ও টাস্ক লিমিট অনেক বেশি"
+                  : "৪৫ দিনে ১১০% পর্যন্ত রিটার্ন · ইনকাম শুরু করুন"}
+              </p>
             </div>
             <span className="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-white text-amber-700 px-3 py-2 text-xs font-bold shadow-md transition group-hover:translate-x-1">
-              এখনই আপগ্রেড <ChevronRight className="h-3.5 w-3.5" />
+              {canUpgrade ? "আপগ্রেড করুন" : "প্যাকেজ দেখুন"} <ChevronRight className="h-3.5 w-3.5" />
             </span>
             <span className="sm:hidden grid h-9 w-9 place-items-center rounded-xl bg-white text-amber-700 shadow-md">
               <ChevronRight className="h-5 w-5" />
@@ -218,6 +247,7 @@ function DashboardPage() {
           </div>
         </Link>
       )}
+
 
       {/* Balance card */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 p-5 text-white shadow-pop">
@@ -342,10 +372,18 @@ function DashboardPage() {
       <ReferralShareCard compact />
 
 
-      <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-rose-50 to-emerald-50 p-4 text-sm text-amber-900 flex items-center gap-3">
-        <Sparkles className="h-5 w-5 shrink-0 text-amber-600" />
-        <span>প্যাকেজ ক্রয় করে দৈনিক টাস্ক unlock করুন এবং ৪৫ দিনে ১১০% পর্যন্ত রিটার্ন অর্জন করুন।</span>
-      </div>
+      {hasActivePackage === false ? (
+        <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-rose-50 to-emerald-50 p-4 text-sm text-amber-900 flex items-center gap-3">
+          <Sparkles className="h-5 w-5 shrink-0 text-amber-600" />
+          <span>প্যাকেজ ক্রয় করে দৈনিক টাস্ক শুরু করুন এবং ৪৫ দিনে ১১০% পর্যন্ত রিটার্ন অর্জন করুন।</span>
+        </div>
+      ) : canUpgrade ? (
+        <div className="rounded-2xl border border-fuchsia-200 bg-gradient-to-br from-fuchsia-50 via-amber-50 to-emerald-50 p-4 text-sm text-fuchsia-900 flex items-center gap-3">
+          <Sparkles className="h-5 w-5 shrink-0 text-fuchsia-600" />
+          <span>আরো আয় বাড়াতে <Link to="/packages" className="font-bold underline">প্যাকেজ upgrade করুন</Link> — উপরের প্যাকেজে দৈনিক আয় ও টাস্ক লিমিট বেশি।</span>
+        </div>
+      ) : null}
     </div>
+
   );
 }
