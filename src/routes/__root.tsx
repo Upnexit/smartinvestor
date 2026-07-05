@@ -178,6 +178,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {MAINTENANCE_MODE ? <MaintenanceScreen /> : <Outlet />}
+      {!MAINTENANCE_MODE && <MobileInstallPrompt />}
       <Toaster />
     </QueryClientProvider>
   );
