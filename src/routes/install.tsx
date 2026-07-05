@@ -155,32 +155,25 @@ function InstallPage() {
         <div className="mt-4 overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-amber-100">
           {/* Hero */}
           <div
-            className="relative px-6 pt-8 pb-6 text-center text-white"
+            className="relative px-6 pt-10 pb-7 text-center text-white"
             style={{ backgroundImage: "linear-gradient(135deg, #f59e0b 0%, #f97316 55%, #e11d48 100%)" }}
           >
             <div aria-hidden className="pointer-events-none absolute -top-10 -left-10 h-40 w-40 rounded-full bg-white/20 blur-3xl" />
             <div aria-hidden className="pointer-events-none absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-yellow-300/30 blur-3xl" />
-            <div className="relative mx-auto grid h-24 w-24 place-items-center rounded-3xl bg-white p-2 shadow-2xl ring-4 ring-white/40">
-              {logo_url ? (
-                <img
-                  src={logo_url}
-                  alt={`${site_name} লোগো`}
-                  className="h-full w-full rounded-2xl object-cover"
-                />
-              ) : (
-                <img
-                  src="/app-icon-512.png"
-                  alt="Smart Investor"
-                  className="h-full w-full rounded-2xl object-cover"
-                />
-              )}
+            <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-white p-3 shadow-2xl ring-4 ring-white/40">
+              <img
+                src={logo_url || "/app-icon-512.png"}
+                alt={`${site_name || "Smart Investor"} লোগো`}
+                className="h-full w-full object-contain"
+              />
             </div>
-            <h1 className="bn-display mt-4 text-2xl font-bold">{site_name || "Smart Investor"}</h1>
+            <h1 className="bn-display mt-5 text-2xl font-bold">{site_name || "Smart Investor"}</h1>
             <p className="mt-1 text-sm text-white/90">অফিসিয়াল মোবাইল অ্যাপ</p>
             <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold backdrop-blur-sm">
               <Zap className="h-3.5 w-3.5" /> ফ্রি ইনস্টল • কোনো Play Store লাগবে না
             </div>
           </div>
+
 
           {/* Body */}
           <div className="px-6 py-6">
