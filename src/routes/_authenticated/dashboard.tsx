@@ -46,6 +46,8 @@ function DashboardPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [hideBalance, setHideBalance] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showActivated, setShowActivated] = useState(false);
+  const [activatedPkgName, setActivatedPkgName] = useState<string>("");
   const [hasActivePackage, setHasActivePackage] = useState<boolean | null>(null);
   const [chart, setChart] = useState<{ day: string; income: number; referral: number; tasks: number }[]>([]);
 
