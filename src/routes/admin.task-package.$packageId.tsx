@@ -255,7 +255,9 @@ function PackageTasksPage() {
           action={<GradientButton accent="fuchsia" onClick={runGenerate} busy={genBusy}><Sparkles className="h-4 w-4" /> এখনই তৈরি</GradientButton>} />
       ) : (
         <div className="grid gap-2">
-          {tasks.map((t) => (
+          {tasks.map((t) => {
+            const seen = visited.has(t.id);
+            return (
             <AdminCard key={t.id} accent={t.is_draft ? "amber" : "emerald"} className="p-3">
               <div className="flex flex-wrap items-center gap-2">
                 <span className={cn("rounded-md px-2 py-0.5 text-[10px] font-bold uppercase text-white",
@@ -263,14 +265,35 @@ function PackageTasksPage() {
                   {t.is_draft ? "DRAFT" : t.active ? "ACTIVE" : "OFF"}
                 </span>
                 <span className="rounded bg-sky-100 px-1.5 py-0.5 text-[10px] uppercase text-sky-700">{t.action_type}</span>
+                {seen && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-300 animate-admin-pop">
+                    <CheckCircle2 className="h-3 w-3" /> Verified
+                  </span>
+                )}
                 <span className="bn-display text-sm text-slate-900 flex-1 truncate">{t.title}</span>
                 <span className="bn-display text-sm bg-gradient-to-br from-fuchsia-600 to-purple-600 bg-clip-text text-transparent">৳{t.reward}</span>
               </div>
               <div className="mt-1 flex items-center gap-2">
                 <a href={t.link_url} target="_blank" rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-sky-600 hover:underline truncate">
-                  <ExternalLink className="h-3 w-3" /> {t.link_url}
+                  onClick={() => setVisited((s) => { const n = new Set(s); n.add(t.id); return n; })}
+                  className={cn("inline-flex items-center gap-1 text-xs truncate hover:underline",
+                    seen ? "text-emerald-700 font-semibold" : "text-sky-600")}>
+                  {seen ? <CheckCircle2 className="h-3.5 w-3.5" /> : <ExternalLink className="h-3 w-3" />}
+                  {t.link_url}
                 </a>
+                <div className="ml-auto flex gap-1">
+                  <SoftButton onClick={() => setEdit({ ...t })}><Pencil className="h-3.5 w-3.5" /></SoftButton>
+                  <SoftButton onClick={() => toggleOne(t)}>
+                    {t.is_draft ? <><CheckCircle2 className="h-3.5 w-3.5" /> Activate</> : t.active ? "Off" : "On"}
+                  </SoftButton>
+                  <SoftButton className="!from-rose-100 !to-red-200 !text-rose-700 !ring-rose-200" onClick={() => deleteOne(t.id)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </SoftButton>
+                </div>
+              </div>
+            </AdminCard>
+            );
+          })}
                 <div className="ml-auto flex gap-1">
                   <SoftButton onClick={() => setEdit({ ...t })}><Pencil className="h-3.5 w-3.5" /></SoftButton>
                   <SoftButton onClick={() => toggleOne(t)}>
