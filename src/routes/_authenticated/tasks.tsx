@@ -46,6 +46,8 @@ function TasksPage() {
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [emailVerified, setEmailVerified] = useState(true);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+  const [linkOpened, setLinkOpened] = useState(false);
 
   useEffect(() => {
     (async () => {
