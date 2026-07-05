@@ -26,11 +26,25 @@ const bn = (n: number) => Number(n).toLocaleString("en-BD");
 
 function PackagesPage() {
   const [rows, setRows] = useState<Pkg[] | null>(null);
+  const [activePkgId, setActivePkgId] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.from("packages").select("*").eq("active", true)
       .order("sort_order", { ascending: true })
       .then(({ data }) => setRows((data ?? []) as Pkg[]));
+
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) return;
+      const { data } = await supabase
+        .from("user_packages")
+        .select("package_id, activated_at")
+        .eq("user_id", auth.user.id)
+        .eq("status", "active")
+        .order("activated_at", { ascending: false })
+        .limit(1);
+      if (data && data[0]) setActivePkgId(data[0].package_id as string);
+    })();
   }, []);
 
   return (
@@ -53,7 +67,15 @@ function PackagesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-          {rows.map((p, i) => <PackageCard key={p.id} p={p} idx={i} />)}
+          {rows.map((p, i) => (
+            <PackageCard
+              key={p.id}
+              p={p}
+              idx={i}
+              isOwned={activePkgId === p.id}
+              hasActive={!!activePkgId}
+            />
+          ))}
         </div>
       )}
     </div>
