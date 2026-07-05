@@ -78,7 +78,7 @@ function WithdrawalsPage() {
       .select("id,user_id,amount,method,account_number,status,note,rejection_reason,created_at,reviewed_at,profiles!withdrawals_user_id_profiles_fkey(full_name,phone,user_code)")
       .order("created_at", { ascending: false }).limit(200)
       .then(({ data, error }) => {
-        if (error) throw error;
+        if (error) { setRows([]); toast.error(error.message); return; }
         setRows((data ?? []) as unknown as Row[]);
       }, (e: unknown) => { setRows([]); toast.error(e instanceof Error ? e.message : "লোড ব্যর্থ"); });
   };

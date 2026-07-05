@@ -42,7 +42,7 @@ function ApprovalsPage() {
     .select("id,status,payment_method,sender_number,trx_id,created_at,rejection_reason,user_id,package_id,screenshot_url,packages(name,price),profiles!user_packages_user_id_fkey(full_name,phone)")
     .order("created_at",{ascending:false}).limit(200)
     .then(({data, error}) => {
-      if (error) throw error;
+      if (error) { setRows([]); toast.error(error.message); return; }
       setRows((data ?? []) as unknown as Row[]);
     }, (e: unknown) => { setRows([]); toast.error(e instanceof Error ? e.message : "লোড ব্যর্থ"); });
   const adminReady = useAdminAutoRefresh(refresh);
