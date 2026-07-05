@@ -96,9 +96,15 @@ function PaymentsPage() {
                     </select>
                   </label>
                   <label className="block">
-                    <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">ইনস্ট্রাকশন</span>
-                    <textarea value={c.instructions} onChange={(e) => upd(m, { instructions: e.target.value })} rows={3}
-                      className="w-full rounded-xl border border-slate-200 p-2 text-sm" />
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">ইনস্ট্রাকশন</span>
+                      <button type="button" onClick={() => handleAIGenerate(m)} disabled={aiBusy===m}
+                        className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-600 px-2 py-1 text-[10px] font-bold text-white shadow disabled:opacity-60">
+                        <Sparkles className="h-3 w-3" /> {aiBusy===m ? "তৈরি হচ্ছে…" : "AI দিয়ে লিখুন"}
+                      </button>
+                    </div>
+                    <textarea value={c.instructions} onChange={(e) => upd(m, { instructions: e.target.value })} rows={5}
+                      className="w-full rounded-xl border border-slate-200 p-2 text-sm" placeholder="AI দিয়ে লিখুন বা নিজে টাইপ করুন" />
                   </label>
                   <div>
                     <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">লোগো</span>
