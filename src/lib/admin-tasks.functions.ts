@@ -133,6 +133,7 @@ function fallbackTasks(
       title: `Facebook পেজ "${slug}" ${actionText[action]}`,
       url: `https://www.facebook.com/${slug}`,
       action_type: action,
+      description: buildDescription(slug, action),
     });
   }
   return out;
