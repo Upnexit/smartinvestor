@@ -4,7 +4,46 @@ export type GeneratedTask = {
   title: string;
   url: string;
   action_type: "like" | "follow" | "share" | "comment" | "subscribe" | "view";
+  description: string;
 };
+
+/** Action-type ভিত্তিক ধাপে ধাপে বাংলা নির্দেশনা তৈরি করে। */
+function buildDescription(slug: string, action: GeneratedTask["action_type"]): string {
+  const pageName = `"${slug}"`;
+  const intro = [
+    `১. উপরের রঙিন "লিংকে যান ও কাজ শুরু করুন" বাটনে ক্লিক করুন — Facebook পেজ ${pageName} নতুন ট্যাবে খুলবে।`,
+    `২. Facebook-এ আপনার account-এ লগইন থাকা আবশ্যক (না থাকলে লগইন করে নিন)।`,
+  ];
+  const steps: Record<GeneratedTask["action_type"], string[]> = {
+    like: [
+      `৩. পেজে গিয়ে সাম্প্রতিক ৩–৫টি পোস্ট নিচের দিকে scroll করুন।`,
+      `৪. প্রতিটি পোস্টের নিচে থাকা 👍 "Like" বাটনে ক্লিক করে Like দিন।`,
+      `৫. সব Like দেওয়া হলে এই ট্যাবে ফিরে এসে নিচের সবুজ "Submit" বাটনে ক্লিক করুন।`,
+    ],
+    follow: [
+      `৩. পেজের উপরের অংশে "Follow" বাটনে ক্লিক করে পেজটি Follow করুন।`,
+      `৪. Follow সম্পন্ন হলে "Following" দেখাবে — এই ট্যাবে ফিরে এসে নিচের সবুজ "Submit" বাটনে ক্লিক করুন।`,
+    ],
+    share: [
+      `৩. পেজের সাম্প্রতিক একটি পোস্টে "Share" বাটনে ক্লিক করুন।`,
+      `৪. "Share to Feed" সিলেক্ট করে Public / Friends privacy-তে আপনার Timeline-এ share করুন।`,
+      `৫. Share সম্পন্ন হলে এই ট্যাবে ফিরে এসে নিচের সবুজ "Submit" বাটনে ক্লিক করুন।`,
+    ],
+    comment: [
+      `৩. পেজের সাম্প্রতিক একটি পোস্টের নিচে "Comment" বক্সে অর্থপূর্ণ একটি মন্তব্য লিখুন (কমপক্ষে ৩ শব্দ)।`,
+      `৪. Comment post করুন এবং এই ট্যাবে ফিরে এসে নিচের সবুজ "Submit" বাটনে ক্লিক করুন।`,
+    ],
+    subscribe: [
+      `৩. পেজে গিয়ে "Subscribe" বা "Follow" বাটনে ক্লিক করে Subscribe করুন।`,
+      `৪. সম্পন্ন হলে এই ট্যাবে ফিরে এসে নিচের সবুজ "Submit" বাটনে ক্লিক করুন।`,
+    ],
+    view: [
+      `৩. পেজে গিয়ে সাম্প্রতিক একটি Video-তে ক্লিক করে কমপক্ষে ৩০ সেকেন্ড দেখুন।`,
+      `৪. দেখা হলে এই ট্যাবে ফিরে এসে নিচের সবুজ "Submit" বাটনে ক্লিক করুন।`,
+    ],
+  };
+  return [...intro, ...steps[action]].join("\n");
+}
 
 async function callGateway(system: string, user: string, key: string): Promise<string> {
   const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -94,6 +133,7 @@ function fallbackTasks(
       title: `Facebook পেজ "${slug}" ${actionText[action]}`,
       url: `https://www.facebook.com/${slug}`,
       action_type: action,
+      description: buildDescription(slug, action),
     });
   }
   return out;
@@ -165,6 +205,7 @@ STRICT RULES:
           title: String(t.title ?? "").slice(0, 200) || `Facebook পেজ "${slug}" ${actionText[action_type]}`,
           url: `https://www.facebook.com/${slug}`,
           action_type,
+          description: buildDescription(slug, action_type),
         });
         if (clean.length >= data.count) break;
       }
