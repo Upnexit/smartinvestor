@@ -383,7 +383,7 @@ function DashboardPage() {
           <span>আরো আয় বাড়াতে <Link to="/packages" className="font-bold underline">প্যাকেজ upgrade করুন</Link> — উপরের প্যাকেজে দৈনিক আয় ও টাস্ক লিমিট বেশি।</span>
         </div>
       ) : null}
-      </div>
     </div>
+
   );
 }
