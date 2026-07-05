@@ -147,7 +147,8 @@ function InstallPage() {
                 </button>
 
                 {showFallback && (
-                  <div className="mt-4 animate-in fade-in slide-in-from-top-2 rounded-2xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200 duration-300">
+                  <div id="install-steps" className="mt-4 animate-in fade-in slide-in-from-top-2 rounded-2xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200 duration-300">
+
                     <p className="bn-display font-bold text-amber-900">ইনস্টলেশন ধাপসমূহ:</p>
                     {platform === "ios" ? (
                       <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-[13px] leading-relaxed">
