@@ -372,9 +372,17 @@ function DashboardPage() {
       <ReferralShareCard compact />
 
 
-      <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-rose-50 to-emerald-50 p-4 text-sm text-amber-900 flex items-center gap-3">
-        <Sparkles className="h-5 w-5 shrink-0 text-amber-600" />
-        <span>প্যাকেজ ক্রয় করে দৈনিক টাস্ক unlock করুন এবং ৪৫ দিনে ১১০% পর্যন্ত রিটার্ন অর্জন করুন।</span>
+      {hasActivePackage === false ? (
+        <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-rose-50 to-emerald-50 p-4 text-sm text-amber-900 flex items-center gap-3">
+          <Sparkles className="h-5 w-5 shrink-0 text-amber-600" />
+          <span>প্যাকেজ ক্রয় করে দৈনিক টাস্ক শুরু করুন এবং ৪৫ দিনে ১১০% পর্যন্ত রিটার্ন অর্জন করুন।</span>
+        </div>
+      ) : canUpgrade ? (
+        <div className="rounded-2xl border border-fuchsia-200 bg-gradient-to-br from-fuchsia-50 via-amber-50 to-emerald-50 p-4 text-sm text-fuchsia-900 flex items-center gap-3">
+          <Sparkles className="h-5 w-5 shrink-0 text-fuchsia-600" />
+          <span>আরো আয় বাড়াতে <Link to="/packages" className="font-bold underline">প্যাকেজ upgrade করুন</Link> — উপরের প্যাকেজে দৈনিক আয় ও টাস্ক লিমিট বেশি।</span>
+        </div>
+      ) : null}
       </div>
     </div>
   );
