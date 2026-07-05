@@ -205,17 +205,25 @@ export const generateTaskDescription = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data }) => {
     const { title, category, action_type, hint, url } = data;
-    const system = `You write clear, step-by-step Bengali task instructions for a Bangladesh online-earning micro-task platform.
-- Respond ONLY with the instruction body (6-9 short bullet lines starting with "•").
-- Simple বাংলা, friendly tone. No preface, no markdown headings, no code fences.
-- Include: what to click, how to complete (like/comment/share/view), what proof/screenshot to keep, and a warning that fake work will be rejected.`;
-    const user = `Task title: ${title}
-Platform/category: ${category || "N/A"}
-Action type: ${action_type || "N/A"}
-Task URL: ${url || "N/A"}
-Admin's short hint: ${hint || "(none)"}
+    const system = `You write clear, step-by-step Bengali instructions for micro-tasks on a Bangladesh online-earning platform.
 
-Write detailed step-by-step Bengali instructions for the user to complete this task correctly.`;
+STRICT RULES:
+- Read the task title carefully and infer EXACTLY which action(s) the user must perform. Only include those actions.
+- If the title says "like" → instruct only to Like (and Follow only if the title mentions follow/page).
+- If the title says "comment" → instruct only to write a comment.
+- If the title says "share" → instruct only to share.
+- If the title says "subscribe" → instruct only to subscribe.
+- DO NOT invent extra steps (no "also comment", no "also share") that are not implied by the title or hint.
+- Respond ONLY with the instruction body: 4-7 short bullet lines starting with "•".
+- Simple বাংলা, friendly tone. No preface, no headings, no markdown, no code fences.
+- End with one short warning line that fake/incomplete work will be rejected.`;
+    const user = `Task title: ${title}
+Platform: ${category || "N/A"}
+Action type hint: ${action_type || "N/A"}
+Task URL: ${url || "N/A"}
+Admin's extra hint: ${hint || "(none)"}
+
+Based STRICTLY on the title, write concise Bengali step-by-step instructions. Only cover the action(s) the title explicitly asks for — nothing more.`;
 
     const geminiKey = process.env.GEMINI_API_KEY;
     const lovableKey = process.env.LOVABLE_API_KEY;
