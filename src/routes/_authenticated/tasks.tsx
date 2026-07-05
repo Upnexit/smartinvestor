@@ -91,15 +91,21 @@ function TasksPage() {
     }, 0);
 
   const filtered = (tasks ?? []).filter((t) => {
-    // Completed tasks সরিয়ে দাও যাতে "আজকের task" fresh থাকে
+    // যেকোনো task যা আজ অলরেডি submit করা হয়েছে (approved বা pending) — list থেকে সরিয়ে দাও।
+    // শুধু rejected হলে আবার চেষ্টা করার সুযোগ থাকবে।
     const sub = subMap.get(t.id);
-    if (sub?.status === "approved") return false;
+    if (sub && sub.status !== "rejected") return false;
     return filter === "all" ? true : t.action_type === filter;
   });
 
   function openTask(task: Task) {
     if (hasActivePkg === false) {
       toast.error("টাস্ক করতে হলে একটি active প্যাকেজ লাগবে");
+      return;
+    }
+    const existing = subMap.get(task.id);
+    if (existing && existing.status !== "rejected") {
+      toast.info("এই টাস্কটি আজ ইতিমধ্যেই সম্পন্ন হয়েছে");
       return;
     }
     setActiveTask(task);
