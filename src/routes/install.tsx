@@ -131,37 +131,43 @@ function InstallPage() {
               <>
                 <button
                   onClick={handleInstall}
-                  disabled={!canPrompt || busy}
+                  disabled={busy}
                   className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 px-6 py-4 text-base font-bold text-white shadow-lg shadow-orange-500/30 transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
                 >
                   <Download className="h-5 w-5" />
-                  {busy ? "ইনস্টল হচ্ছে…" : "Click to Install"}
+                  {busy ? "ইনস্টল হচ্ছে…" : "Install Now"}
                 </button>
 
-                {!canPrompt && (
-                  <div className="mt-4 rounded-2xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200">
+                {showFallback && (
+                  <div className="mt-4 animate-in fade-in slide-in-from-top-2 rounded-2xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200 duration-300">
+                    <p className="bn-display font-bold text-amber-900">ইনস্টলেশন ধাপসমূহ:</p>
                     {platform === "ios" ? (
-                      <>
-                        <p className="bn-display font-bold">iPhone / iPad — ম্যানুয়াল ইনস্টল:</p>
-                        <ol className="mt-2 list-decimal space-y-1 pl-5 text-[13px] leading-relaxed">
-                          <li>Safari ব্রাউজারে এই পেজটি খুলুন।</li>
-                          <li>নিচের <Share2 className="inline h-3.5 w-3.5" /> Share বাটনে ট্যাপ করুন।</li>
-                          <li>“Add to Home Screen” সিলেক্ট করুন।</li>
-                        </ol>
-                      </>
+                      <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-[13px] leading-relaxed">
+                        <li>নিচের <Share2 className="inline h-3.5 w-3.5" /> <b>Share</b> বাটনে ট্যাপ করুন।</li>
+                        <li>স্ক্রল করে <b>“Add to Home Screen”</b> সিলেক্ট করুন।</li>
+                        <li>উপরের ডানে <b>“Add”</b> ট্যাপ করলেই অ্যাপ ইনস্টল হয়ে যাবে।</li>
+                      </ol>
                     ) : platform === "android" ? (
-                      <p className="text-[13px] leading-relaxed">
-                        Chrome ব্রাউজারে এই পেজটি খুললে ইনস্টল বাটন এনাবল হবে। মেনু (⋮) → <b>“Install app”</b> / <b>“Add to Home Screen”</b> থেকেও ইনস্টল করতে পারেন।
-                      </p>
+                      <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-[13px] leading-relaxed">
+                        <li>ব্রাউজারের উপরে ডানে <b>মেনু (⋮)</b> আইকনে ট্যাপ করুন।</li>
+                        <li><b>“Install app”</b> অথবা <b>“Add to Home Screen”</b> সিলেক্ট করুন।</li>
+                        <li><b>“Install”</b> কনফার্ম করলেই অ্যাপ হোম স্ক্রিনে যোগ হবে।</li>
+                      </ol>
                     ) : (
-                      <p className="text-[13px] leading-relaxed">
-                        Chrome / Edge ব্রাউজারে অ্যাড্রেস বারের ডান পাশে <b>Install</b> আইকন ক্লিক করুন।
-                      </p>
+                      <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-[13px] leading-relaxed">
+                        <li>অ্যাড্রেস বারের ডান পাশে <b>Install</b> (⊕) আইকনে ক্লিক করুন।</li>
+                        <li>অথবা মেনু (⋮) → <b>“Install Smart Investor…”</b> সিলেক্ট করুন।</li>
+                        <li><b>“Install”</b> কনফার্ম করলেই অ্যাপ ইনস্টল হবে।</li>
+                      </ol>
                     )}
+                    <p className="mt-3 text-[12px] text-amber-800/80">
+                      💡 সেরা অভিজ্ঞতার জন্য {platform === "ios" ? "Safari" : "Chrome"} ব্রাউজার ব্যবহার করুন।
+                    </p>
                   </div>
                 )}
               </>
             )}
+
 
             {/* Features */}
             <div className="mt-6 grid grid-cols-3 gap-2 text-center">
