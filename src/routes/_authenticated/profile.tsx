@@ -50,6 +50,7 @@ function ProfilePage() {
   const [pwNew, setPwNew] = useState("");
   const [pwBusy, setPwBusy] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
+  const [activePkg, setActivePkg] = useState<{ name: string; expires_at: string | null } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -65,8 +66,21 @@ function ProfilePage() {
         setPaymentMethod(p.payment_method);
         setPaymentNumber(p.payment_number ?? "");
       }
+      const { data: up } = await supabase
+        .from("user_packages")
+        .select("expires_at, packages(name)")
+        .eq("user_id", u.user.id)
+        .eq("status", "active")
+        .order("activated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (up) {
+        const pkgName = (up as unknown as { packages?: { name?: string } | null }).packages?.name;
+        setActivePkg({ name: pkgName ?? "Active Package", expires_at: (up as { expires_at: string | null }).expires_at });
+      }
     })();
   }, []);
+
 
   const phoneNorm = phone.replace(/\D/g, "");
   const phoneValid = /^01[3-9]\d{8}$/.test(phoneNorm);
