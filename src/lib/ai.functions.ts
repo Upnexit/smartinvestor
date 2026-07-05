@@ -94,7 +94,7 @@ export const askSmartAI = createServerFn({ method: "POST" })
   });
 
 type Method = "bkash" | "nagad" | "rocket";
-type AcctType = "personal" | "merchant";
+type AcctType = "personal" | "merchant" | "payment";
 
 const METHOD_BN: Record<Method, string> = { bkash: "বিকাশ", nagad: "নগদ", rocket: "রকেট" };
 
@@ -133,17 +133,19 @@ async function callGeminiRaw(system: string, user: string, key: string): Promise
   return json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("").trim() || "";
 }
 
+const TYPE_LABEL: Record<AcctType, string> = { personal: "Personal", merchant: "Merchant", payment: "Payment" };
+const TYPE_BN: Record<AcctType, string> = { personal: "পার্সোনাল", merchant: "মার্চেন্ট", payment: "পেমেন্ট" };
+const APP_ACTION: Record<AcctType, string> = { personal: "Send Money", merchant: "Merchant / Payment", payment: "Payment" };
+
 function localInstruction(method: Method, type: AcctType, number: string, agent?: string): string {
   const m = METHOD_BN[method];
-  const target = (type === "merchant" ? `${m} Merchant নম্বর` : `${m} Personal নম্বর`);
+  const target = `${m} ${TYPE_BN[type]} নম্বর`;
   const num = number?.trim() || "—";
   const lines = [
     `প্রিয় গ্রাহক, নিচের ${target}-এ পেমেন্ট সম্পন্ন করুন:`,
     `• ${target}: ${num}`,
     agent?.trim() ? `• এজেন্ট/রেফারেন্স নম্বর: ${agent.trim()}` : null,
-    type === "merchant"
-      ? `• ${m} অ্যাপ খুলুন → "Payment" অপশন সিলেক্ট করুন → উপরের নম্বরটি দিন → প্যাকেজের সঠিক পরিমাণ টাকা পাঠান।`
-      : `• ${m} অ্যাপ খুলুন → "Send Money" অপশন সিলেক্ট করুন → উপরের নম্বরটি দিন → প্যাকেজের সঠিক পরিমাণ টাকা পাঠান।`,
+    `• ${m} অ্যাপ খুলুন → "${APP_ACTION[type]}" অপশন সিলেক্ট করুন → উপরের নম্বরটি দিন → প্যাকেজের সঠিক পরিমাণ টাকা পাঠান।`,
     `• পেমেন্ট শেষে প্রাপ্ত TrxID এবং যেই নম্বর থেকে পাঠিয়েছেন সেটি ফর্মে সঠিকভাবে দিন।`,
     `• ভুল/কম টাকা পাঠালে অর্ডার রিজেক্ট হবে — অনুগ্রহ করে সাবধানে যাচাই করুন।`,
   ].filter(Boolean);
@@ -153,7 +155,7 @@ function localInstruction(method: Method, type: AcctType, number: string, agent?
 export const generatePaymentInstruction = createServerFn({ method: "POST" })
   .validator((d: { method: Method; type: AcctType; number: string; agent_number?: string; amount_note?: string }) => {
     if (!d?.method || !["bkash", "nagad", "rocket"].includes(d.method)) throw new Error("method invalid");
-    if (!d?.type || !["personal", "merchant"].includes(d.type)) throw new Error("type invalid");
+    if (!d?.type || !["personal", "merchant", "payment"].includes(d.type)) throw new Error("type invalid");
     return {
       method: d.method,
       type: d.type,
@@ -167,12 +169,12 @@ export const generatePaymentInstruction = createServerFn({ method: "POST" })
     const mBn = METHOD_BN[method];
     const system = `You write short, clear Bengali payment instructions for a Bangladesh online-earning platform. Respond ONLY with the instruction text (5-7 short lines, use bullet dots "•"). No preface, no markdown headings.`;
     const user = `Payment gateway: ${mBn} (${method})
-Account type: ${type === "merchant" ? "Merchant" : "Personal"}
+Account type: ${TYPE_LABEL[type]}
 Primary number: ${number || "N/A"}
 ${agent_number ? `Agent/reference number: ${agent_number}` : ""}
 ${amount_note ? `Extra note: ${amount_note}` : ""}
 
-Write clear Bengali instructions telling the user how to send money to this ${mBn} ${type} account, what to do in the app (${type === "merchant" ? "Payment option" : "Send Money option"}), and to submit the TrxID and sender number correctly. Warn about wrong amount = rejection.`;
+Write clear Bengali instructions telling the user how to send money to this ${mBn} ${TYPE_LABEL[type]} account, what to do in the app (use "${APP_ACTION[type]}" option), and to submit the TrxID and sender number correctly. Warn about wrong amount = rejection.`;
 
     const geminiKey = process.env.GEMINI_API_KEY;
     const lovableKey = process.env.LOVABLE_API_KEY;
