@@ -54,6 +54,7 @@ import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticat
 import { Route as AdminUsersIndexRouteImport } from './routes/admin.users.index'
 import { Route as AdminDistributorsIndexRouteImport } from './routes/admin.distributors.index'
 import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
+import { Route as AdminTaskPackagePackageIdRouteImport } from './routes/admin.task-package.$packageId'
 import { Route as AdminDistributorsIdRouteImport } from './routes/admin.distributors.$id'
 import { Route as AuthenticatedPackagesIdRouteImport } from './routes/_authenticated/packages.$id'
 
@@ -281,6 +282,12 @@ const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AdminUsersRoute,
 } as any)
+const AdminTaskPackagePackageIdRoute =
+  AdminTaskPackagePackageIdRouteImport.update({
+    id: '/task-package/$packageId',
+    path: '/task-package/$packageId',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminDistributorsIdRoute = AdminDistributorsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -336,6 +343,7 @@ export interface FileRoutesByFullPath {
   '/distributor/': typeof DistributorIndexRoute
   '/packages/$id': typeof AuthenticatedPackagesIdRoute
   '/admin/distributors/$id': typeof AdminDistributorsIdRoute
+  '/admin/task-package/$packageId': typeof AdminTaskPackagePackageIdRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
@@ -380,6 +388,7 @@ export interface FileRoutesByTo {
   '/distributor': typeof DistributorIndexRoute
   '/packages/$id': typeof AuthenticatedPackagesIdRoute
   '/admin/distributors/$id': typeof AdminDistributorsIdRoute
+  '/admin/task-package/$packageId': typeof AdminTaskPackagePackageIdRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/admin/distributors': typeof AdminDistributorsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
@@ -430,6 +439,7 @@ export interface FileRoutesById {
   '/distributor/': typeof DistributorIndexRoute
   '/_authenticated/packages/$id': typeof AuthenticatedPackagesIdRoute
   '/admin/distributors/$id': typeof AdminDistributorsIdRoute
+  '/admin/task-package/$packageId': typeof AdminTaskPackagePackageIdRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
@@ -480,6 +490,7 @@ export interface FileRouteTypes {
     | '/distributor/'
     | '/packages/$id'
     | '/admin/distributors/$id'
+    | '/admin/task-package/$packageId'
     | '/admin/users/$id'
     | '/admin/distributors/'
     | '/admin/users/'
@@ -524,6 +535,7 @@ export interface FileRouteTypes {
     | '/distributor'
     | '/packages/$id'
     | '/admin/distributors/$id'
+    | '/admin/task-package/$packageId'
     | '/admin/users/$id'
     | '/admin/distributors'
     | '/admin/users'
@@ -573,6 +585,7 @@ export interface FileRouteTypes {
     | '/distributor/'
     | '/_authenticated/packages/$id'
     | '/admin/distributors/$id'
+    | '/admin/task-package/$packageId'
     | '/admin/users/$id'
     | '/admin/distributors/'
     | '/admin/users/'
@@ -911,6 +924,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersIdRouteImport
       parentRoute: typeof AdminUsersRoute
     }
+    '/admin/task-package/$packageId': {
+      id: '/admin/task-package/$packageId'
+      path: '/task-package/$packageId'
+      fullPath: '/admin/task-package/$packageId'
+      preLoaderRoute: typeof AdminTaskPackagePackageIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/distributors/$id': {
       id: '/admin/distributors/$id'
       path: '/$id'
@@ -1009,6 +1029,7 @@ interface AdminRouteChildren {
   AdminUsersRoute: typeof AdminUsersRouteWithChildren
   AdminWithdrawalsRoute: typeof AdminWithdrawalsRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminTaskPackagePackageIdRoute: typeof AdminTaskPackagePackageIdRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -1027,6 +1048,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminUsersRoute: AdminUsersRouteWithChildren,
   AdminWithdrawalsRoute: AdminWithdrawalsRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminTaskPackagePackageIdRoute: AdminTaskPackagePackageIdRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)

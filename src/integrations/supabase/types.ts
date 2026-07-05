@@ -374,9 +374,11 @@ export type Database = {
           daily_limit: number
           description: string | null
           id: string
+          is_draft: boolean
           link_url: string
           required_package_id: string | null
           reward: number
+          scheduled_date: string | null
           title: string
           updated_at: string
         }
@@ -388,9 +390,11 @@ export type Database = {
           daily_limit?: number
           description?: string | null
           id?: string
+          is_draft?: boolean
           link_url: string
           required_package_id?: string | null
           reward?: number
+          scheduled_date?: string | null
           title: string
           updated_at?: string
         }
@@ -402,9 +406,11 @@ export type Database = {
           daily_limit?: number
           description?: string | null
           id?: string
+          is_draft?: boolean
           link_url?: string
           required_package_id?: string | null
           reward?: number
+          scheduled_date?: string | null
           title?: string
           updated_at?: string
         }
