@@ -448,29 +448,6 @@ function TaskDetailModal({
             </button>
           </div>
         </div>
-        </div>
-
-        {/* Sticky floating submit panel */}
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center p-3 sm:p-4">
-          <div className="pointer-events-auto w-full sm:max-w-lg rounded-2xl bg-white/95 backdrop-blur border border-slate-200 shadow-2xl p-3">
-            <p className="text-center text-[11px] font-semibold text-slate-600">
-              কাজটি সম্পন্ন করলে সম্পন্ন করে Submit-এ ক্লিক করুন
-            </p>
-            <button
-              onClick={onSubmit}
-              disabled={!linkOpened || submitting}
-              className={cn(
-                "mt-2 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white shadow-md transition",
-                linkOpened
-                  ? "bg-gradient-to-br from-emerald-500 to-green-600 hover:scale-[1.01]"
-                  : "bg-slate-300 cursor-not-allowed",
-              )}
-            >
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCheck className="h-4 w-4" />}
-              {submitting ? "সাবমিট হচ্ছে…" : `কাজ সম্পন্ন — Submit করুন (+৳${task.reward})`}
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
