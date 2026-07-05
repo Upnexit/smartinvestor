@@ -103,6 +103,11 @@ function TasksPage() {
       toast.error("টাস্ক করতে হলে একটি active প্যাকেজ লাগবে");
       return;
     }
+    const existing = subMap.get(task.id);
+    if (existing && existing.status !== "rejected") {
+      toast.info("এই টাস্কটি আজ ইতিমধ্যেই সম্পন্ন হয়েছে");
+      return;
+    }
     setActiveTask(task);
     setLinkOpened(false);
   }
