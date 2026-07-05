@@ -205,6 +205,7 @@ STRICT RULES:
           title: String(t.title ?? "").slice(0, 200) || `Facebook পেজ "${slug}" ${actionText[action_type]}`,
           url: `https://www.facebook.com/${slug}`,
           action_type,
+          description: buildDescription(slug, action_type),
         });
         if (clean.length >= data.count) break;
       }
