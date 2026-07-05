@@ -170,10 +170,11 @@ function CheckoutPage() {
 
   const retryAuthAction = async <T,>(action: () => Promise<T>): Promise<T> => {
     let lastError: unknown;
-    for (let attempt = 0; attempt < 3; attempt += 1) {
+    for (let attempt = 0; attempt < 4; attempt += 1) {
       if (attempt > 0) {
-        await ensureLiveSession(3500);
-        await new Promise((resolve) => setTimeout(resolve, 350));
+        // Silently rehydrate the session between attempts.
+        await ensureLiveSession(4000);
+        await new Promise((resolve) => setTimeout(resolve, 250 * attempt));
       }
       try {
         return await action();
@@ -190,31 +191,14 @@ function CheckoutPage() {
     if (!pkg || !method || !phoneValid) return;
     setCreating(true);
     try {
-      const alive = await ensureLiveSession();
-      if (!alive) {
-        toast.info("লগইন যাচাই প্রস্তুত হচ্ছে — আবার Confirm চাপুন");
-        return;
-      }
+      // Warm the session in the background but never block the click on it.
+      void ensureLiveSession(4000);
       const r = await retryAuthAction(() => createOrder({ data: { packageId: pkg.id, method, senderNumber: phoneNorm } }));
       setOrderId(r.orderId);
       setStep("waiting");
     } catch (e) {
       const raw = e instanceof Error ? e.message : String(e);
-      const msg = mapCheckoutError(raw);
-      if (isAuthError(raw) && pkg) {
-        // one silent retry after refresh before bouncing the user
-        try {
-          await ensureLiveSession(5000);
-          const r = await retryAuthAction(() => createOrder({ data: { packageId: pkg.id, method, senderNumber: phoneNorm } }));
-          setOrderId(r.orderId);
-          setStep("waiting");
-          return;
-        } catch {
-          toast.error(msg);
-        }
-      } else {
-        toast.error(msg);
-      }
+      toast.error(mapCheckoutError(raw));
     } finally {
       setCreating(false);
     }
@@ -225,27 +209,13 @@ function CheckoutPage() {
     setSubmitting(true);
     const tId = toast.loading("পাঠানো হচ্ছে…");
     try {
-      const alive = await ensureLiveSession();
-      if (!alive) {
-        toast.info("লগইন যাচাই প্রস্তুত হচ্ছে — আবার Submit চাপুন", { id: tId });
-        return;
-      }
+      void ensureLiveSession(4000);
       await retryAuthAction(() => submitPayment({ data: { packageId: pkg.id, method, senderNumber: phoneNorm, trxId: trxNorm } }));
       toast.success("✓ Approval request গ্রহণ করা হয়েছে — অ্যাডমিন যাচাই করবেন", { id: tId });
       navigate({ to: "/dashboard", replace: true });
     } catch (e) {
       const raw = e instanceof Error ? e.message : String(e);
-      const msg = mapCheckoutError(raw);
-      if (isAuthError(raw) && pkg) {
-        try {
-          await ensureLiveSession(5000);
-          await retryAuthAction(() => submitPayment({ data: { packageId: pkg.id, method, senderNumber: phoneNorm, trxId: trxNorm } }));
-          toast.success("✓ Approval request গ্রহণ করা হয়েছে — অ্যাডমিন যাচাই করবেন", { id: tId });
-          navigate({ to: "/dashboard", replace: true });
-          return;
-        } catch { /* fall through to toast */ }
-      }
-      toast.error(msg, { id: tId });
+      toast.error(mapCheckoutError(raw), { id: tId });
     } finally {
       setSubmitting(false);
     }
