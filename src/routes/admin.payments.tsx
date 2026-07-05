@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { CreditCard, Save } from "lucide-react";
+import { CreditCard, Save, Sparkles } from "lucide-react";
 import { AdminPageHeader, AdminCard, GradientButton, Shimmer } from "@/components/admin/AdminUI";
 import { supabase } from "@/integrations/supabase/client";
 import { saveSetting } from "@/lib/admin-client";
+import { generatePaymentInstruction } from "@/lib/ai.functions";
 import { cn } from "@/lib/utils";
 import { useAuthReady } from "@/hooks/use-auth-ready";
 
