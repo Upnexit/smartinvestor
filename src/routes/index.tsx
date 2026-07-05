@@ -253,7 +253,12 @@ function HowItWorks() {
           {steps.map((s, i) => {
             const t = tones[s.tone];
             return (
-              <div key={s.title} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-soft transition-all hover:-translate-y-1 hover:shadow-pop">
+              <Link
+                key={s.title}
+                to="/how-it-works"
+                hash={`step-${i + 1}`}
+                className="group block rounded-3xl border border-slate-200 bg-white p-6 shadow-soft transition-all hover:-translate-y-1 hover:shadow-pop focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              >
                 <div className={`grid h-20 w-20 place-items-center rounded-2xl ${t.ring}`}>
                   <div className={`grid h-14 w-14 place-items-center rounded-xl ${t.iconBg} text-white shadow-soft`}>
                     <s.Icon className="h-7 w-7" />
@@ -262,9 +267,20 @@ function HowItWorks() {
                 <span className={`mt-4 inline-block rounded-full px-3 py-1 text-xs font-bold ${t.chip}`}>ধাপ {["১","২","৩"][i]}</span>
                 <h3 className="bn-display mt-3 text-2xl text-slate-900">{s.title}</h3>
                 <p className="mt-2 text-slate-600">{s.desc}</p>
-              </div>
+                <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 group-hover:text-emerald-800">
+                  বিস্তারিত দেখুন →
+                </span>
+              </Link>
             );
           })}
+        </div>
+        <div className="mt-10 flex justify-center">
+          <Link
+            to="/how-it-works"
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:brightness-110"
+          >
+            বিস্তারিত পদ্ধতি দেখুন →
+          </Link>
         </div>
       </div>
     </section>

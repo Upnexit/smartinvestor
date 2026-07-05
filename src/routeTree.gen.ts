@@ -14,6 +14,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OurPackagesRouteImport } from './routes/our-packages'
 import { Route as InstallRouteImport } from './routes/install'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as DistributorInfoRouteImport } from './routes/distributor-info'
 import { Route as DistributorApplyRouteImport } from './routes/distributor-apply'
 import { Route as DistributorRouteImport } from './routes/distributor'
@@ -78,6 +79,11 @@ const OurPackagesRoute = OurPackagesRouteImport.update({
 const InstallRoute = InstallRouteImport.update({
   id: '/install',
   path: '/install',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DistributorInfoRoute = DistributorInfoRouteImport.update({
@@ -287,6 +293,7 @@ export interface FileRoutesByFullPath {
   '/distributor': typeof DistributorRouteWithChildren
   '/distributor-apply': typeof DistributorApplyRoute
   '/distributor-info': typeof DistributorInfoRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/install': typeof InstallRoute
   '/our-packages': typeof OurPackagesRoute
   '/privacy': typeof PrivacyRoute
@@ -331,6 +338,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/distributor-apply': typeof DistributorApplyRoute
   '/distributor-info': typeof DistributorInfoRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/install': typeof InstallRoute
   '/our-packages': typeof OurPackagesRoute
   '/privacy': typeof PrivacyRoute
@@ -377,6 +385,7 @@ export interface FileRoutesById {
   '/distributor': typeof DistributorRouteWithChildren
   '/distributor-apply': typeof DistributorApplyRoute
   '/distributor-info': typeof DistributorInfoRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/install': typeof InstallRoute
   '/our-packages': typeof OurPackagesRoute
   '/privacy': typeof PrivacyRoute
@@ -425,6 +434,7 @@ export interface FileRouteTypes {
     | '/distributor'
     | '/distributor-apply'
     | '/distributor-info'
+    | '/how-it-works'
     | '/install'
     | '/our-packages'
     | '/privacy'
@@ -469,6 +479,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/distributor-apply'
     | '/distributor-info'
+    | '/how-it-works'
     | '/install'
     | '/our-packages'
     | '/privacy'
@@ -514,6 +525,7 @@ export interface FileRouteTypes {
     | '/distributor'
     | '/distributor-apply'
     | '/distributor-info'
+    | '/how-it-works'
     | '/install'
     | '/our-packages'
     | '/privacy'
@@ -562,6 +574,7 @@ export interface RootRouteChildren {
   DistributorRoute: typeof DistributorRouteWithChildren
   DistributorApplyRoute: typeof DistributorApplyRoute
   DistributorInfoRoute: typeof DistributorInfoRoute
+  HowItWorksRoute: typeof HowItWorksRoute
   InstallRoute: typeof InstallRoute
   OurPackagesRoute: typeof OurPackagesRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -604,6 +617,13 @@ declare module '@tanstack/react-router' {
       path: '/install'
       fullPath: '/install'
       preLoaderRoute: typeof InstallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/distributor-info': {
@@ -1020,6 +1040,7 @@ const rootRouteChildren: RootRouteChildren = {
   DistributorRoute: DistributorRouteWithChildren,
   DistributorApplyRoute: DistributorApplyRoute,
   DistributorInfoRoute: DistributorInfoRoute,
+  HowItWorksRoute: HowItWorksRoute,
   InstallRoute: InstallRoute,
   OurPackagesRoute: OurPackagesRoute,
   PrivacyRoute: PrivacyRoute,
