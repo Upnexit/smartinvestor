@@ -259,16 +259,16 @@ function TasksPage() {
                     </div>
                   ) : (
                     <button
-                      disabled={submittingId === task.id || hasActivePkg === false}
-                      onClick={() => handleDoTask(task)}
+                      disabled={hasActivePkg === false}
+                      onClick={() => openTask(task)}
                       className={cn(
                         "flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold text-white shadow-md transition",
                         "bg-gradient-to-br", meta.from, meta.to,
                         "disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.01]",
                       )}
                     >
-                      {submittingId === task.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
-                      টাস্ক করুন
+                      <ExternalLink className="h-4 w-4" />
+                      বিস্তারিত ও শুরু করুন
                     </button>
                   )}
                 </div>
