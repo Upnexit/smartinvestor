@@ -187,24 +187,49 @@ function UsersPage() {
       </div>
 
       <AdminCard accent="sky" className="p-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)}
-            placeholder="নাম, ইমেইল, ফোন, ইউজার-কোড (SN-...) বা রেফারেল কোড লিখুন — রিয়েল-টাইম সার্চ"
-            className="w-full rounded-xl border border-sky-200 bg-sky-50/30 pl-9 pr-10 py-2.5 text-sm outline-none focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-300/40" />
-          {query && (
-            <button onClick={() => setQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 grid h-7 w-7 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700">
-              <X className="h-4 w-4" />
-            </button>
-          )}
+        <div className="grid gap-3 lg:grid-cols-2">
+          {/* LEFT: Real-time search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input value={query} onChange={(e) => setQuery(e.target.value)}
+              placeholder="নাম, ইমেইল, ফোন, ইউজার-কোড (SN-...) বা রেফারেল কোড — রিয়েল-টাইম সার্চ"
+              className="w-full rounded-xl border border-sky-200 bg-sky-50/30 pl-9 pr-10 py-2.5 text-sm outline-none focus:border-sky-400 focus:bg-white focus:ring-2 focus:ring-sky-300/40" />
+            {query && (
+              <button onClick={() => setQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 grid h-7 w-7 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          {/* RIGHT: Filter chips */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            {filterChips.map((c) => {
+              const active = activeFilter === c.id;
+              return (
+                <button key={c.id} onClick={() => setFilter(c.id)}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all ring-1",
+                    active
+                      ? cn("bg-gradient-to-br text-white shadow-lg ring-white/40 scale-[1.02]", c.from, c.to)
+                      : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50 hover:scale-[1.02]"
+                  )}
+                >
+                  {c.label}
+                  <span className={cn("rounded-md px-1.5 py-0.5 text-[10px] font-extrabold",
+                    active ? "bg-white/25 text-white" : "bg-slate-100 text-slate-600")}>
+                    {c.count.toLocaleString("bn-BD")}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </AdminCard>
 
-      {!adminReady || !users ? (
+      {!adminReady || !users || !filteredUsers ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[0,1,2,3,4,5].map((i) => <Shimmer key={i} className="h-40" />)}
         </div>
-      ) : users.length === 0 ? (
+      ) : filteredUsers.length === 0 ? (
         <EmptyState Icon={Users} title="কোনো ইউজার পাওয়া যায়নি" hint="অন্য কীওয়ার্ডে চেষ্টা করুন" accent="sky" />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
