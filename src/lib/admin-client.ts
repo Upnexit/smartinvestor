@@ -60,7 +60,21 @@ export async function listUsers(q: string) {
   const { data, error } = await req;
   if (error) throw new Error(error.message);
   const rows = (data ?? []) as Record<string, unknown>[];
-  return rows.map((r) => ({ ...r, is_distributor: false }));
+  // Fetch active packages to mark users
+  const { data: activePkgs } = await supabase
+    .from("user_packages")
+    .select("user_id, packages(name)")
+    .eq("status", "active");
+  const activeMap = new Map<string, string>();
+  ((activePkgs ?? []) as Array<{ user_id: string; packages: { name: string } | null }>).forEach((p) => {
+    if (p.user_id && !activeMap.has(p.user_id)) activeMap.set(p.user_id, p.packages?.name ?? "Package");
+  });
+  return rows.map((r) => ({
+    ...r,
+    is_distributor: false,
+    has_active_package: activeMap.has(r.id as string),
+    active_package_name: activeMap.get(r.id as string) ?? null,
+  }));
 }
 
 export async function getUserBundle(userId: string) {
