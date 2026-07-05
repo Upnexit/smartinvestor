@@ -274,7 +274,7 @@ function RegisterPage() {
 
             <Link
               to="/auth"
-              search={{ mode: "login" }}
+              search={{ mode: "login", ...(search.redirect ? { redirect: search.redirect } : {}) }}
               className="mt-5 flex items-center justify-between rounded-2xl border-2 border-dashed border-amber-300 bg-amber-50/70 px-4 py-3 text-sm font-medium text-amber-900 hover:bg-amber-100/80 transition"
             >
               <span className="flex items-center gap-2">
