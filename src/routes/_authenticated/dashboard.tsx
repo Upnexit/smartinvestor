@@ -211,8 +211,8 @@ function DashboardPage() {
         <p className="mt-1 text-sm text-slate-600">আজকে লাইক ও কমেন্ট করে আয় শুরু করুন।</p>
       </div>
 
-      {/* Upgrade ad — only when no active package */}
-      {hasActivePackage === false && (
+      {/* Promotion — different copy for no-package vs. upgrade-available */}
+      {(hasActivePackage === false || canUpgrade) && (
         <Link
           to="/packages"
           className="group relative block overflow-hidden rounded-3xl p-[1.5px] bg-gradient-to-r from-amber-400 via-fuchsia-500 to-emerald-500 shadow-pop"
@@ -224,12 +224,22 @@ function DashboardPage() {
               <Crown className="h-6 w-6" />
             </div>
             <div className="relative min-w-0 flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-amber-300">SPECIAL OFFER</p>
-              <p className="bn-display truncate text-base text-white sm:text-lg">প্যাকেজ আপগ্রেড করুন — ৫× আয় বাড়ান</p>
-              <p className="mt-0.5 text-xs text-white/75">৪৫ দিনে ১১০% পর্যন্ত রিটার্ন · দৈনিক টাস্ক unlock</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-amber-300">
+                {canUpgrade ? "UPGRADE OFFER" : "SPECIAL OFFER"}
+              </p>
+              <p className="bn-display truncate text-base text-white sm:text-lg">
+                {canUpgrade
+                  ? "আরো আয় বাড়াতে প্যাকেজ upgrade করুন"
+                  : "প্যাকেজ ক্রয় করুন — দৈনিক টাস্ক শুরু করুন"}
+              </p>
+              <p className="mt-0.5 text-xs text-white/75">
+                {canUpgrade
+                  ? "উপরের প্যাকেজে দৈনিক আয় ও টাস্ক লিমিট অনেক বেশি"
+                  : "৪৫ দিনে ১১০% পর্যন্ত রিটার্ন · ইনকাম শুরু করুন"}
+              </p>
             </div>
             <span className="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-white text-amber-700 px-3 py-2 text-xs font-bold shadow-md transition group-hover:translate-x-1">
-              এখনই আপগ্রেড <ChevronRight className="h-3.5 w-3.5" />
+              {canUpgrade ? "আপগ্রেড করুন" : "প্যাকেজ দেখুন"} <ChevronRight className="h-3.5 w-3.5" />
             </span>
             <span className="sm:hidden grid h-9 w-9 place-items-center rounded-xl bg-white text-amber-700 shadow-md">
               <ChevronRight className="h-5 w-5" />
@@ -237,6 +247,7 @@ function DashboardPage() {
           </div>
         </Link>
       )}
+
 
       {/* Balance card */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 p-5 text-white shadow-pop">
