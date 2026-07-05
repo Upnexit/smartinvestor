@@ -98,7 +98,7 @@ function PackageTasksPage() {
         is_draft: true,
         scheduled_date: date,
         required_package_id: packageId,
-        description: null,
+        description: g.description,
       }));
       const { error } = await supabase.from("link_tasks").insert(rows);
       if (error) throw new Error(error.message);
