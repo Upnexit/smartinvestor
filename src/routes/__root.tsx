@@ -14,6 +14,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { MaintenanceScreen } from "@/components/MaintenanceScreen";
+import { MobileInstallPrompt } from "@/components/MobileInstallPrompt";
 import { registerPWA } from "../lib/pwa-register";
 
 // ============================================================
@@ -177,6 +178,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {MAINTENANCE_MODE ? <MaintenanceScreen /> : <Outlet />}
+      {!MAINTENANCE_MODE && <MobileInstallPrompt />}
       <Toaster />
     </QueryClientProvider>
   );
