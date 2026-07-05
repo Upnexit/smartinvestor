@@ -108,18 +108,20 @@ function DashboardPage() {
       // 7-day chart data — real data from task_submissions (approved) + referral_earnings
       const days: { day: string; income: number; referral: number; tasks: number; key: string }[] = [];
       const labels = ["রবি","সোম","মঙ্গল","বুধ","বৃহ","শুক্র","শনি"];
-      const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
+      const startOfToday = startOfDayBD();
       for (let i = 6; i >= 0; i--) {
-        const d = new Date(startOfToday); d.setDate(startOfToday.getDate() - i);
-        const key = d.toISOString().slice(0, 10);
-        days.push({ day: labels[d.getDay()], income: 0, referral: 0, tasks: 0, key });
+        const d = new Date(startOfToday.getTime() - i * 86400_000);
+        const key = bdDateString(d);
+        // getDay() in BD: shift by +6h then read UTC weekday
+        const bdWeekday = new Date(d.getTime() + 6 * 3600_000).getUTCDay();
+        days.push({ day: labels[bdWeekday], income: 0, referral: 0, tasks: 0, key });
       }
       const dayIdx = (iso: string) => {
-        const k = new Date(iso).toISOString().slice(0, 10);
+        const k = bdDateString(new Date(iso));
         return days.findIndex((x) => x.key === k);
       };
       try {
-        const since = new Date(startOfToday); since.setDate(startOfToday.getDate() - 6);
+        const since = new Date(startOfToday.getTime() - 6 * 86400_000);
         const [subsRes, refsRes] = await Promise.all([
           supabase.from("task_submissions")
             .select("created_at, status, link_tasks(reward)")
