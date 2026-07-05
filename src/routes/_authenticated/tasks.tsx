@@ -313,6 +313,44 @@ function TaskDetailModal({
   const meta = ACTION_META[task.action_type] ?? ACTION_META.like;
   const Icon = meta.icon;
   const steps = parseSteps(task.description);
+  const [secondsLeft, setSecondsLeft] = useState(15);
+  const [returned, setReturned] = useState(false);
+
+  // Countdown after link opened
+  useEffect(() => {
+    if (!linkOpened) { setSecondsLeft(15); return; }
+    if (secondsLeft <= 0) return;
+    const t = setTimeout(() => setSecondsLeft((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [linkOpened, secondsLeft]);
+
+  // Detect return to our tab + flash title
+  useEffect(() => {
+    if (!linkOpened) return;
+    const originalTitle = document.title;
+    let flashId: ReturnType<typeof setInterval> | null = null;
+    let toggle = false;
+    const startFlash = () => {
+      if (flashId) return;
+      flashId = setInterval(() => {
+        toggle = !toggle;
+        document.title = toggle ? "👉 Submit করুন!" : originalTitle;
+      }, 800);
+    };
+    const stopFlash = () => {
+      if (flashId) { clearInterval(flashId); flashId = null; }
+      document.title = originalTitle;
+    };
+    const onVis = () => {
+      if (document.visibilityState === "hidden") { startFlash(); setReturned(false); }
+      else { stopFlash(); setReturned(true); }
+    };
+    document.addEventListener("visibilitychange", onVis);
+    startFlash();
+    return () => { document.removeEventListener("visibilitychange", onVis); stopFlash(); };
+  }, [linkOpened]);
+
+  const canSubmit = linkOpened && secondsLeft <= 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm p-0 sm:p-4">
