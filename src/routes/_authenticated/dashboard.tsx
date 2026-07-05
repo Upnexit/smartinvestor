@@ -149,8 +149,10 @@ function DashboardPage() {
     { Icon: Wallet,     label: "মোট ব্যালেন্স", value: profile?.balance ?? 0,        from: "from-amber-400",   via: "via-orange-500",  to: "to-rose-500" },
     { Icon: TrendingUp, label: "মোট আয়",       value: profile?.total_earned ?? 0,   from: "from-emerald-400", via: "via-teal-500",    to: "to-green-600" },
     { Icon: Trophy,     label: "লকড বোনাস",     value: profile?.locked_balance ?? 0, from: "from-fuchsia-400", via: "via-purple-500",  to: "to-indigo-600" },
-    { Icon: ThumbsUp,   label: "সম্পন্ন টাস্ক",  value: profile?.tasks_completed ?? 0, from: "from-sky-400",     via: "via-blue-500",    to: "to-cyan-600", isCount: true },
-  ]), [profile]);
+    { Icon: ThumbsUp,   label: "সম্পন্ন টাস্ক",  value: Math.max(tasksApproved, profile?.tasks_completed ?? 0), from: "from-sky-400",     via: "via-blue-500",    to: "to-cyan-600", isCount: true },
+  ]), [profile, tasksApproved]);
+
+  const canUpgrade = hasActivePackage === true && activePkgPrice != null && maxPkgPrice != null && activePkgPrice < maxPkgPrice;
 
   const quick = [
     { to: "/tasks",    Icon: ListChecks,      label: "আজকের টাস্ক", desc: "ইনকাম শুরু",  from: "from-sky-400",     to_: "to-blue-600" },
