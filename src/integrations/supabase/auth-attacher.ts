@@ -4,15 +4,33 @@
 import { createMiddleware } from "@tanstack/react-start";
 import { supabase } from "./client";
 
-async function getSessionWithWait(maxMs = 2000): Promise<string | null> {
-  const start = Date.now();
-  // Fast path
+async function readAccessToken(): Promise<string | null> {
   const { data } = await supabase.auth.getSession();
-  if (data.session?.access_token) return data.session.access_token;
+  return data.session?.access_token ?? null;
+}
+
+async function refreshAccessToken(): Promise<string | null> {
+  try {
+    const { data } = await supabase.auth.refreshSession();
+    return data.session?.access_token ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function getSessionWithWait(maxMs = 5000): Promise<string | null> {
+  const start = Date.now();
+  let token = await readAccessToken();
+  if (token) return token;
+
+  token = await refreshAccessToken();
+  if (token) return token;
 
   // Wait for INITIAL_SESSION / SIGNED_IN before giving up
   return new Promise<string | null>((resolve) => {
     let done = false;
+    let polling = false;
+    let lastRefresh = Date.now();
     const finish = (token: string | null) => {
       if (done) return;
       done = true;
@@ -26,9 +44,19 @@ async function getSessionWithWait(maxMs = 2000): Promise<string | null> {
     });
     // Re-poll as a safety net (storage races on hard refresh)
     const poll = setInterval(async () => {
-      const { data: d } = await supabase.auth.getSession();
-      if (d.session?.access_token) finish(d.session.access_token);
-      else if (Date.now() - start > maxMs) finish(null);
+      if (polling) return;
+      polling = true;
+      try {
+        let token = await readAccessToken();
+        if (!token && Date.now() - lastRefresh > 1000) {
+          lastRefresh = Date.now();
+          token = await refreshAccessToken();
+        }
+        if (token) finish(token);
+        else if (Date.now() - start > maxMs) finish(null);
+      } finally {
+        polling = false;
+      }
     }, 150);
     const timer = setTimeout(() => finish(null), maxMs);
   });

@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePaymentBranding, type PaymentBranding } from "@/hooks/use-payment-branding";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 import { cn } from "@/lib/utils";
 import {
   createPendingCheckoutOrder,
@@ -53,6 +54,9 @@ function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [countdown, setCountdown] = useState(30);
   const paymentBranding = usePaymentBranding();
+  const site = useSiteSettings();
+  const brandName = site.site_name || "Smart English Store";
+  const brandLogo = site.logo_url || accounts.system_logo_url || "";
 
   useEffect(() => {
     if (!pkgId) { navigate({ to: "/packages" }); return; }
@@ -75,13 +79,13 @@ function CheckoutPage() {
         if (v.logo_url) logos[m] = v.logo_url;
       });
       merged.logos = logos;
-      setAccounts(applyPaymentBranding(merged, paymentBranding));
+      setAccounts(applyPaymentBranding(merged, paymentBranding, site.logo_url));
     })();
-  }, [pkgId, navigate, paymentBranding]);
+  }, [pkgId, navigate, paymentBranding, site.logo_url]);
 
   useEffect(() => {
-    setAccounts((prev) => applyPaymentBranding(prev, paymentBranding));
-  }, [paymentBranding]);
+    setAccounts((prev) => applyPaymentBranding(prev, paymentBranding, site.logo_url));
+  }, [paymentBranding, site.logo_url]);
 
   // 30s countdown on waiting step (Step 3)
   useEffect(() => {
@@ -107,23 +111,73 @@ function CheckoutPage() {
 
   const availableMethods = (["bkash", "nagad", "rocket"] as Method[]).filter((m) => accounts[m]);
 
-  const ensureLiveSession = async (): Promise<boolean> => {
-    // Fast path — session already in memory
-    const { data: s1 } = await supabase.auth.getSession();
-    if (s1.session?.access_token) return true;
-    // Try a refresh (handles near-expiry / tab-idle cases)
+  const ensureLiveSession = async (maxMs = 6000): Promise<boolean> => {
+    const deadline = Date.now() + maxMs;
+    const readToken = async () => {
+      const { data } = await supabase.auth.getSession();
+      return data.session?.access_token ?? null;
+    };
+    const refreshToken = async () => {
+      try {
+        const { data } = await supabase.auth.refreshSession();
+        return data.session?.access_token ?? null;
+      } catch {
+        return null;
+      }
+    };
+
+    if (await readToken()) return true;
+    if (await refreshToken()) return true;
+
+    // Ask Supabase Auth to hydrate/revalidate the user, then read the token again.
     try {
-      const { data: r } = await supabase.auth.refreshSession();
-      if (r.session?.access_token) return true;
+      await supabase.auth.getUser();
+      if (await readToken()) return true;
     } catch { /* fall through */ }
-    // Short wait for INITIAL_SESSION hydration (hard-refresh race)
+
+    // Wait for INITIAL_SESSION / SIGNED_IN and poll storage to remove hard-refresh races.
     const token = await new Promise<string | null>((resolve) => {
       let done = false;
-      const finish = (t: string | null) => { if (done) return; done = true; try { sub.data.subscription.unsubscribe(); } catch { /* noop */ } clearTimeout(timer); resolve(t); };
+      let polling = false;
+      let lastRefresh = Date.now();
+      const finish = (t: string | null) => { if (done) return; done = true; try { sub.data.subscription.unsubscribe(); } catch { /* noop */ } clearInterval(poll); clearTimeout(timer); resolve(t); };
       const sub = supabase.auth.onAuthStateChange((_e, sess) => { if (sess?.access_token) finish(sess.access_token); });
-      const timer = setTimeout(() => finish(null), 1500);
+      const poll = setInterval(async () => {
+        if (polling) return;
+        polling = true;
+        try {
+          let t = await readToken();
+          if (!t && Date.now() - lastRefresh > 1200) {
+            lastRefresh = Date.now();
+            t = await refreshToken();
+          }
+          if (t) finish(t);
+          else if (Date.now() >= deadline) finish(null);
+        } finally {
+          polling = false;
+        }
+      }, 180);
+      const timer = setTimeout(() => finish(null), maxMs);
     });
     return !!token;
+  };
+
+  const retryAuthAction = async <T,>(action: () => Promise<T>): Promise<T> => {
+    let lastError: unknown;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      if (attempt > 0) {
+        await ensureLiveSession(3500);
+        await new Promise((resolve) => setTimeout(resolve, 350));
+      }
+      try {
+        return await action();
+      } catch (error) {
+        lastError = error;
+        const raw = error instanceof Error ? error.message : String(error);
+        if (!isAuthError(raw)) throw error;
+      }
+    }
+    throw lastError;
   };
 
   const handleConfirmNumber = async () => {
@@ -132,27 +186,25 @@ function CheckoutPage() {
     try {
       const alive = await ensureLiveSession();
       if (!alive) {
-        toast.error("সেশন মেয়াদ শেষ — আবার লগইন করুন");
-        navigate({ to: "/auth", search: { redirect: `/checkout?pkg=${pkg.id}` } });
+        toast.info("লগইন যাচাই প্রস্তুত হচ্ছে — আবার Confirm চাপুন");
         return;
       }
-      const r = await createOrder({ data: { packageId: pkg.id, method, senderNumber: phoneNorm } });
+      const r = await retryAuthAction(() => createOrder({ data: { packageId: pkg.id, method, senderNumber: phoneNorm } }));
       setOrderId(r.orderId);
       setStep("waiting");
     } catch (e) {
       const raw = e instanceof Error ? e.message : String(e);
       const msg = mapCheckoutError(raw);
-      if (/সেশন|লগইন/.test(msg) && pkg) {
+      if (isAuthError(raw) && pkg) {
         // one silent retry after refresh before bouncing the user
         try {
-          await supabase.auth.refreshSession();
-          const r = await createOrder({ data: { packageId: pkg.id, method, senderNumber: phoneNorm } });
+          await ensureLiveSession(5000);
+          const r = await retryAuthAction(() => createOrder({ data: { packageId: pkg.id, method, senderNumber: phoneNorm } }));
           setOrderId(r.orderId);
           setStep("waiting");
           return;
         } catch {
           toast.error(msg);
-          navigate({ to: "/auth", search: { redirect: `/checkout?pkg=${pkg.id}` } });
         }
       } else {
         toast.error(msg);
@@ -169,26 +221,26 @@ function CheckoutPage() {
     try {
       const alive = await ensureLiveSession();
       if (!alive) {
-        toast.error("সেশন মেয়াদ শেষ — আবার লগইন করুন", { id: tId });
-        navigate({ to: "/auth", search: { redirect: `/checkout?pkg=${pkg.id}` } });
+        toast.info("লগইন যাচাই প্রস্তুত হচ্ছে — আবার Submit চাপুন", { id: tId });
         return;
       }
-      await submitPayment({ data: { packageId: pkg.id, method, senderNumber: phoneNorm, trxId: trxNorm } });
+      await retryAuthAction(() => submitPayment({ data: { packageId: pkg.id, method, senderNumber: phoneNorm, trxId: trxNorm } }));
       toast.success("✓ Approval request গ্রহণ করা হয়েছে — অ্যাডমিন যাচাই করবেন", { id: tId });
       navigate({ to: "/dashboard", replace: true });
     } catch (e) {
       const raw = e instanceof Error ? e.message : String(e);
       const msg = mapCheckoutError(raw);
-      if (/সেশন|লগইন/.test(msg) && pkg) {
+      if (isAuthError(raw) && pkg) {
         try {
-          await supabase.auth.refreshSession();
-          await submitPayment({ data: { packageId: pkg.id, method, senderNumber: phoneNorm, trxId: trxNorm } });
+          await ensureLiveSession(5000);
+          await retryAuthAction(() => submitPayment({ data: { packageId: pkg.id, method, senderNumber: phoneNorm, trxId: trxNorm } }));
           toast.success("✓ Approval request গ্রহণ করা হয়েছে — অ্যাডমিন যাচাই করবেন", { id: tId });
           navigate({ to: "/dashboard", replace: true });
           return;
         } catch { /* fall through to toast */ }
       }
       toast.error(msg, { id: tId });
+    } finally {
       setSubmitting(false);
     }
   };
@@ -222,6 +274,7 @@ function CheckoutPage() {
         {step === "select" && (
           <StepSelect
             pkg={pkg} accounts={accounts} method={method} setMethod={setMethod} invoiceShort={invoiceShort}
+            brandName={brandName} brandLogo={brandLogo}
             availableMethods={availableMethods}
             onNext={() => method && setStep("account")}
             onClose={() => navigate({ to: "/packages" })}
@@ -230,6 +283,7 @@ function CheckoutPage() {
         {step === "account" && method && (
           <StepAccount
             pkg={pkg} method={method} accounts={accounts} senderNumber={senderNumber} setSenderNumber={setSenderNumber}
+            brandName={brandName} brandLogo={brandLogo}
             phoneValid={phoneValid} invoiceShort={invoiceShort} creating={creating}
             onCancel={handleCancel} onConfirm={handleConfirmNumber}
           />
@@ -237,6 +291,7 @@ function CheckoutPage() {
         {step === "waiting" && method && (
           <StepWaiting
             pkg={pkg} method={method} accounts={accounts} countdown={countdown}
+            brandName={brandName} brandLogo={brandLogo}
             activeNumber={activeNumber} invoiceShort={invoiceShort}
             onCancel={handleCancel} onProceed={() => setStep("trx")}
           />
@@ -244,6 +299,7 @@ function CheckoutPage() {
         {step === "trx" && method && (
           <StepTrx
             pkg={pkg} method={method} accounts={accounts} activeNumber={activeNumber} trxId={trxId} setTrxId={setTrxId}
+            brandName={brandName} brandLogo={brandLogo}
             trxValid={trxValid} submitting={submitting} invoiceShort={invoiceShort}
             onCancel={handleCancel} onSubmit={handleSubmitTrx}
           />
@@ -253,8 +309,8 @@ function CheckoutPage() {
   );
 }
 
-function applyPaymentBranding(accounts: PayAccounts, branding: PaymentBranding): PayAccounts {
-  const next: PayAccounts = { ...accounts, logos: { ...(accounts.logos ?? {}) } };
+function applyPaymentBranding(accounts: PayAccounts, branding: PaymentBranding, fallbackLogoUrl = ""): PayAccounts {
+  const next: PayAccounts = { ...accounts, system_logo_url: accounts.system_logo_url || fallbackLogoUrl, logos: { ...(accounts.logos ?? {}) } };
   (["bkash", "nagad", "rocket"] as Method[]).forEach((method) => {
     const cfg = branding[method];
     if (cfg.active === false) return;
@@ -265,10 +321,14 @@ function applyPaymentBranding(accounts: PayAccounts, branding: PaymentBranding):
   return next;
 }
 
+function isAuthError(raw: string): boolean {
+  return /Unauthorized|Missing Supabase|No authorization|Invalid token|JWT|authorization header|No token/i.test(raw);
+}
+
 function mapCheckoutError(raw: string): string {
   const s = raw || "";
-  if (/Unauthorized|Missing Supabase|No authorization|Invalid token|JWT/i.test(s)) {
-    return "সেশন মেয়াদ শেষ — আবার লগইন করুন";
+  if (isAuthError(s)) {
+    return "লগইন যাচাই সম্পন্ন হয়নি — আবার চেষ্টা করুন";
   }
   if (/network|fetch|Failed to fetch|NetworkError/i.test(s)) {
     return "ইন্টারনেট সংযোগে সমস্যা — আবার চেষ্টা করুন";
@@ -307,12 +367,24 @@ function CopyPill({ value, className }: { value: string; className?: string }) {
   );
 }
 
+function BrandBadge({ logoUrl, brandName, className }: { logoUrl?: string; brandName: string; className?: string }) {
+  return (
+    <div className={cn("grid place-items-center overflow-hidden rounded-full bg-amber-100/70", className)}>
+      {logoUrl ? (
+        <img src={logoUrl} alt={`${brandName} logo`} className="h-full w-full object-cover" loading="eager" decoding="async" />
+      ) : (
+        <ShoppingCart className="h-5 w-5 text-amber-700" />
+      )}
+    </div>
+  );
+}
+
 /* ============ Step 1: Payment method selection (Zini-Pay style) ============ */
 function StepSelect({
-  pkg, accounts, method, setMethod, invoiceShort, availableMethods, onNext, onClose,
+  pkg, accounts, method, setMethod, invoiceShort, brandName, brandLogo, availableMethods, onNext, onClose,
 }: {
   pkg: Pkg; accounts: PayAccounts; method: Method | null;
-  setMethod: (m: Method) => void; invoiceShort: string;
+  setMethod: (m: Method) => void; invoiceShort: string; brandName: string; brandLogo: string;
   availableMethods: Method[]; onNext: () => void; onClose: () => void;
 }) {
   const [tab, setTab] = useState<"local" | "intl">("local");
@@ -330,11 +402,11 @@ function StepSelect({
 
       {/* brand + invoice */}
       <div className="mt-3 flex items-center gap-3">
-        {accounts.system_logo_url
-          ? <img src={accounts.system_logo_url} alt="Smart Investor" className="h-14 w-14 rounded-full object-cover ring-1 ring-slate-200" />
+        {brandLogo
+          ? <img src={brandLogo} alt={`${brandName} logo`} className="h-14 w-14 rounded-full object-cover ring-1 ring-slate-200" />
           : <div className="grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-amber-400 to-rose-500 text-white shadow"><Sparkles className="h-6 w-6" /></div>}
         <div className="min-w-0">
-          <p className="bn-display text-lg text-slate-900 truncate">Smart Investor — {pkg.name}</p>
+          <p className="bn-display text-lg text-slate-900 truncate">{brandName} — {pkg.name}</p>
           <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
             <span>Invoice ID: <span className="font-mono">{invoiceShort}</span></span>
             <button
@@ -429,11 +501,11 @@ function StepSelect({
 
 /* ============ Step 2: Enter sender number (bKash-style modal) ============ */
 function StepAccount({
-  pkg, method, accounts, senderNumber, setSenderNumber, phoneValid, invoiceShort, creating, onCancel, onConfirm,
+  pkg, method, accounts, senderNumber, setSenderNumber, phoneValid, invoiceShort, brandName, brandLogo, creating, onCancel, onConfirm,
 }: {
   pkg: Pkg; method: Method; accounts: PayAccounts;
   senderNumber: string; setSenderNumber: (v: string) => void;
-  phoneValid: boolean; invoiceShort: string; creating: boolean;
+  phoneValid: boolean; invoiceShort: string; brandName: string; brandLogo: string; creating: boolean;
   onCancel: () => void; onConfirm: () => void;
 }) {
   const b = BRAND[method];
@@ -448,11 +520,9 @@ function StepAccount({
 
       {/* product row */}
       <div className="bg-white px-5 py-3 flex items-center gap-3 border-b border-slate-100">
-        <div className="grid h-11 w-11 place-items-center rounded-full bg-amber-100/70">
-          <ShoppingCart className="h-5 w-5 text-amber-700" />
-        </div>
+        <BrandBadge logoUrl={brandLogo || accounts.system_logo_url} brandName={brandName} className="h-11 w-11" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-slate-900 truncate">Smart Investor — {pkg.name}</p>
+          <p className="text-sm font-bold text-slate-900 truncate">{brandName} — {pkg.name}</p>
           <p className="text-[10px] text-slate-500 truncate">Inv No: {invoiceShort} <span style={{ color: b.primary }}>●</span></p>
         </div>
         <p className="bn-display text-xl text-slate-900">৳{pkg.price}</p>
@@ -500,10 +570,10 @@ function StepAccount({
 
 /* ============ Step 3: Merchant number + waiting ============ */
 function StepWaiting({
-  pkg, method, accounts, countdown, activeNumber, invoiceShort, onCancel, onProceed,
+  pkg, method, accounts, countdown, brandName, brandLogo, activeNumber, invoiceShort, onCancel, onProceed,
 }: {
   pkg: Pkg; method: Method; accounts: PayAccounts; countdown: number;
-  activeNumber: string; invoiceShort: string;
+  brandName: string; brandLogo: string; activeNumber: string; invoiceShort: string;
   onCancel: () => void; onProceed: () => void;
 }) {
   const b = BRAND[method];
@@ -511,11 +581,9 @@ function StepWaiting({
     <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
       {/* product row (same as step 2) */}
       <div className="bg-white px-5 py-3 flex items-center gap-3 border-b border-slate-100">
-        <div className="grid h-11 w-11 place-items-center rounded-full bg-amber-100/70">
-          <ShoppingCart className="h-5 w-5 text-amber-700" />
-        </div>
+        <BrandBadge logoUrl={brandLogo || accounts.system_logo_url} brandName={brandName} className="h-11 w-11" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-slate-900 truncate">Smart Investor — {pkg.name}</p>
+          <p className="text-sm font-bold text-slate-900 truncate">{brandName} — {pkg.name}</p>
           <p className="text-[10px] text-slate-500 truncate">Inv No: {invoiceShort} <span style={{ color: b.primary }}>●</span></p>
         </div>
         <p className="bn-display text-xl text-slate-900">৳{pkg.price}</p>
@@ -600,10 +668,10 @@ function Dots() {
 
 /* ============ Step 4: Submit Transaction ID ============ */
 function StepTrx({
-  pkg, method, accounts, activeNumber, trxId, setTrxId, trxValid, submitting, invoiceShort, onCancel, onSubmit,
+  pkg, method, accounts, activeNumber, brandName, brandLogo, trxId, setTrxId, trxValid, submitting, invoiceShort, onCancel, onSubmit,
 }: {
   pkg: Pkg; method: Method; accounts: PayAccounts; activeNumber: string;
-  trxId: string; setTrxId: (v: string) => void; trxValid: boolean;
+  brandName: string; brandLogo: string; trxId: string; setTrxId: (v: string) => void; trxValid: boolean;
   submitting: boolean; invoiceShort: string;
   onCancel: () => void; onSubmit: () => void;
 }) {
@@ -612,11 +680,9 @@ function StepTrx({
     <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
       {/* product row */}
       <div className="bg-white px-5 py-3 flex items-center gap-3 border-b border-slate-100">
-        <div className="grid h-11 w-11 place-items-center rounded-full bg-amber-100/70">
-          <ShoppingCart className="h-5 w-5 text-amber-700" />
-        </div>
+        <BrandBadge logoUrl={brandLogo || accounts.system_logo_url} brandName={brandName} className="h-11 w-11" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-slate-900 truncate">Smart Investor — {pkg.name}</p>
+          <p className="text-sm font-bold text-slate-900 truncate">{brandName} — {pkg.name}</p>
           <p className="text-[10px] text-slate-500 truncate">Inv No: {invoiceShort} <span style={{ color: b.primary }}>●</span></p>
         </div>
         <p className="bn-display text-xl text-slate-900">৳{pkg.price}</p>
