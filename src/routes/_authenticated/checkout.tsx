@@ -685,14 +685,10 @@ function StepTrx({
         >Cancel</button>
         <button
           onClick={onSubmit}
-          disabled={!trxValid || submitting}
-          style={{ background: trxValid && !submitting ? b.gradient : undefined }}
-          className={cn(
-            "rounded-xl py-3 text-sm font-bold text-white shadow transition flex items-center justify-center gap-2",
-            (!trxValid || submitting) && "bg-slate-300 cursor-not-allowed",
-          )}
+          style={{ background: b.gradient }}
+          className="rounded-xl py-3 text-sm font-bold text-white shadow transition flex items-center justify-center gap-2"
         >
-          {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : "Submit"}
+          Submit
         </button>
       </div>
     </div>
