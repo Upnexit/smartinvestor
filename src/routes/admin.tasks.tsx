@@ -196,12 +196,65 @@ function TasksPage() {
         <StatTile label="আজ পেমেন্ট ৳" value={stats?.paid ?? "—"} accent="fuchsia" Icon={Link2} />
       </div>
 
-      {!adminReady || !rows ? <Shimmer className="h-32" /> : rows.length === 0 ? (
-        <EmptyState Icon={Link2} title="কোনো টাস্ক নেই" accent="rose"
+      {/* Package management buttons — click to manage that package's task pool */}
+      {packages.length > 0 && (
+        <AdminCard accent="indigo" className="p-3">
+          <div className="mb-2 flex items-center gap-2">
+            <PackageIcon className="h-4 w-4 text-indigo-600" />
+            <span className="bn-display text-sm text-slate-800">প্যাকেজ অনুযায়ী টাস্ক ম্যানেজ</span>
+            <span className="text-[11px] text-slate-500">— বাটনে ক্লিক করে AI দিয়ে random FB link generate করুন</span>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {packages.map((p) => {
+              const c = pkgTaskCounts.get(p.id) ?? { total: 0, todayActive: 0 };
+              return (
+                <Link key={p.id} to="/admin/tasks/package/$packageId" params={{ packageId: p.id }}
+                  className="group relative flex items-center gap-3 rounded-2xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-rose-500 p-[1.5px] hover:scale-[1.02] transition">
+                  <div className="flex w-full items-center gap-3 rounded-[14px] bg-white px-3 py-2.5">
+                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-100 to-fuchsia-100 text-indigo-700">
+                      <PackageIcon className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="bn-display text-sm text-slate-900 truncate">{p.name}</p>
+                      <p className="text-[11px] text-slate-500">৳{p.price} • মোট {c.total} • আজ active {c.todayActive}</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-indigo-600" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </AdminCard>
+      )}
+
+      {/* Search + filter chips */}
+      <div className="grid gap-2 sm:grid-cols-2">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+            placeholder="টাইটেল, লিংক, রিওয়ার্ড খুঁজুন…"
+            className="w-full rounded-xl border border-rose-200 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:border-rose-400" />
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {([
+            ["all", "সব"], ["today", "আজকের"], ["active", "Active"],
+            ["draft", "Draft"], ["inactive", "Inactive"],
+          ] as const).map(([v, label]) => (
+            <button key={v} onClick={() => setFilter(v)}
+              className={cn("rounded-full px-3 py-1.5 text-xs font-bold ring-1 transition",
+                filter === v ? "bg-rose-600 text-white ring-rose-600" : "bg-white text-slate-600 ring-slate-200 hover:bg-slate-50")}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {!adminReady || !rows ? <Shimmer className="h-32" /> : filteredRows.length === 0 ? (
+        <EmptyState Icon={Link2} title={search ? "মিল পাওয়া যায়নি" : "কোনো টাস্ক নেই"} accent="rose"
           action={<GradientButton accent="rose" onClick={() => setEdit({ ...EMPTY })}><Plus className="h-4 w-4" /> তৈরি করুন</GradientButton>} />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {rows.map((t) => (
+          {filteredRows.map((t) => (
             <AdminCard key={t.id} accent="rose" interactive className="p-4">
               <div className="flex items-start justify-between gap-2">
                 <p className="bn-display text-base text-slate-900 line-clamp-2">{t.title}</p>
