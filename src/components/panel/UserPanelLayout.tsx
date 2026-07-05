@@ -7,6 +7,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { cn } from "@/lib/utils";
+import { NoticeModal } from "@/components/panel/NoticeModal";
 
 type NavItem = {
   to: string;
@@ -129,6 +130,8 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
           })}
         </ul>
       </nav>
+
+      <NoticeModal />
     </div>
   );
 }
