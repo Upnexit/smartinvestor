@@ -101,15 +101,15 @@ function TasksPage() {
     }
     window.open(task.link_url, "_blank", "noopener,noreferrer");
     setSubmittingId(task.id);
-    const tId = toast.loading("সাবমিট করা হচ্ছে…");
+    const tId = toast.loading("রিওয়ার্ড যোগ করা হচ্ছে…");
     try {
       const { error } = await supabase.from("task_submissions").insert({
         task_id: task.id,
         user_id: userId,
-        status: "pending",
+        status: "approved",
       });
       if (error) throw error;
-      toast.success("টাস্ক জমা — রিভিউ-এর অপেক্ষায়", { id: tId });
+      toast.success(`৳${Number(task.reward).toFixed(0)} আপনার ব্যালেন্সে যোগ হয়েছে 🎉`, { id: tId });
       const { data: s } = await supabase.from("task_submissions").select("task_id,status,created_at")
         .eq("user_id", userId)
         .gte("created_at", new Date(new Date().setHours(0, 0, 0, 0)).toISOString());
