@@ -192,7 +192,7 @@ function NoticeFormModal({
   const [allUsers, setAllUsers] = useState(initial?.target_all_users ?? false);
   const [pkgIds, setPkgIds] = useState<string[]>(initial?.target_package_ids ?? []);
   const [publishNow, setPublishNow] = useState(initial?.published ?? true);
-  const [expiresAt, setExpiresAt] = useState<string>(initial?.expires_at ? initial.expires_at.slice(0, 16) : "");
+  const [expiresAt, setExpiresAt] = useState<string>(initial?.expires_at ? initial.expires_at.slice(0, 10) : "");
 
   // Voice
   const [listening, setListening] = useState(false);
