@@ -192,7 +192,7 @@ function NoticeFormModal({
   const [allUsers, setAllUsers] = useState(initial?.target_all_users ?? false);
   const [pkgIds, setPkgIds] = useState<string[]>(initial?.target_package_ids ?? []);
   const [publishNow, setPublishNow] = useState(initial?.published ?? true);
-  const [expiresAt, setExpiresAt] = useState<string>(initial?.expires_at ? initial.expires_at.slice(0, 16) : "");
+  const [expiresAt, setExpiresAt] = useState<string>(initial?.expires_at ? initial.expires_at.slice(0, 10) : "");
 
   // Voice
   const [listening, setListening] = useState(false);
@@ -267,7 +267,7 @@ function NoticeFormModal({
         target_package_ids: pkgIds,
         target_all_users: allUsers,
         published: publishNow,
-        expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
+        expires_at: expiresAt ? new Date(expiresAt + "T23:59:59").toISOString() : null,
       }});
       onSaved();
     } catch (e) { setError((e as Error).message); }
@@ -369,10 +369,13 @@ function NoticeFormModal({
           {/* Options */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-bold text-slate-700">Expiry (ঐচ্ছিক)</label>
-              <input type="datetime-local" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)}
+              <label className="text-xs font-bold text-slate-700">মেয়াদ শেষের তারিখ (ঐচ্ছিক)</label>
+              <input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)}
+                min={new Date().toISOString().slice(0, 10)}
                 className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm" />
+              <p className="mt-1 text-[10px] text-slate-400">উক্ত তারিখের রাত ১১:৫৯ পর্যন্ত notice দেখানো হবে</p>
             </div>
+
             <label className="flex items-end gap-2 text-sm pb-1">
               <input type="checkbox" checked={publishNow} onChange={(e) => setPublishNow(e.target.checked)} />
               <span>এখনই publish করুন</span>
