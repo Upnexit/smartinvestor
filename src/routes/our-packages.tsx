@@ -49,10 +49,8 @@ const RINGS = [
 const bn = (n: number) => Number(n).toLocaleString("en-BD");
 
 function PublicPackages() {
-  const navigate = useNavigate();
   const [rows, setRows] = useState<Pkg[] | null>(null);
   const [authed, setAuthed] = useState(false);
-  const [busyId, setBusyId] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.from("packages").select("*").eq("active", true)
@@ -63,17 +61,6 @@ function PublicPackages() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  const handleBuy = (id: string) => {
-    setBusyId(id);
-    // Send the user to the package details page first — from there they
-    // continue to the checkout / payment flow.
-    const target = `/packages/${encodeURIComponent(id)}`;
-    if (authed) {
-      navigate({ to: "/packages/$id", params: { id } });
-    } else {
-      navigate({ to: "/auth", search: { redirect: target } });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-rose-50/50 to-emerald-50/40">
