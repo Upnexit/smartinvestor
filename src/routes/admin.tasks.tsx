@@ -97,11 +97,47 @@ function TasksPage() {
 
   const totals = useMemo(() => ({
     total: rows?.length ?? 0,
-    active: rows?.filter((r) => r.active).length ?? 0,
+    active: rows?.filter((r) => r.active && !r.is_draft).length ?? 0,
   }), [rows]);
+
+  const today = useMemo(() => {
+    const now = new Date();
+    const bd = new Date(now.getTime() + 6 * 3600_000 + now.getTimezoneOffset() * 60_000);
+    return bd.toISOString().slice(0, 10);
+  }, []);
+
+  const filteredRows = useMemo(() => {
+    if (!rows) return [];
+    const q = search.trim().toLowerCase();
+    return rows.filter((r) => {
+      if (filter === "active" && (!r.active || r.is_draft)) return false;
+      if (filter === "inactive" && r.active && !r.is_draft) return false;
+      if (filter === "draft" && !r.is_draft) return false;
+      if (filter === "today" && r.scheduled_date !== today) return false;
+      if (!q) return true;
+      return (r.title ?? "").toLowerCase().includes(q)
+        || (r.link_url ?? "").toLowerCase().includes(q)
+        || String(r.reward).includes(q)
+        || (r.category ?? "").toLowerCase().includes(q)
+        || (r.action_type ?? "").toLowerCase().includes(q);
+    });
+  }, [rows, search, filter, today]);
+
+  const pkgTaskCounts = useMemo(() => {
+    const m = new Map<string, { total: number; todayActive: number }>();
+    (rows ?? []).forEach((r) => {
+      const key = r.required_package_id ?? "";
+      const cur = m.get(key) ?? { total: 0, todayActive: 0 };
+      cur.total += 1;
+      if (r.active && !r.is_draft && r.scheduled_date === today) cur.todayActive += 1;
+      m.set(key, cur);
+    });
+    return m;
+  }, [rows, today]);
 
   const pkgLabel = (id: string | null) =>
     !id ? "সব প্যাকেজ" : (packages.find((p) => p.id === id)?.name ?? "প্যাকেজ");
+
 
   const handleSave = async () => {
     if (!edit) return;
