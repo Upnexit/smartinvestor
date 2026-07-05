@@ -65,11 +65,11 @@ function PublicPackages() {
 
   const handleBuy = (id: string) => {
     setBusyId(id);
-    // Always send the user straight to the checkout flow for that package.
-    // Unauthenticated users bounce through /auth and come back to /checkout.
-    const target = `/checkout?pkg=${encodeURIComponent(id)}`;
+    // Send the user to the package details page first — from there they
+    // continue to the checkout / payment flow.
+    const target = `/packages/${encodeURIComponent(id)}`;
     if (authed) {
-      navigate({ to: "/checkout", search: { pkg: id } });
+      navigate({ to: "/packages/$id", params: { id } });
     } else {
       navigate({ to: "/auth", search: { redirect: target } });
     }
@@ -195,7 +195,7 @@ function PublicPackages() {
                       {busyId === p.id ? "লোড হচ্ছে..." : (<>এই প্যাকেজ ক্রয় করুন <ArrowRight className="h-4 w-4" /></>)}
                     </button>
                     <p className="text-center text-[11px] text-slate-500">
-                      {authed ? "চেকআউট পেজে নিয়ে যাওয়া হবে" : "ক্রয় করতে প্রথমে লগইন করুন — লগইনের পর সরাসরি এই প্যাকেজে ফিরবেন"}
+                      {authed ? "প্যাকেজ বিস্তারিত পেজে নিয়ে যাওয়া হবে" : "ক্রয় করতে প্রথমে লগইন করুন — লগইনের পর সরাসরি এই প্যাকেজে ফিরবেন"}
                     </p>
                   </div>
                 </article>
