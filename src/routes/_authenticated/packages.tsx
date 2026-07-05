@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Sparkles, TrendingUp, Calendar, Coins, ArrowRight, Star } from "lucide-react";
+import { Sparkles, TrendingUp, Calendar, Coins, ArrowRight, Star, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -26,11 +26,25 @@ const bn = (n: number) => Number(n).toLocaleString("en-BD");
 
 function PackagesPage() {
   const [rows, setRows] = useState<Pkg[] | null>(null);
+  const [activePkgId, setActivePkgId] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.from("packages").select("*").eq("active", true)
       .order("sort_order", { ascending: true })
       .then(({ data }) => setRows((data ?? []) as Pkg[]));
+
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) return;
+      const { data } = await supabase
+        .from("user_packages")
+        .select("package_id, activated_at")
+        .eq("user_id", auth.user.id)
+        .eq("status", "active")
+        .order("activated_at", { ascending: false })
+        .limit(1);
+      if (data && data[0]) setActivePkgId(data[0].package_id as string);
+    })();
   }, []);
 
   return (
@@ -53,7 +67,15 @@ function PackagesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-          {rows.map((p, i) => <PackageCard key={p.id} p={p} idx={i} />)}
+          {rows.map((p, i) => (
+            <PackageCard
+              key={p.id}
+              p={p}
+              idx={i}
+              isOwned={activePkgId === p.id}
+              hasActive={!!activePkgId}
+            />
+          ))}
         </div>
       )}
     </div>
@@ -73,27 +95,28 @@ const GRADIENTS = [
   { from: "from-indigo-500",  via: "via-violet-500",  to: "to-purple-600",   ring: "ring-indigo-300",   glow: "shadow-indigo-300/40" },
 ];
 
-function PackageCard({ p, idx }: { p: Pkg; idx: number }) {
+function PackageCard({ p, idx, isOwned, hasActive }: { p: Pkg; idx: number; isOwned: boolean; hasActive: boolean }) {
   const total = p.daily_income * p.duration_days;
   const profit = total - Number(p.price);
   const roi = Math.round((profit / Number(p.price)) * 100);
   const g = GRADIENTS[idx % GRADIENTS.length];
   const isVip = p.featured;
 
-  return (
-    <Link
-      to="/checkout"
-      search={{ pkg: p.id }}
+  const cardClass = cn(
+    "group relative flex flex-col overflow-hidden rounded-2xl p-3.5 sm:p-4 text-white shadow-lg transition-all duration-300",
+    "bg-gradient-to-br", g.from, g.via, g.to,
+    "ring-2", g.ring, g.glow,
+    isOwned
+      ? "opacity-90 cursor-not-allowed"
+      : "hover:-translate-y-1 hover:shadow-2xl focus:outline-none focus-visible:ring-4 focus-visible:ring-white/60",
+  );
 
-      className={cn(
-        "group relative flex flex-col overflow-hidden rounded-2xl p-3.5 sm:p-4 text-white shadow-lg transition-all duration-300",
-        "bg-gradient-to-br", g.from, g.via, g.to,
-        "ring-2", g.ring, g.glow,
-        "hover:-translate-y-1 hover:shadow-2xl focus:outline-none focus-visible:ring-4 focus-visible:ring-white/60",
-      )}
-    >
+  const inner = (
+    <>
       {/* glossy sweep */}
-      <span className="pointer-events-none absolute -inset-x-10 -top-10 h-24 rotate-12 bg-gradient-to-r from-white/0 via-white/30 to-white/0 -translate-x-full transition-transform duration-700 group-hover:translate-x-full" />
+      {!isOwned && (
+        <span className="pointer-events-none absolute -inset-x-10 -top-10 h-24 rotate-12 bg-gradient-to-r from-white/0 via-white/30 to-white/0 -translate-x-full transition-transform duration-700 group-hover:translate-x-full" />
+      )}
       <span className="pointer-events-none absolute -right-8 -bottom-8 h-32 w-32 rounded-full bg-white/15 blur-2xl" />
 
       {p.image_url && (
@@ -103,12 +126,15 @@ function PackageCard({ p, idx }: { p: Pkg; idx: number }) {
         </div>
       )}
 
-      {isVip && (
+      {isOwned ? (
+        <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-bold ring-1 ring-white/60 shadow">
+          <CheckCircle2 className="h-2.5 w-2.5" /> Active
+        </span>
+      ) : isVip && (
         <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-white/25 backdrop-blur px-2 py-0.5 text-[10px] font-bold ring-1 ring-white/40">
           <Star className="h-2.5 w-2.5 fill-white" /> VIP
         </span>
       )}
-
 
       <span className="relative self-start rounded-lg bg-white/25 backdrop-blur px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ring-1 ring-white/30">
         {roi}% ROI
@@ -126,9 +152,34 @@ function PackageCard({ p, idx }: { p: Pkg; idx: number }) {
         <div className="flex justify-between"><dt className="text-white/85">মোট আয়</dt><dd className="font-bold">৳{bn(total)}</dd></div>
       </dl>
 
-      <div className="relative mt-3 inline-flex items-center justify-center gap-1.5 rounded-xl bg-white/25 backdrop-blur ring-1 ring-white/40 px-3 py-2.5 text-xs font-bold transition group-hover:bg-white group-hover:text-slate-900">
-        ক্রয় করুন <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+      <div className={cn(
+        "relative mt-3 inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-bold ring-1 transition",
+        isOwned
+          ? "bg-white/95 text-emerald-700 ring-white/60"
+          : "bg-white/25 backdrop-blur ring-white/40 group-hover:bg-white group-hover:text-slate-900",
+      )}>
+        {isOwned ? (
+          <><CheckCircle2 className="h-3.5 w-3.5" /> আপনার Active প্যাকেজ</>
+        ) : hasActive ? (
+          <>আপগ্রেড করুন <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" /></>
+        ) : (
+          <>ক্রয় করুন <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" /></>
+        )}
       </div>
+    </>
+  );
+
+  if (isOwned) {
+    return (
+      <div className={cardClass} aria-disabled="true">
+        {inner}
+      </div>
+    );
+  }
+
+  return (
+    <Link to="/checkout" search={{ pkg: p.id }} className={cardClass}>
+      {inner}
     </Link>
   );
 }
