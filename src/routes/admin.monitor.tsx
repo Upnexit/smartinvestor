@@ -23,8 +23,13 @@ function MonitorPage() {
     ]);
     setData({ latencyMs: Math.round(performance.now() - t0), totalUsers: count ?? 0, errors: errs as Data["errors"], checkedAt: new Date().toISOString() });
   };
-  useAdminAutoRefresh(refresh);
-  useEffect(() => { const t = setInterval(refresh, 15000); return () => clearInterval(t); }, []);
+  const adminReady = useAdminAutoRefresh(refresh);
+  useEffect(() => {
+    if (!adminReady) return;
+    const t = setInterval(refresh, 15000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminReady]);
 
   const ok = !!data && data.latencyMs < 2000;
 

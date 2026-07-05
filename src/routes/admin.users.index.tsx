@@ -40,17 +40,18 @@ function UsersPage() {
   const [suspendTarget, setSuspendTarget] = useState<User | null>(null);
 
   const refresh = () => {
-    listUsers(q ?? "").then((rows) => setUsers(rows as User[])).catch((e) => toast.error(e instanceof Error ? e.message : "ব্যর্থ"));
+    listUsers(q ?? "").then((rows) => setUsers(rows as User[])).catch((e) => { setUsers([]); toast.error(e instanceof Error ? e.message : "ব্যর্থ"); });
     const since = new Date(); since.setHours(0,0,0,0);
     supabase.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since.toISOString()).then(({ count }) => setTodayCount(count ?? 0));
   };
-  useAdminAutoRefresh(refresh);
+  const adminReady = useAdminAutoRefresh(refresh);
 
   useEffect(() => {
+    if (!adminReady) return;
     const unsub = subscribeTable("profiles", refresh);
     return unsub;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q]);
+  }, [q, adminReady]);
 
   useEffect(() => { setQuery(q ?? ""); }, [q]);
 
@@ -159,7 +160,7 @@ function UsersPage() {
         </div>
       </AdminCard>
 
-      {!users ? (
+      {!adminReady || !users ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[0,1,2,3,4,5].map((i) => <Shimmer key={i} className="h-40" />)}
         </div>

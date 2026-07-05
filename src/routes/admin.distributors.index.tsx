@@ -113,12 +113,17 @@ function AdminDistributorsPage() {
   const loadApps = () => {
     supabase.from("distributor_applications")
       .select("*").order("created_at", { ascending: false }).limit(200)
-      .then(({ data }) => setApps((data ?? []) as AppRow[]));
+      .then(({ data, error }) => {
+        if (error) throw error;
+        setApps((data ?? []) as AppRow[]);
+      })
+      .catch(() => setApps([]));
   };
 
-  useAdminAutoRefresh(refresh);
+  const adminReady = useAdminAutoRefresh(refresh);
 
   useEffect(() => {
+    if (!adminReady) return;
     const offDistributors = subscribeTable("distributors", refresh);
     const offProfiles = subscribeTable("profiles", refresh);
     const offApps = subscribeTable("distributor_applications", loadApps);
@@ -126,14 +131,15 @@ function AdminDistributorsPage() {
     loadApps();
     return () => { offDistributors(); offProfiles(); offApps(); offW(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q]);
+  }, [q, adminReady]);
 
   // Debounced search
   useEffect(() => {
+    if (!adminReady) return;
     const t = setTimeout(refresh, 300);
     return () => clearTimeout(t);
     /* eslint-disable-next-line */
-  }, [q]);
+  }, [q, adminReady]);
 
   const stats = useMemo(() => {
     const r = rows ?? [];
@@ -261,7 +267,7 @@ function AdminDistributorsPage() {
 
 
       {tab === "list" && (
-        rows === null ? (
+        !adminReady || rows === null ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[0,1,2,3,4,5].map(i => <Shimmer key={i} className="h-52" />)}
           </div>

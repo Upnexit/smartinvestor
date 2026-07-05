@@ -41,15 +41,20 @@ function ApprovalsPage() {
   const refresh = () => supabase.from("user_packages")
     .select("id,status,payment_method,sender_number,trx_id,created_at,rejection_reason,user_id,package_id,screenshot_url,packages(name,price),profiles!user_packages_user_id_fkey(full_name,phone)")
     .order("created_at",{ascending:false}).limit(200)
-    .then(({data}) => setRows((data ?? []) as unknown as Row[]));
-  useAdminAutoRefresh(refresh);
+    .then(({data, error}) => {
+      if (error) throw error;
+      setRows((data ?? []) as unknown as Row[]);
+    })
+    .catch((e) => { setRows([]); toast.error(e instanceof Error ? e.message : "লোড ব্যর্থ"); });
+  const adminReady = useAdminAutoRefresh(refresh);
   useEffect(() => {
+    if (!adminReady) return;
     const ch = supabase.channel("admin-up").on("postgres_changes",{event:"*",schema:"public",table:"user_packages"}, () => {
       refresh(); toast.info("নতুন আপডেট");
     }).subscribe();
     return () => { supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [adminReady]);
 
   const filtered = useMemo(() => {
     if (!rows) return null;
@@ -99,7 +104,7 @@ function ApprovalsPage() {
         </div>
       </div>
 
-      {!filtered ? <Shimmer className="h-32" /> : filtered.length === 0 ? (
+      {!adminReady || !filtered ? <Shimmer className="h-32" /> : filtered.length === 0 ? (
         <EmptyState Icon={ShieldCheck} title="কোনো সাবমিশন নেই" accent="amber" />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
