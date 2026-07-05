@@ -277,6 +277,128 @@ function TasksPage() {
           })}
         </div>
       )}
+      {activeTask && (
+        <TaskDetailModal
+          task={activeTask}
+          linkOpened={linkOpened}
+          submitting={submittingId === activeTask.id}
+          onOpenLink={openTaskLink}
+          onSubmit={submitActiveTask}
+          onClose={() => { setActiveTask(null); setLinkOpened(false); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function parseSteps(description: string | null): string[] {
+  if (!description) return [];
+  const raw = description
+    .split(/\r?\n+/)
+    .map((l) => l.replace(/^\s*(?:\d+[\.\)]|[-•*])\s*/, "").trim())
+    .filter(Boolean);
+  return raw.length ? raw : [description.trim()];
+}
+
+function TaskDetailModal({
+  task, linkOpened, submitting, onOpenLink, onSubmit, onClose,
+}: {
+  task: Task;
+  linkOpened: boolean;
+  submitting: boolean;
+  onOpenLink: () => void;
+  onSubmit: () => void;
+  onClose: () => void;
+}) {
+  const meta = ACTION_META[task.action_type] ?? ACTION_META.like;
+  const Icon = meta.icon;
+  const steps = parseSteps(task.description);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm p-0 sm:p-4">
+      <div className="relative w-full sm:max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white shadow-2xl">
+        {/* Header */}
+        <div className={cn("relative bg-gradient-to-br px-5 pt-5 pb-6 text-white", meta.from, meta.to)}>
+          <button
+            onClick={onClose}
+            className="absolute right-3 top-3 rounded-full bg-white/20 p-1.5 text-white hover:bg-white/30"
+            aria-label="বন্ধ করুন"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/25 backdrop-blur ring-1 ring-white/40">
+              <Icon className="h-6 w-6" />
+            </div>
+            <div className="min-w-0">
+              <span className="rounded-md bg-white/25 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                {meta.label} · +৳{task.reward}
+              </span>
+              <h2 className="bn-display mt-1 text-lg leading-snug">{task.title}</h2>
+            </div>
+          </div>
+        </div>
+
+        {/* Steps */}
+        <div className="px-5 py-5 pb-32 sm:pb-24">
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">কাজের নির্দেশনা</p>
+          <h3 className="bn-display mt-1 text-base text-slate-900">ধাপে ধাপে অনুসরণ করুন</h3>
+
+          <ol className="mt-4 space-y-3">
+            {steps.map((s, i) => (
+              <li key={i} className="flex gap-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-100">
+                <div className={cn(
+                  "grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br text-sm font-bold text-white shadow",
+                  meta.from, meta.to,
+                )}>
+                  {i + 1}
+                </div>
+                <p className="text-sm leading-relaxed text-slate-800">{s}</p>
+              </li>
+            ))}
+          </ol>
+
+          {/* Open link button — big */}
+          <button
+            onClick={onOpenLink}
+            className={cn(
+              "mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-br px-5 py-4 text-base font-bold text-white shadow-lg transition hover:scale-[1.01]",
+              meta.from, meta.to,
+            )}
+          >
+            <ExternalLink className="h-5 w-5" />
+            {linkOpened ? "আবার লিংক খুলুন" : "লিংকে যান ও কাজ শুরু করুন"}
+          </button>
+
+          {linkOpened && (
+            <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
+              ✓ লিংক খোলা হয়েছে। সমস্ত কাজ (Like/Comment/Follow) সম্পন্ন করার পর নিচের সবুজ Submit বাটনে ক্লিক করুন।
+            </div>
+          )}
+        </div>
+
+        {/* Sticky floating submit panel */}
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center p-3 sm:p-4">
+          <div className="pointer-events-auto w-full sm:max-w-lg rounded-2xl bg-white/95 backdrop-blur border border-slate-200 shadow-2xl p-3">
+            <p className="text-center text-[11px] font-semibold text-slate-600">
+              কাজটি সম্পন্ন করলে সম্পন্ন করে Submit-এ ক্লিক করুন
+            </p>
+            <button
+              onClick={onSubmit}
+              disabled={!linkOpened || submitting}
+              className={cn(
+                "mt-2 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white shadow-md transition",
+                linkOpened
+                  ? "bg-gradient-to-br from-emerald-500 to-green-600 hover:scale-[1.01]"
+                  : "bg-slate-300 cursor-not-allowed",
+              )}
+            >
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCheck className="h-4 w-4" />}
+              {submitting ? "সাবমিট হচ্ছে…" : `কাজ সম্পন্ন — Submit করুন (+৳${task.reward})`}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
