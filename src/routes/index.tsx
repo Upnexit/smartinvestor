@@ -8,7 +8,7 @@ import {
   Sparkles, ThumbsUp, MessageCircle, Wallet, ShieldCheck, UserPlus,
   MousePointerClick, CheckCircle2, Smartphone, Clock, Users, TrendingUp,
   Zap, Gift, Trophy, ArrowRight, Star, Banknote, Crown, Gem, Award,
-  Rocket, Check, Package, Truck, ShoppingCart,
+  Rocket, Check, Package, Truck, ShoppingCart, Download,
 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
@@ -577,8 +577,9 @@ function CTA() {
             <Link to="/register" className="inline-flex w-full items-center justify-center rounded-xl bg-white px-6 py-3 font-bold text-rose-700 shadow-soft transition-transform hover:scale-105 sm:w-auto">
               ফ্রি একাউন্ট খুলুন
             </Link>
-            <Link to="/auth" className="inline-flex w-full items-center justify-center rounded-xl border-2 border-white/70 bg-white/10 px-6 py-3 font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-auto">
-              লগইন করুন
+            <Link to="/install" className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-white/70 bg-white/10 px-6 py-3 font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-auto">
+              <Download className="h-5 w-5" />
+              অ্যাপ ডাউনলোড করুন
             </Link>
           </div>
         </div>
