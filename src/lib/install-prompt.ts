@@ -25,7 +25,6 @@ async function logInstall() {
     if (!data.user) return;
     await supabase
       .from("profiles")
-      // @ts-expect-error — column added via migration, types regenerate after apply
       .update({ app_installed_at: new Date().toISOString() })
       .eq("id", data.user.id);
   } catch {
