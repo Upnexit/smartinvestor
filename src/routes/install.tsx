@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Download, Smartphone, Wifi, Zap, CheckCircle2, ArrowLeft, Share2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Download, Smartphone, Wifi, Zap, CheckCircle2, ArrowLeft, Share2, Loader2 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+
 
 export const Route = createFileRoute("/install")({
   ssr: false,
@@ -38,6 +39,10 @@ function InstallPage() {
   const [platform, setPlatform] = useState<"android" | "ios" | "desktop">("desktop");
   const [busy, setBusy] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
+  const [installing, setInstalling] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [statusText, setStatusText] = useState("");
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
     setPlatform(detectPlatform());
@@ -51,24 +56,77 @@ function InstallPage() {
       e.preventDefault();
       setDeferred(e as BIPEvent);
     };
-    const onInstalled = () => setInstalled(true);
+    const onInstalled = () => {
+      // Real install confirmed by the OS.
+      timersRef.current.forEach(clearTimeout);
+      timersRef.current = [];
+      setProgress(100);
+      setStatusText("অ্যাপ সফলভাবে ইনস্টল হয়েছে!");
+      setTimeout(() => {
+        setInstalling(false);
+        setInstalled(true);
+      }, 600);
+    };
     window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("appinstalled", onInstalled);
     return () => {
       window.removeEventListener("beforeinstallprompt", onPrompt);
       window.removeEventListener("appinstalled", onInstalled);
+      timersRef.current.forEach(clearTimeout);
     };
   }, []);
 
+  const runInstallingAnimation = (onComplete?: () => void) => {
+    setInstalling(true);
+    setProgress(0);
+    const steps: Array<{ p: number; t: string; delay: number }> = [
+      { p: 15, t: "ইনস্টলেশন প্রস্তুত করা হচ্ছে…", delay: 300 },
+      { p: 40, t: "অ্যাপ ফাইল ডাউনলোড হচ্ছে…", delay: 900 },
+      { p: 70, t: "হোম স্ক্রিনে যোগ করা হচ্ছে…", delay: 1600 },
+      { p: 92, t: "ফাইনালাইজিং…", delay: 2300 },
+    ];
+    steps.forEach((s) => {
+      const id = setTimeout(() => {
+        setProgress(s.p);
+        setStatusText(s.t);
+      }, s.delay);
+      timersRef.current.push(id);
+    });
+    if (onComplete) {
+      const id = setTimeout(onComplete, 2800);
+      timersRef.current.push(id);
+    }
+  };
+
   const handleInstall = async () => {
-    // If native install prompt is available, fire it immediately.
+    // Native install prompt path (Android Chrome / desktop Chrome/Edge).
     if (deferred) {
       setBusy(true);
+      runInstallingAnimation();
       try {
         await deferred.prompt();
         const choice = await deferred.userChoice;
-        if (choice.outcome === "accepted") setInstalled(true);
         setDeferred(null);
+        if (choice.outcome === "accepted") {
+          // Wait for the 'appinstalled' event to flip UI to success.
+          // Fallback: if it doesn't fire within 6s, show success anyway.
+          const fallback = setTimeout(() => {
+            setProgress(100);
+            setStatusText("অ্যাপ সফলভাবে ইনস্টল হয়েছে!");
+            setTimeout(() => {
+              setInstalling(false);
+              setInstalled(true);
+            }, 500);
+          }, 6000);
+          timersRef.current.push(fallback);
+        } else {
+          // User dismissed the OS prompt — cancel animation.
+          timersRef.current.forEach(clearTimeout);
+          timersRef.current = [];
+          setInstalling(false);
+          setProgress(0);
+          setStatusText("");
+        }
       } finally {
         setBusy(false);
       }
@@ -80,6 +138,7 @@ function InstallPage() {
       document.getElementById("install-steps")?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 50);
   };
+
 
 
   return (
@@ -96,47 +155,62 @@ function InstallPage() {
         <div className="mt-4 overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-amber-100">
           {/* Hero */}
           <div
-            className="relative px-6 pt-8 pb-6 text-center text-white"
+            className="relative px-6 pt-10 pb-7 text-center text-white"
             style={{ backgroundImage: "linear-gradient(135deg, #f59e0b 0%, #f97316 55%, #e11d48 100%)" }}
           >
             <div aria-hidden className="pointer-events-none absolute -top-10 -left-10 h-40 w-40 rounded-full bg-white/20 blur-3xl" />
             <div aria-hidden className="pointer-events-none absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-yellow-300/30 blur-3xl" />
-            <div className="relative mx-auto grid h-24 w-24 place-items-center rounded-3xl bg-white p-2 shadow-2xl ring-4 ring-white/40">
-              {logo_url ? (
-                <img
-                  src={logo_url}
-                  alt={`${site_name} লোগো`}
-                  className="h-full w-full rounded-2xl object-cover"
-                />
-              ) : (
-                <img
-                  src="/app-icon-512.png"
-                  alt="Smart Investor"
-                  className="h-full w-full rounded-2xl object-cover"
-                />
-              )}
+            <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-white p-3 shadow-2xl ring-4 ring-white/40">
+              <img
+                src={logo_url || "/app-icon-512.png"}
+                alt={`${site_name || "Smart Investor"} লোগো`}
+                className="h-full w-full object-contain"
+              />
             </div>
-            <h1 className="bn-display mt-4 text-2xl font-bold">{site_name || "Smart Investor"}</h1>
+            <h1 className="bn-display mt-5 text-2xl font-bold">{site_name || "Smart Investor"}</h1>
             <p className="mt-1 text-sm text-white/90">অফিসিয়াল মোবাইল অ্যাপ</p>
             <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold backdrop-blur-sm">
               <Zap className="h-3.5 w-3.5" /> ফ্রি ইনস্টল • কোনো Play Store লাগবে না
             </div>
           </div>
 
+
           {/* Body */}
           <div className="px-6 py-6">
             {installed ? (
-              <div className="rounded-2xl bg-emerald-50 p-4 text-center ring-1 ring-emerald-200">
-                <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" />
-                <p className="bn-display mt-2 text-base font-bold text-emerald-900">
-                  অ্যাপ ইনস্টল হয়ে গিয়েছে
+              <div className="rounded-2xl bg-emerald-50 p-5 text-center ring-1 ring-emerald-200 animate-in fade-in zoom-in-95 duration-500">
+                <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/40">
+                  <CheckCircle2 className="h-8 w-8" />
+                </div>
+                <p className="bn-display mt-3 text-lg font-bold text-emerald-900">
+                  অ্যাপ সফলভাবে ইনস্টল হয়েছে!
                 </p>
                 <p className="mt-1 text-sm text-emerald-700">
                   আপনার হোম স্ক্রিনের আইকন থেকে অ্যাপটি খুলুন।
                 </p>
               </div>
+            ) : installing ? (
+              <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 p-5 text-center ring-1 ring-amber-200 animate-in fade-in duration-300">
+                <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-white shadow-lg ring-2 ring-amber-200">
+                  <Loader2 className="h-7 w-7 animate-spin text-amber-600" />
+                </div>
+                <p className="bn-display mt-3 text-base font-bold text-slate-900">
+                  Installing the app…
+                </p>
+                <p className="mt-1 min-h-[20px] text-xs text-slate-600 transition-opacity">
+                  {statusText}
+                </p>
+                <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-white/70 ring-1 ring-amber-100">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 shadow-[0_0_10px_rgba(249,115,22,0.5)] transition-all duration-700 ease-out"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <p className="mt-2 text-[11px] font-semibold text-amber-700">{progress}%</p>
+              </div>
             ) : (
               <>
+
                 <button
                   onClick={handleInstall}
                   disabled={busy}
