@@ -426,9 +426,22 @@ function Earnings() {
                 <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-600" />দৈনিক {p.tasks}টি টাস্ক</li>
                 <li className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-600" />মোট আয় {p.total}</li>
               </ul>
-              <Link to="/our-packages" className={`mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${p.gradient} px-4 py-2.5 text-sm font-bold text-white shadow-soft transition-transform hover:scale-[1.02]`}>
-                বিস্তারিত দেখুন <ArrowRight className="h-4 w-4" />
-              </Link>
+              {p.id ? (
+                authed ? (
+                  <Link to="/packages/$id" params={{ id: p.id }} className={`mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${p.gradient} px-4 py-2.5 text-sm font-bold text-white shadow-soft transition-transform hover:scale-[1.02]`}>
+                    বিস্তারিত দেখুন <ArrowRight className="h-4 w-4" />
+                  </Link>
+                ) : (
+                  <Link to="/auth" search={{ redirect: `/packages/${p.id}` }} className={`mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${p.gradient} px-4 py-2.5 text-sm font-bold text-white shadow-soft transition-transform hover:scale-[1.02]`}>
+                    বিস্তারিত দেখুন <ArrowRight className="h-4 w-4" />
+                  </Link>
+                )
+              ) : (
+                <Link to="/our-packages" className={`mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${p.gradient} px-4 py-2.5 text-sm font-bold text-white shadow-soft transition-transform hover:scale-[1.02]`}>
+                  বিস্তারিত দেখুন <ArrowRight className="h-4 w-4" />
+                </Link>
+              )}
+
             </div>
           </article>
         ))}
