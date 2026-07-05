@@ -217,7 +217,9 @@ function TasksPage() {
 
               {/* Title with presets */}
               <div>
-                <F label="টাস্ক টাইটেল" value={edit.title} onChange={(v) => setEdit({ ...edit, title: v })} />
+                <VoiceInputField label="টাস্ক টাইটেল" value={edit.title}
+                  onChange={(v) => setEdit({ ...edit, title: v })} />
+
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {(TITLE_PRESETS[edit.category ?? "facebook"] ?? []).map((p) => (
                     <button key={p} type="button" onClick={() => setEdit({ ...edit, title: p })}
