@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { generateFbLinkTasks, type GeneratedTask } from "@/lib/admin-tasks.functions";
 import { cn } from "@/lib/utils";
+import { todayBD } from "@/lib/bd-time";
+
 
 export const Route = createFileRoute("/admin/task-package/$packageId")({
   head: () => ({ meta: [{ title: "প্যাকেজ টাস্ক ম্যানেজ — Admin" }] }),
@@ -30,12 +32,6 @@ type Task = {
 
 const ACTIONS: GeneratedTask["action_type"][] = ["like", "follow", "share", "comment"];
 
-function todayBD(): string {
-  // Asia/Dhaka date as YYYY-MM-DD
-  const now = new Date();
-  const bdMs = now.getTime() + (6 * 60 * 60 * 1000) + now.getTimezoneOffset() * 60 * 1000;
-  return new Date(bdMs).toISOString().slice(0, 10);
-}
 
 function PackageTasksPage() {
   const { packageId } = useParams({ from: "/admin/task-package/$packageId" });

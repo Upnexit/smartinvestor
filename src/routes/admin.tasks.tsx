@@ -9,6 +9,7 @@ import { useAdminAutoRefresh } from "@/lib/admin-refresh";
 import { useServerFn } from "@tanstack/react-start";
 import { generateTaskDescription } from "@/lib/ai.functions";
 import { cn } from "@/lib/utils";
+import { todayBD, startOfTodayBDISO } from "@/lib/bd-time";
 
 export const Route = createFileRoute("/admin/tasks")({
   head: () => ({ meta: [{ title: "টাস্ক লিংক — Admin" }] }),
@@ -78,9 +79,8 @@ function TasksPage() {
     if (error) { setRows([]); setStats({ done: 0, paid: 0 }); return; }
     setRows((data ?? []) as unknown as Task[]);
     setPackages((pkgs ?? []) as Pkg[]);
-    const today = new Date(); today.setHours(0,0,0,0);
     const { data: subs } = await supabase.from("task_submissions").select("status, link_tasks(reward)")
-      .eq("status", "approved").gte("created_at", today.toISOString());
+      .eq("status", "approved").gte("created_at", startOfTodayBDISO());
     const done = subs?.length ?? 0;
     const paid = (subs ?? []).reduce((s: number, r: { link_tasks: { reward: number } | null }) => s + Number(r.link_tasks?.reward ?? 0), 0);
     setStats({ done, paid });
@@ -100,11 +100,7 @@ function TasksPage() {
     active: rows?.filter((r) => r.active && !r.is_draft).length ?? 0,
   }), [rows]);
 
-  const today = useMemo(() => {
-    const now = new Date();
-    const bd = new Date(now.getTime() + 6 * 3600_000 + now.getTimezoneOffset() * 60_000);
-    return bd.toISOString().slice(0, 10);
-  }, []);
+  const today = useMemo(() => todayBD(), []);
 
   const filteredRows = useMemo(() => {
     if (!rows) return [];

@@ -13,6 +13,7 @@ import {
 } from "@/components/admin/AdminUI";
 import { useAdminAutoRefresh, emitAdminRefresh } from "@/lib/admin-refresh";
 import { ACCENTS, type AccentKey } from "@/lib/admin-accents";
+import { bdDateStringOffset, formatBDDateLong } from "@/lib/bd-time";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/")({
@@ -64,7 +65,7 @@ async function loadStats(): Promise<Stats> {
 
   const day = (d: string) => d.slice(0, 10);
   const days: string[] = [];
-  for (let i = 29; i >= 0; i--) days.push(new Date(Date.now() - i * 86400_000).toISOString().slice(0, 10));
+  for (let i = 29; i >= 0; i--) days.push(bdDateStringOffset(-i));
 
   const signupMap = new Map<string, number>();
   (signupRows.data ?? []).forEach((r) => signupMap.set(day(r.created_at!), (signupMap.get(day(r.created_at!)) ?? 0) + 1));
@@ -220,7 +221,7 @@ function DashboardPage() {
       <AdminPageHeader
         accent="amber" Icon={Sparkles}
         title="স্বাগতম, অ্যাডমিন 👋"
-        subtitle={"আজ " + new Date().toLocaleDateString("bn-BD", { weekday: "long", day: "numeric", month: "long" })}
+        subtitle={"আজ " + formatBDDateLong()}
         badge={<span className="rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-md shadow-emerald-500/30">LIVE</span>}
       />
 
