@@ -94,28 +94,40 @@ function TasksPage() {
     filter === "all" ? true : t.action_type === filter
   );
 
-  async function handleDoTask(task: Task) {
-    if (!userId) return;
-    void emailVerified;
+  function openTask(task: Task) {
     if (hasActivePkg === false) {
       toast.error("টাস্ক করতে হলে একটি active প্যাকেজ লাগবে");
       return;
     }
-    window.open(task.link_url, "_blank", "noopener,noreferrer");
-    setSubmittingId(task.id);
-    const tId = toast.loading("রিওয়ার্ড যোগ করা হচ্ছে…");
+    setActiveTask(task);
+    setLinkOpened(false);
+  }
+
+  function openTaskLink() {
+    if (!activeTask) return;
+    window.open(activeTask.link_url, "_blank", "noopener,noreferrer");
+    setLinkOpened(true);
+  }
+
+  async function submitActiveTask() {
+    if (!userId || !activeTask) return;
+    void emailVerified;
+    setSubmittingId(activeTask.id);
+    const tId = toast.loading("সাবমিট করা হচ্ছে…");
     try {
       const { error } = await supabase.from("task_submissions").insert({
-        task_id: task.id,
+        task_id: activeTask.id,
         user_id: userId,
         status: "approved",
       });
       if (error) throw error;
-      toast.success(`৳${Number(task.reward).toFixed(0)} আপনার ব্যালেন্সে যোগ হয়েছে 🎉`, { id: tId });
+      toast.success(`৳${Number(activeTask.reward).toFixed(0)} আপনার ব্যালেন্সে যোগ হয়েছে 🎉`, { id: tId });
       const { data: s } = await supabase.from("task_submissions").select("task_id,status,created_at")
         .eq("user_id", userId)
         .gte("created_at", new Date(new Date().setHours(0, 0, 0, 0)).toISOString());
       setSubs((s ?? []) as Submission[]);
+      setActiveTask(null);
+      setLinkOpened(false);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "সাবমিট ব্যর্থ", { id: tId });
     } finally {
