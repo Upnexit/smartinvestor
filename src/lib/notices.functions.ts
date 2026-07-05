@@ -74,16 +74,11 @@ export const saveNotice = createServerFn({ method: "POST" })
       expires_at: data.expires_at,
     };
 
-    if (data.id) {
-      const { data: row, error } = await context.supabase
-        .from("notices").update(payload).eq("id", data.id).select().single();
-      if (error) throw new Error(error.message);
-      return { notice: row as NoticeRow };
-    }
-    const { data: row, error } = await context.supabase
-      .from("notices")
-      .insert({ ...payload, created_by: context.userId })
-      .select().single();
+    const { data: row, error } = await (context.supabase as any).rpc("admin_save_notice", {
+      _actor: context.userId,
+      _id: data.id,
+      _patch: payload,
+    });
     if (error) throw new Error(error.message);
     return { notice: row as NoticeRow };
   });
@@ -93,7 +88,10 @@ export const deleteNotice = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => ({ id: String(d.id) }))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const { error } = await context.supabase.from("notices").delete().eq("id", data.id);
+    const { error } = await (context.supabase as any).rpc("admin_delete_notice", {
+      _actor: context.userId,
+      _id: data.id,
+    });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -103,8 +101,11 @@ export const togglePublishNotice = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; published: boolean }) => ({ id: String(d.id), published: !!d.published }))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const { data: row, error } = await context.supabase
-      .from("notices").update({ published: data.published }).eq("id", data.id).select().single();
+    const { data: row, error } = await (context.supabase as any).rpc("admin_toggle_notice", {
+      _actor: context.userId,
+      _id: data.id,
+      _published: data.published,
+    });
     if (error) throw new Error(error.message);
     return { notice: row as NoticeRow };
   });

@@ -925,6 +925,10 @@ export type Database = {
         Args: { _actor: string; _user_id: string }
         Returns: undefined
       }
+      admin_delete_notice: {
+        Args: { _actor: string; _id: string }
+        Returns: undefined
+      }
       admin_delete_package: {
         Args: { _actor: string; _id: string }
         Returns: undefined
@@ -994,6 +998,28 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_save_notice: {
+        Args: { _actor: string; _id: string; _patch: Json }
+        Returns: {
+          body: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          priority: string
+          published: boolean
+          target_all_users: boolean
+          target_package_ids: string[]
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "notices"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_save_package: {
         Args: { _actor: string; _id: string; _patch: Json }
         Returns: {
@@ -1052,6 +1078,28 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_toggle_notice: {
+        Args: { _actor: string; _id: string; _published: boolean }
+        Returns: {
+          body: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          priority: string
+          published: boolean
+          target_all_users: boolean
+          target_package_ids: string[]
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "notices"
           isOneToOne: true
           isSetofReturn: false
         }
