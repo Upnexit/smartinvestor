@@ -34,7 +34,7 @@ export const Route = createFileRoute("/admin/users/")({
 });
 
 function UsersPage() {
-  const { q } = Route.useSearch();
+  const { q, filter } = Route.useSearch();
   const navigate = Route.useNavigate();
   const [query, setQuery] = useState(q ?? "");
   const [users, setUsers] = useState<User[] | null>(null);
@@ -44,8 +44,10 @@ function UsersPage() {
   const [edit, setEdit] = useState<User | null>(null);
   const [suspendTarget, setSuspendTarget] = useState<User | null>(null);
 
+  const activeFilter = (filter as "all" | "active" | "inactive" | "suspended" | undefined) ?? "all";
+
   const refresh = () => {
-    listUsers(q ?? "").then((rows) => setUsers(rows as User[])).catch((e) => { setUsers([]); toast.error(e instanceof Error ? e.message : "ব্যর্থ"); });
+    listUsers(q ?? "").then((rows) => setUsers(rows as unknown as User[])).catch((e) => { setUsers([]); toast.error(e instanceof Error ? e.message : "ব্যর্থ"); });
     const since = new Date(); since.setHours(0,0,0,0);
     supabase.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since.toISOString()).then(({ count }) => setTodayCount(count ?? 0));
   };
@@ -53,27 +55,53 @@ function UsersPage() {
 
   useEffect(() => {
     if (!adminReady) return;
-    const unsub = subscribeTable("profiles", refresh);
-    return unsub;
+    const unsub1 = subscribeTable("profiles", refresh);
+    const unsub2 = subscribeTable("user_packages", refresh);
+    return () => { unsub1(); unsub2(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, adminReady]);
 
   useEffect(() => { setQuery(q ?? ""); }, [q]);
 
+  const filteredUsers = useMemo(() => {
+    if (!users) return null;
+    // Real-time client-side filter on query (in addition to server search)
+    const s = query.trim().toLowerCase();
+    let list = users;
+    if (s) {
+      list = list.filter((u) =>
+        (u.full_name ?? "").toLowerCase().includes(s) ||
+        (u.email ?? "").toLowerCase().includes(s) ||
+        (u.phone ?? "").toLowerCase().includes(s) ||
+        (u.referral_code ?? "").toLowerCase().includes(s)
+      );
+    }
+    if (activeFilter === "active") list = list.filter((u) => u.has_active_package);
+    else if (activeFilter === "inactive") list = list.filter((u) => !u.has_active_package);
+    else if (activeFilter === "suspended") list = list.filter((u) => u.status === "suspended" || u.status === "banned");
+    return list;
+  }, [users, query, activeFilter]);
+
   const stats = useMemo(() => ({
     total: users?.length ?? 0,
     earners: users?.filter((u) => u.total_earned > 0).length ?? 0,
     newToday: todayCount,
+    activePkg: users?.filter((u) => u.has_active_package).length ?? 0,
   }), [users, todayCount]);
 
   useEffect(() => {
     const t = setTimeout(() => {
       const next = query.trim();
-      if ((q ?? "") !== next) navigate({ search: next ? { q: next } : {} });
+      if ((q ?? "") !== next) navigate({ search: (prev) => ({ ...prev, q: next || undefined }) });
     }, 300);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
+
+  const setFilter = (f: "all" | "active" | "inactive" | "suspended") => {
+    navigate({ search: (prev) => ({ ...prev, filter: f === "all" ? undefined : f }) });
+  };
+
 
   const handleDelete = async () => {
     if (!del) return;
