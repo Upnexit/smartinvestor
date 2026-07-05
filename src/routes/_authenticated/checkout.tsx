@@ -196,51 +196,62 @@ function CheckoutPage() {
     if (!pkg || !method) return;
     const cleanTrx = trxNorm || `SUBMITTED${Date.now()}`;
     const cleanSender = phoneNorm || senderNumber.trim() || "not-provided";
-    try {
-      const saved = await submitPayment({ data: { packageId: pkg.id, method, senderNumber: cleanSender, trxId: cleanTrx } });
-      if (saved?.orderId) setOrderId(saved.orderId);
-      return;
-    } catch {
-      // Fall back to direct client-side save so the admin approval list still receives the submission.
-    }
 
+    // Primary path: client-side insert using authenticated user's session (RLS passes).
+    let savedOrderId: string | null = null;
     try {
       const { data: auth } = await supabase.auth.getUser();
       const userId = auth.user?.id;
-      if (!userId) return;
-      const { data: existing } = await supabase
-        .from("user_packages")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("package_id", pkg.id)
-        .in("status", ["pending", "rejected"])
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      const payload = {
-        trx_id: cleanTrx,
-        payment_txn: cleanTrx,
-        payment_method: method,
-        sender_number: cleanSender,
-        submitted_at: new Date().toISOString(),
-        status: "pending" as const,
-        rejection_reason: null,
-      };
-      if (existing?.id) {
-        const { data: updated } = await supabase.from("user_packages").update(payload).eq("id", existing.id).select("id").maybeSingle();
-        if (updated?.id) setOrderId(updated.id);
-      } else {
-        const { data: inserted } = await supabase
+      if (userId) {
+        const { data: existing } = await supabase
           .from("user_packages")
-          .insert({ ...payload, user_id: userId, package_id: pkg.id })
           .select("id")
+          .eq("user_id", userId)
+          .eq("package_id", pkg.id)
+          .in("status", ["pending", "rejected"])
+          .order("created_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
-        if (inserted?.id) setOrderId(inserted.id);
+        const payload = {
+          trx_id: cleanTrx,
+          payment_txn: cleanTrx,
+          payment_method: method,
+          sender_number: cleanSender,
+          submitted_at: new Date().toISOString(),
+          status: "pending" as const,
+          rejection_reason: null,
+        };
+        if (existing?.id) {
+          const { data: updated, error: updErr } = await supabase
+            .from("user_packages").update(payload).eq("id", existing.id).select("id").maybeSingle();
+          if (!updErr && updated?.id) savedOrderId = updated.id;
+        } else {
+          const { data: inserted, error: insErr } = await supabase
+            .from("user_packages")
+            .insert({ ...payload, user_id: userId, package_id: pkg.id })
+            .select("id")
+            .maybeSingle();
+          if (!insErr && inserted?.id) savedOrderId = inserted.id;
+          if (insErr) console.warn("[checkout] insert error:", insErr.message);
+        }
       }
-    } catch {
-      // No error message here by design; the user sees the professional submitted state.
+    } catch (err) {
+      console.warn("[checkout] client save failed:", err);
     }
+
+    // Fallback: server function (in case direct RLS insert fails).
+    if (!savedOrderId) {
+      try {
+        const saved = await submitPayment({ data: { packageId: pkg.id, method, senderNumber: cleanSender, trxId: cleanTrx } });
+        if (saved?.orderId) savedOrderId = saved.orderId;
+      } catch (err) {
+        console.warn("[checkout] server submit failed:", err);
+      }
+    }
+
+    if (savedOrderId) setOrderId(savedOrderId);
   };
+
 
   const handleSubmitTrx = async () => {
     if (!pkg || !method || submitting) return;

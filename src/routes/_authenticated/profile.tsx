@@ -50,6 +50,7 @@ function ProfilePage() {
   const [pwNew, setPwNew] = useState("");
   const [pwBusy, setPwBusy] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
+  const [activePkg, setActivePkg] = useState<{ name: string; expires_at: string | null } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -65,8 +66,21 @@ function ProfilePage() {
         setPaymentMethod(p.payment_method);
         setPaymentNumber(p.payment_number ?? "");
       }
+      const { data: up } = await supabase
+        .from("user_packages")
+        .select("expires_at, packages(name)")
+        .eq("user_id", u.user.id)
+        .eq("status", "active")
+        .order("activated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (up) {
+        const pkgName = (up as unknown as { packages?: { name?: string } | null }).packages?.name;
+        setActivePkg({ name: pkgName ?? "Active Package", expires_at: (up as { expires_at: string | null }).expires_at });
+      }
     })();
   }, []);
+
 
   const phoneNorm = phone.replace(/\D/g, "");
   const phoneValid = /^01[3-9]\d{8}$/.test(phoneNorm);
@@ -171,12 +185,21 @@ function ProfilePage() {
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="bn-display text-xl truncate">{profile.full_name || "—"}</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="bn-display text-xl truncate">{profile.full_name || "—"}</p>
+              {activePkg && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-white shadow ring-1 ring-white/40">
+                  <Crown className="h-3 w-3" />
+                  {activePkg.name}
+                </span>
+              )}
+            </div>
             <p className="text-xs text-white/90 truncate">{profile.email}</p>
             <button onClick={() => copy(profile.user_code, "uc")} className="mt-1.5 inline-flex items-center gap-1 rounded-md bg-white/20 px-2 py-0.5 text-[11px] font-mono">
               {profile.user_code} {copied === "uc" ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
             </button>
           </div>
+
         </div>
 
         {/* Completion progress strip */}
