@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Calendar, Coins, TrendingUp, ListChecks, ShieldCheck, Sparkles, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
