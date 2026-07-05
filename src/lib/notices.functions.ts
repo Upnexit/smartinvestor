@@ -167,7 +167,7 @@ export const dismissNotice = createServerFn({ method: "POST" })
 
 /* ------------------------- AI IMPROVE (Bangla) ------------------------- */
 
-async function callGateway(system: string, user: string, key: string): Promise<string> {
+async function callGatewayLovable(system: string, user: string, key: string): Promise<string> {
   const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -184,12 +184,34 @@ async function callGateway(system: string, user: string, key: string): Promise<s
     const t = await res.text().catch(() => "");
     if (res.status === 429) throw new Error("AI ব্যস্ত — কিছুক্ষণ পরে চেষ্টা করুন");
     if (res.status === 402) throw new Error("AI ক্রেডিট শেষ");
-    throw new Error(`AI ${res.status}: ${t.slice(0, 160)}`);
+    throw new Error(`Lovable ${res.status}: ${t.slice(0, 160)}`);
   }
   const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
   return json.choices?.[0]?.message?.content?.trim() ?? "";
 }
 
+async function callGatewayGemini(system: string, user: string, key: string): Promise<string> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: system }] },
+      contents: [{ role: "user", parts: [{ text: user }] }],
+      generationConfig: { temperature: 0.5, maxOutputTokens: 800 },
+    }),
+  });
+  if (!res.ok) {
+    const t = await res.text().catch(() => "");
+    throw new Error(`Gemini ${res.status}: ${t.slice(0, 160)}`);
+  }
+  const json = (await res.json()) as {
+    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+  };
+  return (
+    json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("").trim() ?? ""
+  );
+}
 
 export const improveNoticeText = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -201,8 +223,11 @@ export const improveNoticeText = createServerFn({ method: "POST" })
     await assertAdmin(context.supabase, context.userId);
     if (!data.raw) throw new Error("কোনো টেক্সট পাওয়া যায়নি");
 
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("AI service configure করা নেই");
+    const geminiKey = process.env.GEMINI_API_KEY;
+    const lovableKey = process.env.LOVABLE_API_KEY;
+    if (!geminiKey && !lovableKey) {
+      throw new Error("AI service configure করা নেই — admin কে জানান");
+    }
 
     const system = `You rewrite raw Bengali speech-to-text notes into short, professional Bangla notices for a Bangladesh online-earning platform ("Smart Investor").
 
@@ -214,7 +239,32 @@ Tone: ${data.priority === "critical" ? "জরুরি ও সরাসরি" 
 
     const user = `Raw voice/text note from admin:\n"""${data.raw}"""\n\nএটিকে উপরের format-এ পরিষ্কার Bangla notice হিসেবে rewrite করুন। বানান, বিরাম, বাক্যগঠন সব ঠিক করুন। অতিরিক্ত তথ্য বানাবেন না।`;
 
-    const out = await callGateway(system, user, key);
+    const errors: string[] = [];
+    let out = "";
+
+    // Try Gemini direct first (same pattern as other pages)
+    if (geminiKey) {
+      try {
+        out = await callGatewayGemini(system, user, geminiKey);
+      } catch (err) {
+        errors.push((err as Error).message);
+        console.warn("Notice AI Gemini fallback:", (err as Error).message);
+      }
+    }
+    // Fallback to Lovable AI Gateway
+    if (!out && lovableKey) {
+      try {
+        out = await callGatewayLovable(system, user, lovableKey);
+      } catch (err) {
+        errors.push((err as Error).message);
+        console.warn("Notice AI Lovable fallback:", (err as Error).message);
+      }
+    }
+
+    if (!out) {
+      throw new Error(errors[0] || "AI থেকে উত্তর পাওয়া যায়নি");
+    }
+
     // Parse "শিরোনাম: ..." from line 1
     const lines = out.split("\n").map((l) => l.trim()).filter(Boolean);
     let title = "";
@@ -226,3 +276,4 @@ Tone: ${data.priority === "critical" ? "জরুরি ও সরাসরি" 
     const body = lines.slice(bodyStart).join("\n").trim() || out;
     return { title: title.slice(0, 200), body: body.slice(0, 4000) };
   });
+
