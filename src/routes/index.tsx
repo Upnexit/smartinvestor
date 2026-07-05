@@ -602,8 +602,8 @@ function Footer() {
         <div className="flex flex-col gap-3 text-sm text-slate-600 sm:flex-row sm:items-center sm:gap-6">
           <span>© 2025 {site_name} — সকল অধিকার সংরক্ষিত।</span>
           <div className="flex gap-4">
-            <a href="#" className="hover:text-amber-600">শর্তাবলী</a>
-            <a href="#" className="hover:text-amber-600">প্রাইভেসি</a>
+            <Link to="/terms" className="hover:text-amber-600">শর্তাবলী</Link>
+            <Link to="/privacy" className="hover:text-amber-600">প্রাইভেসি</Link>
             <a href="#" className="hover:text-amber-600">যোগাযোগ</a>
           </div>
         </div>
