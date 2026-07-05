@@ -174,16 +174,27 @@ function PublicPackages() {
                       <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /><span>৫% রেফারেল কমিশন</span></li>
                     </ul>
 
-                    <button
-                      onClick={() => handleBuy(p.id)}
-                      disabled={busyId === p.id}
-                      className={`mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${grad} px-4 py-3 text-sm font-bold text-white shadow-soft transition-transform hover:scale-[1.02] disabled:opacity-70`}
-                    >
-                      {busyId === p.id ? "লোড হচ্ছে..." : (<>এই প্যাকেজ ক্রয় করুন <ArrowRight className="h-4 w-4" /></>)}
-                    </button>
+                    {authed ? (
+                      <Link
+                        to="/packages/$id"
+                        params={{ id: p.id }}
+                        className={`mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${grad} px-4 py-3 text-sm font-bold text-white shadow-soft transition-transform hover:scale-[1.02]`}
+                      >
+                        এই প্যাকেজ ক্রয় করুন <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    ) : (
+                      <Link
+                        to="/auth"
+                        search={{ redirect: `/packages/${p.id}` }}
+                        className={`mt-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r ${grad} px-4 py-3 text-sm font-bold text-white shadow-soft transition-transform hover:scale-[1.02]`}
+                      >
+                        এই প্যাকেজ ক্রয় করুন <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    )}
                     <p className="text-center text-[11px] text-slate-500">
-                      {authed ? "প্যাকেজ বিস্তারিত পেজে নিয়ে যাওয়া হবে" : "ক্রয় করতে প্রথমে লগইন করুন — লগইনের পর সরাসরি এই প্যাকেজে ফিরবেন"}
+                      {authed ? "প্যাকেজ বিস্তারিত পেজে নিয়ে যাওয়া হবে" : "ক্রয় করতে প্রথমে লগইন করুন — লগইনের পর সরাসরি প্যাকেজে ফিরবেন"}
                     </p>
+
                   </div>
                 </article>
               );
