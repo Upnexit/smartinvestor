@@ -62,7 +62,7 @@ function AppInstallsPage() {
   return (
     <div className="space-y-5">
       <AdminPageHeader
-        icon={<Smartphone className="h-6 w-6" />}
+        Icon={Smartphone}
         title="অ্যাপ ইনস্টল"
         subtitle="যেসব ইউজার মোবাইল/ডেস্কটপ অ্যাপ ইনস্টল করেছেন"
         accent="cyan"

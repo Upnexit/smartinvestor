@@ -42,6 +42,7 @@ import { Route as AdminMonitorRouteImport } from './routes/admin.monitor'
 import { Route as AdminDistributorsRouteImport } from './routes/admin.distributors'
 import { Route as AdminCommunityRouteImport } from './routes/admin.community'
 import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
+import { Route as AdminAppInstallsRouteImport } from './routes/admin.app-installs'
 import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticated/withdraw'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedReferralRouteImport } from './routes/_authenticated/referral'
@@ -220,6 +221,11 @@ const AdminApprovalsRoute = AdminApprovalsRouteImport.update({
   path: '/approvals',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAppInstallsRoute = AdminAppInstallsRouteImport.update({
+  id: '/app-installs',
+  path: '/app-installs',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AuthenticatedWithdrawRoute = AuthenticatedWithdrawRouteImport.update({
   id: '/withdraw',
   path: '/withdraw',
@@ -307,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/referral': typeof AuthenticatedReferralRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
+  '/admin/app-installs': typeof AdminAppInstallsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/community': typeof AdminCommunityRoute
   '/admin/distributors': typeof AdminDistributorsRouteWithChildren
@@ -352,6 +359,7 @@ export interface FileRoutesByTo {
   '/referral': typeof AuthenticatedReferralRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
+  '/admin/app-installs': typeof AdminAppInstallsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/community': typeof AdminCommunityRoute
   '/admin/monitor': typeof AdminMonitorRoute
@@ -399,6 +407,7 @@ export interface FileRoutesById {
   '/_authenticated/referral': typeof AuthenticatedReferralRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
+  '/admin/app-installs': typeof AdminAppInstallsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/community': typeof AdminCommunityRoute
   '/admin/distributors': typeof AdminDistributorsRouteWithChildren
@@ -448,6 +457,7 @@ export interface FileRouteTypes {
     | '/referral'
     | '/tasks'
     | '/withdraw'
+    | '/admin/app-installs'
     | '/admin/approvals'
     | '/admin/community'
     | '/admin/distributors'
@@ -493,6 +503,7 @@ export interface FileRouteTypes {
     | '/referral'
     | '/tasks'
     | '/withdraw'
+    | '/admin/app-installs'
     | '/admin/approvals'
     | '/admin/community'
     | '/admin/monitor'
@@ -539,6 +550,7 @@ export interface FileRouteTypes {
     | '/_authenticated/referral'
     | '/_authenticated/tasks'
     | '/_authenticated/withdraw'
+    | '/admin/app-installs'
     | '/admin/approvals'
     | '/admin/community'
     | '/admin/distributors'
@@ -815,6 +827,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminApprovalsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/app-installs': {
+      id: '/admin/app-installs'
+      path: '/app-installs'
+      fullPath: '/admin/app-installs'
+      preLoaderRoute: typeof AdminAppInstallsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_authenticated/withdraw': {
       id: '/_authenticated/withdraw'
       path: '/withdraw'
@@ -975,6 +994,7 @@ const AdminUsersRouteWithChildren = AdminUsersRoute._addFileChildren(
 )
 
 interface AdminRouteChildren {
+  AdminAppInstallsRoute: typeof AdminAppInstallsRoute
   AdminApprovalsRoute: typeof AdminApprovalsRoute
   AdminCommunityRoute: typeof AdminCommunityRoute
   AdminDistributorsRoute: typeof AdminDistributorsRouteWithChildren
@@ -992,6 +1012,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAppInstallsRoute: AdminAppInstallsRoute,
   AdminApprovalsRoute: AdminApprovalsRoute,
   AdminCommunityRoute: AdminCommunityRoute,
   AdminDistributorsRoute: AdminDistributorsRouteWithChildren,
