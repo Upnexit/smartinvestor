@@ -267,7 +267,7 @@ function NoticeFormModal({
         target_package_ids: pkgIds,
         target_all_users: allUsers,
         published: publishNow,
-        expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
+        expires_at: expiresAt ? new Date(expiresAt + "T23:59:59").toISOString() : null,
       }});
       onSaved();
     } catch (e) { setError((e as Error).message); }
