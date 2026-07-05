@@ -56,7 +56,7 @@ function TasksPage() {
       setUserId(u.user.id);
       const [{ data: s }, { data: up }, { data: prof }] = await Promise.all([
         supabase.from("task_submissions").select("task_id,status,created_at").eq("user_id", u.user.id)
-          .gte("created_at", new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
+          .gte("created_at", startOfTodayBDISO()),
         supabase.from("user_packages").select("package_id").eq("user_id", u.user.id).eq("status", "active"),
         supabase.from("profiles").select("email_verified").eq("id", u.user.id).maybeSingle(),
       ]);
@@ -133,7 +133,7 @@ function TasksPage() {
       toast.success(`৳${Number(activeTask.reward).toFixed(0)} আপনার ব্যালেন্সে যোগ হয়েছে 🎉`, { id: tId });
       const { data: s } = await supabase.from("task_submissions").select("task_id,status,created_at")
         .eq("user_id", userId)
-        .gte("created_at", new Date(new Date().setHours(0, 0, 0, 0)).toISOString());
+        .gte("created_at", startOfTodayBDISO());
       setSubs((s ?? []) as Submission[]);
       setActiveTask(null);
       setLinkOpened(false);
