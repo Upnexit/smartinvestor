@@ -304,7 +304,7 @@ function isAuthError(raw: string): boolean {
 function mapCheckoutError(raw: string): string {
   const s = raw || "";
   if (isAuthError(s)) {
-    return "লগইন যাচাই সম্পন্ন হয়নি — আবার চেষ্টা করুন";
+    return "সংযোগ পুনঃপ্রস্তুত হচ্ছে — কিছুক্ষণ পরে আবার চেষ্টা করুন";
   }
   if (/network|fetch|Failed to fetch|NetworkError/i.test(s)) {
     return "ইন্টারনেট সংযোগে সমস্যা — আবার চেষ্টা করুন";
