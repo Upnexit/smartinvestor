@@ -178,17 +178,39 @@ function InstallPage() {
           {/* Body */}
           <div className="px-6 py-6">
             {installed ? (
-              <div className="rounded-2xl bg-emerald-50 p-4 text-center ring-1 ring-emerald-200">
-                <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" />
-                <p className="bn-display mt-2 text-base font-bold text-emerald-900">
-                  অ্যাপ ইনস্টল হয়ে গিয়েছে
+              <div className="rounded-2xl bg-emerald-50 p-5 text-center ring-1 ring-emerald-200 animate-in fade-in zoom-in-95 duration-500">
+                <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/40">
+                  <CheckCircle2 className="h-8 w-8" />
+                </div>
+                <p className="bn-display mt-3 text-lg font-bold text-emerald-900">
+                  অ্যাপ সফলভাবে ইনস্টল হয়েছে!
                 </p>
                 <p className="mt-1 text-sm text-emerald-700">
                   আপনার হোম স্ক্রিনের আইকন থেকে অ্যাপটি খুলুন।
                 </p>
               </div>
+            ) : installing ? (
+              <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 p-5 text-center ring-1 ring-amber-200 animate-in fade-in duration-300">
+                <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-white shadow-lg ring-2 ring-amber-200">
+                  <Loader2 className="h-7 w-7 animate-spin text-amber-600" />
+                </div>
+                <p className="bn-display mt-3 text-base font-bold text-slate-900">
+                  Installing the app…
+                </p>
+                <p className="mt-1 min-h-[20px] text-xs text-slate-600 transition-opacity">
+                  {statusText}
+                </p>
+                <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-white/70 ring-1 ring-amber-100">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 shadow-[0_0_10px_rgba(249,115,22,0.5)] transition-all duration-700 ease-out"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <p className="mt-2 text-[11px] font-semibold text-amber-700">{progress}%</p>
+              </div>
             ) : (
               <>
+
                 <button
                   onClick={handleInstall}
                   disabled={busy}
