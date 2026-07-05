@@ -65,9 +65,11 @@ function PackageTasksPage() {
 
   const daily = pkg?.daily_tasks ?? 0;
   const perTaskReward = useMemo(() => {
+    const n = Math.max(1, Math.min(50, count));
+    if (totalAmount > 0) return Math.round((totalAmount / n) * 100) / 100;
     if (!pkg || !daily) return 0;
     return Math.round(((pkg.daily_income ?? 0) / daily) * 100) / 100;
-  }, [pkg, daily]);
+  }, [pkg, daily, totalAmount, count]);
 
   const draftCount = tasks?.filter((t) => t.is_draft).length ?? 0;
   const activeCount = tasks?.filter((t) => !t.is_draft && t.active).length ?? 0;
