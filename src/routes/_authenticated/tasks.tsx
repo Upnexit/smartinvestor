@@ -313,6 +313,44 @@ function TaskDetailModal({
   const meta = ACTION_META[task.action_type] ?? ACTION_META.like;
   const Icon = meta.icon;
   const steps = parseSteps(task.description);
+  const [secondsLeft, setSecondsLeft] = useState(15);
+  const [returned, setReturned] = useState(false);
+
+  // Countdown after link opened
+  useEffect(() => {
+    if (!linkOpened) { setSecondsLeft(15); return; }
+    if (secondsLeft <= 0) return;
+    const t = setTimeout(() => setSecondsLeft((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [linkOpened, secondsLeft]);
+
+  // Detect return to our tab + flash title
+  useEffect(() => {
+    if (!linkOpened) return;
+    const originalTitle = document.title;
+    let flashId: ReturnType<typeof setInterval> | null = null;
+    let toggle = false;
+    const startFlash = () => {
+      if (flashId) return;
+      flashId = setInterval(() => {
+        toggle = !toggle;
+        document.title = toggle ? "👉 Submit করুন!" : originalTitle;
+      }, 800);
+    };
+    const stopFlash = () => {
+      if (flashId) { clearInterval(flashId); flashId = null; }
+      document.title = originalTitle;
+    };
+    const onVis = () => {
+      if (document.visibilityState === "hidden") { startFlash(); setReturned(false); }
+      else { stopFlash(); setReturned(true); }
+    };
+    document.addEventListener("visibilitychange", onVis);
+    startFlash();
+    return () => { document.removeEventListener("visibilitychange", onVis); stopFlash(); };
+  }, [linkOpened]);
+
+  const canSubmit = linkOpened && secondsLeft <= 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm p-0 sm:p-4">
@@ -372,29 +410,41 @@ function TaskDetailModal({
 
           {linkOpened && (
             <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
-              ✓ লিংক খোলা হয়েছে। সমস্ত কাজ (Like/Comment/Follow) সম্পন্ন করার পর নিচের সবুজ Submit বাটনে ক্লিক করুন।
+              ✓ লিংক খোলা হয়েছে। সমস্ত কাজ (Like/Comment/Follow) সম্পন্ন করে এই tab-এ ফিরে এসে নিচের সবুজ Submit বাটনে ক্লিক করুন।
+              {returned && <div className="mt-1 font-bold">👋 স্বাগতম! এবার নিচের Submit বাটনে ক্লিক করুন।</div>}
             </div>
           )}
         </div>
 
         {/* Sticky floating submit panel */}
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center p-3 sm:p-4">
-          <div className="pointer-events-auto w-full sm:max-w-lg rounded-2xl bg-white/95 backdrop-blur border border-slate-200 shadow-2xl p-3">
+          <div className={cn(
+            "pointer-events-auto w-full sm:max-w-lg rounded-2xl bg-white/95 backdrop-blur border shadow-2xl p-3 transition",
+            canSubmit && returned ? "border-emerald-400 ring-4 ring-emerald-200 animate-pulse" : "border-slate-200",
+          )}>
             <p className="text-center text-[11px] font-semibold text-slate-600">
-              কাজটি সম্পন্ন করলে সম্পন্ন করে Submit-এ ক্লিক করুন
+              {!linkOpened
+                ? "প্রথমে উপরের লিংকে যান ও কাজ সম্পন্ন করুন"
+                : secondsLeft > 0
+                  ? `⏳ কাজ সম্পন্ন করুন — ${secondsLeft} সেকেন্ড পর Submit unlock হবে`
+                  : "কাজটি সম্পন্ন করলে সম্পন্ন করে Submit-এ ক্লিক করুন"}
             </p>
             <button
               onClick={onSubmit}
-              disabled={!linkOpened || submitting}
+              disabled={!canSubmit || submitting}
               className={cn(
                 "mt-2 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-white shadow-md transition",
-                linkOpened
+                canSubmit
                   ? "bg-gradient-to-br from-emerald-500 to-green-600 hover:scale-[1.01]"
                   : "bg-slate-300 cursor-not-allowed",
               )}
             >
               {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCheck className="h-4 w-4" />}
-              {submitting ? "সাবমিট হচ্ছে…" : `কাজ সম্পন্ন — Submit করুন (+৳${task.reward})`}
+              {submitting
+                ? "সাবমিট হচ্ছে…"
+                : secondsLeft > 0 && linkOpened
+                  ? `${secondsLeft}s অপেক্ষা করুন…`
+                  : `কাজ সম্পন্ন — Submit করুন (+৳${task.reward})`}
             </button>
           </div>
         </div>
