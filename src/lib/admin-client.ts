@@ -78,7 +78,7 @@ export async function listUsers(q: string) {
 }
 
 export async function getUserBundle(userId: string) {
-  const [profile, packages, withdrawals, tasks, refs, referredUsers, totalRefCount, totalRefEarned] = await Promise.all([
+  const [profile, packages, withdrawals, tasks, refs, referredUsers, totalRefCount, totalRefEarned, activity] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
     supabase.from("user_packages").select("*, packages(name,price)").eq("user_id", userId).order("created_at", { ascending: false }),
     supabase.from("withdrawals").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
@@ -87,6 +87,7 @@ export async function getUserBundle(userId: string) {
     supabase.from("profiles").select("id,full_name,email,phone,user_code,created_at,total_earned").eq("referred_by", userId).order("created_at", { ascending: false }).limit(200),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("referred_by", userId),
     supabase.from("referral_earnings").select("amount").eq("referrer_id", userId),
+    supabase.from("activity_logs").select("id,event_type,meta,ip,user_agent,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(100),
   ]);
   const earnedSum = (totalRefEarned.data ?? []).reduce((s: number, r: { amount: number | string | null }) => s + Number(r.amount || 0), 0);
   return {
@@ -98,6 +99,7 @@ export async function getUserBundle(userId: string) {
     referredUsers: referredUsers.data ?? [],
     referralCount: totalRefCount.count ?? 0,
     referralEarnedTotal: earnedSum,
+    activity: activity.data ?? [],
   };
 }
 
