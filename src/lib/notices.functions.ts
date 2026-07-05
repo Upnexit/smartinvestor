@@ -170,7 +170,11 @@ export const dismissNotice = createServerFn({ method: "POST" })
 async function callGateway(system: string, user: string, key: string): Promise<string> {
   const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+    headers: {
+      "Content-Type": "application/json",
+      "Lovable-API-Key": key,
+      "X-Lovable-AIG-SDK": "smart-investor-notices",
+    },
     body: JSON.stringify({
       model: "google/gemini-3-flash-preview",
       messages: [{ role: "system", content: system }, { role: "user", content: user }],
@@ -185,6 +189,7 @@ async function callGateway(system: string, user: string, key: string): Promise<s
   const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
   return json.choices?.[0]?.message?.content?.trim() ?? "";
 }
+
 
 export const improveNoticeText = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
