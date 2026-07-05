@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { X, Megaphone, AlertTriangle, Info, Clock, CalendarDays, ChevronRight } from "lucide-react";
 import { listActiveNoticesForMe, dismissNotice, type NoticeRow } from "@/lib/notices.functions";
@@ -79,22 +79,33 @@ export function NoticeModal() {
     };
   }, [fetchNotices]);
 
-  if (!mounted || queue.length === 0) return null;
   const current = queue[0];
+
+  // Auto-dismiss on view: as soon as a notice is shown, mark it read on the server.
+  // User doesn't need to click "close" — একবার দেখলেই আর দেখাবে না।
+  const dismissedIds = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!current) return;
+    if (dismissedIds.current.has(current.id)) return;
+    dismissedIds.current.add(current.id);
+    doDismiss({ data: { notice_id: current.id } }).catch(() => {
+      // If it fails, allow a retry on next mount
+      dismissedIds.current.delete(current.id);
+    });
+  }, [current, doDismiss]);
+
+  if (!mounted || queue.length === 0) return null;
   const style = STYLES[current.priority] ?? STYLES.info;
   const { Icon } = style;
 
   async function close() {
     if (busy) return;
     setBusy(true);
-    try {
-      await doDismiss({ data: { notice_id: current.id } });
-    } catch {
-      /* ignore */
-    }
+    // Server-side dismissal already fired on view; just advance the queue.
     setBusy(false);
     setQueue((q) => q.slice(1));
   }
+
 
   const publishedOn = formatBnDate(current.created_at);
   const expiryOn = current.expires_at ? formatBnDate(current.expires_at) : null;
