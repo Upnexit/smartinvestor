@@ -23,6 +23,7 @@ const LABEL: Record<Method, string> = { bkash: "বিকাশ", nagad: "নগ
 function PaymentsPage() {
   const [state, setState] = useState<Record<Method, Cfg> | null>(null);
   const [busy, setBusy] = useState<Method | null>(null);
+  const [aiBusy, setAiBusy] = useState<Method | null>(null);
   const authReady = useAuthReady();
 
   useEffect(() => { if (!authReady) return; void (async () => {
