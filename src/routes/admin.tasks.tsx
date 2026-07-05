@@ -275,6 +275,78 @@ function F({ label, value, onChange, type = "text" }: { label: string; value: st
   );
 }
 
+type SRResult = { isFinal: boolean; 0: { transcript: string } };
+type SREvent = { resultIndex: number; results: ArrayLike<SRResult> };
+type SRInstance = {
+  lang: string; continuous: boolean; interimResults: boolean;
+  start: () => void; stop: () => void;
+  onresult: ((e: SREvent) => void) | null;
+  onerror: ((e: { error?: string }) => void) | null;
+  onend: (() => void) | null;
+};
+type SRCtor = new () => SRInstance;
+
+function VoiceInputField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const [listening, setListening] = useState(false);
+  const recRef = (useMemo(() => ({ current: null as SRInstance | null }), []));
+
+  const toggle = () => {
+    if (typeof window === "undefined") return;
+    const win = window as unknown as { SpeechRecognition?: SRCtor; webkitSpeechRecognition?: SRCtor };
+    const Ctor = win.SpeechRecognition ?? win.webkitSpeechRecognition;
+    if (!Ctor) { toast.error("এই ব্রাউজারে ভয়েস ইনপুট সাপোর্ট নেই (Chrome ব্যবহার করুন)"); return; }
+    if (listening) { recRef.current?.stop(); return; }
+    try {
+      const rec = new Ctor();
+      rec.lang = "bn-BD";
+      rec.continuous = false;
+      rec.interimResults = true;
+      const base = value;
+      rec.onresult = (e) => {
+        let finalT = "", interimT = "";
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const r = e.results[i];
+          if (r.isFinal) finalT += r[0].transcript;
+          else interimT += r[0].transcript;
+        }
+        const combined = (base + " " + (finalT || interimT)).trim();
+        onChange(combined);
+      };
+      rec.onerror = (ev) => {
+        toast.error(`ভয়েস: ${ev.error ?? "ব্যর্থ"}`);
+        setListening(false);
+      };
+      rec.onend = () => setListening(false);
+      recRef.current = rec;
+      rec.start();
+      setListening(true);
+      toast.success("শুনছি… এখন বাংলায় বলুন");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "ভয়েস শুরু ব্যর্থ");
+      setListening(false);
+    }
+  };
+
+  return (
+    <label className="block">
+      <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">{label}</span>
+      <div className="relative">
+        <input type="text" value={value} onChange={(e) => onChange(e.target.value)}
+          className="w-full rounded-xl border border-rose-200 bg-white pl-3 pr-11 py-2 text-sm outline-none focus:border-rose-400" />
+        <button type="button" onClick={toggle} title="ভয়েস দিয়ে টাইটেল দিন"
+          className={cn(
+            "absolute right-1.5 top-1/2 -translate-y-1/2 grid h-8 w-8 place-items-center rounded-lg text-white shadow-sm transition",
+            listening
+              ? "bg-gradient-to-br from-rose-500 to-red-600 animate-pulse"
+              : "bg-gradient-to-br from-fuchsia-500 via-purple-500 to-indigo-600 hover:scale-105",
+          )}>
+          {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+        </button>
+      </div>
+    </label>
+  );
+}
+
 function Select({ label, value, onChange, options }: {
   label: string; value: string; onChange: (v: string) => void;
   options: Array<{ value: string; label: string }>;
