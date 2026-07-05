@@ -9,7 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as OurPackagesRouteImport } from './routes/our-packages'
 import { Route as InstallRouteImport } from './routes/install'
 import { Route as DistributorInfoRouteImport } from './routes/distributor-info'
@@ -53,9 +55,19 @@ import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
 import { Route as AdminDistributorsIdRouteImport } from './routes/admin.distributors.$id'
 import { Route as AuthenticatedPackagesIdRouteImport } from './routes/_authenticated/packages.$id'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OurPackagesRoute = OurPackagesRouteImport.update({
@@ -277,7 +289,9 @@ export interface FileRoutesByFullPath {
   '/distributor-info': typeof DistributorInfoRoute
   '/install': typeof InstallRoute
   '/our-packages': typeof OurPackagesRoute
+  '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
+  '/terms': typeof TermsRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/community': typeof AuthenticatedCommunityRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -319,7 +333,9 @@ export interface FileRoutesByTo {
   '/distributor-info': typeof DistributorInfoRoute
   '/install': typeof InstallRoute
   '/our-packages': typeof OurPackagesRoute
+  '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
+  '/terms': typeof TermsRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/community': typeof AuthenticatedCommunityRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -363,7 +379,9 @@ export interface FileRoutesById {
   '/distributor-info': typeof DistributorInfoRoute
   '/install': typeof InstallRoute
   '/our-packages': typeof OurPackagesRoute
+  '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
+  '/terms': typeof TermsRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/community': typeof AuthenticatedCommunityRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -409,7 +427,9 @@ export interface FileRouteTypes {
     | '/distributor-info'
     | '/install'
     | '/our-packages'
+    | '/privacy'
     | '/register'
+    | '/terms'
     | '/checkout'
     | '/community'
     | '/dashboard'
@@ -451,7 +471,9 @@ export interface FileRouteTypes {
     | '/distributor-info'
     | '/install'
     | '/our-packages'
+    | '/privacy'
     | '/register'
+    | '/terms'
     | '/checkout'
     | '/community'
     | '/dashboard'
@@ -494,7 +516,9 @@ export interface FileRouteTypes {
     | '/distributor-info'
     | '/install'
     | '/our-packages'
+    | '/privacy'
     | '/register'
+    | '/terms'
     | '/_authenticated/checkout'
     | '/_authenticated/community'
     | '/_authenticated/dashboard'
@@ -540,16 +564,32 @@ export interface RootRouteChildren {
   DistributorInfoRoute: typeof DistributorInfoRoute
   InstallRoute: typeof InstallRoute
   OurPackagesRoute: typeof OurPackagesRoute
+  PrivacyRoute: typeof PrivacyRoute
   RegisterRoute: typeof RegisterRoute
+  TermsRoute: typeof TermsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register': {
       id: '/register'
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/our-packages': {
@@ -982,7 +1022,9 @@ const rootRouteChildren: RootRouteChildren = {
   DistributorInfoRoute: DistributorInfoRoute,
   InstallRoute: InstallRoute,
   OurPackagesRoute: OurPackagesRoute,
+  PrivacyRoute: PrivacyRoute,
   RegisterRoute: RegisterRoute,
+  TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
