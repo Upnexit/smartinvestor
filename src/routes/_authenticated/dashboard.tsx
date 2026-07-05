@@ -106,15 +106,20 @@ function DashboardPage() {
       setTasksApproved(approvedCount ?? 0);
 
       // 7-day chart data — real data from task_submissions (approved) + referral_earnings
-      const days: { day: string; income: number; referral: number; tasks: number }[] = [];
+      const days: { day: string; income: number; referral: number; tasks: number; key: string }[] = [];
       const labels = ["রবি","সোম","মঙ্গল","বুধ","বৃহ","শুক্র","শনি"];
-      const today = new Date();
+      const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
       for (let i = 6; i >= 0; i--) {
-        const d = new Date(today); d.setDate(today.getDate() - i);
-        days.push({ day: labels[d.getDay()], income: 0, referral: 0, tasks: 0 });
+        const d = new Date(startOfToday); d.setDate(startOfToday.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        days.push({ day: labels[d.getDay()], income: 0, referral: 0, tasks: 0, key });
       }
+      const dayIdx = (iso: string) => {
+        const k = new Date(iso).toISOString().slice(0, 10);
+        return days.findIndex((x) => x.key === k);
+      };
       try {
-        const since = new Date(); since.setDate(since.getDate() - 6); since.setHours(0,0,0,0);
+        const since = new Date(startOfToday); since.setDate(startOfToday.getDate() - 6);
         const [subsRes, refsRes] = await Promise.all([
           supabase.from("task_submissions")
             .select("created_at, status, link_tasks(reward)")
@@ -128,15 +133,12 @@ function DashboardPage() {
         const subs = (subsRes.data ?? []) as Array<{ created_at: string; link_tasks: { reward: number | string | null } | null }>;
         const refs = (refsRes.data ?? []) as Array<{ created_at: string; amount: number | string | null }>;
         subs.forEach((t) => {
-          const idx = 6 - Math.floor((today.setHours(23,59,59,999), today.getTime() - new Date(t.created_at).getTime()) / 86400000);
-          if (idx >= 0 && idx < 7) {
-            days[idx].income += Number(t.link_tasks?.reward ?? 0);
-            days[idx].tasks += 1;
-          }
+          const i = dayIdx(t.created_at);
+          if (i >= 0) { days[i].income += Number(t.link_tasks?.reward ?? 0); days[i].tasks += 1; }
         });
         refs.forEach((r) => {
-          const idx = 6 - Math.floor((today.getTime() - new Date(r.created_at).getTime()) / 86400000);
-          if (idx >= 0 && idx < 7) days[idx].referral += Number(r.amount ?? 0);
+          const i = dayIdx(r.created_at);
+          if (i >= 0) days[i].referral += Number(r.amount ?? 0);
         });
       } catch { /* keep zeros */ }
       setChart(days);
