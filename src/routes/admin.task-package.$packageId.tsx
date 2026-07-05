@@ -58,6 +58,7 @@ function PackageTasksPage() {
     ]);
     setPkg(p as Pkg | null);
     setTasks((t ?? []) as Task[]);
+    if (p && !totalAmount) setTotalAmount(Number((p as Pkg).daily_income ?? 0));
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [packageId, date]);
