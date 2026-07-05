@@ -90,9 +90,12 @@ function TasksPage() {
       return acc + (t ? Number(t.reward) : 0);
     }, 0);
 
-  const filtered = (tasks ?? []).filter((t) =>
-    filter === "all" ? true : t.action_type === filter
-  );
+  const filtered = (tasks ?? []).filter((t) => {
+    // Completed tasks সরিয়ে দাও যাতে "আজকের task" fresh থাকে
+    const sub = subMap.get(t.id);
+    if (sub?.status === "approved") return false;
+    return filter === "all" ? true : t.action_type === filter;
+  });
 
   function openTask(task: Task) {
     if (hasActivePkg === false) {
