@@ -228,7 +228,23 @@ function applyPaymentBranding(accounts: PayAccounts, branding: PaymentBranding):
   return next;
 }
 
+function mapCheckoutError(raw: string): string {
+  const s = raw || "";
+  if (/Unauthorized|Missing Supabase|No authorization|Invalid token|JWT/i.test(s)) {
+    return "সেশন মেয়াদ শেষ — আবার লগইন করুন";
+  }
+  if (/network|fetch|Failed to fetch|NetworkError/i.test(s)) {
+    return "ইন্টারনেট সংযোগে সমস্যা — আবার চেষ্টা করুন";
+  }
+  if (/invalid.*phone|Bangladeshi/i.test(s)) return "সঠিক ১১-সংখ্যার বাংলাদেশী মোবাইল নাম্বার দিন";
+  if (/invalid.*trx|Transaction ID/i.test(s)) return "সঠিক Transaction ID দিন";
+  if (/invalid method/i.test(s)) return "পেমেন্ট মেথড সিলেক্ট করুন";
+  if (/invalid id/i.test(s)) return "প্যাকেজ শনাক্ত করা যায়নি";
+  return s.length > 0 && s.length < 140 ? s : "অনুরোধ ব্যর্থ — আবার চেষ্টা করুন";
+}
+
 /* ============ Copy helper ============ */
+
 function CopyPill({ value, className }: { value: string; className?: string }) {
   const [copied, setCopied] = useState(false);
   return (
