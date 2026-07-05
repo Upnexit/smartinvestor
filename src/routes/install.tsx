@@ -52,12 +52,20 @@ function InstallPage() {
       window.navigator.standalone === true;
     if (standalone) setInstalled(true);
 
+    // Use globally captured prompt (from initInstallPromptCapture)
+    if (window.__deferredInstallPrompt) {
+      setDeferred(window.__deferredInstallPrompt);
+    }
+
     const onPrompt = (e: Event) => {
       e.preventDefault();
+      window.__deferredInstallPrompt = e as BIPEvent;
       setDeferred(e as BIPEvent);
     };
+    const onAvailable = () => {
+      if (window.__deferredInstallPrompt) setDeferred(window.__deferredInstallPrompt);
+    };
     const onInstalled = () => {
-      // Real install confirmed by the OS.
       timersRef.current.forEach(clearTimeout);
       timersRef.current = [];
       setProgress(100);
@@ -68,9 +76,11 @@ function InstallPage() {
       }, 600);
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
+    window.addEventListener("pwa-install-available", onAvailable);
     window.addEventListener("appinstalled", onInstalled);
     return () => {
       window.removeEventListener("beforeinstallprompt", onPrompt);
+      window.removeEventListener("pwa-install-available", onAvailable);
       window.removeEventListener("appinstalled", onInstalled);
       timersRef.current.forEach(clearTimeout);
     };
