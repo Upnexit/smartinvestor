@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { CreditCard, Save } from "lucide-react";
+import { CreditCard, Save, Sparkles } from "lucide-react";
 import { AdminPageHeader, AdminCard, GradientButton, Shimmer } from "@/components/admin/AdminUI";
 import { supabase } from "@/integrations/supabase/client";
 import { saveSetting } from "@/lib/admin-client";
+import { generatePaymentInstruction } from "@/lib/ai.functions";
 import { cn } from "@/lib/utils";
 import { useAuthReady } from "@/hooks/use-auth-ready";
 
@@ -22,6 +23,7 @@ const LABEL: Record<Method, string> = { bkash: "বিকাশ", nagad: "নগ
 function PaymentsPage() {
   const [state, setState] = useState<Record<Method, Cfg> | null>(null);
   const [busy, setBusy] = useState<Method | null>(null);
+  const [aiBusy, setAiBusy] = useState<Method | null>(null);
   const authReady = useAuthReady();
 
   useEffect(() => { if (!authReady) return; void (async () => {
@@ -50,6 +52,19 @@ function PaymentsPage() {
     if (error) { toast.error(error.message); return; }
     const { data } = await supabase.storage.from("payment-logos").createSignedUrl(path, 60*60*24*365);
     upd(m, { logo_url: data?.signedUrl ?? path });
+  };
+
+  const handleAIGenerate = async (m: Method) => {
+    if (!state) return;
+    const c = state[m];
+    if (!c.number?.trim()) { toast.error("প্রথমে নম্বর দিন"); return; }
+    setAiBusy(m);
+    try {
+      const r = await generatePaymentInstruction({ data: { method: m, type: c.type, number: c.number, agent_number: c.agent_number } });
+      upd(m, { instructions: r.instruction });
+      toast.success(r.source === "local" ? "AI ব্যস্ত — ডিফল্ট নির্দেশনা বসানো হলো" : "AI নির্দেশনা তৈরি হয়েছে");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "AI ব্যর্থ"); }
+    finally { setAiBusy(null); }
   };
 
   return (
@@ -81,9 +96,15 @@ function PaymentsPage() {
                     </select>
                   </label>
                   <label className="block">
-                    <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">ইনস্ট্রাকশন</span>
-                    <textarea value={c.instructions} onChange={(e) => upd(m, { instructions: e.target.value })} rows={3}
-                      className="w-full rounded-xl border border-slate-200 p-2 text-sm" />
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">ইনস্ট্রাকশন</span>
+                      <button type="button" onClick={() => handleAIGenerate(m)} disabled={aiBusy===m}
+                        className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-600 px-2 py-1 text-[10px] font-bold text-white shadow disabled:opacity-60">
+                        <Sparkles className="h-3 w-3" /> {aiBusy===m ? "তৈরি হচ্ছে…" : "AI দিয়ে লিখুন"}
+                      </button>
+                    </div>
+                    <textarea value={c.instructions} onChange={(e) => upd(m, { instructions: e.target.value })} rows={5}
+                      className="w-full rounded-xl border border-slate-200 p-2 text-sm" placeholder="AI দিয়ে লিখুন বা নিজে টাইপ করুন" />
                   </label>
                   <div>
                     <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">লোগো</span>

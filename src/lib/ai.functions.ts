@@ -93,6 +93,105 @@ export const askSmartAI = createServerFn({ method: "POST" })
     return { reply: buildLocalSmartReply(data.messages, errors.length > 0) };
   });
 
+type Method = "bkash" | "nagad" | "rocket";
+type AcctType = "personal" | "merchant";
+
+const METHOD_BN: Record<Method, string> = { bkash: "বিকাশ", nagad: "নগদ", rocket: "রকেট" };
+
+async function callLovableRaw(system: string, user: string, key: string): Promise<string> {
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
+    body: JSON.stringify({
+      model: "google/gemini-3-flash-preview",
+      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+    }),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    if (res.status === 429) throw new Error("AI ব্যস্ত — কিছুক্ষণ পরে চেষ্টা করুন");
+    if (res.status === 402) throw new Error("AI ক্রেডিট শেষ");
+    throw new Error(`AI ${res.status}: ${text.slice(0, 160)}`);
+  }
+  const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+  return json.choices?.[0]?.message?.content?.trim() || "";
+}
+
+async function callGeminiRaw(system: string, user: string, key: string): Promise<string> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: system }] },
+      contents: [{ role: "user", parts: [{ text: user }] }],
+      generationConfig: { temperature: 0.6, maxOutputTokens: 512 },
+    }),
+  });
+  if (!res.ok) throw new Error(`Gemini ${res.status}`);
+  const json = (await res.json()) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
+  return json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("").trim() || "";
+}
+
+function localInstruction(method: Method, type: AcctType, number: string, agent?: string): string {
+  const m = METHOD_BN[method];
+  const target = (type === "merchant" ? `${m} Merchant নম্বর` : `${m} Personal নম্বর`);
+  const num = number?.trim() || "—";
+  const lines = [
+    `প্রিয় গ্রাহক, নিচের ${target}-এ পেমেন্ট সম্পন্ন করুন:`,
+    `• ${target}: ${num}`,
+    agent?.trim() ? `• এজেন্ট/রেফারেন্স নম্বর: ${agent.trim()}` : null,
+    type === "merchant"
+      ? `• ${m} অ্যাপ খুলুন → "Payment" অপশন সিলেক্ট করুন → উপরের নম্বরটি দিন → প্যাকেজের সঠিক পরিমাণ টাকা পাঠান।`
+      : `• ${m} অ্যাপ খুলুন → "Send Money" অপশন সিলেক্ট করুন → উপরের নম্বরটি দিন → প্যাকেজের সঠিক পরিমাণ টাকা পাঠান।`,
+    `• পেমেন্ট শেষে প্রাপ্ত TrxID এবং যেই নম্বর থেকে পাঠিয়েছেন সেটি ফর্মে সঠিকভাবে দিন।`,
+    `• ভুল/কম টাকা পাঠালে অর্ডার রিজেক্ট হবে — অনুগ্রহ করে সাবধানে যাচাই করুন।`,
+  ].filter(Boolean);
+  return lines.join("\n");
+}
+
+export const generatePaymentInstruction = createServerFn({ method: "POST" })
+  .validator((d: { method: Method; type: AcctType; number: string; agent_number?: string; amount_note?: string }) => {
+    if (!d?.method || !["bkash", "nagad", "rocket"].includes(d.method)) throw new Error("method invalid");
+    if (!d?.type || !["personal", "merchant"].includes(d.type)) throw new Error("type invalid");
+    return {
+      method: d.method,
+      type: d.type,
+      number: String(d.number ?? "").slice(0, 32),
+      agent_number: d.agent_number ? String(d.agent_number).slice(0, 32) : "",
+      amount_note: d.amount_note ? String(d.amount_note).slice(0, 200) : "",
+    };
+  })
+  .handler(async ({ data }) => {
+    const { method, type, number, agent_number, amount_note } = data;
+    const mBn = METHOD_BN[method];
+    const system = `You write short, clear Bengali payment instructions for a Bangladesh online-earning platform. Respond ONLY with the instruction text (5-7 short lines, use bullet dots "•"). No preface, no markdown headings.`;
+    const user = `Payment gateway: ${mBn} (${method})
+Account type: ${type === "merchant" ? "Merchant" : "Personal"}
+Primary number: ${number || "N/A"}
+${agent_number ? `Agent/reference number: ${agent_number}` : ""}
+${amount_note ? `Extra note: ${amount_note}` : ""}
+
+Write clear Bengali instructions telling the user how to send money to this ${mBn} ${type} account, what to do in the app (${type === "merchant" ? "Payment option" : "Send Money option"}), and to submit the TrxID and sender number correctly. Warn about wrong amount = rejection.`;
+
+    const geminiKey = process.env.GEMINI_API_KEY;
+    const lovableKey = process.env.LOVABLE_API_KEY;
+
+    if (geminiKey) {
+      try {
+        const out = await callGeminiRaw(system, user, geminiKey);
+        if (out) return { instruction: out, source: "gemini" as const };
+      } catch (e) { console.warn("gen instr gemini:", (e as Error).message); }
+    }
+    if (lovableKey) {
+      try {
+        const out = await callLovableRaw(system, user, lovableKey);
+        if (out) return { instruction: out, source: "lovable" as const };
+      } catch (e) { console.warn("gen instr lovable:", (e as Error).message); }
+    }
+    return { instruction: localInstruction(method, type, number, agent_number), source: "local" as const };
+  });
+
 function buildLocalSmartReply(messages: Msg[], degraded: boolean): string {
   const last = [...messages].reverse().find((m) => m.role === "user")?.content.toLowerCase() ?? "";
   const note = degraded ? "\n\n(লাইভ AI সাময়িকভাবে ব্যস্ত, তাই Smart Investor quick assistant থেকে উত্তর দিচ্ছি।)" : "";

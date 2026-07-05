@@ -39,7 +39,7 @@ function ApprovalsPage() {
 
 
   const refresh = () => supabase.from("user_packages")
-    .select("id,status,payment_method,sender_number,trx_id,created_at,rejection_reason,user_id,package_id,screenshot_url,packages(name,price),profiles!user_packages_user_id_fkey(full_name,phone)")
+    .select("id,status,payment_method,sender_number,trx_id,created_at,rejection_reason,user_id,package_id,screenshot_url,packages(name,price),profiles!user_packages_user_id_profiles_fkey(full_name,phone)")
     .order("created_at",{ascending:false}).limit(200)
     .then(({data, error}) => {
       if (error) { setRows([]); toast.error(error.message); return; }
