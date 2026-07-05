@@ -46,6 +46,8 @@ function DashboardPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [hideBalance, setHideBalance] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showActivated, setShowActivated] = useState(false);
+  const [activatedPkgName, setActivatedPkgName] = useState<string>("");
   const [hasActivePackage, setHasActivePackage] = useState<boolean | null>(null);
   const [chart, setChart] = useState<{ day: string; income: number; referral: number; tasks: number }[]>([]);
 
@@ -68,11 +70,24 @@ function DashboardPage() {
 
       const { data: up } = await supabase
         .from("user_packages")
-        .select("id, status")
+        .select("id, status, package_id, activated_at, packages(name)")
         .eq("user_id", uid)
         .eq("status", "active")
+        .order("activated_at", { ascending: false })
         .limit(1);
-      setHasActivePackage(!!up && up.length > 0);
+      const active = (up ?? [])[0] as { id: string; package_id: string; packages?: { name?: string } | null } | undefined;
+      setHasActivePackage(!!active);
+
+      // Show congratulations once per activation
+      if (active && typeof window !== "undefined") {
+        const key = `smartinv:activated:${active.id}`;
+        if (!localStorage.getItem(key)) {
+          setActivatedPkgName(active.packages?.name ?? "আপনার প্যাকেজ");
+          setShowActivated(true);
+          localStorage.setItem(key, "1");
+        }
+      }
+
 
       // 7-day chart data
       const days: { day: string; income: number; referral: number; tasks: number }[] = [];
@@ -144,6 +159,29 @@ function DashboardPage() {
           </div>
         </div>
       )}
+
+      {showActivated && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/60 backdrop-blur-sm px-4" role="dialog" aria-modal="true">
+          <div className="w-full max-w-sm overflow-hidden rounded-3xl bg-white shadow-2xl">
+            <div className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 px-6 py-8 text-center text-white">
+              <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-white text-emerald-600 shadow-xl">
+                <Trophy className="h-8 w-8" />
+              </div>
+              <h2 className="bn-display mt-4 text-2xl">অভিনন্দন! 🎉</h2>
+              <p className="mt-2 text-sm font-semibold text-white/95">
+                আপনার <span className="font-black">{activatedPkgName}</span> প্যাকেজটি সফলভাবে active হয়েছে।
+              </p>
+            </div>
+            <div className="p-5 text-center">
+              <p className="text-sm text-slate-700">
+                এখন আপনি প্রতিদিন Task সম্পন্ন করে আয় করতে পারবেন, referral commission উপার্জন করতে পারবেন এবং যেকোনো সময় withdraw করতে পারবেন।
+              </p>
+              <button onClick={() => setShowActivated(false)} className="btn-gold mt-5 w-full">শুরু করুন</button>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {/* Welcome header */}
       <div>

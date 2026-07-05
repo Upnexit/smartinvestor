@@ -605,23 +605,33 @@ function StepWaiting({
 
       {/* colored body */}
       <div className="px-5 py-5 text-white" style={{ background: b.gradient }}>
+        {/* payment header — which method + compact amount pill */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 shadow-md ring-1 ring-white/40">
+            <span className="grid h-5 w-5 place-items-center rounded-full text-white text-[10px] font-black" style={{ background: b.gradient }}>
+              {b.name[0]}
+            </span>
+            <span className="text-[13px] font-black uppercase tracking-wide text-slate-900">
+              {b.name} — পেমেন্ট করুন
+            </span>
+          </div>
+          <div className="inline-flex items-center gap-1 rounded-full bg-yellow-300 px-2.5 py-1 shadow ring-1 ring-yellow-400/60">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-700">Amount</span>
+            <span className="bn-display text-sm font-black text-slate-900 leading-none">৳{pkg.price}</span>
+          </div>
+        </div>
+
+        <p className="mt-4 text-center text-[12px] font-bold text-white/95">নিচের নাম্বারে পেমেন্ট সম্পূর্ণ করুন</p>
+
         {/* merchant number pill */}
-        <div className="flex items-center gap-2 rounded-2xl bg-black/25 p-3 ring-1 ring-white/20">
+        <div className="mt-2 flex items-center gap-2 rounded-2xl bg-black/25 p-3 ring-1 ring-white/20">
           <div className="flex-1">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/80">Merchant Number</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-white/80">{b.name} Merchant Number</p>
             <p className="font-mono text-2xl font-bold tracking-wider">{activeNumber || "—"}</p>
           </div>
           <CopyPill value={activeNumber} />
         </div>
 
-        {/* amount highlight */}
-        <div className="mt-3 flex items-center justify-between gap-2 rounded-2xl bg-white p-3 ring-2 ring-yellow-300 shadow-lg">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Amount to Send</p>
-            <p className="bn-display text-3xl font-black text-slate-900 leading-none mt-0.5">৳{pkg.price}</p>
-          </div>
-          <CopyPill value={String(pkg.price)} className="!bg-yellow-100" />
-        </div>
 
         {/* instructions from database (step by step) */}
         <ol className="mt-4 space-y-2.5 text-sm">
