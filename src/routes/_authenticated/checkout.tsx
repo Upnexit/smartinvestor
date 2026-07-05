@@ -614,19 +614,21 @@ function StepWaiting({
           <CopyPill value={activeNumber} />
         </div>
 
-        {/* instructions */}
-        <ol className="mt-4 space-y-2.5 text-sm">
-          <InstrRow n={1}>উপরের মার্চেন্ট অ্যাকাউন্ট নম্বর কপি করুন</InstrRow>
-          <InstrRow n={2}>{b.name} অ্যাপ থেকে "Send Money" সিলেক্ট করুন</InstrRow>
-          <InstrRow n={3}>নম্বর পেস্ট করে <b>৳{pkg.price}</b> Send Money করুন</InstrRow>
-          <InstrRow n={4}>Transaction ID কপি করে পরবর্তী ধাপে দিন</InstrRow>
-        </ol>
-
-        {accounts.methodInstructions?.[method] && (
-          <div className="mt-4 rounded-xl bg-white/15 p-3 text-xs font-semibold text-white ring-1 ring-white/20">
-            {accounts.methodInstructions[method]}
+        {/* amount highlight */}
+        <div className="mt-3 flex items-center justify-between gap-2 rounded-2xl bg-white p-3 ring-2 ring-yellow-300 shadow-lg">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Amount to Send</p>
+            <p className="bn-display text-3xl font-black text-slate-900 leading-none mt-0.5">৳{pkg.price}</p>
           </div>
-        )}
+          <CopyPill value={String(pkg.price)} className="!bg-yellow-100" />
+        </div>
+
+        {/* instructions from database (step by step) */}
+        <ol className="mt-4 space-y-2.5 text-sm">
+          {parseInstructions(accounts.methodInstructions?.[method], { amount: pkg.price, method: b.name }).map((line, i) => (
+            <InstrRow key={i} n={i + 1}>{highlightAmount(line, pkg.price)}</InstrRow>
+          ))}
+        </ol>
 
         {/* guide image */}
         {accounts.guides?.[method] && (
