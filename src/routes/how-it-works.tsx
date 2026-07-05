@@ -200,6 +200,15 @@ function HowItWorksPage() {
                     <span className="font-bold">💡 টিপস: </span>
                     {s.tip}
                   </div>
+
+                  <div className="mt-5">
+                    <Link
+                      to={s.ctaTo}
+                      className={`inline-flex items-center gap-2 rounded-full bg-gradient-to-r ${t.grad} px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:brightness-110 active:scale-[0.98]`}
+                    >
+                      {s.ctaLabel} <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </div>
                 </div>
               </div>
             );
