@@ -139,6 +139,7 @@ function RootComponent() {
   useEffect(() => { registerPWA(); }, []);
 
   useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       // Fire-and-forget activity log (login / logout).
       try {
