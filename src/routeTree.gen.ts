@@ -56,6 +56,7 @@ import { Route as AdminDistributorsIndexRouteImport } from './routes/admin.distr
 import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
 import { Route as AdminDistributorsIdRouteImport } from './routes/admin.distributors.$id'
 import { Route as AuthenticatedPackagesIdRouteImport } from './routes/_authenticated/packages.$id'
+import { Route as AdminTasksPackagePackageIdRouteImport } from './routes/admin.tasks.package.$packageId'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -291,6 +292,12 @@ const AuthenticatedPackagesIdRoute = AuthenticatedPackagesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedPackagesRoute,
 } as any)
+const AdminTasksPackagePackageIdRoute =
+  AdminTasksPackagePackageIdRouteImport.update({
+    id: '/package/$packageId',
+    path: '/package/$packageId',
+    getParentRoute: () => AdminTasksRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -324,7 +331,7 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/support': typeof AdminSupportRoute
-  '/admin/tasks': typeof AdminTasksRoute
+  '/admin/tasks': typeof AdminTasksRouteWithChildren
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/distributor/earnings': typeof DistributorEarningsRoute
@@ -339,6 +346,7 @@ export interface FileRoutesByFullPath {
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/admin/tasks/package/$packageId': typeof AdminTasksPackagePackageIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -369,7 +377,7 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/support': typeof AdminSupportRoute
-  '/admin/tasks': typeof AdminTasksRoute
+  '/admin/tasks': typeof AdminTasksRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/distributor/earnings': typeof DistributorEarningsRoute
   '/distributor/profile': typeof DistributorProfileRoute
@@ -383,6 +391,7 @@ export interface FileRoutesByTo {
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/admin/distributors': typeof AdminDistributorsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
+  '/admin/tasks/package/$packageId': typeof AdminTasksPackagePackageIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -418,7 +427,7 @@ export interface FileRoutesById {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/support': typeof AdminSupportRoute
-  '/admin/tasks': typeof AdminTasksRoute
+  '/admin/tasks': typeof AdminTasksRouteWithChildren
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/distributor/earnings': typeof DistributorEarningsRoute
@@ -433,6 +442,7 @@ export interface FileRoutesById {
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/admin/tasks/package/$packageId': typeof AdminTasksPackagePackageIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -483,6 +493,7 @@ export interface FileRouteTypes {
     | '/admin/users/$id'
     | '/admin/distributors/'
     | '/admin/users/'
+    | '/admin/tasks/package/$packageId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -527,6 +538,7 @@ export interface FileRouteTypes {
     | '/admin/users/$id'
     | '/admin/distributors'
     | '/admin/users'
+    | '/admin/tasks/package/$packageId'
   id:
     | '__root__'
     | '/'
@@ -576,6 +588,7 @@ export interface FileRouteTypes {
     | '/admin/users/$id'
     | '/admin/distributors/'
     | '/admin/users/'
+    | '/admin/tasks/package/$packageId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -925,6 +938,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPackagesIdRouteImport
       parentRoute: typeof AuthenticatedPackagesRoute
     }
+    '/admin/tasks/package/$packageId': {
+      id: '/admin/tasks/package/$packageId'
+      path: '/package/$packageId'
+      fullPath: '/admin/tasks/package/$packageId'
+      preLoaderRoute: typeof AdminTasksPackagePackageIdRouteImport
+      parentRoute: typeof AdminTasksRoute
+    }
   }
 }
 
@@ -979,6 +999,18 @@ const AdminDistributorsRouteChildren: AdminDistributorsRouteChildren = {
 const AdminDistributorsRouteWithChildren =
   AdminDistributorsRoute._addFileChildren(AdminDistributorsRouteChildren)
 
+interface AdminTasksRouteChildren {
+  AdminTasksPackagePackageIdRoute: typeof AdminTasksPackagePackageIdRoute
+}
+
+const AdminTasksRouteChildren: AdminTasksRouteChildren = {
+  AdminTasksPackagePackageIdRoute: AdminTasksPackagePackageIdRoute,
+}
+
+const AdminTasksRouteWithChildren = AdminTasksRoute._addFileChildren(
+  AdminTasksRouteChildren,
+)
+
 interface AdminUsersRouteChildren {
   AdminUsersIdRoute: typeof AdminUsersIdRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
@@ -1005,7 +1037,7 @@ interface AdminRouteChildren {
   AdminReportsRoute: typeof AdminReportsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminSupportRoute: typeof AdminSupportRoute
-  AdminTasksRoute: typeof AdminTasksRoute
+  AdminTasksRoute: typeof AdminTasksRouteWithChildren
   AdminUsersRoute: typeof AdminUsersRouteWithChildren
   AdminWithdrawalsRoute: typeof AdminWithdrawalsRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -1023,7 +1055,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminReportsRoute: AdminReportsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminSupportRoute: AdminSupportRoute,
-  AdminTasksRoute: AdminTasksRoute,
+  AdminTasksRoute: AdminTasksRouteWithChildren,
   AdminUsersRoute: AdminUsersRouteWithChildren,
   AdminWithdrawalsRoute: AdminWithdrawalsRoute,
   AdminIndexRoute: AdminIndexRoute,
