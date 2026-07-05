@@ -1,6 +1,7 @@
 // Lightweight pub-sub so admin pages can invalidate each other on writes.
 import { useEffect } from "react";
 import { useRouterState } from "@tanstack/react-router";
+import { useAuthReady } from "@/hooks/use-auth-ready";
 
 type Listener = () => void;
 const listeners = new Set<Listener>();
@@ -19,15 +20,24 @@ export function onAdminRefresh(fn: Listener): () => void {
   return () => listeners.delete(fn);
 }
 
-/** Re-runs `refetch` on bus events, route change and tab focus. */
-export function useAdminAutoRefresh(refetch: () => void) {
+/** Re-runs `refetch` only after Supabase auth storage is hydrated. */
+export function useAdminAutoRefresh(refetch: () => void, enabled = true) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  useEffect(() => { refetch(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [pathname]);
+  const authReady = useAuthReady();
+  const active = enabled && authReady;
+
   useEffect(() => {
+    if (active) refetch();
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [pathname, active]);
+  useEffect(() => {
+    if (!active) return;
     const off = onAdminRefresh(refetch);
     const onVis = () => { if (document.visibilityState === "visible") refetch(); };
     document.addEventListener("visibilitychange", onVis);
     return () => { off(); document.removeEventListener("visibilitychange", onVis); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [active]);
+
+  return active;
 }

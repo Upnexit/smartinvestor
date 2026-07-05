@@ -1,27 +1,22 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { User } from "@supabase/supabase-js";
 
 /**
- * Returns { user, isReady } — isReady flips true only after the Supabase
- * session has been restored from storage (or confirmed absent).
- * Use `enabled: isReady` on queries / gate server-fn calls to avoid the
+ * Returns true only after the Supabase session has been restored from storage
+ * (or confirmed absent). Use it to gate admin queries/mutations and avoid the
  * "No authorization header" / "Missing Supabase env" race on cold load.
  */
 export function useAuthReady() {
-  const [isReady, setIsReady] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().finally(() => {
       if (cancelled) return;
-      setUser(session?.user ?? null);
-      setIsReady(true);
+      setReady(true);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUser(session?.user ?? null);
-      setIsReady(true);
+    const { data: sub } = supabase.auth.onAuthStateChange(() => {
+      setReady(true);
     });
     return () => {
       cancelled = true;
@@ -29,5 +24,5 @@ export function useAuthReady() {
     };
   }, []);
 
-  return { user, isReady };
+  return ready;
 }
