@@ -38,6 +38,7 @@ import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminProfileRouteImport } from './routes/admin.profile'
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
+import { Route as AdminNoticesRouteImport } from './routes/admin.notices'
 import { Route as AdminMonitorRouteImport } from './routes/admin.monitor'
 import { Route as AdminDistributorsRouteImport } from './routes/admin.distributors'
 import { Route as AdminCommunityRouteImport } from './routes/admin.community'
@@ -202,6 +203,11 @@ const AdminPackagesRoute = AdminPackagesRouteImport.update({
   path: '/packages',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminNoticesRoute = AdminNoticesRouteImport.update({
+  id: '/notices',
+  path: '/notices',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminMonitorRoute = AdminMonitorRouteImport.update({
   id: '/monitor',
   path: '/monitor',
@@ -325,6 +331,7 @@ export interface FileRoutesByFullPath {
   '/admin/community': typeof AdminCommunityRoute
   '/admin/distributors': typeof AdminDistributorsRouteWithChildren
   '/admin/monitor': typeof AdminMonitorRoute
+  '/admin/notices': typeof AdminNoticesRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/profile': typeof AdminProfileRoute
@@ -371,6 +378,7 @@ export interface FileRoutesByTo {
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/community': typeof AdminCommunityRoute
   '/admin/monitor': typeof AdminMonitorRoute
+  '/admin/notices': typeof AdminNoticesRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/profile': typeof AdminProfileRoute
@@ -421,6 +429,7 @@ export interface FileRoutesById {
   '/admin/community': typeof AdminCommunityRoute
   '/admin/distributors': typeof AdminDistributorsRouteWithChildren
   '/admin/monitor': typeof AdminMonitorRoute
+  '/admin/notices': typeof AdminNoticesRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/profile': typeof AdminProfileRoute
@@ -472,6 +481,7 @@ export interface FileRouteTypes {
     | '/admin/community'
     | '/admin/distributors'
     | '/admin/monitor'
+    | '/admin/notices'
     | '/admin/packages'
     | '/admin/payments'
     | '/admin/profile'
@@ -518,6 +528,7 @@ export interface FileRouteTypes {
     | '/admin/approvals'
     | '/admin/community'
     | '/admin/monitor'
+    | '/admin/notices'
     | '/admin/packages'
     | '/admin/payments'
     | '/admin/profile'
@@ -567,6 +578,7 @@ export interface FileRouteTypes {
     | '/admin/community'
     | '/admin/distributors'
     | '/admin/monitor'
+    | '/admin/notices'
     | '/admin/packages'
     | '/admin/payments'
     | '/admin/profile'
@@ -812,6 +824,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPackagesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/notices': {
+      id: '/admin/notices'
+      path: '/notices'
+      fullPath: '/admin/notices'
+      preLoaderRoute: typeof AdminNoticesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/monitor': {
       id: '/admin/monitor'
       path: '/monitor'
@@ -1019,6 +1038,7 @@ interface AdminRouteChildren {
   AdminCommunityRoute: typeof AdminCommunityRoute
   AdminDistributorsRoute: typeof AdminDistributorsRouteWithChildren
   AdminMonitorRoute: typeof AdminMonitorRoute
+  AdminNoticesRoute: typeof AdminNoticesRoute
   AdminPackagesRoute: typeof AdminPackagesRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
   AdminProfileRoute: typeof AdminProfileRoute
@@ -1038,6 +1058,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCommunityRoute: AdminCommunityRoute,
   AdminDistributorsRoute: AdminDistributorsRouteWithChildren,
   AdminMonitorRoute: AdminMonitorRoute,
+  AdminNoticesRoute: AdminNoticesRoute,
   AdminPackagesRoute: AdminPackagesRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
   AdminProfileRoute: AdminProfileRoute,
