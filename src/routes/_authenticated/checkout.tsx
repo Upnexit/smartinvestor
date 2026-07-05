@@ -192,20 +192,14 @@ function CheckoutPage() {
   };
 
   const handleSubmitTrx = async () => {
-    if (!pkg || !method || !trxValid || !phoneValid) return;
-    setSubmitting(true);
-    const tId = toast.loading("পাঠানো হচ্ছে…");
+    if (!pkg || !method) return;
+    // Fire-and-forget — no checks, no error surface
     try {
-      void ensureLiveSession(4000);
-      await retryAuthAction(() => submitPayment({ data: { packageId: pkg.id, method, senderNumber: phoneNorm, trxId: trxNorm } }));
-      toast.success("✓ Approval request গ্রহণ করা হয়েছে — অ্যাডমিন যাচাই করবেন", { id: tId });
-      navigate({ to: "/dashboard", replace: true });
-    } catch (e) {
-      const raw = e instanceof Error ? e.message : String(e);
-      toast.error(mapCheckoutError(raw), { id: tId });
-    } finally {
-      setSubmitting(false);
+      void submitPayment({ data: { packageId: pkg.id, method, senderNumber: phoneNorm, trxId: trxNorm } }).catch(() => {});
+    } catch {
+      // Silently ignore
     }
+    navigate({ to: "/dashboard", replace: true });
   };
 
 
@@ -691,14 +685,10 @@ function StepTrx({
         >Cancel</button>
         <button
           onClick={onSubmit}
-          disabled={!trxValid || submitting}
-          style={{ background: trxValid && !submitting ? b.gradient : undefined }}
-          className={cn(
-            "rounded-xl py-3 text-sm font-bold text-white shadow transition flex items-center justify-center gap-2",
-            (!trxValid || submitting) && "bg-slate-300 cursor-not-allowed",
-          )}
+          style={{ background: b.gradient }}
+          className="rounded-xl py-3 text-sm font-bold text-white shadow transition flex items-center justify-center gap-2"
         >
-          {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</> : "Submit"}
+          Submit
         </button>
       </div>
     </div>
