@@ -61,6 +61,13 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
           <button className="grid h-9 w-9 place-items-center rounded-xl text-slate-600 hover:bg-slate-100" aria-label="নোটিফিকেশন">
             <Bell className="h-5 w-5" />
           </button>
+          <Link
+            to="/support"
+            aria-label="সাপোর্ট"
+            className="grid h-9 w-9 place-items-center rounded-xl text-white shadow-lg bg-gradient-to-br from-amber-500 to-orange-600 hover:scale-105 transition"
+          >
+            <LifeBuoy className="h-5 w-5" />
+          </Link>
           <button
             onClick={() => setDrawerOpen(true)}
             aria-label="মেনু খুলুন"
