@@ -243,22 +243,21 @@ Tone: ${data.priority === "critical" ? "জরুরি ও সরাসরি" 
     const errors: string[] = [];
     let out = "";
 
-    // Try Gemini direct first (same pattern as other pages)
-    if (geminiKey) {
-      try {
-        out = await callGatewayGemini(system, user, geminiKey);
-      } catch (err) {
-        errors.push((err as Error).message);
-        console.warn("Notice AI Gemini fallback:", (err as Error).message);
-      }
-    }
-    // Fallback to Lovable AI Gateway
-    if (!out && lovableKey) {
+    // Prefer Lovable AI Gateway (per stack guidance); fallback to Gemini direct
+    if (lovableKey) {
       try {
         out = await callGatewayLovable(system, user, lovableKey);
       } catch (err) {
         errors.push((err as Error).message);
         console.warn("Notice AI Lovable fallback:", (err as Error).message);
+      }
+    }
+    if (!out && geminiKey) {
+      try {
+        out = await callGatewayGemini(system, user, geminiKey);
+      } catch (err) {
+        errors.push((err as Error).message);
+        console.warn("Notice AI Gemini fallback:", (err as Error).message);
       }
     }
 
