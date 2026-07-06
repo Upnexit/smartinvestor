@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, ListChecks, ArrowDownToLine, Package, MessageCircle,
-  Users, User as UserIcon, ChevronRight, LogOut, Sparkles, Menu, X, Bell, Crown, Home,
+  Users, User as UserIcon, ChevronRight, LogOut, Sparkles, Menu, X, Bell, Crown, Home, LifeBuoy,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/use-site-settings";
