@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { MessagesSquare, Send, User as UserIcon, Loader2 } from "lucide-react";
+import { MessagesSquare, Send, User as UserIcon, Loader2, Mic, Square, Sparkles } from "lucide-react";
 import { AdminPageHeader, AdminCard, EmptyState } from "@/components/admin/AdminUI";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAuthReady } from "@/hooks/use-auth-ready";
+import { useServerFn } from "@tanstack/react-start";
+import { suggestSupportReply, transcribeVoice } from "@/lib/support-ai.functions";
 
 type Msg = { id: string; user_id: string; sender: "user" | "admin"; body: string; created_at: string };
 type Thread = { user_id: string; full_name: string | null; email: string | null; user_code: string | null; last: string; at: string; status?: string | null };
