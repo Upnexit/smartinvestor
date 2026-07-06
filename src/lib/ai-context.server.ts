@@ -24,7 +24,7 @@ const CACHE_MS = 60_000; // refresh once per minute — cheap and fresh enough
 export async function getBusinessContext(): Promise<string> {
   if (cache && Date.now() - cache.at < CACHE_MS) return cache.text;
 
-  const { url, publishableKey } = resolveSupabasePublicEnv();
+  const { SUPABASE_URL: url, SUPABASE_PUBLISHABLE_KEY: publishableKey } = resolveSupabasePublicEnv();
   let packagesBlock = "(package data unavailable)";
   try {
     if (url && publishableKey) {
