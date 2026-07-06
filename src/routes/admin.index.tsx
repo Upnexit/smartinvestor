@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Users, ShieldCheck, Wallet, UserPlus, Package as PackageIcon, BarChart3,
   Settings, ArrowDownToLine, ListChecks, Sparkles, TrendingUp, Zap,
-  Megaphone, LifeBuoy, UsersRound, Activity as ActivityIcon,
+  Megaphone, LifeBuoy, UsersRound,
 } from "lucide-react";
 import {
   ComposedChart, Area, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
