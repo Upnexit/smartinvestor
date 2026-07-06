@@ -87,7 +87,7 @@ export async function getUserBundle(userId: string) {
     supabase.from("profiles").select("id,full_name,email,phone,user_code,created_at,total_earned").eq("referred_by", userId).order("created_at", { ascending: false }).limit(200),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("referred_by", userId),
     supabase.from("referral_earnings").select("amount").eq("referrer_id", userId),
-    supabase.from("activity_logs").select("id,event_type,meta,ip,user_agent,created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(100),
+    supabase.from("activity_logs").select("id,event_type,meta,ip,user_agent,created_at").eq("user_id", userId).gte("created_at", dhakaDayStartISO()).order("created_at", { ascending: false }).limit(100),
   ]);
   const earnedSum = (totalRefEarned.data ?? []).reduce((s: number, r: { amount: number | string | null }) => s + Number(r.amount || 0), 0);
   return {
