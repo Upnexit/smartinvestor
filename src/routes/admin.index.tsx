@@ -333,7 +333,7 @@ function DashboardPage() {
         </AdminCard>
 
         <AdminCard accent="indigo" className="p-4">
-          <AdminSectionTitle title="অ্যাক্টিভিটি ভিজুয়ালাইজেশন" hint="ইউজার কী করছেন" accent="indigo" Icon={ActivityIcon} />
+          <AdminSectionTitle title="অ্যাক্টিভিটি ভিজুয়ালাইজেশন" hint="ইউজার কী করছেন" accent="indigo" />
           <ActivityPie activity={activity} />
         </AdminCard>
       </div>
