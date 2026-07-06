@@ -5,6 +5,17 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+// Returns ISO timestamp of "today at 00:00 Asia/Dhaka" so admin views only
+// show the current day's activity (matches the daily purge job).
+function dhakaDayStartISO(): string {
+  const now = new Date();
+  // Dhaka is UTC+6 with no DST.
+  const dhakaMs = now.getTime() + 6 * 60 * 60 * 1000;
+  const d = new Date(dhakaMs);
+  const startUtcMs = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) - 6 * 60 * 60 * 1000;
+  return new Date(startUtcMs).toISOString();
+}
+
 type DistributorInput = {
   email: string;
   password?: string;
