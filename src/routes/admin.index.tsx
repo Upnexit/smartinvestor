@@ -397,27 +397,56 @@ function ActivityPie({ activity }: { activity: Array<{ id: string; label: string
 }
 
 async function loadActivity() {
-  const [pkgs, wds] = await Promise.all([
-    supabase.from("user_packages").select("id, status, created_at, packages(name)").order("created_at", { ascending: false }).limit(8),
-    supabase.from("withdrawals").select("id, amount, status, created_at").order("created_at", { ascending: false }).limit(6),
-  ]);
-  type R = { id: string; label: string; time: string; accent: AccentKey };
+  type R = { id: string; label: string; time: string; accent: AccentKey; kind: string };
   const items: R[] = [];
-  (pkgs.data ?? []).forEach((p) => {
-    items.push({
-      id: "p-" + p.id,
-      label: `প্যাকেজ ${(p as { packages?: { name?: string } | null }).packages?.name ?? ""} — ${p.status}`,
-      time: new Date(p.created_at!).toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" }),
-      accent: p.status === "active" ? "emerald" : p.status === "pending" ? "amber" : "rose",
-    });
-  });
-  (wds.data ?? []).forEach((w) => {
-    items.push({
-      id: "w-" + w.id,
-      label: `উইথড্র ৳${w.amount} — ${w.status}`,
-      time: new Date(w.created_at!).toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" }),
-      accent: w.status === "approved" ? "emerald" : w.status === "pending" ? "amber" : "rose",
-    });
-  });
-  return items.slice(0, 10);
+  const t = (d: string | null) => new Date(d ?? Date.now()).toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" });
+
+  const [pkgs, wds, signups, supports, tasks, dapps] = await Promise.all([
+    supabase.from("user_packages").select("id, status, created_at, packages(name)").order("created_at", { ascending: false }).limit(6),
+    supabase.from("withdrawals").select("id, amount, status, created_at").order("created_at", { ascending: false }).limit(6),
+    supabase.from("profiles").select("id, full_name, user_code, created_at").order("created_at", { ascending: false }).limit(6),
+    supabase.from("support_messages").select("id, user_id, sender, body, created_at").eq("sender", "user").order("created_at", { ascending: false }).limit(6),
+    supabase.from("task_submissions").select("id, status, created_at").order("created_at", { ascending: false }).limit(4),
+    supabase.from("distributor_applications").select("id, full_name, status, created_at").order("created_at", { ascending: false }).limit(4),
+  ]);
+
+  (pkgs.data ?? []).forEach((p) => items.push({
+    id: "p-" + p.id, kind: "প্যাকেজ",
+    label: `প্যাকেজ ${(p as { packages?: { name?: string } | null }).packages?.name ?? ""} — ${p.status}`,
+    time: t(p.created_at as string),
+    accent: p.status === "active" ? "emerald" : p.status === "pending" ? "amber" : "rose",
+  }));
+  (wds.data ?? []).forEach((w) => items.push({
+    id: "w-" + w.id, kind: "উইথড্র",
+    label: `উইথড্র ৳${w.amount} — ${w.status}`,
+    time: t(w.created_at as string),
+    accent: w.status === "approved" ? "emerald" : w.status === "pending" ? "amber" : "rose",
+  }));
+  (signups.data ?? []).forEach((u) => items.push({
+    id: "s-" + u.id, kind: "সাইনআপ",
+    label: `নতুন সাইনআপ — ${u.full_name ?? u.user_code ?? "নতুন ইউজার"}`,
+    time: t(u.created_at as string),
+    accent: "sky",
+  }));
+  (supports.data ?? []).forEach((m) => items.push({
+    id: "sm-" + m.id, kind: "সাপোর্ট",
+    label: `সাপোর্ট বার্তা — ${(m.body ?? "").slice(0, 50)}`,
+    time: t(m.created_at as string),
+    accent: "fuchsia",
+  }));
+  (tasks.data ?? []).forEach((ts) => items.push({
+    id: "ts-" + ts.id, kind: "টাস্ক",
+    label: `টাস্ক সাবমিশন — ${ts.status}`,
+    time: t(ts.created_at as string),
+    accent: ts.status === "approved" ? "emerald" : ts.status === "pending" ? "amber" : "rose",
+  }));
+  (dapps.data ?? []).forEach((d) => items.push({
+    id: "d-" + d.id, kind: "ডিস্ট্রিবিউটর আবেদন",
+    label: `ডিস্ট্রিবিউটর আবেদন — ${d.full_name ?? ""} (${d.status})`,
+    time: t(d.created_at as string),
+    accent: d.status === "approved" ? "emerald" : d.status === "pending" ? "amber" : "rose",
+  }));
+
+  // Sort newest first by parsing raw times we lost — fall back to array order.
+  return items.slice(0, 20);
 }
