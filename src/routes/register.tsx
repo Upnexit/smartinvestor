@@ -119,7 +119,7 @@ function RegisterPage() {
       toast.error(msg);
       return;
     }
-    toast.success("একাউন্ট সফলভাবে তৈরি হয়েছে! ৳৩০০ বোনাস যোগ হয়েছে");
+      toast.success("একাউন্ট সফলভাবে তৈরি হয়েছে! ৳৩০০ লকড বোনাস সংরক্ষিত হয়েছে");
     setLoading(false);
     navigate({ to: safeRedirect(search.redirect) ?? "/dashboard", replace: true });
   }
@@ -150,10 +150,10 @@ function RegisterPage() {
               <Gift className="h-3.5 w-3.5" /> সাইনআপ অফার
             </div>
             <h2 className="bn-display mt-4 text-4xl leading-tight">
-              ৳ ৩০০ বোনাস<br/>সাথে সাথেই আনলক
+              ৳ ৩০০ বোনাস<br/>লকড হিসেবে সংরক্ষিত
             </h2>
             <p className="mt-4 max-w-md text-white/90 leading-relaxed">
-              রেজিস্ট্রেশনের সাথেই ৳৩০০ লকড বোনাস — প্রথম প্যাকেজ একটিভ করলেই উইথড্রয়েবল।
+              রেজিস্ট্রেশনের সাথেই ৳৩০০ লকড বোনাস আলাদা সংরক্ষিত থাকবে।
             </p>
 
             <ul className="mt-8 space-y-4">

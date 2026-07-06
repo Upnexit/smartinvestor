@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Pencil, Save, X } from "lucide-react";
+import { LockKeyhole, Pencil, Save, X } from "lucide-react";
 import { GradientButton } from "@/components/admin/AdminUI";
 import { updateUser } from "@/lib/admin-client";
 
@@ -30,10 +30,17 @@ export function UserEditDrawer({
   });
   const [saving, setSaving] = useState(false);
 
+  const balancePreview = Math.max(Number(form.balance) || 0, 0);
+  const lockedPreview = Math.max(Number(form.locked_balance) || 0, 0);
+
   const save = async () => {
     setSaving(true);
     try {
-      await updateUser(userId, form);
+      await updateUser(userId, {
+        ...form,
+        balance: balancePreview,
+        locked_balance: lockedPreview,
+      });
       toast.success("সেভ হয়েছে ✓");
       onSaved();
     } catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
@@ -49,7 +56,7 @@ export function UserEditDrawer({
             <div className="grid h-8 w-8 place-items-center rounded-xl bg-white/20"><Pencil className="h-4 w-4" /></div>
             <div>
               <p className="bn-display text-base">ইউজার এডিট</p>
-              <p className="text-[11px] text-white/85">পরিবর্তন সাথে সাথে ডাটাবেস-এ সেভ হবে</p>
+          <p className="text-[11px] text-white/85">লকড ব্যালেন্স সংরক্ষিত থাকবে, উইথড্র-এ কাটবে না</p>
             </div>
           </div>
           <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-xl bg-white/15 hover:bg-white/25"><X className="h-4 w-4" /></button>
@@ -60,10 +67,17 @@ export function UserEditDrawer({
           <Field label="ফোন"             value={form.phone}          onChange={(v) => setForm((f) => ({ ...f, phone: v }))} />
           <Field label="ইমেইল"           value={form.email}          onChange={(v) => setForm((f) => ({ ...f, email: v }))} />
           <SelectField label="স্ট্যাটাস" value={form.status}         onChange={(v) => setForm((f) => ({ ...f, status: v }))} options={["active","suspended","banned"]} />
-          <Field label="ব্যালেন্স (৳)"   value={form.balance}        onChange={(v) => setForm((f) => ({ ...f, balance: v }))} type="number" />
-          <Field label="লকড ব্যালেন্স"   value={form.locked_balance} onChange={(v) => setForm((f) => ({ ...f, locked_balance: v }))} type="number" />
+          <Field label="উইথড্রযোগ্য ব্যালেন্স (৳)" value={form.balance}        onChange={(v) => setForm((f) => ({ ...f, balance: v }))} type="number" min="0" />
+          <Field label="লকড ব্যালেন্স (শুধু সংরক্ষিত)" value={form.locked_balance} onChange={(v) => setForm((f) => ({ ...f, locked_balance: v }))} type="number" min="0" />
           <SelectField label="পেমেন্ট মেথড" value={form.payment_method} onChange={(v) => setForm((f) => ({ ...f, payment_method: v }))} options={["bkash","nagad","rocket"]} />
           <Field label="পেমেন্ট নম্বর"   value={form.payment_number} onChange={(v) => setForm((f) => ({ ...f, payment_number: v }))} />
+        </div>
+
+        <div className="mx-4 mb-4 flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+          <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>
+            লকড ব্যালেন্স ৳{lockedPreview.toLocaleString("bn-BD")} আলাদা সংরক্ষিত থাকবে; ইউজারের উইথড্রযোগ্য ব্যালেন্স থাকবে ৳{balancePreview.toLocaleString("bn-BD")}।
+          </p>
         </div>
 
         <div className="sticky bottom-0 flex gap-2 rounded-b-3xl border-t border-slate-100 bg-white p-3">
@@ -77,11 +91,11 @@ export function UserEditDrawer({
   );
 }
 
-function Field({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+function Field({ label, value, onChange, type = "text", min }: { label: string; value: string; onChange: (v: string) => void; type?: string; min?: string }) {
   return (
     <label className="block">
       <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">{label}</span>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)}
+      <input type={type} min={min} value={value} onChange={(e) => onChange(e.target.value)}
         className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-300/40" />
     </label>
   );

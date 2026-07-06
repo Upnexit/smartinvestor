@@ -151,7 +151,7 @@ function DashboardPage() {
   const stats = useMemo(() => ([
     { Icon: Wallet,     label: "মোট ব্যালেন্স", value: profile?.balance ?? 0,        from: "from-amber-400",   via: "via-orange-500",  to: "to-rose-500" },
     { Icon: TrendingUp, label: "মোট আয়",       value: profile?.total_earned ?? 0,   from: "from-emerald-400", via: "via-teal-500",    to: "to-green-600" },
-    { Icon: Trophy,     label: "লকড বোনাস",     value: profile?.locked_balance ?? 0, from: "from-fuchsia-400", via: "via-purple-500",  to: "to-indigo-600" },
+    { Icon: Trophy,     label: "লকড ব্যালেন্স", value: profile?.locked_balance ?? 0, from: "from-fuchsia-400", via: "via-purple-500",  to: "to-indigo-600" },
     { Icon: ThumbsUp,   label: "সম্পন্ন টাস্ক",  value: Math.max(tasksApproved, profile?.tasks_completed ?? 0), from: "from-sky-400",     via: "via-blue-500",    to: "to-cyan-600", isCount: true },
   ]), [profile, tasksApproved]);
 
@@ -174,8 +174,7 @@ function DashboardPage() {
             </div>
             <h2 className="bn-display mt-4 text-2xl text-slate-900">স্বাগতম!</h2>
             <p className="mt-2 text-sm text-slate-600">
-              আপনার একাউন্টে <span className="font-bold text-amber-700">৳৩০০</span> সাইনআপ বোনাস ক্রেডিট হয়েছে।
-              প্যাকেজ কিনে এটি আনলক করুন।
+              আপনার একাউন্টে <span className="font-bold text-amber-700">৳৩০০</span> লকড বোনাস সংরক্ষিত হয়েছে।
             </p>
             <button onClick={() => setShowWelcome(false)} className="btn-gold mt-5 w-full">শুরু করুন</button>
           </div>
@@ -261,7 +260,7 @@ function DashboardPage() {
             <p className="bn-display mt-1 text-4xl">
               {hideBalance ? "৳ ••••" : `৳ ${(profile?.balance ?? 0).toFixed(2)}`}
             </p>
-            <p className="mt-1 text-xs text-white/85">লকড: ৳ {(profile?.locked_balance ?? 0).toFixed(2)}</p>
+            <p className="mt-1 text-xs text-white/85">লকড: ৳ {(profile?.locked_balance ?? 0).toFixed(2)} · এটি কাটা হবে না</p>
           </div>
           <button
             onClick={() => setHideBalance((v) => !v)}
