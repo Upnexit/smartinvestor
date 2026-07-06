@@ -23,8 +23,15 @@ function SupportPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
   const authReady = useAuthReady();
+  const runSuggest = useServerFn(suggestSupportReply);
+  const runTranscribe = useServerFn(transcribeVoice);
 
   const loadThreads = async () => {
     const { data: msgs } = await supabase.from("support_messages").select("user_id, body, created_at").order("created_at", { ascending: false }).limit(500);
