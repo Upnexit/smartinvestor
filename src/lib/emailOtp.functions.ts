@@ -74,7 +74,7 @@ async function getGmailAddress(): Promise<string> {
 
 export const sendEmailOtp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator(() => ({}))
+  .inputValidator(() => ({}))
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
 
@@ -135,7 +135,7 @@ export const sendEmailOtp = createServerFn({ method: "POST" })
 
 export const verifyEmailOtp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ code: z.string().regex(/^\d{6}$/) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ code: z.string().regex(/^\d{6}$/) }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
@@ -168,7 +168,7 @@ export const verifyEmailOtp = createServerFn({ method: "POST" })
 // Used by the verification modal when the user wants to correct a wrong email.
 export const updateMyEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z.object({ email: z.string().trim().toLowerCase().email("সঠিক ইমেইল দিন") }).parse(d),
   )
   .handler(async ({ data, context }) => {
