@@ -140,7 +140,7 @@ function fallbackTasks(
 }
 
 export const generateFbLinkTasks = createServerFn({ method: "POST" })
-  .validator((d: {
+  .inputValidator((d: {
     count: number;
     actions?: GeneratedTask["action_type"][];
     existingUrls?: string[];

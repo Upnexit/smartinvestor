@@ -30,7 +30,7 @@ async function callLovable(system: string, messages: Msg[], key: string, opts?: 
 }
 
 export const askSmartAI = createServerFn({ method: "POST" })
-  .validator((data: { messages: Msg[] }) => {
+  .inputValidator((data: { messages: Msg[] }) => {
     if (!Array.isArray(data?.messages)) throw new Error("messages required");
     const messages = data.messages.slice(-20).map((m) => ({
       role: m.role === "assistant" ? "assistant" : m.role === "system" ? "system" : "user",
@@ -78,7 +78,7 @@ function localInstruction(method: Method, type: AcctType, number: string, agent?
 }
 
 export const generatePaymentInstruction = createServerFn({ method: "POST" })
-  .validator((d: { method: Method; type: AcctType; number: string; agent_number?: string; amount_note?: string }) => {
+  .inputValidator((d: { method: Method; type: AcctType; number: string; agent_number?: string; amount_note?: string }) => {
     if (!d?.method || !["bkash", "nagad", "rocket"].includes(d.method)) throw new Error("method invalid");
     if (!d?.type || !["personal", "merchant", "payment"].includes(d.type)) throw new Error("type invalid");
     return {
@@ -112,7 +112,7 @@ Write clear Bengali instructions telling the user how to send money to this ${mB
   });
 
 export const generateTaskDescription = createServerFn({ method: "POST" })
-  .validator((d: { title: string; category?: string; action_type?: string; hint?: string; url?: string }) => ({
+  .inputValidator((d: { title: string; category?: string; action_type?: string; hint?: string; url?: string }) => ({
     title: String(d?.title ?? "").slice(0, 200),
     category: String(d?.category ?? "").slice(0, 40),
     action_type: String(d?.action_type ?? "").slice(0, 20),
