@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, ListChecks, ArrowDownToLine, Package, MessageCircle,
-  Users, User as UserIcon, ChevronRight, LogOut, Sparkles, Menu, X, Bell, Crown, Home,
+  Users, User as UserIcon, ChevronRight, LogOut, Sparkles, Menu, X, Bell, Crown, Home, LifeBuoy,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/use-site-settings";
@@ -61,6 +61,13 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
           <button className="grid h-9 w-9 place-items-center rounded-xl text-slate-600 hover:bg-slate-100" aria-label="নোটিফিকেশন">
             <Bell className="h-5 w-5" />
           </button>
+          <Link
+            to="/support"
+            aria-label="সাপোর্ট"
+            className="grid h-9 w-9 place-items-center rounded-xl text-white shadow-lg bg-gradient-to-br from-amber-500 to-orange-600 hover:scale-105 transition"
+          >
+            <LifeBuoy className="h-5 w-5" />
+          </Link>
           <button
             onClick={() => setDrawerOpen(true)}
             aria-label="মেনু খুলুন"
