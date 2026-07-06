@@ -195,9 +195,31 @@ function SupportPage() {
                 ))}
               </div>
               <div className="flex items-center gap-2 border-t border-slate-100 bg-white p-3">
+                <button
+                  type="button"
+                  onClick={recording ? stopRec : startRec}
+                  disabled={transcribing}
+                  title={recording ? "থামান" : "ভয়েস দিয়ে লিখুন"}
+                  className={cn(
+                    "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-md transition hover:scale-[1.05] disabled:opacity-60",
+                    recording ? "bg-gradient-to-br from-red-600 to-rose-700 animate-pulse" : "bg-gradient-to-br from-sky-500 to-indigo-600",
+                  )}
+                >
+                  {transcribing ? <Loader2 className="h-4 w-4 animate-spin" /> : recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={suggest}
+                  disabled={aiBusy || messages.length === 0}
+                  title="AI দিয়ে উত্তর সাজান"
+                  className="inline-flex h-10 shrink-0 items-center gap-1 rounded-xl bg-gradient-to-br from-fuchsia-500 to-purple-600 px-3 text-xs font-bold text-white shadow-md transition hover:scale-[1.05] disabled:opacity-60"
+                >
+                  {aiBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                  <span className="hidden sm:inline">AI</span>
+                </button>
                 <input value={text} onChange={(e) => setText(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-                  placeholder="অ্যাডমিন হিসেবে উত্তর লিখুন..."
+                  placeholder={recording ? "রেকর্ড হচ্ছে..." : transcribing ? "ট্রান্সক্রাইব হচ্ছে..." : "অ্যাডমিন হিসেবে উত্তর লিখুন..."}
                   className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-rose-400 focus:bg-white focus:ring-2 focus:ring-rose-300/40" />
                 <button onClick={send} disabled={sending || !text.trim()}
                   className="inline-flex items-center gap-1 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 px-4 py-2 text-sm font-bold text-white shadow-md hover:scale-[1.02] transition disabled:opacity-60">
