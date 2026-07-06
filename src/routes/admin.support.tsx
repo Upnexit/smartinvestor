@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { MessagesSquare, Send, User as UserIcon, Loader2 } from "lucide-react";
+import { MessagesSquare, Send, User as UserIcon, Loader2, Mic, Square, Sparkles } from "lucide-react";
 import { AdminPageHeader, AdminCard, EmptyState } from "@/components/admin/AdminUI";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useAuthReady } from "@/hooks/use-auth-ready";
+import { useServerFn } from "@tanstack/react-start";
+import { suggestSupportReply, transcribeVoice } from "@/lib/support-ai.functions";
 
 type Msg = { id: string; user_id: string; sender: "user" | "admin"; body: string; created_at: string };
 type Thread = { user_id: string; full_name: string | null; email: string | null; user_code: string | null; last: string; at: string; status?: string | null };
@@ -21,8 +23,15 @@ function SupportPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
   const authReady = useAuthReady();
+  const runSuggest = useServerFn(suggestSupportReply);
+  const runTranscribe = useServerFn(transcribeVoice);
 
   const loadThreads = async () => {
     const { data: msgs } = await supabase.from("support_messages").select("user_id, body, created_at").order("created_at", { ascending: false }).limit(500);
@@ -55,7 +64,8 @@ function SupportPage() {
       .then(({ data }) => setMessages((data as Msg[]) ?? []));
     const ch = supabase.channel(`admin-thread-${active.user_id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "support_messages", filter: `user_id=eq.${active.user_id}` }, (p) => {
-        setMessages((m) => [...m, p.new as Msg]);
+        const nm = p.new as Msg;
+        setMessages((m) => (m.some((x) => x.id === nm.id) ? m : [...m, nm]));
       })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
@@ -67,11 +77,66 @@ function SupportPage() {
     if (!active || !text.trim()) return;
     setSending(true);
     try {
-      const { error } = await supabase.from("support_messages").insert({ user_id: active.user_id, sender: "admin", body: text.trim() });
+      const body = text.trim();
+      const { data, error } = await supabase.from("support_messages").insert({ user_id: active.user_id, sender: "admin", body }).select().single();
       if (error) throw error;
+      if (data) setMessages((m) => (m.some((x) => x.id === (data as Msg).id) ? m : [...m, data as Msg]));
       setText("");
     } catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
     finally { setSending(false); }
+  };
+
+  const startRec = async () => {
+    if (recording) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
+      const rec = new MediaRecorder(stream, { mimeType: mime });
+      chunksRef.current = [];
+      rec.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      rec.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(chunksRef.current, { type: mime });
+        if (blob.size < 1024) { toast.error("রেকর্ডিং খুব ছোট"); return; }
+        setTranscribing(true);
+        try {
+          const buf = await blob.arrayBuffer();
+          let bin = "";
+          const arr = new Uint8Array(buf);
+          for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
+          const b64 = btoa(bin);
+          const ext = mime.includes("mp4") ? "mp4" : "webm";
+          const res = await runTranscribe({ data: { audio_base64: b64, mime, filename: `voice.${ext}` } });
+          if (res?.text) setText((t) => (t ? t + " " : "") + res.text);
+          else toast.error("কোনো টেক্সট মেলেনি");
+        } catch (e) { toast.error(e instanceof Error ? e.message : "ট্রান্সক্রাইব ব্যর্থ"); }
+        finally { setTranscribing(false); }
+      };
+      recorderRef.current = rec;
+      rec.start();
+      setRecording(true);
+    } catch { toast.error("মাইক্রোফোন অনুমতি প্রয়োজন"); }
+  };
+  const stopRec = () => {
+    const r = recorderRef.current;
+    if (r && r.state !== "inactive") r.stop();
+    recorderRef.current = null;
+    setRecording(false);
+  };
+
+  const suggest = async () => {
+    if (!active || aiBusy || messages.length === 0) return;
+    setAiBusy(true);
+    try {
+      const res = await runSuggest({
+        data: {
+          messages: messages.map((m) => ({ sender: m.sender, body: m.body })),
+          hint: text.trim() || undefined,
+        },
+      });
+      if (res?.reply) setText(res.reply);
+    } catch (e) { toast.error(e instanceof Error ? e.message : "AI ব্যর্থ"); }
+    finally { setAiBusy(false); }
   };
 
   return (
@@ -130,9 +195,31 @@ function SupportPage() {
                 ))}
               </div>
               <div className="flex items-center gap-2 border-t border-slate-100 bg-white p-3">
+                <button
+                  type="button"
+                  onClick={recording ? stopRec : startRec}
+                  disabled={transcribing}
+                  title={recording ? "থামান" : "ভয়েস দিয়ে লিখুন"}
+                  className={cn(
+                    "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-md transition hover:scale-[1.05] disabled:opacity-60",
+                    recording ? "bg-gradient-to-br from-red-600 to-rose-700 animate-pulse" : "bg-gradient-to-br from-sky-500 to-indigo-600",
+                  )}
+                >
+                  {transcribing ? <Loader2 className="h-4 w-4 animate-spin" /> : recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={suggest}
+                  disabled={aiBusy || messages.length === 0}
+                  title="AI দিয়ে উত্তর সাজান"
+                  className="inline-flex h-10 shrink-0 items-center gap-1 rounded-xl bg-gradient-to-br from-fuchsia-500 to-purple-600 px-3 text-xs font-bold text-white shadow-md transition hover:scale-[1.05] disabled:opacity-60"
+                >
+                  {aiBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                  <span className="hidden sm:inline">AI</span>
+                </button>
                 <input value={text} onChange={(e) => setText(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-                  placeholder="অ্যাডমিন হিসেবে উত্তর লিখুন..."
+                  placeholder={recording ? "রেকর্ড হচ্ছে..." : transcribing ? "ট্রান্সক্রাইব হচ্ছে..." : "অ্যাডমিন হিসেবে উত্তর লিখুন..."}
                   className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-rose-400 focus:bg-white focus:ring-2 focus:ring-rose-300/40" />
                 <button onClick={send} disabled={sending || !text.trim()}
                   className="inline-flex items-center gap-1 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 px-4 py-2 text-sm font-bold text-white shadow-md hover:scale-[1.02] transition disabled:opacity-60">

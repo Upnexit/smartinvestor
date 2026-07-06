@@ -188,7 +188,7 @@ function ComboTooltip({ active, payload, label }: { active?: boolean; payload?: 
 
 function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
-  const [activity, setActivity] = useState<Array<{ id: string; label: string; time: string; accent: AccentKey }>>([]);
+  const [activity, setActivity] = useState<Array<{ id: string; label: string; time: string; accent: AccentKey; kind?: string }>>([]);
 
   const refresh = () => {
     loadStats().then(setStats).catch(() => {});
@@ -204,6 +204,8 @@ function DashboardPage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "task_submissions" }, refresh)
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, refresh)
       .on("postgres_changes", { event: "*", schema: "public", table: "distributor_applications" }, refresh)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "support_messages" }, refresh)
+
 
       .subscribe();
     return () => { supabase.removeChannel(ch); };
@@ -347,17 +349,21 @@ const PIE_COLORS: Record<AccentKey, string> = {
   indigo: "#6366f1", lime: "#84cc16", teal: "#14b8a6", cyan: "#06b6d4", slate: "#64748b",
 };
 
-function ActivityPie({ activity }: { activity: Array<{ id: string; label: string; time: string; accent: AccentKey }> }) {
+function ActivityPie({ activity }: { activity: Array<{ id: string; label: string; time: string; accent: AccentKey; kind?: string }> }) {
   const data = useMemo(() => {
     const buckets = new Map<string, { name: string; value: number; accent: AccentKey }>();
     activity.forEach((a) => {
-      const isPkg = a.id.startsWith("p-");
-      const kind = isPkg ? "প্যাকেজ" : "উইথড্র";
-      const status = a.accent === "emerald" ? "সফল" : a.accent === "amber" ? "পেন্ডিং" : "বাতিল";
-      const key = `${kind} — ${status}`;
-      const prev = buckets.get(key);
+      const kind = a.kind
+        ?? (a.id.startsWith("p-") ? "প্যাকেজ"
+          : a.id.startsWith("w-") ? "উইথড্র"
+          : a.id.startsWith("s-") ? "সাইনআপ"
+          : a.id.startsWith("sm-") ? "সাপোর্ট"
+          : a.id.startsWith("ts-") ? "টাস্ক"
+          : a.id.startsWith("d-") ? "ডিস্ট্রিবিউটর আবেদন"
+          : "অন্যান্য");
+      const prev = buckets.get(kind);
       if (prev) prev.value += 1;
-      else buckets.set(key, { name: key, value: 1, accent: a.accent });
+      else buckets.set(kind, { name: kind, value: 1, accent: a.accent });
     });
     return Array.from(buckets.values());
   }, [activity]);
@@ -397,27 +403,56 @@ function ActivityPie({ activity }: { activity: Array<{ id: string; label: string
 }
 
 async function loadActivity() {
-  const [pkgs, wds] = await Promise.all([
-    supabase.from("user_packages").select("id, status, created_at, packages(name)").order("created_at", { ascending: false }).limit(8),
-    supabase.from("withdrawals").select("id, amount, status, created_at").order("created_at", { ascending: false }).limit(6),
-  ]);
-  type R = { id: string; label: string; time: string; accent: AccentKey };
+  type R = { id: string; label: string; time: string; accent: AccentKey; kind: string };
   const items: R[] = [];
-  (pkgs.data ?? []).forEach((p) => {
-    items.push({
-      id: "p-" + p.id,
-      label: `প্যাকেজ ${(p as { packages?: { name?: string } | null }).packages?.name ?? ""} — ${p.status}`,
-      time: new Date(p.created_at!).toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" }),
-      accent: p.status === "active" ? "emerald" : p.status === "pending" ? "amber" : "rose",
-    });
-  });
-  (wds.data ?? []).forEach((w) => {
-    items.push({
-      id: "w-" + w.id,
-      label: `উইথড্র ৳${w.amount} — ${w.status}`,
-      time: new Date(w.created_at!).toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" }),
-      accent: w.status === "approved" ? "emerald" : w.status === "pending" ? "amber" : "rose",
-    });
-  });
-  return items.slice(0, 10);
+  const t = (d: string | null) => new Date(d ?? Date.now()).toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" });
+
+  const [pkgs, wds, signups, supports, tasks, dapps] = await Promise.all([
+    supabase.from("user_packages").select("id, status, created_at, packages(name)").order("created_at", { ascending: false }).limit(6),
+    supabase.from("withdrawals").select("id, amount, status, created_at").order("created_at", { ascending: false }).limit(6),
+    supabase.from("profiles").select("id, full_name, user_code, created_at").order("created_at", { ascending: false }).limit(6),
+    supabase.from("support_messages").select("id, user_id, sender, body, created_at").eq("sender", "user").order("created_at", { ascending: false }).limit(6),
+    supabase.from("task_submissions").select("id, status, created_at").order("created_at", { ascending: false }).limit(4),
+    supabase.from("distributor_applications").select("id, full_name, status, created_at").order("created_at", { ascending: false }).limit(4),
+  ]);
+
+  (pkgs.data ?? []).forEach((p) => items.push({
+    id: "p-" + p.id, kind: "প্যাকেজ",
+    label: `প্যাকেজ ${(p as { packages?: { name?: string } | null }).packages?.name ?? ""} — ${p.status}`,
+    time: t(p.created_at as string),
+    accent: p.status === "active" ? "emerald" : p.status === "pending" ? "amber" : "rose",
+  }));
+  (wds.data ?? []).forEach((w) => items.push({
+    id: "w-" + w.id, kind: "উইথড্র",
+    label: `উইথড্র ৳${w.amount} — ${w.status}`,
+    time: t(w.created_at as string),
+    accent: w.status === "approved" ? "emerald" : w.status === "pending" ? "amber" : "rose",
+  }));
+  (signups.data ?? []).forEach((u) => items.push({
+    id: "s-" + u.id, kind: "সাইনআপ",
+    label: `নতুন সাইনআপ — ${u.full_name ?? u.user_code ?? "নতুন ইউজার"}`,
+    time: t(u.created_at as string),
+    accent: "sky",
+  }));
+  (supports.data ?? []).forEach((m) => items.push({
+    id: "sm-" + m.id, kind: "সাপোর্ট",
+    label: `সাপোর্ট বার্তা — ${(m.body ?? "").slice(0, 50)}`,
+    time: t(m.created_at as string),
+    accent: "fuchsia",
+  }));
+  (tasks.data ?? []).forEach((ts) => items.push({
+    id: "ts-" + ts.id, kind: "টাস্ক",
+    label: `টাস্ক সাবমিশন — ${ts.status}`,
+    time: t(ts.created_at as string),
+    accent: ts.status === "approved" ? "emerald" : ts.status === "pending" ? "amber" : "rose",
+  }));
+  (dapps.data ?? []).forEach((d) => items.push({
+    id: "d-" + d.id, kind: "ডিস্ট্রিবিউটর আবেদন",
+    label: `ডিস্ট্রিবিউটর আবেদন — ${d.full_name ?? ""} (${d.status})`,
+    time: t(d.created_at as string),
+    accent: d.status === "approved" ? "emerald" : d.status === "pending" ? "amber" : "rose",
+  }));
+
+  // Sort newest first by parsing raw times we lost — fall back to array order.
+  return items.slice(0, 20);
 }
