@@ -191,29 +191,6 @@ async function callGatewayLovable(system: string, user: string, key: string): Pr
   return json.choices?.[0]?.message?.content?.trim() ?? "";
 }
 
-async function callGatewayGemini(system: string, user: string, key: string): Promise<string> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: system }] },
-      contents: [{ role: "user", parts: [{ text: user }] }],
-      generationConfig: { temperature: 0.5, maxOutputTokens: 800 },
-    }),
-  });
-  if (!res.ok) {
-    const t = await res.text().catch(() => "");
-    throw new Error(`Gemini ${res.status}: ${t.slice(0, 160)}`);
-  }
-  const json = (await res.json()) as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-  };
-  return (
-    json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("").trim() ?? ""
-  );
-}
-
 export const improveNoticeText = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { raw: string; priority?: NoticePriority }) => ({
@@ -224,46 +201,26 @@ export const improveNoticeText = createServerFn({ method: "POST" })
     await assertAdmin(context.supabase, context.userId);
     if (!data.raw) throw new Error("কোনো টেক্সট পাওয়া যায়নি");
 
-    const geminiKey = process.env.GEMINI_API_KEY;
     const lovableKey = process.env.LOVABLE_API_KEY;
-    if (!geminiKey && !lovableKey) {
-      throw new Error("AI service configure করা নেই — admin কে জানান");
-    }
+    if (!lovableKey) throw new Error("LOVABLE_API_KEY configure করা নেই");
 
-    const system = `You rewrite raw Bengali speech-to-text notes into short, professional Bangla notices for a Bangladesh online-earning platform ("Smart Investor").
+    const { getBusinessContext } = await import("./ai-context.server");
+    const ctx = await getBusinessContext();
+
+    const system = `You rewrite raw Bengali speech-to-text notes into short, professional Bangla notices for the Smart Investor platform.
 
 STRICT OUTPUT:
 Line 1: শিরোনাম: <short 4-8 word title in Bengali>
 Line 2 onwards: notice body — 2-6 short, clear Bangla sentences or bullets (use "•").
 No preface, no code fences, no markdown headings, no English unless a brand name.
-Tone: ${data.priority === "critical" ? "জরুরি ও সরাসরি" : data.priority === "warning" ? "সতর্কতামূলক ও নম্র" : "বন্ধুত্বপূর্ণ ও তথ্যবহুল"}.`;
+Tone: ${data.priority === "critical" ? "জরুরি ও সরাসরি" : data.priority === "warning" ? "সতর্কতামূলক ও নম্র" : "বন্ধুত্বপূর্ণ ও তথ্যবহুল"}.
+
+${ctx}`;
 
     const user = `Raw voice/text note from admin:\n"""${data.raw}"""\n\nএটিকে উপরের format-এ পরিষ্কার Bangla notice হিসেবে rewrite করুন। বানান, বিরাম, বাক্যগঠন সব ঠিক করুন। অতিরিক্ত তথ্য বানাবেন না।`;
 
-    const errors: string[] = [];
-    let out = "";
-
-    // Prefer Lovable AI Gateway (per stack guidance); fallback to Gemini direct
-    if (lovableKey) {
-      try {
-        out = await callGatewayLovable(system, user, lovableKey);
-      } catch (err) {
-        errors.push((err as Error).message);
-        console.warn("Notice AI Lovable fallback:", (err as Error).message);
-      }
-    }
-    if (!out && geminiKey) {
-      try {
-        out = await callGatewayGemini(system, user, geminiKey);
-      } catch (err) {
-        errors.push((err as Error).message);
-        console.warn("Notice AI Gemini fallback:", (err as Error).message);
-      }
-    }
-
-    if (!out) {
-      throw new Error(errors[0] || "AI থেকে উত্তর পাওয়া যায়নি");
-    }
+    const out = await callGatewayLovable(system, user, lovableKey);
+    if (!out) throw new Error("AI থেকে উত্তর পাওয়া যায়নি");
 
     // Parse "শিরোনাম: ..." from line 1
     const lines = out.split("\n").map((l) => l.trim()).filter(Boolean);
