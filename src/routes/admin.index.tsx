@@ -188,7 +188,7 @@ function ComboTooltip({ active, payload, label }: { active?: boolean; payload?: 
 
 function DashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
-  const [activity, setActivity] = useState<Array<{ id: string; label: string; time: string; accent: AccentKey }>>([]);
+  const [activity, setActivity] = useState<Array<{ id: string; label: string; time: string; accent: AccentKey; kind?: string }>>([]);
 
   const refresh = () => {
     loadStats().then(setStats).catch(() => {});
