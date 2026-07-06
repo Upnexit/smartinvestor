@@ -865,6 +865,8 @@ export type Database = {
           account_number: string
           amount: number
           created_at: string
+          fee: number
+          gross_amount: number | null
           id: string
           method: Database["public"]["Enums"]["payment_method"]
           note: string | null
@@ -880,6 +882,8 @@ export type Database = {
           account_number: string
           amount: number
           created_at?: string
+          fee?: number
+          gross_amount?: number | null
           id?: string
           method: Database["public"]["Enums"]["payment_method"]
           note?: string | null
@@ -895,6 +899,8 @@ export type Database = {
           account_number?: string
           amount?: number
           created_at?: string
+          fee?: number
+          gross_amount?: number | null
           id?: string
           method?: Database["public"]["Enums"]["payment_method"]
           note?: string | null
@@ -980,6 +986,8 @@ export type Database = {
           account_number: string
           amount: number
           created_at: string
+          fee: number
+          gross_amount: number | null
           id: string
           method: Database["public"]["Enums"]["payment_method"]
           note: string | null

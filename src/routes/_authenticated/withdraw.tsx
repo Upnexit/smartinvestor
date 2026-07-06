@@ -88,14 +88,17 @@ function WithdrawPage() {
     setSubmitting(true);
     const tId = toast.loading("রিকোয়েস্ট পাঠানো হচ্ছে…");
     try {
+      // amount = user যা হাতে পাবে (net, fee কাটার পর) — admin panel-এ এটাই দেখাবে
       const { error } = await supabase.from("withdrawals").insert({
         user_id: userId,
-        amount: numAmount,
+        amount: willReceive,
+        gross_amount: numAmount,
+        fee,
         method,
         account_number: phoneNorm,
       });
       if (error) throw error;
-      toast.success("উইথড্র রিকোয়েস্ট গৃহীত — অ্যাডমিন রিভিউ করবেন", { id: tId });
+      toast.success(`উইথড্র রিকোয়েস্ট গৃহীত — আপনি পাবেন ৳${willReceive.toFixed(2)}`, { id: tId });
       setAmount("");
       const { data: w } = await supabase.from("withdrawals").select("*").eq("user_id", userId)
         .order("created_at", { ascending: false }).limit(20);
