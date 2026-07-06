@@ -2,49 +2,21 @@ import { createServerFn } from "@tanstack/react-start";
 
 type Msg = { role: "user" | "assistant" | "system"; content: string };
 
-const SYSTEM = `You are "Smart AI" — a friendly Bengali-first assistant for the Smart Investor platform (Bangladesh online earning by liking/commenting tasks).
+const SYSTEM_BASE = `You are "Smart AI" — a friendly Bengali-first assistant for the Smart Investor platform.
 - Reply in clear, simple Bengali (বাংলা) unless the user writes in English.
 - Be concise, warm, and helpful.
-- Help users understand: packages, earning, withdraw (bKash/Nagad/Rocket), referrals (5%), tasks, signup bonus (৳300 locked).
-- Never reveal admin info, secrets, or other users' data.`;
+- Answer strictly from the BUSINESS CONTEXT below. Do not invent packages, prices, or rules.
+- Never reveal admin info, secrets, API keys, or other users' data.`;
 
-async function callGemini(messages: Msg[], apiKey: string): Promise<string> {
-  // Convert OpenAI-style messages → Gemini contents
-  const contents = messages
-    .filter((m) => m.role !== "system")
-    .map((m) => ({
-      role: m.role === "assistant" ? "model" : "user",
-      parts: [{ text: m.content }],
-    }));
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: SYSTEM }] },
-      contents,
-      generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
-    }),
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Gemini ${res.status}: ${text.slice(0, 200)}`);
-  }
-  const json = (await res.json()) as {
-    candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-  };
-  const reply = json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("").trim();
-  return reply || "দুঃখিত, উত্তর তৈরি করা যায়নি।";
-}
-
-async function callLovable(messages: Msg[], key: string): Promise<string> {
+async function callLovable(system: string, messages: Msg[], key: string, opts?: { temperature?: number; maxTokens?: number }): Promise<string> {
   const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "Lovable-API-Key": key, "X-Lovable-AIG-SDK": "smart-investor-direct" },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
     body: JSON.stringify({
       model: "google/gemini-3-flash-preview",
-      messages: [{ role: "system", content: SYSTEM }, ...messages],
+      messages: [{ role: "system", content: system }, ...messages],
+      ...(opts?.temperature != null ? { temperature: opts.temperature } : {}),
+      ...(opts?.maxTokens != null ? { max_tokens: opts.maxTokens } : {}),
     }),
   });
   if (!res.ok) {
@@ -54,7 +26,7 @@ async function callLovable(messages: Msg[], key: string): Promise<string> {
     throw new Error(`AI error ${res.status}: ${text.slice(0, 200)}`);
   }
   const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-  return json.choices?.[0]?.message?.content?.trim() || "দুঃখিত, উত্তর তৈরি করা যায়নি।";
+  return json.choices?.[0]?.message?.content?.trim() || "";
 }
 
 export const askSmartAI = createServerFn({ method: "POST" })
@@ -67,72 +39,25 @@ export const askSmartAI = createServerFn({ method: "POST" })
     return { messages };
   })
   .handler(async ({ data }) => {
-    const geminiKey = process.env.GEMINI_API_KEY;
     const lovableKey = process.env.LOVABLE_API_KEY;
-
-    const errors: string[] = [];
-
-    if (geminiKey) {
-      try {
-        const reply = await callGemini(data.messages, geminiKey);
-        return { reply };
-      } catch (err) {
-        errors.push(`Gemini: ${(err as Error).message}`);
-        console.warn("Smart AI Gemini fallback:", (err as Error).message);
-      }
+    if (!lovableKey) {
+      return { reply: buildLocalSmartReply(data.messages, true) };
     }
-    if (lovableKey) {
-      try {
-        const reply = await callLovable(data.messages, lovableKey);
-        return { reply };
-      } catch (err) {
-        errors.push(`Lovable: ${(err as Error).message}`);
-        console.warn("Smart AI Gateway fallback:", (err as Error).message);
-      }
+    try {
+      const { getBusinessContext } = await import("./ai-context.server");
+      const ctx = await getBusinessContext();
+      const reply = await callLovable(`${SYSTEM_BASE}\n\n${ctx}`, data.messages, lovableKey);
+      return { reply: reply || buildLocalSmartReply(data.messages, false) };
+    } catch (err) {
+      console.warn("Smart AI Lovable error:", (err as Error).message);
+      return { reply: buildLocalSmartReply(data.messages, true) };
     }
-    return { reply: buildLocalSmartReply(data.messages, errors.length > 0) };
   });
 
 type Method = "bkash" | "nagad" | "rocket";
 type AcctType = "personal" | "merchant" | "payment";
 
 const METHOD_BN: Record<Method, string> = { bkash: "বিকাশ", nagad: "নগদ", rocket: "রকেট" };
-
-async function callLovableRaw(system: string, user: string, key: string): Promise<string> {
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
-    body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
-      messages: [{ role: "system", content: system }, { role: "user", content: user }],
-    }),
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    if (res.status === 429) throw new Error("AI ব্যস্ত — কিছুক্ষণ পরে চেষ্টা করুন");
-    if (res.status === 402) throw new Error("AI ক্রেডিট শেষ");
-    throw new Error(`AI ${res.status}: ${text.slice(0, 160)}`);
-  }
-  const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-  return json.choices?.[0]?.message?.content?.trim() || "";
-}
-
-async function callGeminiRaw(system: string, user: string, key: string): Promise<string> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: system }] },
-      contents: [{ role: "user", parts: [{ text: user }] }],
-      generationConfig: { temperature: 0.6, maxOutputTokens: 512 },
-    }),
-  });
-  if (!res.ok) throw new Error(`Gemini ${res.status}`);
-  const json = (await res.json()) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
-  return json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("").trim() || "";
-}
-
 const TYPE_LABEL: Record<AcctType, string> = { personal: "Personal", merchant: "Merchant", payment: "Payment" };
 const TYPE_BN: Record<AcctType, string> = { personal: "পার্সোনাল", merchant: "মার্চেন্ট", payment: "পেমেন্ট" };
 const APP_ACTION: Record<AcctType, string> = { personal: "Send Money", merchant: "Merchant / Payment", payment: "Payment" };
@@ -176,25 +101,16 @@ ${amount_note ? `Extra note: ${amount_note}` : ""}
 
 Write clear Bengali instructions telling the user how to send money to this ${mBn} ${TYPE_LABEL[type]} account, what to do in the app (use "${APP_ACTION[type]}" option), and to submit the TrxID and sender number correctly. Warn about wrong amount = rejection.`;
 
-    const geminiKey = process.env.GEMINI_API_KEY;
     const lovableKey = process.env.LOVABLE_API_KEY;
-
-    if (geminiKey) {
-      try {
-        const out = await callGeminiRaw(system, user, geminiKey);
-        if (out) return { instruction: out, source: "gemini" as const };
-      } catch (e) { console.warn("gen instr gemini:", (e as Error).message); }
-    }
     if (lovableKey) {
       try {
-        const out = await callLovableRaw(system, user, lovableKey);
+        const out = await callLovable(system, [{ role: "user", content: user }], lovableKey, { temperature: 0.6, maxTokens: 512 });
         if (out) return { instruction: out, source: "lovable" as const };
       } catch (e) { console.warn("gen instr lovable:", (e as Error).message); }
     }
     return { instruction: localInstruction(method, type, number, agent_number), source: "local" as const };
   });
 
-// ============ Generate detailed task instruction for admin ============
 export const generateTaskDescription = createServerFn({ method: "POST" })
   .validator((d: { title: string; category?: string; action_type?: string; hint?: string; url?: string }) => ({
     title: String(d?.title ?? "").slice(0, 200),
@@ -213,7 +129,7 @@ STRICT RULES:
 - If the title says "comment" → instruct only to write a comment.
 - If the title says "share" → instruct only to share.
 - If the title says "subscribe" → instruct only to subscribe.
-- DO NOT invent extra steps (no "also comment", no "also share") that are not implied by the title or hint.
+- DO NOT invent extra steps that are not implied by the title or hint.
 - Respond ONLY with the instruction body: 4-7 short bullet lines starting with "•".
 - Simple বাংলা, friendly tone. No preface, no headings, no markdown, no code fences.
 - End with one short warning line that fake/incomplete work will be rejected.`;
@@ -225,21 +141,13 @@ Admin's extra hint: ${hint || "(none)"}
 
 Based STRICTLY on the title, write concise Bengali step-by-step instructions. Only cover the action(s) the title explicitly asks for — nothing more.`;
 
-    const geminiKey = process.env.GEMINI_API_KEY;
     const lovableKey = process.env.LOVABLE_API_KEY;
     if (lovableKey) {
       try {
-        const out = await callLovableRaw(system, user, lovableKey);
+        const out = await callLovable(system, [{ role: "user", content: user }], lovableKey, { temperature: 0.6, maxTokens: 512 });
         if (out) return { description: out, source: "lovable" as const };
       } catch (e) { console.warn("gen task lovable:", (e as Error).message); }
     }
-    if (geminiKey) {
-      try {
-        const out = await callGeminiRaw(system, user, geminiKey);
-        if (out) return { description: out, source: "gemini" as const };
-      } catch (e) { console.warn("gen task gemini:", (e as Error).message); }
-    }
-    // Local fallback
     const lines = [
       `• উপরের লিংকে ক্লিক করে ${category || "প্ল্যাটফর্ম"}-এ প্রবেশ করুন।`,
       `• প্রয়োজন হলে নিজের অ্যাকাউন্টে লগইন করুন।`,
@@ -260,19 +168,19 @@ function buildLocalSmartReply(messages: Msg[], degraded: boolean): string {
   const note = degraded ? "\n\n(লাইভ AI সাময়িকভাবে ব্যস্ত, তাই Smart Investor quick assistant থেকে উত্তর দিচ্ছি।)" : "";
 
   if (/withdraw|উইথ|তুল|bkash|বিকাশ|nagad|নগদ|rocket|রকেট/.test(last)) {
-    return `উইথড্র করতে User Panel → Withdraw এ যান, bKash/Nagad/Rocket নির্বাচন করুন, 01 দিয়ে শুরু ১১ সংখ্যার নম্বর দিন এবং সর্বনিম্ন ৳২০০ রিকোয়েস্ট করুন। সাধারণত অ্যাডমিন approval এর পর ব্যালেন্স পাঠানো হয়।${note}`;
+    return `উইথড্র করতে User Panel → Withdraw এ যান, bKash/Nagad/Rocket নির্বাচন করুন, 01 দিয়ে শুরু ১১ সংখ্যার নম্বর দিন এবং সর্বনিম্ন ৳২০০ রিকোয়েস্ট করুন।${note}`;
   }
   if (/package|প্যাকেজ|roi|income|আয়|ইনকাম|লাভ/.test(last)) {
-    return `প্যাকেজ কিনলে ৪৫ দিনের জন্য দৈনিক task ও earning limit সক্রিয় হয়। প্যাকেজ কার্ড থেকে বিস্তারিত দেখুন, তারপর Checkout এ manual payment করে Transaction ID জমা দিন—অ্যাডমিন approve করলে subscription active হবে।${note}`;
+    return `প্যাকেজ কিনলে ৪৫ দিনের জন্য দৈনিক task ও earning limit সক্রিয় হয়। Checkout এ manual payment করে TrxID জমা দিন — অ্যাডমিন approve করলে subscription active হবে।${note}`;
   }
   if (/task|টাস্ক|like|comment|লাইক|কমেন্ট/.test(last)) {
-    return `Tasks পেজে প্রতিদিনের লাইক/কমেন্ট কাজগুলো দেখা যাবে। নির্দেশনা অনুযায়ী কাজ শেষ করে proof/submission দিন; approval হলে reward আপনার balance এ যোগ হবে।${note}`;
+    return `Tasks পেজে দৈনিক লাইক/কমেন্ট কাজগুলো দেখা যাবে। নির্দেশনা মতে proof দিন; approval হলে reward balance এ যোগ হবে।${note}`;
   }
   if (/ref|রেফার|commission|কমিশন/.test(last)) {
-    return `আপনার referral link/share code দিয়ে নতুন user join করে প্যাকেজ active করলে আপনি package price-এর ৫% referral commission পাবেন।${note}`;
+    return `আপনার referral link দিয়ে নতুন user প্যাকেজ active করলে আপনি package price-এর ৫% commission পাবেন।${note}`;
   }
   if (/bonus|বোনাস|৩০০|300/.test(last)) {
-    return `নতুন account এ ৳৩০০ signup bonus locked balance হিসেবে আলাদা সংরক্ষিত থাকে। এটি withdraw করলে কাটা হয় না; withdraw শুধুমাত্র available balance থেকে হয়।${note}`;
+    return `নতুন account এ ৳৩০০ signup bonus locked balance হিসেবে থাকে — এটি withdraw এর সময় কাটা হয় না।${note}`;
   }
-  return `আমি Smart AI সহকারী। প্যাকেজ, টাস্ক, উইথড্র, রেফারেল বা বোনাস সম্পর্কে প্রশ্ন করুন—আমি বাংলায় সাহায্য করবো।${note}`;
+  return `আমি Smart AI সহকারী। প্যাকেজ, টাস্ক, উইথড্র, রেফারেল বা বোনাস সম্পর্কে প্রশ্ন করুন।${note}`;
 }

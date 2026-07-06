@@ -39,26 +39,6 @@ async function lovableChat(system: string, messages: Array<{ role: string; conte
   return j.choices?.[0]?.message?.content?.trim() || "";
 }
 
-async function geminiChat(system: string, messages: Array<{ role: string; content: string }>, key: string): Promise<string> {
-  const contents = messages.map((m) => ({
-    role: m.role === "assistant" ? "model" : "user",
-    parts: [{ text: m.content }],
-  }));
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: system }] },
-      contents,
-      generationConfig: { temperature: 0.6, maxOutputTokens: 512 },
-    }),
-  });
-  if (!res.ok) throw new Error(`Gemini ${res.status}`);
-  const j = (await res.json()) as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
-  return j.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("").trim() || "";
-}
-
 /* ------------ Suggest admin reply ------------ */
 export const suggestSupportReply = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -79,21 +59,12 @@ export const suggestSupportReply = createServerFn({ method: "POST" })
       chatMsgs.push({ role: "user", content: `[Admin note for you, do not repeat verbatim]: ${data.hint}` });
     }
     const lovableKey = process.env.LOVABLE_API_KEY;
-    const geminiKey = process.env.GEMINI_API_KEY;
-    const errors: string[] = [];
-    if (lovableKey) {
-      try {
-        const reply = await lovableChat(SYSTEM_REPLY, chatMsgs, lovableKey);
-        if (reply) return { reply, source: "lovable" as const };
-      } catch (e) { errors.push((e as Error).message); }
-    }
-    if (geminiKey) {
-      try {
-        const reply = await geminiChat(SYSTEM_REPLY, chatMsgs, geminiKey);
-        if (reply) return { reply, source: "gemini" as const };
-      } catch (e) { errors.push((e as Error).message); }
-    }
-    throw new Error(errors[0] || "AI provider unavailable");
+    if (!lovableKey) throw new Error("LOVABLE_API_KEY not configured");
+    const { getBusinessContext } = await import("./ai-context.server");
+    const ctx = await getBusinessContext();
+    const reply = await lovableChat(`${SYSTEM_REPLY}\n\n${ctx}`, chatMsgs, lovableKey);
+    if (!reply) throw new Error("AI থেকে খালি উত্তর এসেছে");
+    return { reply, source: "lovable" as const };
   });
 
 /* ------------ Voice → Text (Bengali/English) ------------ */
