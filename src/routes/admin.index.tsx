@@ -139,12 +139,16 @@ function VibrantStat({
 }
 
 const QUICK_ACTIONS = [
-  { to: "/admin/packages",    label: "নতুন প্যাকেজ", accent: "fuchsia" as AccentKey, Icon: PackageIcon },
-  { to: "/admin/approvals",   label: "অ্যাপ্রুভাল",   accent: "orange"  as AccentKey, Icon: ShieldCheck },
-  { to: "/admin/withdrawals", label: "উইথড্র",       accent: "emerald" as AccentKey, Icon: ArrowDownToLine },
-  { to: "/admin/tasks",       label: "টাস্ক",         accent: "rose"    as AccentKey, Icon: ListChecks },
-  { to: "/admin/reports",     label: "রিপোর্ট",       accent: "indigo"  as AccentKey, Icon: BarChart3 },
-  { to: "/admin/settings",    label: "সেটিংস",       accent: "teal"    as AccentKey, Icon: Settings },
+  { to: "/admin/packages",     label: "নতুন প্যাকেজ",  accent: "fuchsia" as AccentKey, Icon: PackageIcon },
+  { to: "/admin/approvals",    label: "অ্যাপ্রুভাল",     accent: "orange"  as AccentKey, Icon: ShieldCheck },
+  { to: "/admin/withdrawals",  label: "উইথড্র",         accent: "emerald" as AccentKey, Icon: ArrowDownToLine },
+  { to: "/admin/tasks",        label: "টাস্ক",           accent: "rose"    as AccentKey, Icon: ListChecks },
+  { to: "/admin/reports",      label: "রিপোর্ট",         accent: "indigo"  as AccentKey, Icon: BarChart3 },
+  { to: "/admin/settings",     label: "সেটিংস",         accent: "teal"    as AccentKey, Icon: Settings },
+  { to: "/admin/users",        label: "ইউজার",          accent: "sky"     as AccentKey, Icon: Users },
+  { to: "/admin/distributors", label: "ডিস্ট্রিবিউটর",   accent: "amber"   as AccentKey, Icon: UsersRound },
+  { to: "/admin/notices",      label: "নোটিশ",          accent: "lime"    as AccentKey, Icon: Megaphone },
+  { to: "/admin/support",      label: "সাপোর্ট",         accent: "cyan"    as AccentKey, Icon: LifeBuoy },
 ];
 
 const SERIES = [
