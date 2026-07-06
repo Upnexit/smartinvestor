@@ -3,9 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Users, ShieldCheck, Wallet, UserPlus, Package as PackageIcon, BarChart3,
   Settings, ArrowDownToLine, ListChecks, Sparkles, TrendingUp, Zap,
+  Megaphone, LifeBuoy, UsersRound,
 } from "lucide-react";
 import {
   ComposedChart, Area, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
+  PieChart, Pie, Cell,
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -137,12 +139,16 @@ function VibrantStat({
 }
 
 const QUICK_ACTIONS = [
-  { to: "/admin/packages",    label: "নতুন প্যাকেজ", accent: "fuchsia" as AccentKey, Icon: PackageIcon },
-  { to: "/admin/approvals",   label: "অ্যাপ্রুভাল",   accent: "orange"  as AccentKey, Icon: ShieldCheck },
-  { to: "/admin/withdrawals", label: "উইথড্র",       accent: "emerald" as AccentKey, Icon: ArrowDownToLine },
-  { to: "/admin/tasks",       label: "টাস্ক",         accent: "rose"    as AccentKey, Icon: ListChecks },
-  { to: "/admin/reports",     label: "রিপোর্ট",       accent: "indigo"  as AccentKey, Icon: BarChart3 },
-  { to: "/admin/settings",    label: "সেটিংস",       accent: "teal"    as AccentKey, Icon: Settings },
+  { to: "/admin/packages",     label: "নতুন প্যাকেজ",  accent: "fuchsia" as AccentKey, Icon: PackageIcon },
+  { to: "/admin/approvals",    label: "অ্যাপ্রুভাল",     accent: "orange"  as AccentKey, Icon: ShieldCheck },
+  { to: "/admin/withdrawals",  label: "উইথড্র",         accent: "emerald" as AccentKey, Icon: ArrowDownToLine },
+  { to: "/admin/tasks",        label: "টাস্ক",           accent: "rose"    as AccentKey, Icon: ListChecks },
+  { to: "/admin/reports",      label: "রিপোর্ট",         accent: "indigo"  as AccentKey, Icon: BarChart3 },
+  { to: "/admin/settings",     label: "সেটিংস",         accent: "teal"    as AccentKey, Icon: Settings },
+  { to: "/admin/users",        label: "ইউজার",          accent: "sky"     as AccentKey, Icon: Users },
+  { to: "/admin/distributors", label: "ডিস্ট্রিবিউটর",   accent: "amber"   as AccentKey, Icon: UsersRound },
+  { to: "/admin/notices",      label: "নোটিশ",          accent: "lime"    as AccentKey, Icon: Megaphone },
+  { to: "/admin/support",      label: "সাপোর্ট",         accent: "cyan"    as AccentKey, Icon: LifeBuoy },
 ];
 
 const SERIES = [
@@ -305,26 +311,88 @@ function DashboardPage() {
         </AdminCard>
       </div>
 
-      {/* Live activity */}
-      <AdminCard accent="lime" className="p-4">
-        <AdminSectionTitle title="লাইভ অ্যাক্টিভিটি" hint="সাম্প্রতিক ইভেন্ট" accent="lime" />
-        {activity.length === 0 ? (
-          <p className="text-sm text-slate-500 py-3 text-center">এখনও কোনো অ্যাক্টিভিটি নেই</p>
-        ) : (
-          <ul className="space-y-2">
-            {activity.map((a) => (
-              <li key={a.id} className={cn("flex items-center justify-between gap-3 rounded-xl px-3 py-2 ring-1 ring-amber-100", ACCENTS[a.accent].soft)}>
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className={cn("h-2 w-2 rounded-full bg-gradient-to-br", ACCENTS[a.accent].chip)} />
-                  <p className="text-sm text-slate-800 truncate">{a.label}</p>
-                </div>
-                <span className="text-[11px] font-mono text-slate-500 shrink-0">{a.time}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </AdminCard>
+      {/* Live activity + Pie visualization (half & half) */}
+      <div className="grid gap-3 lg:grid-cols-2">
+        <AdminCard accent="lime" className="p-4">
+          <AdminSectionTitle title="লাইভ অ্যাক্টিভিটি" hint="সাম্প্রতিক ইভেন্ট" accent="lime" />
+          {activity.length === 0 ? (
+            <p className="text-sm text-slate-500 py-3 text-center">এখনও কোনো অ্যাক্টিভিটি নেই</p>
+          ) : (
+            <ul className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+              {activity.map((a) => (
+                <li key={a.id} className={cn("flex items-center justify-between gap-3 rounded-xl px-3 py-2 ring-1 ring-amber-100", ACCENTS[a.accent].soft)}>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={cn("h-2 w-2 rounded-full bg-gradient-to-br", ACCENTS[a.accent].chip)} />
+                    <p className="text-sm text-slate-800 truncate">{a.label}</p>
+                  </div>
+                  <span className="text-[11px] font-mono text-slate-500 shrink-0">{a.time}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </AdminCard>
+
+        <AdminCard accent="indigo" className="p-4">
+          <AdminSectionTitle title="অ্যাক্টিভিটি ভিজুয়ালাইজেশন" hint="ইউজার কী করছেন" accent="indigo" />
+          <ActivityPie activity={activity} />
+        </AdminCard>
+      </div>
     </>
+  );
+}
+
+const PIE_COLORS: Record<AccentKey, string> = {
+  amber: "#f59e0b", sky: "#0284c7", emerald: "#10b981", fuchsia: "#c026d3",
+  orange: "#f97316", pink: "#ec4899", rose: "#f43f5e", purple: "#8b5cf6",
+  indigo: "#6366f1", lime: "#84cc16", teal: "#14b8a6", cyan: "#06b6d4", slate: "#64748b",
+};
+
+function ActivityPie({ activity }: { activity: Array<{ id: string; label: string; time: string; accent: AccentKey }> }) {
+  const data = useMemo(() => {
+    const buckets = new Map<string, { name: string; value: number; accent: AccentKey }>();
+    activity.forEach((a) => {
+      const isPkg = a.id.startsWith("p-");
+      const kind = isPkg ? "প্যাকেজ" : "উইথড্র";
+      const status = a.accent === "emerald" ? "সফল" : a.accent === "amber" ? "পেন্ডিং" : "বাতিল";
+      const key = `${kind} — ${status}`;
+      const prev = buckets.get(key);
+      if (prev) prev.value += 1;
+      else buckets.set(key, { name: key, value: 1, accent: a.accent });
+    });
+    return Array.from(buckets.values());
+  }, [activity]);
+
+  const total = data.reduce((s, d) => s + d.value, 0);
+
+  if (!total) {
+    return <p className="text-sm text-slate-500 py-8 text-center">ভিজুয়ালাইজ করার জন্য ডাটা নেই</p>;
+  }
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 items-center">
+      <ResponsiveContainer width="100%" height={220}>
+        <PieChart>
+          <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={80} paddingAngle={3} stroke="#fff" strokeWidth={2}>
+            {data.map((d, i) => <Cell key={i} fill={PIE_COLORS[d.accent]} />)}
+          </Pie>
+          <Tooltip formatter={(v: number) => fmtBN(v)} />
+        </PieChart>
+      </ResponsiveContainer>
+      <ul className="space-y-1.5">
+        {data.map((d) => {
+          const pct = Math.round((d.value / total) * 100);
+          return (
+            <li key={d.name} className="flex items-center justify-between gap-2 text-xs">
+              <span className="flex items-center gap-1.5 text-slate-700 min-w-0">
+                <span className="inline-block h-2.5 w-2.5 rounded-full shrink-0" style={{ background: PIE_COLORS[d.accent] }} />
+                <span className="truncate">{d.name}</span>
+              </span>
+              <span className="font-bold text-slate-900 tabular-nums shrink-0">{fmtBN(d.value)} · {pct}%</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
