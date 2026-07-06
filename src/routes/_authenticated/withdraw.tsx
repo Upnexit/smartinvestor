@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -74,7 +74,7 @@ function WithdrawPage() {
     })();
   }, []);
 
-  const available = Math.max(0, balance - locked);
+  const available = Math.max(0, balance);
   const numAmount = Number(amount) || 0;
   const phoneNorm = accountNumber.replace(/\D/g, "");
   const phoneValid = /^01[3-9]\d{8}$/.test(phoneNorm);
@@ -125,7 +125,7 @@ function WithdrawPage() {
           <div>
             <p className="text-xs uppercase tracking-wider text-white/85">তোলার মতো ব্যালেন্স</p>
             <p className="bn-display mt-1 text-4xl">৳ {available.toFixed(2)}</p>
-            <p className="mt-1 text-xs text-white/85">মোট: ৳ {balance.toFixed(2)} · লকড: ৳ {locked.toFixed(2)}</p>
+            <p className="mt-1 text-xs text-white/85">লকড: ৳ {locked.toFixed(2)} · লকড ব্যালেন্স কাটা হবে না</p>
           </div>
           <Wallet className="h-10 w-10 opacity-80" />
         </div>
@@ -136,9 +136,8 @@ function WithdrawPage() {
           <AlertCircle className="h-5 w-5 shrink-0" />
           <div>
             <p className="font-bold">৳{locked.toFixed(2)} লকড আছে</p>
-            <p className="mt-0.5 text-xs">প্যাকেজ ক্রয় করে এই বোনাস আনলক করুন।</p>
+            <p className="mt-0.5 text-xs">এটি শুধু সংরক্ষিত/লকড হিসেবে দেখাবে; উইথড্র করলে এখান থেকে কোনো টাকা কমবে না।</p>
           </div>
-          <Link to="/packages" className="ml-auto rounded-xl bg-amber-600 px-3 py-1.5 text-xs font-bold text-white whitespace-nowrap">প্যাকেজ</Link>
         </div>
       )}
 

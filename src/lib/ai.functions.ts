@@ -272,7 +272,7 @@ function buildLocalSmartReply(messages: Msg[], degraded: boolean): string {
     return `আপনার referral link/share code দিয়ে নতুন user join করে প্যাকেজ active করলে আপনি package price-এর ৫% referral commission পাবেন।${note}`;
   }
   if (/bonus|বোনাস|৩০০|300/.test(last)) {
-    return `নতুন account এ ৳৩০০ signup bonus locked balance হিসেবে থাকে। প্যাকেজ active ও platform rules complete হলে এটি ব্যবহারযোগ্য balance এ unlock করার সুযোগ থাকে।${note}`;
+    return `নতুন account এ ৳৩০০ signup bonus locked balance হিসেবে আলাদা সংরক্ষিত থাকে। এটি withdraw করলে কাটা হয় না; withdraw শুধুমাত্র available balance থেকে হয়।${note}`;
   }
   return `আমি Smart AI সহকারী। প্যাকেজ, টাস্ক, উইথড্র, রেফারেল বা বোনাস সম্পর্কে প্রশ্ন করুন—আমি বাংলায় সাহায্য করবো।${note}`;
 }
