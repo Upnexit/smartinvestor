@@ -347,17 +347,21 @@ const PIE_COLORS: Record<AccentKey, string> = {
   indigo: "#6366f1", lime: "#84cc16", teal: "#14b8a6", cyan: "#06b6d4", slate: "#64748b",
 };
 
-function ActivityPie({ activity }: { activity: Array<{ id: string; label: string; time: string; accent: AccentKey }> }) {
+function ActivityPie({ activity }: { activity: Array<{ id: string; label: string; time: string; accent: AccentKey; kind?: string }> }) {
   const data = useMemo(() => {
     const buckets = new Map<string, { name: string; value: number; accent: AccentKey }>();
     activity.forEach((a) => {
-      const isPkg = a.id.startsWith("p-");
-      const kind = isPkg ? "প্যাকেজ" : "উইথড্র";
-      const status = a.accent === "emerald" ? "সফল" : a.accent === "amber" ? "পেন্ডিং" : "বাতিল";
-      const key = `${kind} — ${status}`;
-      const prev = buckets.get(key);
+      const kind = a.kind
+        ?? (a.id.startsWith("p-") ? "প্যাকেজ"
+          : a.id.startsWith("w-") ? "উইথড্র"
+          : a.id.startsWith("s-") ? "সাইনআপ"
+          : a.id.startsWith("sm-") ? "সাপোর্ট"
+          : a.id.startsWith("ts-") ? "টাস্ক"
+          : a.id.startsWith("d-") ? "ডিস্ট্রিবিউটর আবেদন"
+          : "অন্যান্য");
+      const prev = buckets.get(kind);
       if (prev) prev.value += 1;
-      else buckets.set(key, { name: key, value: 1, accent: a.accent });
+      else buckets.set(kind, { name: kind, value: 1, accent: a.accent });
     });
     return Array.from(buckets.values());
   }, [activity]);
