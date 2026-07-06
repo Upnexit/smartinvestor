@@ -696,6 +696,7 @@ function Footer() {
 /* ---------------- Page ---------------- */
 
 function SmartInvestorPage() {
+  useStandaloneAutoRedirect();
   return (
     <div className="bg-app min-h-screen">
       <Toaster position="top-center" richColors />
