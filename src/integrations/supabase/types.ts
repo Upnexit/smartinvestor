@@ -1221,6 +1221,7 @@ export type Database = {
           user_code: string
         }[]
       }
+      purge_old_activity_logs: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user" | "distributor"

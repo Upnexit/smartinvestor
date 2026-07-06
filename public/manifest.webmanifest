@@ -2,7 +2,7 @@
   "name": "Smart Investor",
   "short_name": "Smart Investor",
   "description": "ঘরে বসে লাইক ও কমেন্ট করে আয় করার বিশ্বস্ত বাংলাদেশী প্ল্যাটফর্ম।",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "id": "/",
   "scope": "/",
   "display": "standalone",

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import useEmblaCarousel from "embla-carousel-react";
@@ -11,10 +11,34 @@ import {
   Rocket, Check, Package, Truck, ShoppingCart, Download,
 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   component: SmartInvestorPage,
 });
+
+/** When the site is opened as an installed PWA (standalone display-mode) and
+ *  a Supabase session already exists, jump straight to the dashboard instead
+ *  of showing the marketing home. Keeps the browser experience unchanged. */
+function useStandaloneAutoRedirect() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isStandalone =
+      window.matchMedia?.("(display-mode: standalone)").matches ||
+      // iOS Safari
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+    if (!isStandalone) return;
+    let cancelled = false;
+    supabase.auth.getSession().then(({ data }) => {
+      if (cancelled) return;
+      if (data.session?.user) {
+        navigate({ to: "/dashboard", replace: true });
+      }
+    });
+    return () => { cancelled = true; };
+  }, [navigate]);
+}
 
 /* ---------------- Shared bits ---------------- */
 
@@ -672,6 +696,7 @@ function Footer() {
 /* ---------------- Page ---------------- */
 
 function SmartInvestorPage() {
+  useStandaloneAutoRedirect();
   return (
     <div className="bg-app min-h-screen">
       <Toaster position="top-center" richColors />
