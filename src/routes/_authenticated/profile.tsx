@@ -41,6 +41,7 @@ function ProfilePage() {
   const getTgFn = useServerFn(getTelegramStatus);
   const disconnectTgFn = useServerFn(disconnectTelegram);
   const testTgFn = useServerFn(sendTelegramTest);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [fullName, setFullName] = useState("");
   const [emailDraft, setEmailDraft] = useState("");
   const [emailEditing, setEmailEditing] = useState(false);
