@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   User as UserIcon, Mail, Phone, Smartphone, Save, Loader2, Lock,
@@ -61,8 +61,27 @@ function ProfilePage() {
   const [tgBusy, setTgBusy] = useState(false);
   const [tgLoadError, setTgLoadError] = useState<string | null>(null);
   const [tgConnecting, setTgConnecting] = useState(false);
+  const tgConnectingRef = useRef(false);
+  const tgPollRef = useRef<ReturnType<typeof window.setInterval> | null>(null);
+  const tgPollStopRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
 
-  async function loadTgFallback() {
+  const setTelegramWaiting = useCallback((waiting: boolean) => {
+    tgConnectingRef.current = waiting;
+    setTgConnecting(waiting);
+  }, []);
+
+  const stopTgPolling = useCallback(() => {
+    if (tgPollRef.current) {
+      window.clearInterval(tgPollRef.current);
+      tgPollRef.current = null;
+    }
+    if (tgPollStopRef.current) {
+      window.clearTimeout(tgPollStopRef.current);
+      tgPollStopRef.current = null;
+    }
+  }, []);
+
+  const loadTgFallback = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) throw new Error("লগইন সেশন পাওয়া যায়নি");
 
@@ -95,15 +114,20 @@ function ProfilePage() {
       deepLink: !chatId && code ? `https://t.me/${DEFAULT_TELEGRAM_BOT_USERNAME}?start=${code}` : null,
       configurationError: null,
     });
-    if (chatId) setTgConnecting(false);
-  }
+    if (chatId) setTelegramWaiting(false);
+  }, [setTelegramWaiting]);
 
-  async function loadTg() {
+  const loadTg = useCallback(async (ensureWebhook = false) => {
     setTgLoadError(null);
     try {
-      const r = await getTgFn();
+      const r = await getTgFn({ data: { ensureWebhook } });
+      const wasWaitingForTelegram = tgConnectingRef.current;
       setTg(r);
-      if (r.connected) setTgConnecting(false);
+      if (r.connected) {
+        setTelegramWaiting(false);
+        stopTgPolling();
+        if (wasWaitingForTelegram) toast.success("Telegram সফলভাবে সংযুক্ত হয়েছে");
+      }
     } catch (e) {
       try {
         await loadTgFallback();
@@ -111,7 +135,18 @@ function ProfilePage() {
         setTgLoadError(e instanceof Error ? e.message : "Telegram link তৈরি করা যাচ্ছে না");
       }
     }
-  }
+  }, [getTgFn, loadTgFallback, setTelegramWaiting, stopTgPolling]);
+
+  const startTgPolling = useCallback(() => {
+    stopTgPolling();
+    setTelegramWaiting(true);
+    window.setTimeout(() => void loadTg(false), 300);
+    tgPollRef.current = window.setInterval(() => void loadTg(false), 900);
+    tgPollStopRef.current = window.setTimeout(() => {
+      stopTgPolling();
+      if (tgConnectingRef.current) setTelegramWaiting(false);
+    }, 30000);
+  }, [loadTg, setTelegramWaiting, stopTgPolling]);
 
   useEffect(() => {
     (async () => {
@@ -126,7 +161,7 @@ function ProfilePage() {
         setPhone(p.phone ?? "");
         setPaymentMethod(p.payment_method);
         setPaymentNumber(p.payment_number ?? "");
-        await loadTg();
+        await loadTg(true);
       }
       const { data: up } = await supabase
         .from("user_packages")
@@ -165,22 +200,25 @@ function ProfilePage() {
             configurationError: current?.configurationError ?? null,
           }));
           if (row.telegram_chat_id) {
-            setTgConnecting(false);
+            setTelegramWaiting(false);
+            stopTgPolling();
             if (wasWaitingForTelegram) toast.success("Telegram সফলভাবে সংযুক্ত হয়েছে");
           }
         },
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [profile?.id, tgConnecting]);
+  }, [profile?.id, setTelegramWaiting, stopTgPolling]);
 
-  // Poll Telegram status quickly while waiting for the user to press Start in Telegram.
   useEffect(() => {
-    if (!tg || tg.connected || !tgConnecting) return;
-    const iv = setInterval(loadTg, 2000);
-    return () => clearInterval(iv);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tg?.connected, tgConnecting]);
+    return () => stopTgPolling();
+  }, [stopTgPolling]);
+
+  useEffect(() => {
+    if (!tg?.connected) return;
+    stopTgPolling();
+    setTelegramWaiting(false);
+  }, [tg?.connected, setTelegramWaiting, stopTgPolling]);
 
 
 
@@ -234,7 +272,7 @@ function ProfilePage() {
     try {
       await disconnectTgFn();
       toast.success("Telegram বিচ্ছিন্ন হয়েছে", { id: tId });
-      await loadTg();
+      await loadTg(true);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "ব্যর্থ", { id: tId });
     } finally { setTgBusy(false); }
@@ -489,9 +527,8 @@ function ProfilePage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => {
-                  setTgConnecting(true);
+                  startTgPolling();
                   toast.message("Telegram-এ Start চাপুন", { description: "Start চাপলেই এই পেজে auto সংযুক্ত দেখাবে।" });
-                  setTimeout(loadTg, 1500);
                 }}
                 className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-500 py-3 text-base font-bold text-white shadow-lg active:scale-[.98] transition"
               >
@@ -501,7 +538,7 @@ function ProfilePage() {
             ) : (
               <button
                 type="button"
-                onClick={loadTg}
+                onClick={() => void loadTg(true)}
                 className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-200 py-3 text-base font-bold text-slate-700"
               >
                 <Loader2 className={cn("h-5 w-5", !tgLoadError && "animate-spin")} />
