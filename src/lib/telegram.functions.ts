@@ -118,15 +118,37 @@ async function completeConnectFromRecentUpdates(code: string): Promise<void> {
   if (!token || !code) return;
 
   try {
-    const query = new URLSearchParams({
-      timeout: "0",
-      limit: "20",
-      allowed_updates: JSON.stringify(["message"]),
-    });
-    if (_lastUpdateOffset > 0) query.set("offset", String(_lastUpdateOffset));
+    const readUpdates = async () => {
+      const query = new URLSearchParams({
+        timeout: "0",
+        limit: "20",
+        allowed_updates: JSON.stringify(["message"]),
+      });
+      if (_lastUpdateOffset > 0) query.set("offset", String(_lastUpdateOffset));
+      const response = await fetchTelegram(token, `getUpdates?${query.toString()}`);
+      const json = (await response.json().catch(() => ({}))) as {
+        ok?: boolean;
+        result?: Array<{
+          update_id: number;
+          message?: { chat?: { id?: number }; from?: { username?: string }; text?: string };
+          edited_message?: { chat?: { id?: number }; from?: { username?: string }; text?: string };
+        }>;
+        description?: string;
+      };
+      return { response, json };
+    };
 
-    const r = await fetchTelegram(token, `getUpdates?${query.toString()}`);
-    const j = (await r.json().catch(() => ({}))) as {
+    let { response: r, json: j } = await readUpdates();
+    if (j.description?.includes("webhook is active")) {
+      await fetchTelegram(token, "deleteWebhook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ drop_pending_updates: false }),
+      }).catch(() => undefined);
+      ({ response: r, json: j } = await readUpdates());
+    }
+
+    const updates = j as {
       ok?: boolean;
       result?: Array<{
         update_id: number;
@@ -135,9 +157,9 @@ async function completeConnectFromRecentUpdates(code: string): Promise<void> {
       }>;
       description?: string;
     };
-    if (!r.ok || j.ok === false || !Array.isArray(j.result)) return;
+    if (!r.ok || updates.ok === false || !Array.isArray(updates.result)) return;
 
-    for (const update of j.result) {
+    for (const update of updates.result) {
       _lastUpdateOffset = Math.max(_lastUpdateOffset, update.update_id + 1);
       const msg = update.message ?? update.edited_message;
       const chatId = msg?.chat?.id;
