@@ -92,7 +92,17 @@ function ProfilePage() {
         setActivePkg({ name: pkgName ?? "Active Package", expires_at: (up as { expires_at: string | null }).expires_at });
       }
     })();
+    loadTg();
   }, []);
+
+  // Poll Telegram status every 4s while not connected (after user clicks connect)
+  useEffect(() => {
+    if (!tg || tg.connected) return;
+    const iv = setInterval(loadTg, 4000);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tg?.connected]);
+
 
 
   const phoneNorm = phone.replace(/\D/g, "");
