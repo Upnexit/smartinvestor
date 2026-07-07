@@ -171,6 +171,7 @@ async function completeConnectFromRecentUpdates(code: string): Promise<void> {
 
       const { completeTelegramConnectFromCode } = await import("./telegram.server");
       await completeTelegramConnectFromCode({ code, chatId, username: msg?.from?.username ?? null });
+      await ensureTelegramWebhook();
       return;
     }
 
