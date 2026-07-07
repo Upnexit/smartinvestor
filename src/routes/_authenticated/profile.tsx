@@ -20,6 +20,8 @@ export const Route = createFileRoute("/_authenticated/profile")({
 
 type Method = "bkash" | "nagad" | "rocket";
 
+const DEFAULT_TELEGRAM_BOT_USERNAME = "smartinvestornotifybot_bot";
+
 type Profile = {
   id: string;
   full_name: string | null;
@@ -55,14 +57,60 @@ function ProfilePage() {
   const [pwBusy, setPwBusy] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [activePkg, setActivePkg] = useState<{ name: string; expires_at: string | null } | null>(null);
-  const [tg, setTg] = useState<{ connected: boolean; username: string | null; connectedAt: string | null; botUsername: string; deepLink: string | null } | null>(null);
+  const [tg, setTg] = useState<{ connected: boolean; username: string | null; connectedAt: string | null; botUsername: string; connectCode?: string | null; deepLink: string | null; configurationError?: string | null } | null>(null);
   const [tgBusy, setTgBusy] = useState(false);
+  const [tgLoadError, setTgLoadError] = useState<string | null>(null);
+  const [tgConnecting, setTgConnecting] = useState(false);
+
+  async function loadTgFallback() {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) throw new Error("লগইন সেশন পাওয়া যায়নি");
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("telegram_chat_id, telegram_username, telegram_connect_code, telegram_connected_at")
+      .eq("id", u.user.id)
+      .maybeSingle();
+    if (error) throw error;
+
+    const row = data as { telegram_chat_id?: number | null; telegram_username?: string | null; telegram_connect_code?: string | null; telegram_connected_at?: string | null } | null;
+    const chatId = row?.telegram_chat_id ?? null;
+    let code = row?.telegram_connect_code ?? null;
+
+    if (!chatId && !code) {
+      code = `u${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36).slice(-4)}`;
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ telegram_connect_code: code })
+        .eq("id", u.user.id);
+      if (updateError) throw updateError;
+    }
+
+    setTg({
+      connected: !!chatId,
+      username: row?.telegram_username ?? null,
+      connectedAt: row?.telegram_connected_at ?? null,
+      botUsername: DEFAULT_TELEGRAM_BOT_USERNAME,
+      connectCode: code,
+      deepLink: !chatId && code ? `https://t.me/${DEFAULT_TELEGRAM_BOT_USERNAME}?start=${code}` : null,
+      configurationError: null,
+    });
+    if (chatId) setTgConnecting(false);
+  }
 
   async function loadTg() {
+    setTgLoadError(null);
     try {
       const r = await getTgFn();
       setTg(r);
-    } catch { /* ignore */ }
+      if (r.connected) setTgConnecting(false);
+    } catch (e) {
+      try {
+        await loadTgFallback();
+      } catch {
+        setTgLoadError(e instanceof Error ? e.message : "Telegram link তৈরি করা যাচ্ছে না");
+      }
+    }
   }
 
   useEffect(() => {
@@ -78,6 +126,7 @@ function ProfilePage() {
         setPhone(p.phone ?? "");
         setPaymentMethod(p.payment_method);
         setPaymentNumber(p.payment_number ?? "");
+        await loadTg();
       }
       const { data: up } = await supabase
         .from("user_packages")
@@ -92,16 +141,46 @@ function ProfilePage() {
         setActivePkg({ name: pkgName ?? "Active Package", expires_at: (up as { expires_at: string | null }).expires_at });
       }
     })();
-    loadTg();
   }, []);
 
-  // Poll Telegram status every 4s while not connected (after user clicks connect)
   useEffect(() => {
-    if (!tg || tg.connected) return;
-    const iv = setInterval(loadTg, 4000);
+    if (!profile?.id) return;
+    const channel = supabase
+      .channel(`telegram-profile-${profile.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${profile.id}` },
+        (payload) => {
+          const row = payload.new as { telegram_chat_id?: number | null; telegram_username?: string | null; telegram_connect_code?: string | null; telegram_connected_at?: string | null };
+          const wasWaitingForTelegram = tgConnecting;
+          setTg((current) => ({
+            connected: !!row.telegram_chat_id,
+            username: row.telegram_username ?? null,
+            connectedAt: row.telegram_connected_at ?? null,
+            botUsername: current?.botUsername || DEFAULT_TELEGRAM_BOT_USERNAME,
+            connectCode: row.telegram_connect_code ?? null,
+            deepLink: !row.telegram_chat_id && row.telegram_connect_code
+              ? `https://t.me/${current?.botUsername || DEFAULT_TELEGRAM_BOT_USERNAME}?start=${row.telegram_connect_code}`
+              : null,
+            configurationError: current?.configurationError ?? null,
+          }));
+          if (row.telegram_chat_id) {
+            setTgConnecting(false);
+            if (wasWaitingForTelegram) toast.success("Telegram সফলভাবে সংযুক্ত হয়েছে");
+          }
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [profile?.id, tgConnecting]);
+
+  // Poll Telegram status quickly while waiting for the user to press Start in Telegram.
+  useEffect(() => {
+    if (!tg || tg.connected || !tgConnecting) return;
+    const iv = setInterval(loadTg, 2000);
     return () => clearInterval(iv);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tg?.connected]);
+  }, [tg?.connected, tgConnecting]);
 
 
 
@@ -149,11 +228,6 @@ function ProfilePage() {
     }
   }
 
-  async function handleTgConnect() {
-    if (!tg?.deepLink) { toast.error("Bot লিংক তৈরি হয়নি"); return; }
-    window.open(tg.deepLink, "_blank", "noopener,noreferrer");
-    toast.message("Telegram-এ ফিরে এসে Start চাপুন", { description: "সংযোগ হলে স্বয়ংক্রিয়ভাবে আপডেট হবে।" });
-  }
   async function handleTgDisconnect() {
     setTgBusy(true);
     const tId = toast.loading("বিচ্ছিন্ন হচ্ছে…");
@@ -414,23 +488,48 @@ function ProfilePage() {
                 href={tg.deepLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => toast.message("Telegram-এ Start চাপুন", { description: "সংযোগ হলে এই পেজে auto আপডেট হবে।" })}
+                onClick={() => {
+                  setTgConnecting(true);
+                  toast.message("Telegram-এ Start চাপুন", { description: "Start চাপলেই এই পেজে auto সংযুক্ত দেখাবে।" });
+                  setTimeout(loadTg, 1500);
+                }}
                 className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-500 py-3 text-base font-bold text-white shadow-lg active:scale-[.98] transition"
               >
-                <LinkIcon className="h-5 w-5" /> Telegram Connect করুন
+                {tgConnecting ? <Loader2 className="h-5 w-5 animate-spin" /> : <LinkIcon className="h-5 w-5" />}
+                {tgConnecting ? "সংযোগ যাচাই হচ্ছে…" : "Telegram Connect করুন"}
               </a>
             ) : (
               <button
                 type="button"
                 onClick={loadTg}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-200 py-3 text-base font-bold text-slate-600"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-200 py-3 text-base font-bold text-slate-700"
               >
-                <Loader2 className="h-5 w-5 animate-spin" /> লিংক তৈরি হচ্ছে…
+                <Loader2 className={cn("h-5 w-5", !tgLoadError && "animate-spin")} />
+                {tgLoadError ? "আবার লিংক তৈরি করুন" : "লিংক তৈরি হচ্ছে…"}
               </button>
+            )}
+            {tgLoadError && (
+              <p className="rounded-xl bg-rose-50 px-3 py-2 text-center text-[11px] font-semibold text-rose-700 ring-1 ring-rose-100">
+                {tgLoadError}
+              </p>
+            )}
+            {tg?.configurationError && (
+              <p className="rounded-xl bg-amber-50 px-3 py-2 text-center text-[11px] font-semibold text-amber-700 ring-1 ring-amber-100">
+                {tg.configurationError}
+              </p>
             )}
             <p className="text-[11px] text-slate-500 text-center">
               বাটনে চাপলে Telegram bot খুলবে → “Start” চাপুন → সংযোগ সম্পূর্ণ।
             </p>
+            {tg?.connectCode && (
+              <button
+                type="button"
+                onClick={() => copy(`/start ${tg.connectCode}`, "tgcode")}
+                className="w-full rounded-xl bg-slate-50 px-3 py-2 text-center text-[11px] font-semibold text-slate-600 ring-1 ring-slate-200"
+              >
+                Manual code কপি করুন: /start {tg.connectCode} {copied === "tgcode" && <Check className="ml-1 inline h-3 w-3" />}
+              </button>
+            )}
             {tg?.deepLink && (
               <p className="text-[10px] text-slate-400 text-center font-mono break-all select-all">
                 {tg.deepLink}
