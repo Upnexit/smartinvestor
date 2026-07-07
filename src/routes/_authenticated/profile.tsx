@@ -55,6 +55,15 @@ function ProfilePage() {
   const [pwBusy, setPwBusy] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [activePkg, setActivePkg] = useState<{ name: string; expires_at: string | null } | null>(null);
+  const [tg, setTg] = useState<{ connected: boolean; username: string | null; connectedAt: string | null; botUsername: string; deepLink: string | null } | null>(null);
+  const [tgBusy, setTgBusy] = useState(false);
+
+  async function loadTg() {
+    try {
+      const r = await getTgFn();
+      setTg(r);
+    } catch { /* ignore */ }
+  }
 
   useEffect(() => {
     (async () => {
