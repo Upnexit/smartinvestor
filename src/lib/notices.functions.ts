@@ -30,20 +30,23 @@ function priorityLabel(priority: NoticePriority) {
 }
 
 async function sendNoticeToTelegramTargets(
-  supabase: any,
+  _supabase: any,
   actorId: string,
   notice: NoticeRow,
 ): Promise<{ sent: number; failed: number; recipients: number }> {
   if (!notice.published) return { sent: 0, failed: 0, recipients: 0 };
 
   const targets = Array.isArray(notice.target_package_ids) ? notice.target_package_ids : [];
-  const { data, error } = await supabase.rpc("telegram_notice_recipients", {
+
+  // Use admin client so recipient lookup and delivery are not affected by RLS
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await (supabaseAdmin as any).rpc("telegram_notice_recipients", {
     _actor: actorId,
     _target_all_users: !!notice.target_all_users,
     _target_package_ids: targets,
   });
   if (error) {
-    console.warn("telegram notice recipients failed:", error.message);
+    console.error("[notice] telegram_notice_recipients failed:", error.message);
     return { sent: 0, failed: 0, recipients: 0 };
   }
 
@@ -66,7 +69,9 @@ async function sendNoticeToTelegramTargets(
     ),
   );
   const sent = results.filter(Boolean).length;
-  return { sent, failed: results.length - sent, recipients: recipients.length };
+  const failed = results.length - sent;
+  if (failed > 0) console.warn(`[notice] telegram: ${sent}/${recipients.length} sent, ${failed} failed`);
+  return { sent, failed, recipients: recipients.length };
 }
 
 export const listAdminNotices = createServerFn({ method: "GET" })
