@@ -135,6 +135,7 @@ function NoticesPage() {
               onEdit={() => { setEditing(n); setFormOpen(true); }}
               onDelete={() => onDelete(n)}
               onTogglePublish={() => onTogglePublish(n)}
+              onResend={() => onResend(n)}
             />
           ))}
         </div>
