@@ -5,10 +5,11 @@ import { toast } from "sonner";
 import {
   User as UserIcon, Mail, Phone, Smartphone, Save, Loader2, Lock,
   Copy, Check, ShieldCheck, Crown, Wallet, TrendingUp, BadgeCheck, AlertCircle,
-  Pencil,
+  Pencil, Send, LinkIcon, Unlink,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { getTelegramStatus, disconnectTelegram, sendTelegramTest } from "@/lib/telegram.functions";
 import { EmailVerifyModal } from "@/components/panel/EmailVerifyModal";
 import { updateMyEmail } from "@/lib/emailOtp.functions";
 
