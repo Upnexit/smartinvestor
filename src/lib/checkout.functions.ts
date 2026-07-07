@@ -128,6 +128,40 @@ export const submitCheckoutPayment = createServerFn({ method: "POST" })
     return { orderId, status: "pending" as const };
   });
 
+async function notifyPackageDecision(
+  orderId: string,
+  action: "approve" | "reject",
+  reason?: string,
+) {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("user_packages")
+      .select("user_id, packages(name, price)")
+      .eq("id", orderId)
+      .maybeSingle();
+    const r = data as { user_id?: string; packages?: { name?: string; price?: number } | null } | null;
+    if (!r?.user_id) return;
+    const { notifyUserTelegram } = await import("./telegram.server");
+    const pkgName = r.packages?.name ?? "Package";
+    const price = Number(r.packages?.price ?? 0).toFixed(0);
+    if (action === "approve") {
+      await notifyUserTelegram(
+        r.user_id,
+        `✅ <b>প্যাকেজ অ্যাক্টিভেট হয়েছে!</b>\n\n📦 প্যাকেজ: <b>${pkgName}</b>\n💰 মূল্য: ৳${price}\n\nএখন থেকে দৈনিক আয় শুরু 🎉\nDashboard-এ গিয়ে টাস্ক শুরু করুন।`,
+      );
+    } else {
+      const rsn = reason ? `\n\n📝 কারণ: ${reason}` : "";
+      await notifyUserTelegram(
+        r.user_id,
+        `❌ <b>প্যাকেজ অর্ডার বাতিল হয়েছে</b>\n\n📦 প্যাকেজ: <b>${pkgName}</b>${rsn}\n\nসঠিক Transaction ID দিয়ে আবার চেষ্টা করুন।`,
+      );
+    }
+  } catch (e) {
+    console.warn("telegram notify (package) failed:", (e as Error).message);
+  }
+}
+
 export const adminApprovePackage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { orderId: string }) => ({ orderId: validateUuid(data.orderId) }))
@@ -139,6 +173,7 @@ export const adminApprovePackage = createServerFn({ method: "POST" })
       _reason: undefined,
     });
     if (error) throw new Error(error.message);
+    await notifyPackageDecision(data.orderId, "approve");
     return result;
   });
 
@@ -157,6 +192,7 @@ export const adminRejectPackage = createServerFn({ method: "POST" })
       _reason: data.reason,
     });
     if (error) throw new Error(error.message);
+    await notifyPackageDecision(data.orderId, "reject", data.reason);
     return result;
   });
 
