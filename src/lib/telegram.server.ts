@@ -33,6 +33,56 @@ export async function sendTelegramMessage(chatId: number | string, text: string,
   }
 }
 
+export async function completeTelegramConnectFromCode({
+  code,
+  chatId,
+  username,
+}: {
+  code: string;
+  chatId: number;
+  username?: string | null;
+}): Promise<{ ok: boolean; userId?: string; reason?: string }> {
+  const connectCode = code.trim();
+  if (!connectCode) return { ok: false, reason: "missing_code" };
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: profile, error: findError } = await supabaseAdmin
+    .from("profiles")
+    .select("id, full_name")
+    .eq("telegram_connect_code", connectCode)
+    .maybeSingle();
+
+  if (findError) {
+    console.error("telegram connect lookup error:", findError.message);
+    return { ok: false, reason: "database_error" };
+  }
+  if (!profile) return { ok: false, reason: "invalid_code" };
+
+  const userId = (profile as { id: string }).id;
+  const { error: updateError } = await supabaseAdmin
+    .from("profiles")
+    .update({
+      telegram_chat_id: chatId,
+      telegram_username: username ?? null,
+      telegram_connected_at: new Date().toISOString(),
+      telegram_connect_code: null,
+    })
+    .eq("id", userId);
+
+  if (updateError) {
+    console.error("telegram connect update error:", updateError.message);
+    return { ok: false, userId, reason: "database_error" };
+  }
+
+  const name = (profile as { full_name?: string | null }).full_name || "বন্ধু";
+  await sendTelegramMessage(
+    chatId,
+    `✅ <b>সফলভাবে সংযুক্ত হয়েছে!</b>\n\nস্বাগতম, ${name} 🎉\n\nএখন থেকে withdraw, task, package, ও support সংক্রান্ত সকল notification এখানে পাবেন।`,
+  );
+
+  return { ok: true, userId };
+}
+
 /** Notify a user by Supabase user id (fetches telegram_chat_id). */
 export async function notifyUserTelegram(userId: string, text: string, extra: Record<string, unknown> = {}) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

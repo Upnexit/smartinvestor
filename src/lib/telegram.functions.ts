@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 let _cachedBotUsername: string | null = null;
 let _webhookEnsuredFor: string | null = null;
+let _lastUpdateOffset = 0;
 
 const FALLBACK_BOT_USERNAME = "smartinvestornotifybot_bot";
 
@@ -112,13 +113,81 @@ async function ensureTelegramWebhook(): Promise<void> {
   }
 }
 
+async function completeConnectFromRecentUpdates(code: string): Promise<void> {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token || !code) return;
+
+  try {
+    const readUpdates = async () => {
+      const query = new URLSearchParams({
+        timeout: "0",
+        limit: "20",
+        allowed_updates: JSON.stringify(["message"]),
+      });
+      if (_lastUpdateOffset > 0) query.set("offset", String(_lastUpdateOffset));
+      const response = await fetchTelegram(token, `getUpdates?${query.toString()}`);
+      const json = (await response.json().catch(() => ({}))) as {
+        ok?: boolean;
+        result?: Array<{
+          update_id: number;
+          message?: { chat?: { id?: number }; from?: { username?: string }; text?: string };
+          edited_message?: { chat?: { id?: number }; from?: { username?: string }; text?: string };
+        }>;
+        description?: string;
+      };
+      return { response, json };
+    };
+
+    let { response: r, json: j } = await readUpdates();
+    if (j.description?.includes("webhook is active")) {
+      await fetchTelegram(token, "deleteWebhook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ drop_pending_updates: false }),
+      }).catch(() => undefined);
+      ({ response: r, json: j } = await readUpdates());
+    }
+
+    const updates = j as {
+      ok?: boolean;
+      result?: Array<{
+        update_id: number;
+        message?: { chat?: { id?: number }; from?: { username?: string }; text?: string };
+        edited_message?: { chat?: { id?: number }; from?: { username?: string }; text?: string };
+      }>;
+      description?: string;
+    };
+    if (!r.ok || updates.ok === false || !Array.isArray(updates.result)) return;
+
+    for (const update of updates.result) {
+      _lastUpdateOffset = Math.max(_lastUpdateOffset, update.update_id + 1);
+      const msg = update.message ?? update.edited_message;
+      const chatId = msg?.chat?.id;
+      const text = (msg?.text ?? "").trim();
+      if (!chatId || !text.startsWith("/start")) continue;
+
+      const receivedCode = text.split(/\s+/)[1]?.trim();
+      if (receivedCode !== code) continue;
+
+      const { completeTelegramConnectFromCode } = await import("./telegram.server");
+      await completeTelegramConnectFromCode({ code, chatId, username: msg?.from?.username ?? null });
+      return;
+    }
+  } catch (e) {
+    console.warn("[telegram] getUpdates fallback failed", e instanceof Error ? e.message : e);
+  }
+}
+
 /** Get connection status + a fresh deep-link if not connected. */
 export const getTelegramStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data?: { ensureWebhook?: boolean }) => ({ ensureWebhook: data?.ensureWebhook !== false }))
+  .inputValidator((data?: { ensureWebhook?: boolean; verifyUpdates?: boolean }) => ({
+    ensureWebhook: data?.ensureWebhook !== false,
+    verifyUpdates: data?.verifyUpdates === true,
+  }))
   .handler(async ({ data: input, context }) => {
     const { supabase, userId } = context;
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("profiles")
       .select("telegram_chat_id, telegram_username, telegram_connect_code, telegram_connected_at")
       .eq("id", userId)
@@ -139,10 +208,24 @@ export const getTelegramStatus = createServerFn({ method: "GET" })
       if (updateError) throw new Error(updateError.message);
     }
 
-    const deepLink = botUsername && code ? `https://t.me/${botUsername}?start=${code}` : null;
+    if (!chatId && code && input.verifyUpdates) {
+      await completeConnectFromRecentUpdates(code);
+      const refreshed = await supabase
+        .from("profiles")
+        .select("telegram_chat_id, telegram_username, telegram_connect_code, telegram_connected_at")
+        .eq("id", userId)
+        .maybeSingle();
+      if (refreshed.error) throw new Error(refreshed.error.message);
+      data = refreshed.data;
+    }
+
+    code = (data as { telegram_connect_code?: string | null } | null)?.telegram_connect_code ?? code;
+    const finalChatId = (data as { telegram_chat_id?: number | null } | null)?.telegram_chat_id ?? null;
+
+    const deepLink = botUsername && code && !finalChatId ? `https://t.me/${botUsername}?start=${code}` : null;
 
     return {
-      connected: !!chatId,
+      connected: !!finalChatId,
       username: (data as { telegram_username?: string | null } | null)?.telegram_username ?? null,
       connectedAt: (data as { telegram_connected_at?: string | null } | null)?.telegram_connected_at ?? null,
       botUsername,

@@ -117,10 +117,10 @@ function ProfilePage() {
     if (chatId) setTelegramWaiting(false);
   }, [setTelegramWaiting]);
 
-  const loadTg = useCallback(async (ensureWebhook = false) => {
+  const loadTg = useCallback(async (ensureWebhook = false, verifyUpdates = false) => {
     setTgLoadError(null);
     try {
-      const r = await getTgFn({ data: { ensureWebhook } });
+      const r = await getTgFn({ data: { ensureWebhook, verifyUpdates } });
       const wasWaitingForTelegram = tgConnectingRef.current;
       setTg(r);
       if (r.connected) {
@@ -140,8 +140,8 @@ function ProfilePage() {
   const startTgPolling = useCallback(() => {
     stopTgPolling();
     setTelegramWaiting(true);
-    window.setTimeout(() => void loadTg(false), 300);
-    tgPollRef.current = window.setInterval(() => void loadTg(false), 900);
+    window.setTimeout(() => void loadTg(false, true), 300);
+    tgPollRef.current = window.setInterval(() => void loadTg(false, true), 900);
     tgPollStopRef.current = window.setTimeout(() => {
       stopTgPolling();
       if (tgConnectingRef.current) setTelegramWaiting(false);
