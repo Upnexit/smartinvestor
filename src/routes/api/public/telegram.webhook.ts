@@ -50,39 +50,22 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             return Response.json({ ok: true });
           }
 
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { data: profile } = await supabaseAdmin
-            .from("profiles")
-            .select("id, full_name")
-            .eq("telegram_connect_code", code)
-            .maybeSingle();
+          const { completeTelegramConnectFromCode } = await import("@/lib/telegram.server");
+          const result = await completeTelegramConnectFromCode({
+            code,
+            chatId,
+            username: msg.from?.username ?? null,
+          });
 
-          if (!profile) {
+          if (!result.ok && result.reason === "invalid_code") {
             await tgSend(chatId, "⚠️ এই connect code টি বৈধ নয় বা মেয়াদ শেষ। অনুগ্রহ করে Profile পেজ থেকে আবার চেষ্টা করুন।");
             return Response.json({ ok: true });
           }
 
-          const uname = msg.from?.username ?? null;
-          const { error } = await supabaseAdmin
-            .from("profiles")
-            .update({
-              telegram_chat_id: chatId,
-              telegram_username: uname,
-              telegram_connected_at: new Date().toISOString(),
-              telegram_connect_code: null, // consume the code
-            })
-            .eq("id", (profile as { id: string }).id);
-
-          if (error) {
+          if (!result.ok) {
             await tgSend(chatId, "❌ সংযোগে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
             return Response.json({ ok: true });
           }
-
-          const name = (profile as { full_name?: string | null }).full_name || "বন্ধু";
-          await tgSend(
-            chatId,
-            `✅ <b>সফলভাবে সংযুক্ত হয়েছে!</b>\n\nস্বাগতম, ${name} 🎉\n\nএখন থেকে withdraw, task, package, ও support সংক্রান্ত সকল notification এখানে পাবেন।`,
-          );
           return Response.json({ ok: true });
         }
 
