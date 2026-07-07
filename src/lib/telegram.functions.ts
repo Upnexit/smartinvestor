@@ -262,20 +262,28 @@ export const sendTelegramTest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(() => ({}))
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+    // Use admin client to reliably read telegram_chat_id (avoid any column-level RLS surprises)
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
       .from("profiles")
       .select("telegram_chat_id")
       .eq("id", context.userId)
       .maybeSingle();
     if (error) throw new Error(error.message);
     const chatId = (data as { telegram_chat_id?: number | null } | null)?.telegram_chat_id;
-    if (!chatId) throw new Error("Telegram এখনো connected নয়");
+    if (!chatId) throw new Error("Telegram এখনো connected নয় — Profile পেজ থেকে Connect করুন");
 
-    const { sendTelegramMessage } = await import("./telegram.server");
-    const ok = await sendTelegramMessage(
-      chatId,
-      "✅ <b>Smart Investor</b>\nআপনার Telegram সফলভাবে যুক্ত হয়েছে। এখন থেকে সকল গুরুত্বপূর্ণ notification এখানে পাবেন।",
-    );
-    if (!ok) throw new Error("Telegram এখনো connected নয়");
+    const { tgCall } = await import("./telegram.server");
+    try {
+      await tgCall("sendMessage", {
+        chat_id: chatId,
+        text: "✅ <b>Smart Investor</b>\nআপনার Telegram সফলভাবে যুক্ত হয়েছে। এখন থেকে সকল গুরুত্বপূর্ণ notification এখানে পাবেন।",
+        parse_mode: "HTML",
+        disable_web_page_preview: true,
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      throw new Error(`Telegram-এ পাঠানো যায়নি: ${msg}`);
+    }
     return { ok: true };
   });
