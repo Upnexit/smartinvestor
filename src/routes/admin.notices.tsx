@@ -5,7 +5,7 @@ import { Megaphone, Mic, MicOff, Sparkles, Plus, Trash2, Send, Eye, EyeOff, Load
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
-  listAdminNotices, saveNotice, deleteNotice, togglePublishNotice, improveNoticeText,
+  listAdminNotices, saveNotice, deleteNotice, togglePublishNotice, improveNoticeText, resendNoticeToTelegram,
   type NoticeRow, type NoticePriority,
 } from "@/lib/notices.functions";
 import { GradientButton } from "@/components/admin/AdminUI";
@@ -47,6 +47,7 @@ function NoticesPage() {
   const load = useServerFn(listAdminNotices);
   const rmFn = useServerFn(deleteNotice);
   const pubFn = useServerFn(togglePublishNotice);
+  const resendFn = useServerFn(resendNoticeToTelegram);
 
   async function refresh() {
     setLoading(true);
@@ -81,6 +82,20 @@ function NoticesPage() {
       }
     }
     await refresh();
+  }
+  async function onResend(n: NoticeRow) {
+    const tid = toast.loading("Telegram-এ পাঠাচ্ছে...");
+    try {
+      const r = await resendFn({ data: { id: n.id } });
+      const tg = r.telegram;
+      if (tg.recipients > 0) {
+        toast.success(`Telegram-এ ${tg.sent}/${tg.recipients} জনকে পাঠানো হয়েছে${tg.failed ? ` (${tg.failed} ব্যর্থ)` : ""}`, { id: tid });
+      } else {
+        toast.message("Telegram-সংযুক্ত কোনো recipient পাওয়া যায়নি", { id: tid });
+      }
+    } catch (e) {
+      toast.error((e as Error).message, { id: tid });
+    }
   }
 
   return (
@@ -120,6 +135,7 @@ function NoticesPage() {
               onEdit={() => { setEditing(n); setFormOpen(true); }}
               onDelete={() => onDelete(n)}
               onTogglePublish={() => onTogglePublish(n)}
+              onResend={() => onResend(n)}
             />
           ))}
         </div>
@@ -139,10 +155,10 @@ function NoticesPage() {
 
 /* ---------------------------- Notice Card ---------------------------- */
 function NoticeCard({
-  notice, packages, onEdit, onDelete, onTogglePublish,
+  notice, packages, onEdit, onDelete, onTogglePublish, onResend,
 }: {
   notice: NoticeRow; packages: PackageOpt[];
-  onEdit: () => void; onDelete: () => void; onTogglePublish: () => void;
+  onEdit: () => void; onDelete: () => void; onTogglePublish: () => void; onResend: () => void;
 }) {
   const priorityStyle: Record<NoticePriority, string> = {
     info: "from-sky-500 to-indigo-600",
@@ -177,6 +193,12 @@ function NoticeCard({
           className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold text-white shadow bg-gradient-to-r ${notice.published ? "from-slate-500 to-slate-700" : "from-emerald-500 to-green-600"}`}>
           {notice.published ? <><EyeOff className="h-3.5 w-3.5" /> আনপাবলিশ</> : <><Eye className="h-3.5 w-3.5" /> প্রকাশ</>}
         </button>
+        {notice.published && (
+          <button onClick={onResend} title="Telegram-এ পুনরায় পাঠান"
+            className="grid h-9 w-9 place-items-center rounded-xl bg-sky-50 text-sky-600 hover:bg-sky-100">
+            <Send className="h-4 w-4" />
+          </button>
+        )}
         <button onClick={onEdit} className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200">
           <Pencil className="h-4 w-4" />
         </button>

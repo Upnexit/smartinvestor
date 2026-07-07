@@ -169,6 +169,23 @@ export const togglePublishNotice = createServerFn({ method: "POST" })
     return { notice, telegram };
   });
 
+export const resendNoticeToTelegram = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => ({ id: String(d.id) }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data: row, error } = await context.supabase
+      .from("notices")
+      .select("*")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) throw new Error("notice not found");
+    const notice = { ...(row as NoticeRow), published: true };
+    const telegram = await sendNoticeToTelegramTargets(context.supabase, context.userId, notice);
+    return { telegram };
+  });
+
 /* ------------------------------ USER OPS ------------------------------ */
 
 export const listActiveNoticesForMe = createServerFn({ method: "GET" })
