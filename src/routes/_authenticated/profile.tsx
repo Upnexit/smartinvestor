@@ -409,16 +409,37 @@ function ProfilePage() {
           </div>
         ) : (
           <div className="space-y-2">
-            <button onClick={handleTgConnect} disabled={!tg?.deepLink}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-500 py-3 text-base font-bold text-white shadow-lg disabled:opacity-40">
-              <LinkIcon className="h-5 w-5" /> Telegram Connect করুন
-            </button>
+            {tg?.deepLink ? (
+              <a
+                href={tg.deepLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => toast.message("Telegram-এ Start চাপুন", { description: "সংযোগ হলে এই পেজে auto আপডেট হবে।" })}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-500 py-3 text-base font-bold text-white shadow-lg active:scale-[.98] transition"
+              >
+                <LinkIcon className="h-5 w-5" /> Telegram Connect করুন
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={loadTg}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-200 py-3 text-base font-bold text-slate-600"
+              >
+                <Loader2 className="h-5 w-5 animate-spin" /> লিংক তৈরি হচ্ছে…
+              </button>
+            )}
             <p className="text-[11px] text-slate-500 text-center">
               বাটনে চাপলে Telegram bot খুলবে → “Start” চাপুন → সংযোগ সম্পূর্ণ।
             </p>
+            {tg?.deepLink && (
+              <p className="text-[10px] text-slate-400 text-center font-mono break-all select-all">
+                {tg.deepLink}
+              </p>
+            )}
           </div>
         )}
       </section>
+
 
       {/* Security */}
       <section className="rounded-2xl bg-white ring-1 ring-slate-200 p-5 space-y-4 shadow-soft">
