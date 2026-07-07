@@ -23,6 +23,53 @@ async function assertAdmin(supabase: any, userId: string) {
   if (error || !data) throw new Error("forbidden");
 }
 
+function priorityLabel(priority: NoticePriority) {
+  if (priority === "critical") return "🚨 জরুরি";
+  if (priority === "warning") return "⚠️ সতর্কতা";
+  return "ℹ️ নোটিশ";
+}
+
+async function sendNoticeToTelegramTargets(
+  supabase: any,
+  actorId: string,
+  notice: NoticeRow,
+): Promise<{ sent: number; failed: number }> {
+  if (!notice.published) return { sent: 0, failed: 0 };
+
+  const targets = Array.isArray(notice.target_package_ids) ? notice.target_package_ids : [];
+  const { data, error } = await supabase.rpc("telegram_notice_recipients", {
+    _actor: actorId,
+    _target_all_users: !!notice.target_all_users,
+    _target_package_ids: targets,
+  });
+  if (error) {
+    console.warn("telegram notice recipients failed:", error.message);
+    return { sent: 0, failed: 0 };
+  }
+
+  const recipients = (data ?? []) as Array<{ chat_id?: number | string | null; full_name?: string | null }>;
+  if (recipients.length === 0) return { sent: 0, failed: 0 };
+
+  const { sendTelegramMessage } = await import("./telegram.server");
+  const text = `${priorityLabel(notice.priority)} <b>${notice.title}</b>\n\n${notice.body}`;
+  let sent = 0;
+  let failed = 0;
+  for (const recipient of recipients) {
+    if (!recipient.chat_id) continue;
+    const ok = await sendTelegramMessage(recipient.chat_id, text, {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: "💰 ব্যালেন্স", callback_data: "balance" }, { text: "📦 প্যাকেজ", callback_data: "package" }],
+          [{ text: "📊 স্ট্যাটাস", callback_data: "status" }],
+        ],
+      },
+    });
+    if (ok) sent += 1;
+    else failed += 1;
+  }
+  return { sent, failed };
+}
+
 export const listAdminNotices = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -74,13 +121,27 @@ export const saveNotice = createServerFn({ method: "POST" })
       expires_at: data.expires_at,
     };
 
+    let wasPublished = false;
+    if (data.id) {
+      const { data: previous } = await context.supabase
+        .from("notices")
+        .select("published")
+        .eq("id", data.id)
+        .maybeSingle();
+      wasPublished = !!(previous as { published?: boolean } | null)?.published;
+    }
+
     const { data: row, error } = await (context.supabase as any).rpc("admin_save_notice", {
       _actor: context.userId,
       _id: data.id,
       _patch: payload,
     });
     if (error) throw new Error(error.message);
-    return { notice: row as NoticeRow };
+    const notice = row as NoticeRow;
+    const telegram = data.published && !wasPublished
+      ? await sendNoticeToTelegramTargets(context.supabase, context.userId, notice)
+      : { sent: 0, failed: 0 };
+    return { notice, telegram };
   });
 
 export const deleteNotice = createServerFn({ method: "POST" })
@@ -107,7 +168,11 @@ export const togglePublishNotice = createServerFn({ method: "POST" })
       _published: data.published,
     });
     if (error) throw new Error(error.message);
-    return { notice: row as NoticeRow };
+    const notice = row as NoticeRow;
+    const telegram = data.published
+      ? await sendNoticeToTelegramTargets(context.supabase, context.userId, notice)
+      : { sent: 0, failed: 0 };
+    return { notice, telegram };
   });
 
 /* ------------------------------ USER OPS ------------------------------ */
