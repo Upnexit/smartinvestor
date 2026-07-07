@@ -149,6 +149,33 @@ function ProfilePage() {
     }
   }
 
+  async function handleTgConnect() {
+    if (!tg?.deepLink) { toast.error("Bot লিংক তৈরি হয়নি"); return; }
+    window.open(tg.deepLink, "_blank", "noopener,noreferrer");
+    toast.message("Telegram-এ ফিরে এসে Start চাপুন", { description: "সংযোগ হলে স্বয়ংক্রিয়ভাবে আপডেট হবে।" });
+  }
+  async function handleTgDisconnect() {
+    setTgBusy(true);
+    const tId = toast.loading("বিচ্ছিন্ন হচ্ছে…");
+    try {
+      await disconnectTgFn();
+      toast.success("Telegram বিচ্ছিন্ন হয়েছে", { id: tId });
+      await loadTg();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "ব্যর্থ", { id: tId });
+    } finally { setTgBusy(false); }
+  }
+  async function handleTgTest() {
+    setTgBusy(true);
+    const tId = toast.loading("Test message পাঠানো হচ্ছে…");
+    try {
+      await testTgFn();
+      toast.success("Telegram-এ message পাঠানো হয়েছে", { id: tId });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "ব্যর্থ", { id: tId });
+    } finally { setTgBusy(false); }
+  }
+
   async function handleChangePassword() {
     if (pwNew.length < 6) return toast.error("নতুন পাসওয়ার্ড অন্তত ৬ অক্ষর");
     setPwBusy(true);
