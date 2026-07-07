@@ -153,6 +153,32 @@ export const adminReviewWithdrawal = createServerFn({ method: "POST" })
       _actor: context.userId, _id: data.id, _action: data.action, _note: data.note ?? undefined,
     });
     if (error) throw new Error(error.message);
+
+    // Fire-and-forget Telegram notification to the affected user
+    try {
+      const r = row as { user_id?: string; amount?: number; method?: string; account_number?: string } | null;
+      if (r?.user_id) {
+        const { notifyUserTelegram } = await import("./telegram.server");
+        const amt = Number(r.amount ?? 0).toFixed(0);
+        const method = (r.method ?? "").toString();
+        const acct = (r.account_number ?? "").toString();
+        if (data.action === "approve") {
+          await notifyUserTelegram(
+            r.user_id,
+            `✅ <b>উইথড্র অনুমোদিত হয়েছে</b>\n\n💰 পরিমাণ: <b>৳${amt}</b>\n📱 মেথড: <b>${method.toUpperCase()}</b>\n🔢 নম্বর: <code>${acct}</code>\n\nআপনার পেমেন্ট শীঘ্রই পাঠানো হবে। ধন্যবাদ! 🎉`,
+          );
+        } else {
+          const reason = data.note ? `\n\n📝 কারণ: ${data.note}` : "";
+          await notifyUserTelegram(
+            r.user_id,
+            `❌ <b>উইথড্র বাতিল হয়েছে</b>\n\n💰 পরিমাণ: <b>৳${amt}</b>\n📱 মেথড: <b>${method.toUpperCase()}</b>${reason}\n\nসমস্যা হলে Support-এ যোগাযোগ করুন।`,
+          );
+        }
+      }
+    } catch (e) {
+      console.warn("telegram notify (withdraw) failed:", (e as Error).message);
+    }
+
     return row;
   });
 
