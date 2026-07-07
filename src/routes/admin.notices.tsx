@@ -47,6 +47,7 @@ function NoticesPage() {
   const load = useServerFn(listAdminNotices);
   const rmFn = useServerFn(deleteNotice);
   const pubFn = useServerFn(togglePublishNotice);
+  const resendFn = useServerFn(resendNoticeToTelegram);
 
   async function refresh() {
     setLoading(true);
@@ -81,6 +82,20 @@ function NoticesPage() {
       }
     }
     await refresh();
+  }
+  async function onResend(n: NoticeRow) {
+    const tid = toast.loading("Telegram-এ পাঠাচ্ছে...");
+    try {
+      const r = await resendFn({ data: { id: n.id } });
+      const tg = r.telegram;
+      if (tg.recipients > 0) {
+        toast.success(`Telegram-এ ${tg.sent}/${tg.recipients} জনকে পাঠানো হয়েছে${tg.failed ? ` (${tg.failed} ব্যর্থ)` : ""}`, { id: tid });
+      } else {
+        toast.message("Telegram-সংযুক্ত কোনো recipient পাওয়া যায়নি", { id: tid });
+      }
+    } catch (e) {
+      toast.error((e as Error).message, { id: tid });
+    }
   }
 
   return (
