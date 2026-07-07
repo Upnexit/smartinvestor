@@ -72,7 +72,14 @@ function NoticesPage() {
   }
   async function onTogglePublish(n: NoticeRow) {
     const r = await pubFn({ data: { id: n.id, published: !n.published } });
-    if (!n.published && r.telegram?.sent) toast.success(`Telegram-এ ${r.telegram.sent} জনকে notice পাঠানো হয়েছে`);
+    if (!n.published) {
+      const tg = r.telegram;
+      if (tg && tg.recipients > 0) {
+        toast.success(`Telegram-এ ${tg.sent}/${tg.recipients} জনকে notice পাঠানো হয়েছে${tg.failed ? ` (${tg.failed} ব্যর্থ)` : ""}`);
+      } else {
+        toast.message("Notice publish হয়েছে — কোনো Telegram-সংযুক্ত recipient পাওয়া যায়নি");
+      }
+    }
     await refresh();
   }
 
@@ -271,7 +278,14 @@ function NoticeFormModal({
         published: publishNow,
         expires_at: expiresAt ? new Date(expiresAt + "T23:59:59").toISOString() : null,
       }});
-      if (publishNow && r.telegram?.sent) toast.success(`Telegram-এ ${r.telegram.sent} জনকে notice পাঠানো হয়েছে`);
+      if (publishNow) {
+        const tg = r.telegram;
+        if (tg && tg.recipients > 0) {
+          toast.success(`Telegram-এ ${tg.sent}/${tg.recipients} জনকে notice পাঠানো হয়েছে${tg.failed ? ` (${tg.failed} ব্যর্থ)` : ""}`);
+        } else {
+          toast.message("Notice সংরক্ষিত — Telegram-সংযুক্ত কোনো recipient পাওয়া যায়নি");
+        }
+      }
       onSaved();
     } catch (e) { setError((e as Error).message); }
     finally { setSaving(false); }
