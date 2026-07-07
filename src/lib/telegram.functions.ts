@@ -2,24 +2,90 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 let _cachedBotUsername: string | null = null;
+let _webhookEnsuredFor: string | null = null;
+
+const FALLBACK_BOT_USERNAME = "smartinvestornotifybot_bot";
+
+async function fetchTelegram(token: string, method: string, init?: RequestInit) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 4500);
+  try {
+    return await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+      ...init,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function resolveBotUsername(): Promise<string> {
   if (_cachedBotUsername) return _cachedBotUsername;
   const envName = (process.env.TELEGRAM_BOT_USERNAME || "").trim().replace(/^@/, "");
-  if (envName) { _cachedBotUsername = envName; return envName; }
   const token = process.env.TELEGRAM_BOT_TOKEN;
-  if (!token) return "";
+  if (token) {
+    try {
+      const r = await fetchTelegram(token, "getMe");
+      const j = (await r.json()) as { ok?: boolean; result?: { username?: string } };
+      const u = j?.result?.username ?? "";
+      if (u) {
+        _cachedBotUsername = u;
+        if (envName && envName !== u) console.warn(`[telegram] TELEGRAM_BOT_USERNAME mismatch; using @${u}`);
+        return u;
+      }
+    } catch (e) {
+      console.warn("[telegram] getMe failed", e instanceof Error ? e.message : e);
+    }
+  }
+  _cachedBotUsername = envName || FALLBACK_BOT_USERNAME;
+  return _cachedBotUsername;
+}
+
+async function ensureTelegramWebhook(): Promise<void> {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) return;
+
+  let origin = (process.env.TELEGRAM_WEBHOOK_BASE_URL || process.env.PUBLIC_SITE_URL || process.env.SITE_URL || "").trim();
+  if (!origin) {
+    try {
+      const { getRequest } = await import("@tanstack/react-start/server");
+      origin = new URL(getRequest().url).origin;
+    } catch {
+      origin = "";
+    }
+  }
+  origin = origin.replace(/\/$/, "");
+  if (!origin || origin.includes("localhost")) return;
+
+  const webhookUrl = `${origin}/api/public/telegram/webhook`;
+  if (_webhookEnsuredFor === webhookUrl) return;
+
   try {
-    const r = await fetch(`https://api.telegram.org/bot${token}/getMe`);
-    const j = (await r.json()) as { ok?: boolean; result?: { username?: string } };
-    const u = j?.result?.username ?? "";
-    if (u) { _cachedBotUsername = u; return u; }
-  } catch { /* ignore */ }
-  return "";
+    const body: Record<string, unknown> = {
+      url: webhookUrl,
+      allowed_updates: ["message"],
+      drop_pending_updates: false,
+    };
+    const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
+    if (secret) body.secret_token = secret;
+
+    const r = await fetchTelegram(token, "setWebhook", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const j = (await r.json().catch(() => ({}))) as { ok?: boolean; description?: string };
+    if (!r.ok || j.ok === false) throw new Error(j.description || `setWebhook failed [${r.status}]`);
+    _webhookEnsuredFor = webhookUrl;
+  } catch (e) {
+    console.warn("[telegram] setWebhook failed", e instanceof Error ? e.message : e);
+  }
 }
 
 /** Get connection status + a fresh deep-link if not connected. */
 export const getTelegramStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
+  .inputValidator(() => ({}))
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const { data, error } = await supabase
@@ -29,14 +95,20 @@ export const getTelegramStatus = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw new Error(error.message);
 
-    const botUsername = await resolveBotUsername();
+    const [botUsername] = await Promise.all([
+      resolveBotUsername(),
+      ensureTelegramWebhook(),
+    ]);
     let code = (data as { telegram_connect_code?: string | null } | null)?.telegram_connect_code ?? null;
     const chatId = (data as { telegram_chat_id?: number | null } | null)?.telegram_chat_id ?? null;
 
     if (!chatId && !code) {
       code = `u${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36).slice(-4)}`;
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      await supabaseAdmin.from("profiles").update({ telegram_connect_code: code }).eq("id", userId);
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ telegram_connect_code: code })
+        .eq("id", userId);
+      if (updateError) throw new Error(updateError.message);
     }
 
     const deepLink = botUsername && code ? `https://t.me/${botUsername}?start=${code}` : null;
@@ -46,13 +118,16 @@ export const getTelegramStatus = createServerFn({ method: "GET" })
       username: (data as { telegram_username?: string | null } | null)?.telegram_username ?? null,
       connectedAt: (data as { telegram_connected_at?: string | null } | null)?.telegram_connected_at ?? null,
       botUsername,
+      connectCode: code,
       deepLink,
+      configurationError: botUsername ? null : "Telegram bot username configure করা নেই",
     };
   });
 
 /** Disconnect Telegram for the current user. */
 export const disconnectTelegram = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
+  .inputValidator(() => ({}))
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
@@ -71,6 +146,7 @@ export const disconnectTelegram = createServerFn({ method: "POST" })
 /** Send a test message to the connected Telegram account. */
 export const sendTelegramTest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
+  .inputValidator(() => ({}))
   .handler(async ({ context }) => {
     const { notifyUserTelegram } = await import("./telegram.server");
     const ok = await notifyUserTelegram(
