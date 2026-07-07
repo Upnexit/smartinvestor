@@ -5,7 +5,7 @@ import { Megaphone, Mic, MicOff, Sparkles, Plus, Trash2, Send, Eye, EyeOff, Load
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
-  listAdminNotices, saveNotice, deleteNotice, togglePublishNotice, improveNoticeText,
+  listAdminNotices, saveNotice, deleteNotice, togglePublishNotice, improveNoticeText, resendNoticeToTelegram,
   type NoticeRow, type NoticePriority,
 } from "@/lib/notices.functions";
 import { GradientButton } from "@/components/admin/AdminUI";
