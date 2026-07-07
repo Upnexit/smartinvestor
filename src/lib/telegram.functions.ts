@@ -1,6 +1,22 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+let _cachedBotUsername: string | null = null;
+async function resolveBotUsername(): Promise<string> {
+  if (_cachedBotUsername) return _cachedBotUsername;
+  const envName = (process.env.TELEGRAM_BOT_USERNAME || "").trim().replace(/^@/, "");
+  if (envName) { _cachedBotUsername = envName; return envName; }
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) return "";
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+    const j = (await r.json()) as { ok?: boolean; result?: { username?: string } };
+    const u = j?.result?.username ?? "";
+    if (u) { _cachedBotUsername = u; return u; }
+  } catch { /* ignore */ }
+  return "";
+}
+
 /** Get connection status + a fresh deep-link if not connected. */
 export const getTelegramStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -13,11 +29,10 @@ export const getTelegramStatus = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw new Error(error.message);
 
-    const botUsername = process.env.TELEGRAM_BOT_USERNAME || "";
+    const botUsername = await resolveBotUsername();
     let code = (data as { telegram_connect_code?: string | null } | null)?.telegram_connect_code ?? null;
-
-    // If not connected and no code yet, mint one
     const chatId = (data as { telegram_chat_id?: number | null } | null)?.telegram_chat_id ?? null;
+
     if (!chatId && !code) {
       code = `u${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36).slice(-4)}`;
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
