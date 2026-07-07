@@ -1258,8 +1258,25 @@ export type Database = {
       telegram_find_account_by_chat: {
         Args: { _chat_id: number }
         Returns: {
+          active_package: string
+          balance: number
           full_name: string
+          locked_balance: number
+          package_expires_at: string
+          total_earned: number
           user_code: string
+        }[]
+      }
+      telegram_notice_recipients: {
+        Args: {
+          _actor: string
+          _target_all_users: boolean
+          _target_package_ids?: string[]
+        }
+        Returns: {
+          chat_id: number
+          full_name: string
+          user_id: string
         }[]
       }
     }
