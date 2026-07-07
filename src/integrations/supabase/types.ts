@@ -564,6 +564,10 @@ export type Database = {
           status: Database["public"]["Enums"]["user_status"]
           suspend_reason: string | null
           tasks_completed: number
+          telegram_chat_id: number | null
+          telegram_connect_code: string | null
+          telegram_connected_at: string | null
+          telegram_username: string | null
           total_earned: number
           updated_at: string
           user_code: string
@@ -588,6 +592,10 @@ export type Database = {
           status?: Database["public"]["Enums"]["user_status"]
           suspend_reason?: string | null
           tasks_completed?: number
+          telegram_chat_id?: number | null
+          telegram_connect_code?: string | null
+          telegram_connected_at?: string | null
+          telegram_username?: string | null
           total_earned?: number
           updated_at?: string
           user_code: string
@@ -612,6 +620,10 @@ export type Database = {
           status?: Database["public"]["Enums"]["user_status"]
           suspend_reason?: string | null
           tasks_completed?: number
+          telegram_chat_id?: number | null
+          telegram_connect_code?: string | null
+          telegram_connected_at?: string | null
+          telegram_username?: string | null
           total_earned?: number
           updated_at?: string
           user_code?: string
@@ -1079,6 +1091,10 @@ export type Database = {
           status: Database["public"]["Enums"]["user_status"]
           suspend_reason: string | null
           tasks_completed: number
+          telegram_chat_id: number | null
+          telegram_connect_code: string | null
+          telegram_connected_at: string | null
+          telegram_username: string | null
           total_earned: number
           updated_at: string
           user_code: string
@@ -1158,6 +1174,10 @@ export type Database = {
           status: Database["public"]["Enums"]["user_status"]
           suspend_reason: string | null
           tasks_completed: number
+          telegram_chat_id: number | null
+          telegram_connect_code: string | null
+          telegram_connected_at: string | null
+          telegram_username: string | null
           total_earned: number
           updated_at: string
           user_code: string

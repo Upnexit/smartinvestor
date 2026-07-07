@@ -5,10 +5,11 @@ import { toast } from "sonner";
 import {
   User as UserIcon, Mail, Phone, Smartphone, Save, Loader2, Lock,
   Copy, Check, ShieldCheck, Crown, Wallet, TrendingUp, BadgeCheck, AlertCircle,
-  Pencil,
+  Pencil, Send, LinkIcon, Unlink,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { getTelegramStatus, disconnectTelegram, sendTelegramTest } from "@/lib/telegram.functions";
 import { EmailVerifyModal } from "@/components/panel/EmailVerifyModal";
 import { updateMyEmail } from "@/lib/emailOtp.functions";
 
@@ -37,6 +38,9 @@ type Profile = {
 
 function ProfilePage() {
   const updateEmailFn = useServerFn(updateMyEmail);
+  const getTgFn = useServerFn(getTelegramStatus);
+  const disconnectTgFn = useServerFn(disconnectTelegram);
+  const testTgFn = useServerFn(sendTelegramTest);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [fullName, setFullName] = useState("");
   const [emailDraft, setEmailDraft] = useState("");
@@ -51,6 +55,15 @@ function ProfilePage() {
   const [pwBusy, setPwBusy] = useState(false);
   const [verifyOpen, setVerifyOpen] = useState(false);
   const [activePkg, setActivePkg] = useState<{ name: string; expires_at: string | null } | null>(null);
+  const [tg, setTg] = useState<{ connected: boolean; username: string | null; connectedAt: string | null; botUsername: string; deepLink: string | null } | null>(null);
+  const [tgBusy, setTgBusy] = useState(false);
+
+  async function loadTg() {
+    try {
+      const r = await getTgFn();
+      setTg(r);
+    } catch { /* ignore */ }
+  }
 
   useEffect(() => {
     (async () => {
@@ -79,7 +92,17 @@ function ProfilePage() {
         setActivePkg({ name: pkgName ?? "Active Package", expires_at: (up as { expires_at: string | null }).expires_at });
       }
     })();
+    loadTg();
   }, []);
+
+  // Poll Telegram status every 4s while not connected (after user clicks connect)
+  useEffect(() => {
+    if (!tg || tg.connected) return;
+    const iv = setInterval(loadTg, 4000);
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tg?.connected]);
+
 
 
   const phoneNorm = phone.replace(/\D/g, "");
@@ -124,6 +147,33 @@ function ProfilePage() {
     } finally {
       setSaving(false);
     }
+  }
+
+  async function handleTgConnect() {
+    if (!tg?.deepLink) { toast.error("Bot লিংক তৈরি হয়নি"); return; }
+    window.open(tg.deepLink, "_blank", "noopener,noreferrer");
+    toast.message("Telegram-এ ফিরে এসে Start চাপুন", { description: "সংযোগ হলে স্বয়ংক্রিয়ভাবে আপডেট হবে।" });
+  }
+  async function handleTgDisconnect() {
+    setTgBusy(true);
+    const tId = toast.loading("বিচ্ছিন্ন হচ্ছে…");
+    try {
+      await disconnectTgFn();
+      toast.success("Telegram বিচ্ছিন্ন হয়েছে", { id: tId });
+      await loadTg();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "ব্যর্থ", { id: tId });
+    } finally { setTgBusy(false); }
+  }
+  async function handleTgTest() {
+    setTgBusy(true);
+    const tId = toast.loading("Test message পাঠানো হচ্ছে…");
+    try {
+      await testTgFn();
+      toast.success("Telegram-এ message পাঠানো হয়েছে", { id: tId });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "ব্যর্থ", { id: tId });
+    } finally { setTgBusy(false); }
   }
 
   async function handleChangePassword() {
@@ -318,6 +368,56 @@ function ProfilePage() {
           {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
           {saving ? "সেভ হচ্ছে…" : "সেভ করুন"}
         </button>
+      </section>
+
+      {/* Telegram */}
+      <section className="rounded-2xl bg-white ring-1 ring-slate-200 p-5 space-y-4 shadow-soft">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="bn-display text-lg text-slate-900 flex items-center gap-2">
+            <Send className="h-5 w-5 text-sky-500" /> Telegram নোটিফিকেশন
+          </h2>
+          {tg?.connected ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 ring-1 ring-emerald-200">
+              <BadgeCheck className="h-3.5 w-3.5" /> সংযুক্ত
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600 ring-1 ring-slate-200">
+              সংযুক্ত নয়
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-slate-600 leading-relaxed">
+          Telegram সংযুক্ত করলে withdraw, task approval, package approval, ও admin support reply-এর সকল notification সরাসরি আপনার Telegram-এ চলে যাবে।
+        </p>
+
+        {tg?.connected ? (
+          <div className="space-y-3">
+            <div className="rounded-xl bg-sky-50 ring-1 ring-sky-200 p-3 text-sm">
+              <p className="font-semibold text-sky-900">✅ সফলভাবে সংযুক্ত</p>
+              {tg.username && <p className="mt-0.5 text-xs text-sky-700">@{tg.username}</p>}
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={handleTgTest} disabled={tgBusy}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-sky-500 py-2.5 text-sm font-bold text-white shadow hover:bg-sky-600 disabled:opacity-50">
+                <Send className="h-4 w-4" /> Test পাঠান
+              </button>
+              <button onClick={handleTgDisconnect} disabled={tgBusy}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-rose-50 py-2.5 text-sm font-bold text-rose-700 ring-1 ring-rose-200 hover:bg-rose-100 disabled:opacity-50">
+                <Unlink className="h-4 w-4" /> বিচ্ছিন্ন করুন
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <button onClick={handleTgConnect} disabled={!tg?.deepLink}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-500 py-3 text-base font-bold text-white shadow-lg disabled:opacity-40">
+              <LinkIcon className="h-5 w-5" /> Telegram Connect করুন
+            </button>
+            <p className="text-[11px] text-slate-500 text-center">
+              বাটনে চাপলে Telegram bot খুলবে → “Start” চাপুন → সংযোগ সম্পূর্ণ।
+            </p>
+          </div>
+        )}
       </section>
 
       {/* Security */}
