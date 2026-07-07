@@ -193,6 +193,12 @@ function NoticeCard({
           className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold text-white shadow bg-gradient-to-r ${notice.published ? "from-slate-500 to-slate-700" : "from-emerald-500 to-green-600"}`}>
           {notice.published ? <><EyeOff className="h-3.5 w-3.5" /> আনপাবলিশ</> : <><Eye className="h-3.5 w-3.5" /> প্রকাশ</>}
         </button>
+        {notice.published && (
+          <button onClick={onResend} title="Telegram-এ পুনরায় পাঠান"
+            className="grid h-9 w-9 place-items-center rounded-xl bg-sky-50 text-sky-600 hover:bg-sky-100">
+            <Send className="h-4 w-4" />
+          </button>
+        )}
         <button onClick={onEdit} className="grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200">
           <Pencil className="h-4 w-4" />
         </button>
