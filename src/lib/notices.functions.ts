@@ -120,16 +120,6 @@ export const saveNotice = createServerFn({ method: "POST" })
       expires_at: data.expires_at,
     };
 
-    let wasPublished = false;
-    if (data.id) {
-      const { data: previous } = await context.supabase
-        .from("notices")
-        .select("published")
-        .eq("id", data.id)
-        .maybeSingle();
-      wasPublished = !!(previous as { published?: boolean } | null)?.published;
-    }
-
     const { data: row, error } = await (context.supabase as any).rpc("admin_save_notice", {
       _actor: context.userId,
       _id: data.id,
@@ -137,9 +127,9 @@ export const saveNotice = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
     const notice = row as NoticeRow;
-    const telegram = data.published && !wasPublished
+    const telegram = data.published
       ? await sendNoticeToTelegramTargets(context.supabase, context.userId, notice)
-      : { sent: 0, failed: 0 };
+      : { sent: 0, failed: 0, recipients: 0 };
     return { notice, telegram };
   });
 
