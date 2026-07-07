@@ -173,6 +173,8 @@ async function completeConnectFromRecentUpdates(code: string): Promise<void> {
       await completeTelegramConnectFromCode({ code, chatId, username: msg?.from?.username ?? null });
       return;
     }
+
+    await ensureTelegramWebhook();
   } catch (e) {
     console.warn("[telegram] getUpdates fallback failed", e instanceof Error ? e.message : e);
   }
@@ -241,8 +243,7 @@ export const disconnectTelegram = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(() => ({}))
   .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
+    const { error } = await context.supabase
       .from("profiles")
       .update({
         telegram_chat_id: null,
@@ -260,9 +261,18 @@ export const sendTelegramTest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(() => ({}))
   .handler(async ({ context }) => {
-    const { notifyUserTelegram } = await import("./telegram.server");
-    const ok = await notifyUserTelegram(
-      context.userId,
+    const { data, error } = await context.supabase
+      .from("profiles")
+      .select("telegram_chat_id")
+      .eq("id", context.userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    const chatId = (data as { telegram_chat_id?: number | null } | null)?.telegram_chat_id;
+    if (!chatId) throw new Error("Telegram এখনো connected নয়");
+
+    const { sendTelegramMessage } = await import("./telegram.server");
+    const ok = await sendTelegramMessage(
+      chatId,
       "✅ <b>Smart Investor</b>\nআপনার Telegram সফলভাবে যুক্ত হয়েছে। এখন থেকে সকল গুরুত্বপূর্ণ notification এখানে পাবেন।",
     );
     if (!ok) throw new Error("Telegram এখনো connected নয়");
