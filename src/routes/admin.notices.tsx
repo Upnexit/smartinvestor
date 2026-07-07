@@ -155,10 +155,10 @@ function NoticesPage() {
 
 /* ---------------------------- Notice Card ---------------------------- */
 function NoticeCard({
-  notice, packages, onEdit, onDelete, onTogglePublish,
+  notice, packages, onEdit, onDelete, onTogglePublish, onResend,
 }: {
   notice: NoticeRow; packages: PackageOpt[];
-  onEdit: () => void; onDelete: () => void; onTogglePublish: () => void;
+  onEdit: () => void; onDelete: () => void; onTogglePublish: () => void; onResend: () => void;
 }) {
   const priorityStyle: Record<NoticePriority, string> = {
     info: "from-sky-500 to-indigo-600",
