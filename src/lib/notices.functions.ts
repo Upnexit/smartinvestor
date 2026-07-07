@@ -160,7 +160,7 @@ export const togglePublishNotice = createServerFn({ method: "POST" })
     const notice = row as NoticeRow;
     const telegram = data.published
       ? await sendNoticeToTelegramTargets(context.supabase, context.userId, notice)
-      : { sent: 0, failed: 0 };
+      : { sent: 0, failed: 0, recipients: 0 };
     return { notice, telegram };
   });
 
