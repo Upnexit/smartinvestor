@@ -72,6 +72,14 @@ export async function sendNoticeToTelegramTargets(
   return { sent, failed, recipients: recipients.length };
 }
 
+function envValue(name: string): string {
+  try {
+    return process.env?.[name] ?? "";
+  } catch {
+    return "";
+  }
+}
+
 function parseImprovedNotice(out: string) {
   const lines = out.split("\n").map((line) => line.trim()).filter(Boolean);
   let title = "";
@@ -91,7 +99,7 @@ function localNoticeFormat(raw: string) {
 }
 
 export async function improveNoticeTextWithAI(raw: string, priority: NoticePriority) {
-  const lovableKey = process.env.LOVABLE_API_KEY;
+  const lovableKey = envValue("LOVABLE_API_KEY");
   if (!lovableKey) return localNoticeFormat(raw);
 
   const { getBusinessContext } = await import("./ai-context.server");
