@@ -60,6 +60,7 @@ function ProfilePage() {
   const [tg, setTg] = useState<{ connected: boolean; username: string | null; connectedAt: string | null; botUsername: string; connectCode?: string | null; deepLink: string | null; configurationError?: string | null } | null>(null);
   const [tgBusy, setTgBusy] = useState(false);
   const [tgLoadError, setTgLoadError] = useState<string | null>(null);
+  const [tgReady, setTgReady] = useState(false);
   const [tgConnecting, setTgConnecting] = useState(false);
   const tgConnectingRef = useRef(false);
   const tgPollRef = useRef<number | null>(null);
@@ -122,7 +123,11 @@ function ProfilePage() {
     try {
       const r = await getTgFn({ data: { ensureWebhook, verifyUpdates } });
       const wasWaitingForTelegram = tgConnectingRef.current;
-      setTg(r);
+      setTg((current) => {
+        if (current?.connected && !r.connected && verifyUpdates) return current;
+        return r;
+      });
+      setTgReady(true);
       if (r.connected) {
         setTelegramWaiting(false);
         stopTgPolling();
@@ -131,8 +136,10 @@ function ProfilePage() {
     } catch (e) {
       try {
         await loadTgFallback();
+        setTgReady(true);
       } catch {
         setTgLoadError(e instanceof Error ? e.message : "Telegram link তৈরি করা যাচ্ছে না");
+        setTgReady(true);
       }
     }
   }, [getTgFn, loadTgFallback, setTelegramWaiting, stopTgPolling]);
@@ -140,12 +147,12 @@ function ProfilePage() {
   const startTgPolling = useCallback(() => {
     stopTgPolling();
     setTelegramWaiting(true);
-    window.setTimeout(() => void loadTg(false, true), 300);
-    tgPollRef.current = window.setInterval(() => void loadTg(false, true), 900);
+    window.setTimeout(() => void loadTg(false, true), 120);
+    tgPollRef.current = window.setInterval(() => void loadTg(false, true), 550);
     tgPollStopRef.current = window.setTimeout(() => {
       stopTgPolling();
       if (tgConnectingRef.current) setTelegramWaiting(false);
-    }, 30000);
+    }, 45000);
   }, [loadTg, setTelegramWaiting, stopTgPolling]);
 
   useEffect(() => {
@@ -305,6 +312,9 @@ function ProfilePage() {
   }
 
   if (!profile) return <div className="h-72 rounded-2xl bg-slate-100 animate-pulse" />;
+
+  const telegramConnected = tg?.connected === true;
+  const telegramLoading = !tgReady && !tg;
 
   // Profile completion percentage
   const checks = [
@@ -488,7 +498,7 @@ function ProfilePage() {
           <h2 className="bn-display text-lg text-slate-900 flex items-center gap-2">
             <Send className="h-5 w-5 text-sky-500" /> Telegram নোটিফিকেশন
           </h2>
-          {tg?.connected ? (
+          {telegramConnected ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 ring-1 ring-emerald-200">
               <BadgeCheck className="h-3.5 w-3.5" /> সংযুক্ত
             </span>
@@ -502,7 +512,7 @@ function ProfilePage() {
           Telegram সংযুক্ত করলে withdraw, task approval, package approval, ও admin support reply-এর সকল notification সরাসরি আপনার Telegram-এ চলে যাবে।
         </p>
 
-        {tg?.connected ? (
+        {telegramConnected ? (
           <div className="space-y-3">
             <div className="rounded-xl bg-sky-50 ring-1 ring-sky-200 p-3 text-sm">
               <p className="font-semibold text-sky-900">✅ সফলভাবে সংযুক্ত</p>
@@ -519,6 +529,14 @@ function ProfilePage() {
               </button>
             </div>
           </div>
+        ) : telegramLoading ? (
+          <button
+            type="button"
+            disabled
+            className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-200 py-3 text-base font-bold text-slate-700"
+          >
+            <Loader2 className="h-5 w-5 animate-spin" /> Telegram status যাচাই হচ্ছে…
+          </button>
         ) : (
           <div className="space-y-2">
             {tg?.deepLink ? (
