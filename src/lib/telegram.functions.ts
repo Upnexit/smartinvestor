@@ -231,6 +231,7 @@ export const getTelegramStatus = createServerFn({ method: "GET" })
       botUsername,
       connectCode: code,
       deepLink,
+      fallback: input.verifyUpdates && !finalChatId,
       configurationError: botUsername ? null : "Telegram bot username configure করা নেই",
     };
   });

@@ -1242,6 +1242,20 @@ export type Database = {
         }[]
       }
       purge_old_activity_logs: { Args: never; Returns: undefined }
+      telegram_connect_account: {
+        Args: { _chat_id: number; _code: string; _username?: string }
+        Returns: {
+          full_name: string
+          user_id: string
+        }[]
+      }
+      telegram_find_account_by_chat: {
+        Args: { _chat_id: number }
+        Returns: {
+          full_name: string
+          user_code: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "user" | "distributor"
