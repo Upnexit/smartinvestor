@@ -7,6 +7,14 @@ const TG_API = "https://api.telegram.org";
 
 let _publicSupabase: ReturnType<typeof createClient> | null = null;
 
+function envValue(name: string): string {
+  try {
+    return process.env?.[name] ?? "";
+  } catch {
+    return "";
+  }
+}
+
 function getPublicSupabase() {
   if (!_publicSupabase) {
     const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } = resolveSupabasePublicEnv();
@@ -18,7 +26,7 @@ function getPublicSupabase() {
 }
 
 function botToken(): string {
-  const t = process.env.TELEGRAM_BOT_TOKEN;
+  const t = envValue("TELEGRAM_BOT_TOKEN");
   if (!t) throw new Error("TELEGRAM_BOT_TOKEN not configured");
   return t;
 }

@@ -21,8 +21,16 @@ const INLINE_KEYBOARD = {
   ],
 };
 
+function envValue(name: string): string {
+  try {
+    return process.env?.[name] ?? "";
+  } catch {
+    return "";
+  }
+}
+
 async function tgApi(method: string, body: Record<string, unknown>) {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const token = envValue("TELEGRAM_BOT_TOKEN");
   if (!token) return null;
   return fetch(`https://api.telegram.org/bot${token}/${method}`, {
     method: "POST",
@@ -91,7 +99,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
     handlers: {
       POST: async ({ request }) => {
         // Optional shared secret: Telegram sends X-Telegram-Bot-Api-Secret-Token
-        const expected = process.env.TELEGRAM_WEBHOOK_SECRET;
+        const expected = envValue("TELEGRAM_WEBHOOK_SECRET");
         if (expected) {
           const got = request.headers.get("x-telegram-bot-api-secret-token") ?? "";
           if (got !== expected) return new Response("Unauthorized", { status: 401 });

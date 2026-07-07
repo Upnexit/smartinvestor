@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertAdmin, improveNoticeTextWithAI, sendNoticeToTelegramTargets } from "./notices.server";
 
 export type NoticePriority = "info" | "warning" | "critical";
 
@@ -17,62 +18,6 @@ export type NoticeRow = {
 };
 
 /* ------------------------------ ADMIN OPS ------------------------------ */
-
-async function assertAdmin(supabase: any, userId: string) {
-  const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
-  if (error || !data) throw new Error("forbidden");
-}
-
-function priorityLabel(priority: NoticePriority) {
-  if (priority === "critical") return "🚨 জরুরি";
-  if (priority === "warning") return "⚠️ সতর্কতা";
-  return "ℹ️ নোটিশ";
-}
-
-async function sendNoticeToTelegramTargets(
-  _supabase: any,
-  actorId: string,
-  notice: NoticeRow,
-): Promise<{ sent: number; failed: number; recipients: number }> {
-  if (!notice.published) return { sent: 0, failed: 0, recipients: 0 };
-
-  const targets = Array.isArray(notice.target_package_ids) ? notice.target_package_ids : [];
-
-  // Use admin client so recipient lookup and delivery are not affected by RLS
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await (supabaseAdmin as any).rpc("telegram_notice_recipients", {
-    _actor: actorId,
-    _target_all_users: !!notice.target_all_users,
-    _target_package_ids: targets,
-  });
-  if (error) {
-    console.error("[notice] telegram_notice_recipients failed:", error.message);
-    return { sent: 0, failed: 0, recipients: 0 };
-  }
-
-  const recipients = ((data ?? []) as Array<{ chat_id?: number | string | null; full_name?: string | null }>)
-    .filter((r) => r.chat_id != null);
-  if (recipients.length === 0) return { sent: 0, failed: 0, recipients: 0 };
-
-  const { sendTelegramMessage } = await import("./telegram.server");
-  const text = `${priorityLabel(notice.priority)} <b>${notice.title}</b>\n\n${notice.body}`;
-  const results = await Promise.all(
-    recipients.map((r) =>
-      sendTelegramMessage(r.chat_id as number | string, text, {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: "💰 ব্যালেন্স", callback_data: "balance" }, { text: "📦 প্যাকেজ", callback_data: "package" }],
-            [{ text: "📊 স্ট্যাটাস", callback_data: "status" }],
-          ],
-        },
-      }),
-    ),
-  );
-  const sent = results.filter(Boolean).length;
-  const failed = results.length - sent;
-  if (failed > 0) console.warn(`[notice] telegram: ${sent}/${recipients.length} sent, ${failed} failed`);
-  return { sent, failed, recipients: recipients.length };
-}
 
 export const listAdminNotices = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -244,29 +189,6 @@ export const dismissNotice = createServerFn({ method: "POST" })
 
 /* ------------------------- AI IMPROVE (Bangla) ------------------------- */
 
-async function callGatewayLovable(system: string, user: string, key: string): Promise<string> {
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Lovable-API-Key": key,
-      "X-Lovable-AIG-SDK": "smart-investor-notices",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
-      messages: [{ role: "system", content: system }, { role: "user", content: user }],
-    }),
-  });
-  if (!res.ok) {
-    const t = await res.text().catch(() => "");
-    if (res.status === 429) throw new Error("AI ব্যস্ত — কিছুক্ষণ পরে চেষ্টা করুন");
-    if (res.status === 402) throw new Error("AI ক্রেডিট শেষ");
-    throw new Error(`Lovable ${res.status}: ${t.slice(0, 160)}`);
-  }
-  const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-  return json.choices?.[0]?.message?.content?.trim() ?? "";
-}
-
 export const improveNoticeText = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { raw: string; priority?: NoticePriority }) => ({
@@ -276,37 +198,6 @@ export const improveNoticeText = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
     if (!data.raw) throw new Error("কোনো টেক্সট পাওয়া যায়নি");
-
-    const lovableKey = process.env.LOVABLE_API_KEY;
-    if (!lovableKey) throw new Error("LOVABLE_API_KEY configure করা নেই");
-
-    const { getBusinessContext } = await import("./ai-context.server");
-    const ctx = await getBusinessContext();
-
-    const system = `You rewrite raw Bengali speech-to-text notes into short, professional Bangla notices for the Smart Investor platform.
-
-STRICT OUTPUT:
-Line 1: শিরোনাম: <short 4-8 word title in Bengali>
-Line 2 onwards: notice body — 2-6 short, clear Bangla sentences or bullets (use "•").
-No preface, no code fences, no markdown headings, no English unless a brand name.
-Tone: ${data.priority === "critical" ? "জরুরি ও সরাসরি" : data.priority === "warning" ? "সতর্কতামূলক ও নম্র" : "বন্ধুত্বপূর্ণ ও তথ্যবহুল"}.
-
-${ctx}`;
-
-    const user = `Raw voice/text note from admin:\n"""${data.raw}"""\n\nএটিকে উপরের format-এ পরিষ্কার Bangla notice হিসেবে rewrite করুন। বানান, বিরাম, বাক্যগঠন সব ঠিক করুন। অতিরিক্ত তথ্য বানাবেন না।`;
-
-    const out = await callGatewayLovable(system, user, lovableKey);
-    if (!out) throw new Error("AI থেকে উত্তর পাওয়া যায়নি");
-
-    // Parse "শিরোনাম: ..." from line 1
-    const lines = out.split("\n").map((l) => l.trim()).filter(Boolean);
-    let title = "";
-    let bodyStart = 0;
-    if (lines[0] && /^শিরোনাম\s*[:：]/.test(lines[0])) {
-      title = lines[0].replace(/^শিরোনাম\s*[:：]\s*/, "").trim();
-      bodyStart = 1;
-    }
-    const body = lines.slice(bodyStart).join("\n").trim() || out;
-    return { title: title.slice(0, 200), body: body.slice(0, 4000) };
+    return improveNoticeTextWithAI(data.raw, data.priority);
   });
 
