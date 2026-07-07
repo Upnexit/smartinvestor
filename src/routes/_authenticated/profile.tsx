@@ -370,6 +370,56 @@ function ProfilePage() {
         </button>
       </section>
 
+      {/* Telegram */}
+      <section className="rounded-2xl bg-white ring-1 ring-slate-200 p-5 space-y-4 shadow-soft">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="bn-display text-lg text-slate-900 flex items-center gap-2">
+            <Send className="h-5 w-5 text-sky-500" /> Telegram নোটিফিকেশন
+          </h2>
+          {tg?.connected ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 ring-1 ring-emerald-200">
+              <BadgeCheck className="h-3.5 w-3.5" /> সংযুক্ত
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-600 ring-1 ring-slate-200">
+              সংযুক্ত নয়
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-slate-600 leading-relaxed">
+          Telegram সংযুক্ত করলে withdraw, task approval, package approval, ও admin support reply-এর সকল notification সরাসরি আপনার Telegram-এ চলে যাবে।
+        </p>
+
+        {tg?.connected ? (
+          <div className="space-y-3">
+            <div className="rounded-xl bg-sky-50 ring-1 ring-sky-200 p-3 text-sm">
+              <p className="font-semibold text-sky-900">✅ সফলভাবে সংযুক্ত</p>
+              {tg.username && <p className="mt-0.5 text-xs text-sky-700">@{tg.username}</p>}
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={handleTgTest} disabled={tgBusy}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-sky-500 py-2.5 text-sm font-bold text-white shadow hover:bg-sky-600 disabled:opacity-50">
+                <Send className="h-4 w-4" /> Test পাঠান
+              </button>
+              <button onClick={handleTgDisconnect} disabled={tgBusy}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-rose-50 py-2.5 text-sm font-bold text-rose-700 ring-1 ring-rose-200 hover:bg-rose-100 disabled:opacity-50">
+                <Unlink className="h-4 w-4" /> বিচ্ছিন্ন করুন
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <button onClick={handleTgConnect} disabled={!tg?.deepLink}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-500 py-3 text-base font-bold text-white shadow-lg disabled:opacity-40">
+              <LinkIcon className="h-5 w-5" /> Telegram Connect করুন
+            </button>
+            <p className="text-[11px] text-slate-500 text-center">
+              বাটনে চাপলে Telegram bot খুলবে → “Start” চাপুন → সংযোগ সম্পূর্ণ।
+            </p>
+          </div>
+        )}
+      </section>
+
       {/* Security */}
       <section className="rounded-2xl bg-white ring-1 ring-slate-200 p-5 space-y-4 shadow-soft">
         <h2 className="bn-display text-lg text-slate-900 flex items-center gap-2"><Lock className="h-5 w-5 text-amber-500" /> নিরাপত্তা</h2>
