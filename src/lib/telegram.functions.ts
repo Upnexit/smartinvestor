@@ -6,6 +6,33 @@ let _webhookEnsuredFor: string | null = null;
 
 const FALLBACK_BOT_USERNAME = "smartinvestornotifybot_bot";
 
+function cleanOrigin(value: string): string {
+  return value.trim().replace(/\/$/, "");
+}
+
+function stableLovableOriginFromUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.host;
+    const hostname = parsed.hostname;
+
+    if (hostname === "localhost" || hostname === "127.0.0.1") return null;
+    if (/^project--[^.]+-dev\./.test(hostname) || /^project--[^.]+\./.test(hostname)) {
+      return `https://${host}`;
+    }
+
+    const bridgedPreview = hostname.match(/^(?:id-preview|preview)--([^.]+)\.(.+)$/);
+    if (bridgedPreview) return `https://project--${bridgedPreview[1]}-dev.${bridgedPreview[2]}`;
+
+    const legacyPreview = hostname.match(/^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.lovableproject(?:-dev)?\.com$/i);
+    if (legacyPreview) return `https://project--${legacyPreview[1]}-dev.lovable.app`;
+
+    return `${parsed.protocol}//${host}`;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchTelegram(token: string, method: string, init?: RequestInit) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 4500);
@@ -45,18 +72,19 @@ async function ensureTelegramWebhook(): Promise<void> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) return;
 
-  let origin = (process.env.TELEGRAM_WEBHOOK_BASE_URL || process.env.PUBLIC_SITE_URL || process.env.SITE_URL || "").trim();
+  let requestOrigin = "";
+  try {
+    const { getRequest } = await import("@tanstack/react-start/server");
+    requestOrigin = stableLovableOriginFromUrl(getRequest().url) ?? "";
+  } catch {
+    requestOrigin = "";
+  }
+
+  let origin = cleanOrigin(process.env.TELEGRAM_WEBHOOK_BASE_URL || process.env.PUBLIC_SITE_URL || process.env.SITE_URL || "");
   const projectId = process.env.LOVABLE_PROJECT_ID;
   if (!origin && projectId) origin = `https://project--${projectId}-dev.lovable.app`;
-  if (!origin) {
-    try {
-      const { getRequest } = await import("@tanstack/react-start/server");
-      origin = new URL(getRequest().url).origin;
-    } catch {
-      origin = "";
-    }
-  }
-  origin = origin.replace(/\/$/, "");
+  if (!origin) origin = requestOrigin;
+  origin = cleanOrigin(stableLovableOriginFromUrl(origin) ?? origin);
   if (!origin || origin.includes("localhost")) return;
 
   const webhookUrl = `${origin}/api/public/telegram/webhook`;
@@ -87,8 +115,8 @@ async function ensureTelegramWebhook(): Promise<void> {
 /** Get connection status + a fresh deep-link if not connected. */
 export const getTelegramStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(() => ({}))
-  .handler(async ({ context }) => {
+  .inputValidator((data?: { ensureWebhook?: boolean }) => ({ ensureWebhook: data?.ensureWebhook !== false }))
+  .handler(async ({ data: input, context }) => {
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("profiles")
@@ -97,10 +125,8 @@ export const getTelegramStatus = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw new Error(error.message);
 
-    const [botUsername] = await Promise.all([
-      resolveBotUsername(),
-      ensureTelegramWebhook(),
-    ]);
+    const botUsername = await resolveBotUsername();
+    if (input.ensureWebhook) await ensureTelegramWebhook();
     let code = (data as { telegram_connect_code?: string | null } | null)?.telegram_connect_code ?? null;
     const chatId = (data as { telegram_chat_id?: number | null } | null)?.telegram_chat_id ?? null;
 
