@@ -62,8 +62,8 @@ function ProfilePage() {
   const [tgLoadError, setTgLoadError] = useState<string | null>(null);
   const [tgConnecting, setTgConnecting] = useState(false);
   const tgConnectingRef = useRef(false);
-  const tgPollRef = useRef<ReturnType<typeof window.setInterval> | null>(null);
-  const tgPollStopRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const tgPollRef = useRef<number | null>(null);
+  const tgPollStopRef = useRef<number | null>(null);
 
   const setTelegramWaiting = useCallback((waiting: boolean) => {
     tgConnectingRef.current = waiting;
