@@ -160,6 +160,13 @@ export const togglePublishNotice = createServerFn({ method: "POST" })
       _actor: context.userId,
       _id: data.id,
       _published: data.published,
+    });
+    if (error) throw new Error(error.message);
+    const notice = row as NoticeRow;
+    const telegram = data.published
+      ? await sendNoticeToTelegramTargets(context.supabase, context.userId, notice)
+      : { sent: 0, failed: 0, recipients: 0 };
+    return { notice, telegram };
   });
 
 export const resendNoticeToTelegram = createServerFn({ method: "POST" })
@@ -177,13 +184,6 @@ export const resendNoticeToTelegram = createServerFn({ method: "POST" })
     const notice = { ...(row as NoticeRow), published: true };
     const telegram = await sendNoticeToTelegramTargets(context.supabase, context.userId, notice);
     return { telegram };
-  });
-    if (error) throw new Error(error.message);
-    const notice = row as NoticeRow;
-    const telegram = data.published
-      ? await sendNoticeToTelegramTargets(context.supabase, context.userId, notice)
-      : { sent: 0, failed: 0, recipients: 0 };
-    return { notice, telegram };
   });
 
 /* ------------------------------ USER OPS ------------------------------ */
