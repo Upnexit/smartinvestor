@@ -33,8 +33,8 @@ async function sendNoticeToTelegramTargets(
   supabase: any,
   actorId: string,
   notice: NoticeRow,
-): Promise<{ sent: number; failed: number }> {
-  if (!notice.published) return { sent: 0, failed: 0 };
+): Promise<{ sent: number; failed: number; recipients: number }> {
+  if (!notice.published) return { sent: 0, failed: 0, recipients: 0 };
 
   const targets = Array.isArray(notice.target_package_ids) ? notice.target_package_ids : [];
   const { data, error } = await supabase.rpc("telegram_notice_recipients", {
@@ -44,30 +44,29 @@ async function sendNoticeToTelegramTargets(
   });
   if (error) {
     console.warn("telegram notice recipients failed:", error.message);
-    return { sent: 0, failed: 0 };
+    return { sent: 0, failed: 0, recipients: 0 };
   }
 
-  const recipients = (data ?? []) as Array<{ chat_id?: number | string | null; full_name?: string | null }>;
-  if (recipients.length === 0) return { sent: 0, failed: 0 };
+  const recipients = ((data ?? []) as Array<{ chat_id?: number | string | null; full_name?: string | null }>)
+    .filter((r) => r.chat_id != null);
+  if (recipients.length === 0) return { sent: 0, failed: 0, recipients: 0 };
 
   const { sendTelegramMessage } = await import("./telegram.server");
   const text = `${priorityLabel(notice.priority)} <b>${notice.title}</b>\n\n${notice.body}`;
-  let sent = 0;
-  let failed = 0;
-  for (const recipient of recipients) {
-    if (!recipient.chat_id) continue;
-    const ok = await sendTelegramMessage(recipient.chat_id, text, {
-      reply_markup: {
-        inline_keyboard: [
-          [{ text: "💰 ব্যালেন্স", callback_data: "balance" }, { text: "📦 প্যাকেজ", callback_data: "package" }],
-          [{ text: "📊 স্ট্যাটাস", callback_data: "status" }],
-        ],
-      },
-    });
-    if (ok) sent += 1;
-    else failed += 1;
-  }
-  return { sent, failed };
+  const results = await Promise.all(
+    recipients.map((r) =>
+      sendTelegramMessage(r.chat_id as number | string, text, {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: "💰 ব্যালেন্স", callback_data: "balance" }, { text: "📦 প্যাকেজ", callback_data: "package" }],
+            [{ text: "📊 স্ট্যাটাস", callback_data: "status" }],
+          ],
+        },
+      }),
+    ),
+  );
+  const sent = results.filter(Boolean).length;
+  return { sent, failed: results.length - sent, recipients: recipients.length };
 }
 
 export const listAdminNotices = createServerFn({ method: "GET" })
