@@ -1,7 +1,21 @@
 // Server-only Telegram Bot API helper.
 // Uses direct Telegram Bot API (no gateway).
+import { createClient } from "@supabase/supabase-js";
+import { resolveSupabasePublicEnv } from "@/integrations/supabase/config";
 
 const TG_API = "https://api.telegram.org";
+
+let _publicSupabase: ReturnType<typeof createClient> | null = null;
+
+function getPublicSupabase() {
+  if (!_publicSupabase) {
+    const { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } = resolveSupabasePublicEnv();
+    _publicSupabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+    });
+  }
+  return _publicSupabase;
+}
 
 function botToken(): string {
   const t = process.env.TELEGRAM_BOT_TOKEN;
@@ -45,42 +59,38 @@ export async function completeTelegramConnectFromCode({
   const connectCode = code.trim();
   if (!connectCode) return { ok: false, reason: "missing_code" };
 
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: profile, error: findError } = await supabaseAdmin
-    .from("profiles")
-    .select("id, full_name")
-    .eq("telegram_connect_code", connectCode)
-    .maybeSingle();
+  const { data, error } = await (getPublicSupabase() as any).rpc("telegram_connect_account", {
+    _code: connectCode,
+    _chat_id: chatId,
+    _username: username ?? null,
+  });
 
-  if (findError) {
-    console.error("telegram connect lookup error:", findError.message);
+  if (error) {
+    const message = String(error.message ?? "");
+    if (message.toLowerCase().includes("invalid connect code")) return { ok: false, reason: "invalid_code" };
+    console.error("telegram connect rpc error:", message);
     return { ok: false, reason: "database_error" };
   }
-  if (!profile) return { ok: false, reason: "invalid_code" };
 
-  const userId = (profile as { id: string }).id;
-  const { error: updateError } = await supabaseAdmin
-    .from("profiles")
-    .update({
-      telegram_chat_id: chatId,
-      telegram_username: username ?? null,
-      telegram_connected_at: new Date().toISOString(),
-      telegram_connect_code: null,
-    })
-    .eq("id", userId);
+  const profile = Array.isArray(data) ? data[0] : data;
+  if (!profile?.user_id) return { ok: false, reason: "invalid_code" };
 
-  if (updateError) {
-    console.error("telegram connect update error:", updateError.message);
-    return { ok: false, userId, reason: "database_error" };
-  }
-
-  const name = (profile as { full_name?: string | null }).full_name || "বন্ধু";
+  const name = profile.full_name || "বন্ধু";
   await sendTelegramMessage(
     chatId,
     `✅ <b>সফলভাবে সংযুক্ত হয়েছে!</b>\n\nস্বাগতম, ${name} 🎉\n\nএখন থেকে withdraw, task, package, ও support সংক্রান্ত সকল notification এখানে পাবেন।`,
   );
 
-  return { ok: true, userId };
+  return { ok: true, userId: profile.user_id };
+}
+
+export async function findTelegramAccountByChat(chatId: number): Promise<{ full_name?: string | null; user_code?: string | null } | null> {
+  const { data, error } = await (getPublicSupabase() as any).rpc("telegram_find_account_by_chat", { _chat_id: chatId });
+  if (error) {
+    console.error("telegram status rpc error:", error.message);
+    return null;
+  }
+  return Array.isArray(data) ? (data[0] ?? null) : (data ?? null);
 }
 
 /** Notify a user by Supabase user id (fetches telegram_chat_id). */
