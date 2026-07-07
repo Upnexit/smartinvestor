@@ -38,7 +38,9 @@ type Profile = {
 
 function ProfilePage() {
   const updateEmailFn = useServerFn(updateMyEmail);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const getTgFn = useServerFn(getTelegramStatus);
+  const disconnectTgFn = useServerFn(disconnectTelegram);
+  const testTgFn = useServerFn(sendTelegramTest);
   const [fullName, setFullName] = useState("");
   const [emailDraft, setEmailDraft] = useState("");
   const [emailEditing, setEmailEditing] = useState(false);
