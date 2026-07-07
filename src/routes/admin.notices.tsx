@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Megaphone, Mic, MicOff, Sparkles, Plus, Trash2, Send, Eye, EyeOff, Loader2, AlertTriangle, Info, Users, X, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import {
   listAdminNotices, saveNotice, deleteNotice, togglePublishNotice, improveNoticeText,
   type NoticeRow, type NoticePriority,
@@ -70,7 +71,8 @@ function NoticesPage() {
     await refresh();
   }
   async function onTogglePublish(n: NoticeRow) {
-    await pubFn({ data: { id: n.id, published: !n.published } });
+    const r = await pubFn({ data: { id: n.id, published: !n.published } });
+    if (!n.published && r.telegram?.sent) toast.success(`Telegram-এ ${r.telegram.sent} জনকে notice পাঠানো হয়েছে`);
     await refresh();
   }
 
@@ -259,7 +261,7 @@ function NoticeFormModal({
     if (!allUsers && pkgIds.length === 0) { setError("অন্তত একটি package select করুন অথবা 'সব user' চিহ্নিত করুন"); return; }
     setSaving(true); setError(null);
     try {
-      await saveFn({ data: {
+      const r = await saveFn({ data: {
         id: initial?.id ?? null,
         title: title.trim(),
         body: body.trim(),
@@ -269,6 +271,7 @@ function NoticeFormModal({
         published: publishNow,
         expires_at: expiresAt ? new Date(expiresAt + "T23:59:59").toISOString() : null,
       }});
+      if (publishNow && r.telegram?.sent) toast.success(`Telegram-এ ${r.telegram.sent} জনকে notice পাঠানো হয়েছে`);
       onSaved();
     } catch (e) { setError((e as Error).message); }
     finally { setSaving(false); }

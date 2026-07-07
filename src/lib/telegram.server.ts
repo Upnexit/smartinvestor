@@ -79,12 +79,30 @@ export async function completeTelegramConnectFromCode({
   await sendTelegramMessage(
     chatId,
     `✅ <b>সফলভাবে সংযুক্ত হয়েছে!</b>\n\nস্বাগতম, ${name} 🎉\n\nএখন থেকে withdraw, task, package, ও support সংক্রান্ত সকল notification এখানে পাবেন।`,
+    {
+      reply_markup: {
+        keyboard: [
+          [{ text: "💰 ব্যালেন্স" }, { text: "📦 প্যাকেজ" }],
+          [{ text: "📊 স্ট্যাটাস" }, { text: "❓ সাহায্য" }],
+        ],
+        resize_keyboard: true,
+        one_time_keyboard: false,
+      },
+    },
   );
 
   return { ok: true, userId: profile.user_id };
 }
 
-export async function findTelegramAccountByChat(chatId: number): Promise<{ full_name?: string | null; user_code?: string | null } | null> {
+export async function findTelegramAccountByChat(chatId: number): Promise<{
+  full_name?: string | null;
+  user_code?: string | null;
+  balance?: number | null;
+  locked_balance?: number | null;
+  total_earned?: number | null;
+  active_package?: string | null;
+  package_expires_at?: string | null;
+} | null> {
   const { data, error } = await (getPublicSupabase() as any).rpc("telegram_find_account_by_chat", { _chat_id: chatId });
   if (error) {
     console.error("telegram status rpc error:", error.message);
