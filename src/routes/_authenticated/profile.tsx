@@ -152,6 +152,7 @@ function ProfilePage() {
         { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${profile.id}` },
         (payload) => {
           const row = payload.new as { telegram_chat_id?: number | null; telegram_username?: string | null; telegram_connect_code?: string | null; telegram_connected_at?: string | null };
+          const wasWaitingForTelegram = tgConnecting;
           setTg((current) => ({
             connected: !!row.telegram_chat_id,
             username: row.telegram_username ?? null,
@@ -165,13 +166,13 @@ function ProfilePage() {
           }));
           if (row.telegram_chat_id) {
             setTgConnecting(false);
-            toast.success("Telegram সফলভাবে সংযুক্ত হয়েছে");
+            if (wasWaitingForTelegram) toast.success("Telegram সফলভাবে সংযুক্ত হয়েছে");
           }
         },
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [profile?.id]);
+  }, [profile?.id, tgConnecting]);
 
   // Poll Telegram status quickly while waiting for the user to press Start in Telegram.
   useEffect(() => {
