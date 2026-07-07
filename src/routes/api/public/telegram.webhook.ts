@@ -78,12 +78,8 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
         }
 
         if (text === "/status") {
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { data } = await supabaseAdmin
-            .from("profiles")
-            .select("full_name, user_code")
-            .eq("telegram_chat_id", chatId)
-            .maybeSingle();
+          const { findTelegramAccountByChat } = await import("@/lib/telegram.server");
+          const data = await findTelegramAccountByChat(chatId);
           if (data) {
             const p = data as { full_name?: string | null; user_code?: string | null };
             await tgSend(chatId, `✅ সংযুক্ত: <b>${p.full_name ?? ""}</b> (${p.user_code ?? ""})`);
