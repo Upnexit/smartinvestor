@@ -95,13 +95,27 @@ export async function findTelegramAccountByChat(chatId: number): Promise<{ full_
 
 /** Notify a user by Supabase user id (fetches telegram_chat_id). */
 export async function notifyUserTelegram(userId: string, text: string, extra: Record<string, unknown> = {}) {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin
-    .from("profiles")
-    .select("telegram_chat_id")
-    .eq("id", userId)
-    .maybeSingle();
-  const chatId = (data as { telegram_chat_id?: number | null } | null)?.telegram_chat_id;
+  let chatId: number | string | null = null;
+
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("profiles")
+      .select("telegram_chat_id")
+      .eq("id", userId)
+      .maybeSingle();
+    chatId = (data as { telegram_chat_id?: number | null } | null)?.telegram_chat_id ?? null;
+  } catch (e) {
+    console.warn("telegram admin chat lookup fallback:", e instanceof Error ? e.message : e);
+  }
+
+  if (!chatId) {
+    const { data, error } = await (getPublicSupabase() as any).rpc("telegram_chat_for_user", { _user_id: userId });
+    if (error) console.error("telegram chat rpc error:", error.message);
+    const row = Array.isArray(data) ? data[0] : data;
+    chatId = row?.chat_id ?? null;
+  }
+
   if (!chatId) return false;
   return sendTelegramMessage(chatId, text, extra);
 }

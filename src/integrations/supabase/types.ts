@@ -1242,6 +1242,12 @@ export type Database = {
         }[]
       }
       purge_old_activity_logs: { Args: never; Returns: undefined }
+      telegram_chat_for_user: {
+        Args: { _user_id: string }
+        Returns: {
+          chat_id: number
+        }[]
+      }
       telegram_connect_account: {
         Args: { _chat_id: number; _code: string; _username?: string }
         Returns: {
