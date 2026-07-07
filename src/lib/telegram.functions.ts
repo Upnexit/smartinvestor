@@ -46,6 +46,8 @@ async function ensureTelegramWebhook(): Promise<void> {
   if (!token) return;
 
   let origin = (process.env.TELEGRAM_WEBHOOK_BASE_URL || process.env.PUBLIC_SITE_URL || process.env.SITE_URL || "").trim();
+  const projectId = process.env.LOVABLE_PROJECT_ID;
+  if (!origin && projectId) origin = `https://project--${projectId}-dev.lovable.app`;
   if (!origin) {
     try {
       const { getRequest } = await import("@tanstack/react-start/server");
