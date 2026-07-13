@@ -1,5 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
-export type { GeneratedTask } from "./admin-tasks.server";
+
+export type GeneratedTask = {
+  title: string;
+  url: string;
+  action_type: "like" | "follow" | "share" | "comment" | "subscribe" | "view";
+  description: string;
+};
 
 export const generateFbLinkTasks = createServerFn({ method: "POST" })
   .inputValidator((d: {
