@@ -74,7 +74,7 @@ export const listDistributorTaskActivity = createServerFn({ method: "POST" })
         id: l.id,
         event_type: l.event_type,
         created_at: l.created_at,
-        meta: (l.meta ?? {}) as Record<string, unknown>,
+        meta: (l.meta ?? {}) as Json,
         user_id: l.user_id,
         distributor_name: p?.full_name ?? p?.user_code ?? null,
         distributor_email: p?.email ?? null,
