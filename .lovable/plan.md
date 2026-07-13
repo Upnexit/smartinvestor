@@ -1,113 +1,159 @@
 
-# ডিস্ট্রিবিউটরকে সবসময় ব্যস্ত রাখার পরিকল্পনা
+# ডিস্ট্রিবিউটর — Revised Detailed Plan
 
-বর্তমানে ডিস্ট্রিবিউটর শুধু refer করে কমিশন পায় — কোনো নিয়মিত কাজ নেই। এতে তারা active থাকে না, dropout বাড়ে। নিচে ৭টি কাজের ক্ষেত্র প্রস্তাব করছি, যেগুলো ডিস্ট্রিবিউটরকে daily/weekly ব্যস্ত রাখবে এবং business-এ value যোগ করবে।
+আপনার সিদ্ধান্ত অনুযায়ী তিনটি মূল feature বাস্তবায়ন হবে:
 
----
-
-## ১. Onboarding & User Support (Primary Duty)
-
-ডিস্ট্রিবিউটর তার নিজের রেফার করা user-দের জন্য একজন **local mentor/support agent** হবে।
-
-- **New user welcome call** — প্রতিটি নতুন referred user-কে ২৪ ঘণ্টার মধ্যে call/message করে welcome ও guide করা (checklist সহ)।
-- **Package purchase assist** — যেসব referred user এখনো package কেনেনি (pending status), তাদের follow-up করা।
-- **Task help** — user-রা যদি link task-এ আটকে যায়, ডিস্ট্রিবিউটর WhatsApp/call-এ সাহায্য করবে।
-
-**Track:** Panel-এ "Pending Users" list — যারা package কেনেনি; "Inactive Users" list — যারা ৩ দিন login করেনি।
+1. **Distributor Task Management** (AI দিয়ে task generate — admin-এর মতো panel + customization)
+2. **Lead CRM** (Phase 2-এর দ্বিতীয় অংশ)
+3. **Withdrawal Tax Commission** (তার under user withdraw দিলে ২% tax auto distributor-এর balance-এ)
 
 ---
 
-## ২. Daily Check-in / Attendance Task
+## ১. Distributor Task Management System
 
-প্রতিদিন login করে একটি ছোট task complete করলে **daily bonus** (৫–২০ টাকা)।
+### কী কী থাকবে
 
-- Daily login streak
-- ৩–৫টি নতুন lead contact log করা (নাম + phone + status: interested/not)
-- ছোট quiz বা training video দেখা
+ডিস্ট্রিবিউটরের নিজস্ব task panel (admin-এর task page-এর mirror + customization):
 
-**Impact:** habit তৈরি হবে, panel-এ প্রতিদিন আসবে।
+- **Task Generator (AI)**
+  - Lovable AI (Gemini) দিয়ে Facebook page-based link task generate হবে
+  - Distributor "Generate" button-এ click করলে একসাথে N টা task তৈরি হবে (N = তার daily limit)
+  - প্রতিটি task-এ: FB page link, action type (like/comment/follow/share), reward amount, instruction
+  
+- **Daily Task Limit Customization**
+  - Distributor নিজে select করবে সে প্রতিদিন কতগুলো task তার referred user-দের দেবে (৩ / ৫ / ১০ / ১৫)
+  - এটি তার settings-এ save হবে
 
----
+- **Manual Verification & Auto-Regenerate**
+  - Distributor প্রতিটি generated task-এর FB page manual verify করবে (link খুলে দেখবে page live আছে কিনা)
+  - যদি page বন্ধ/deleted থাকে → "Delete & Regenerate" button; AI নতুন task generate করে replace করবে
+  - Verified tasks-ই তার referred user-দের daily task pool-এ যাবে
 
-## ৩. Lead CRM (নতুন Feature)
+- **Instruction Manual Button**
+  - Distributor panel-এ prominent "📖 Manual/Instruction" button
+  - Click করলে detailed guide (কীভাবে task generate, verify, publish করবে — Bangla-তে)
 
-ডিস্ট্রিবিউটরের জন্য একটি mini-CRM যেখানে সে potential customer-দের track করবে:
+- **Active Users View**
+  - তার referred user-দের মধ্যে যারা active package holder — শুধু তাদের ID/user_code দেখাবে (privacy: full details না)
+  - সে বুঝবে কতজনের জন্য task publish করতে হবে
+
+### Task Flow
 
 ```text
-Lead Name | Phone | Source | Status         | Next Follow-up
-Rahim     | 017.. | FB     | Interested     | কাল
-Karim     | 018.. | Friend | Package Bought | —
+Distributor → [Generate 10 tasks (AI)] → Verify each FB page manually
+   ↓                                          ↓
+Delete broken → Auto regenerate           Publish to referred users' daily pool
 ```
 
-- Status: New → Contacted → Interested → Converted → Dropped
-- Follow-up reminder notification
-- Converted lead auto-link হবে referral-এর সাথে
+### Database
+
+**New table:** `distributor_tasks`
+- id, distributor_id, title, fb_page_url, action_type, reward, instruction
+- status: `draft` | `verified` | `published` | `rejected`
+- created_at, verified_at, published_at
+
+**New column on `link_tasks`:** `created_by_distributor uuid null` — যাতে distributor-generated task track হয় ও তার referred user-দের কাছে scope করা যায়।
+
+**New column on `distributors`:** `daily_task_limit int default 5`
+
+### Server Functions (`src/lib/distributor-tasks.functions.ts`)
+
+- `generateTasks({ count })` — AI call → returns draft tasks (কিন্তু save হবে distributor_tasks table-এ)
+- `verifyTask({ id })` — mark verified
+- `deleteAndRegenerate({ id })` — delete + generate 1 new
+- `publishTask({ id })` — distributor_tasks → link_tasks (with `created_by_distributor` + audience filter)
 
 ---
 
-## ৪. Weekly Target & Leaderboard
+## ২. Lead CRM
 
-- **Weekly target:** ৫ জন নতুন referral, ২ জনের package conversion
-- Target complete করলে **bonus commission** (extra ২–৩%)
-- District-wise / national leaderboard — top ১০ ডিস্ট্রিবিউটর দেখা যাবে
-- Monthly winner পাবে extra reward (cash/gift)
+Distributor-এর জন্য mini-CRM যেখানে potential lead track করবে।
 
----
+### Database
 
-## ৫. Content Sharing Task
+**New table:** `distributor_leads`
+- id, distributor_id, name, phone, source (FB/friend/etc.), status (`new`|`contacted`|`interested`|`converted`|`dropped`)
+- next_followup_at, notes, converted_user_id (nullable — reference to profiles when they sign up)
+- created_at, updated_at
 
-প্রতিদিন/সপ্তাহে ২–৩টি ready-made content (poster, video, caption) admin panel থেকে dispatch হবে; ডিস্ট্রিবিউটর নিজের FB/WhatsApp-এ share করে screenshot upload করবে।
+### Pages/Server Functions
 
-- Verified share = ছোট bonus (৫–১০ টাকা)
-- Admin approve করবে (task_submissions-এর মতো flow)
+- `/distributor/leads` — list + add + edit + status change + follow-up reminder
+- Server fns: `leadCreate`, `leadUpdate`, `leadDelete`, `leadList`
 
----
+### UI
 
-## ৬. Training & Certification
-
-- Weekly training video/PDF
-- ছোট quiz — pass করলে "Certified Distributor" badge
-- Level up system: Bronze → Silver → Gold → Platinum (commission rate বাড়বে)
+Simple table: Name | Phone | Source | Status badge | Next follow-up | Actions
 
 ---
 
-## ৭. Local Community Building
+## ৩. Withdrawal Tax Commission (২%)
 
-- ডিস্ট্রিবিউটর তার district-এর user-দের নিয়ে WhatsApp group চালাবে
-- Weekly report submit করবে (কতজন active, কী সমস্যা)
-- District performance dashboard admin দেখতে পাবে
+### কীভাবে কাজ করবে
+
+বর্তমান system-এ user withdraw request দিলে ২% withdrawal tax কাটা হয় (existing `withdrawals` table-এ `tax_amount` বা similar থাকে)। এখন থেকে:
+
+- User withdrawal **approved** হলে → যদি user-এর একজন distributor থাকে (`profiles.distributor_id`), তাহলে সেই ২% tax amount **automatic** distributor-এর balance-এ যোগ হবে
+- আলাদা track: একটি নতুন earning source (`withdrawal_tax`)
+
+### Database
+
+**New table:** `distributor_earnings`
+- id, distributor_id, source (`withdrawal_tax` | `weekly_target` | `manual`)
+- amount, related_user_id, related_withdrawal_id
+- created_at
+
+**Trigger update:** `admin_review_withdrawal` function-এ approve শাখায় একটি extra block:
+
+```sql
+-- inside approve branch, after debiting user balance
+SELECT distributor_id INTO v_dist FROM profiles WHERE id = v_row.user_id;
+IF v_dist IS NOT NULL AND COALESCE(v_row.tax_amount, 0) > 0 THEN
+  INSERT INTO distributor_earnings(distributor_id, source, amount, related_user_id, related_withdrawal_id)
+  VALUES (v_dist, 'withdrawal_tax', v_row.tax_amount, v_row.user_id, v_row.id);
+  UPDATE distributors SET balance = balance + v_row.tax_amount,
+                          total_earned = total_earned + v_row.tax_amount
+  WHERE user_id = v_dist;
+END IF;
+```
+
+### UI
+
+- Distributor panel dashboard-এ নতুন card: **"Withdrawal Tax Commission — ৳X"**
+- আলাদা tab: withdrawal tax history (কার withdraw থেকে কত পেলাম)
+- Existing distributor earnings card থেকে আলাদা করে show হবে
 
 ---
 
-## Priority Roadmap (Phase-wise)
+## ৪. Weekly Target +২% Extra Commission (Bonus Phase)
 
-| Phase | Feature | Effort | Impact |
-|---|---|---|---|
-| **Phase 1** (সবচেয়ে জরুরি) | Pending/Inactive user list + follow-up tracking, Daily check-in bonus | মাঝারি | High |
-| **Phase 2** | Lead CRM, Weekly target + leaderboard | বড় | High |
-| **Phase 3** | Content sharing task, Training + certification | মাঝারি | Medium |
-| **Phase 4** | Level-up system, District dashboard | বড় | Medium |
+আপনি +২% approve করেছেন — এটি Phase 2 hisebe implement হবে (Task + CRM + Withdrawal Tax deploy হওয়ার পর):
+- Weekly window: প্রতি Sunday reset
+- Target: ৫ নতুন referral + ২ conversion
+- Achieve করলে সেই week-এর সব referral-এ extra 2% (5% → 7%)
 
 ---
 
-## Technical Overview (Phase 1 বাস্তবায়ন)
+## Implementation Order (এই turn-এ)
 
-- **New tables:** `distributor_daily_checkins`, `distributor_leads`, `distributor_tasks`
-- **New pages:**
-  - `/distributor/leads` — CRM
-  - `/distributor/tasks` — daily task + check-in
-  - `/distributor/leaderboard`
-- **New server functions:** lead CRUD, check-in claim, target progress
-- **Notification:** pending user follow-up reminder (pg_cron daily)
-- **Admin panel:** target config, content dispatch, task approval
+1. **Migration** — নতুন ৩টি table + `distributors.daily_task_limit` column + trigger update on `admin_review_withdrawal`
+2. **Server functions:**
+   - `distributor-tasks.functions.ts` (generate/verify/regenerate/publish)
+   - `distributor-leads.functions.ts` (CRUD)
+   - `distributor-earnings.functions.ts` (list + summary)
+3. **UI pages:**
+   - `/distributor/tasks` — task generator + verification panel + manual modal
+   - `/distributor/leads` — CRM
+   - `/distributor/earnings` — updated to show withdrawal tax breakdown
+4. **DistributorLayout sidebar** — নতুন menu items add
 
 ---
 
-## আপনার সিদ্ধান্ত দরকার
+## প্রশ্ন (implementation শুরুর আগে)
 
-1. কোন Phase থেকে শুরু করব? (আমার সুপারিশ: **Phase 1** — quick win)
-2. Daily check-in bonus কত রাখব? (৫/১০/২০ টাকা)
-3. Weekly target complete-এ extra commission কত? (২%/৩%/৫%)
-4. এই ৭টা idea-র মধ্যে কোনটা বাদ দিতে চান বা নতুন যোগ করতে চান?
+1. **AI দিয়ে task generation** — Facebook page link কি AI নিজে generate করবে (random real-looking pages), নাকি distributor একটি seed keyword দেবে (যেমন "Bangladesh food pages") এবং AI সেই topic-এর pages suggest করবে?
+   - **আমার সুপারিশ:** Keyword-based — AI real page URL guarantee করতে পারে না, তাই distributor manual verify করবে ও broken গুলো regenerate হবে (আপনার described flow অনুযায়ী)।
 
-আপনি সিদ্ধান্ত জানালে সেই অনুযায়ী detailed implementation plan দেব ও কোড লেখা শুরু করব।
+2. **Withdrawal tax percent** — এখন কি withdraw amount-এর ২% tax কাটা হচ্ছে? আমি existing `withdrawals.tax_amount` (বা equivalent) column ব্যবহার করব — যদি না থাকে migration-এ যোগ করব।
+
+উত্তর দিলে code implementation শুরু করব।
