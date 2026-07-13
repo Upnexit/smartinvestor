@@ -74,13 +74,17 @@ const PRESET_REASONS = [
 ];
 
 function WithdrawalsPage() {
+  const { highlight, filter: filterFromUrl } = Route.useSearch();
   const [rows, setRows] = useState<Row[] | null>(null);
-  const [filter, setFilter] = useState<Filter>("pending");
+  const [filter, setFilter] = useState<Filter>(
+    (filterFromUrl as Filter) || (highlight ? "all" : "pending")
+  );
   const [reject, setReject] = useState<Row | null>(null);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [detail, setDetail] = useState<Row | null>(null);
   const [detailData, setDetailData] = useState<DetailData | null>(null);
+
 
   const refresh = () => {
     supabase.from("withdrawals")
