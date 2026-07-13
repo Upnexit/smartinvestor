@@ -1,7 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
 
 const UUID = /^[0-9a-f-]{36}$/i;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -21,23 +19,6 @@ function opt(v: unknown, max = 200): string | null {
   return str(v, max);
 }
 
-type Db = SupabaseClient<Database>;
-
-async function assertAdmin(db: Db, userId: string) {
-  const { data, error } = await db.rpc("has_role", { _user_id: userId, _role: "admin" });
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("forbidden");
-  return db;
-}
-
-async function assertDistributor(db: Db, userId: string) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await db.rpc("has_role" as any, { _user_id: userId, _role: "distributor" as any });
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("forbidden");
-  return db;
-}
-
 /* =========  ADMIN  ========= */
 
 export const adminListDistributors = createServerFn({ method: "POST" })
@@ -47,7 +28,9 @@ export const adminListDistributors = createServerFn({ method: "POST" })
     limit: Math.min(Math.max(d?.limit ?? 200, 1), 500),
   }))
   .handler(async ({ data, context }) => {
-    const db = await assertAdmin(context.supabase, context.userId);
+    const { assertAdmin } = await import("./distributor-task-helpers.server");
+    await assertAdmin(context.supabase, context.userId);
+    const db = context.supabase;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let q = (db as any).from("distributors").select("*").order("created_at", { ascending: false }).limit(data.limit);
     if (data.q) q = q.or(`full_name.ilike.%${data.q}%,email.ilike.%${data.q}%,phone.ilike.%${data.q}%,district.ilike.%${data.q}%`);
@@ -86,6 +69,7 @@ export const adminCreateDistributor = createServerFn({ method: "POST" })
     };
   })
   .handler(async ({ data, context }) => {
+    const { assertAdmin } = await import("./distributor-task-helpers.server");
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Create auth user (email confirmed)
@@ -129,6 +113,7 @@ export const adminUpdateDistributor = createServerFn({ method: "POST" })
     userId: uuid(d.userId), patch: d.patch ?? {},
   }))
   .handler(async ({ data, context }) => {
+    const { assertAdmin } = await import("./distributor-task-helpers.server");
     await assertAdmin(context.supabase, context.userId);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: row, error } = await (context.supabase as any).rpc("admin_upsert_distributor", {
@@ -144,6 +129,7 @@ export const adminDeleteDistributor = createServerFn({ method: "POST" })
     userId: uuid(d.userId), deleteAuth: !!d.deleteAuth,
   }))
   .handler(async ({ data, context }) => {
+    const { assertAdmin } = await import("./distributor-task-helpers.server");
     await assertAdmin(context.supabase, context.userId);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (context.supabase as any).rpc("admin_delete_distributor", {
@@ -164,6 +150,7 @@ export const adminDeleteDistributor = createServerFn({ method: "POST" })
 export const distributorGetMe = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: profile } = await (context.supabase as any)
@@ -177,6 +164,7 @@ export const distributorListMyUsers = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { q?: string }) => ({ q: typeof d?.q === "string" ? d.q.trim().slice(0, 80) : "" }))
   .handler(async ({ data, context }) => {
+    const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
     let q = context.supabase.from("profiles").select("*").eq("distributor_id", context.userId).order("created_at", { ascending: false });
     if (data.q) q = q.or(`full_name.ilike.%${data.q}%,email.ilike.%${data.q}%,phone.ilike.%${data.q}%`);
@@ -189,6 +177,7 @@ export const distributorUpdateMe = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { patch: Record<string, unknown> }) => ({ patch: d.patch ?? {} }))
   .handler(async ({ data, context }) => {
+    const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
     const allowed = ["full_name", "phone", "payment_method", "payment_number", "district", "thana", "address"];
     const filtered: Record<string, unknown> = {};
