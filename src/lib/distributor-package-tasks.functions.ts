@@ -136,9 +136,25 @@ export const distributorActivateOwnDrafts = createServerFn({ method: "POST" })
       .eq("scheduled_date", data.date)
       .eq("created_by_distributor", context.userId)
       .eq("is_draft", true)
-      .select("id");
+      .select("id,reward,action_type,link_url");
     if (error) throw new Error(error.message);
-    return { activated: rows?.length ?? 0 };
+    const activated = rows?.length ?? 0;
+    if (activated > 0) {
+      const totalAmount = (rows ?? []).reduce((s, r) => s + Number((r as { reward: number }).reward ?? 0), 0);
+      await context.supabase.from("activity_logs").insert({
+        user_id: context.userId,
+        event_type: "distributor_task_activated",
+        meta: {
+          package_id: data.packageId,
+          date: data.date,
+          count: activated,
+          total_amount: Math.round(totalAmount * 100) / 100,
+          task_ids: (rows ?? []).map((r) => (r as { id: string }).id),
+          source: "distributor_package_page",
+        },
+      });
+    }
+    return { activated };
   });
 
 /* Toggle / update own task */
