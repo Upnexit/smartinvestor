@@ -310,7 +310,7 @@ function DistPackageTasksPage() {
                       <SoftButton onClick={() => toggleOne(t)}>
                         {t.is_draft ? <><CheckCircle2 className="h-3.5 w-3.5" /> Activate</> : t.active ? "Off" : "On"}
                       </SoftButton>
-                      <SoftButton className="!from-rose-100 !to-red-200 !text-rose-700 !ring-rose-200" onClick={() => deleteOne(t.id)}>
+                      <SoftButton className="!from-rose-100 !to-red-200 !text-rose-700 !ring-rose-200" onClick={() => deleteOne(t)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </SoftButton>
                     </div>
