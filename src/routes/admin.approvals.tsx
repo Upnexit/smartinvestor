@@ -72,9 +72,20 @@ function ApprovalsPage() {
     if (!rows) return null;
     let r = rows;
     if (filter !== "all") r = r.filter((x) => x.status === filter);
-    if (q.trim()) r = r.filter((x) => x.trx_id?.toLowerCase().includes(q.toLowerCase()));
+    if (q.trim()) {
+      const s = q.toLowerCase();
+      r = r.filter((x) =>
+        (x.trx_id ?? "").toLowerCase().includes(s) ||
+        (x.sender_number ?? "").toLowerCase().includes(s) ||
+        (x.profiles?.full_name ?? "").toLowerCase().includes(s) ||
+        (x.profiles?.phone ?? "").toLowerCase().includes(s)
+      );
+    }
     return r;
   }, [rows, filter, q]);
+
+  const { setRowRef } = useSearchHighlight(highlight, adminReady && !!rows);
+
 
   const onApprove = async (id: string) => {
     setBusy(id);
