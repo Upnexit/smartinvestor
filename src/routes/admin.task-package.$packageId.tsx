@@ -38,6 +38,7 @@ function PackageTasksPage() {
   const [pkg, setPkg] = useState<Pkg | null>(null);
   const [date, setDate] = useState<string>(todayBD());
   const [tasks, setTasks] = useState<Task[] | null>(null);
+  const [activeUserCount, setActiveUserCount] = useState<number>(0);
   const [genBusy, setGenBusy] = useState(false);
   const [batchBusy, setBatchBusy] = useState(false);
   const [count, setCount] = useState(10);
@@ -48,12 +49,15 @@ function PackageTasksPage() {
   const genFn = useServerFn(generateFbLinkTasks);
 
   const load = async () => {
-    const [{ data: p }, { data: t }] = await Promise.all([
+    const [{ data: p }, { data: t }, { data: cnt }] = await Promise.all([
       supabase.from("packages").select("id,name,price,daily_tasks,daily_income,duration_days,active").eq("id", packageId).maybeSingle(),
       supabase.from("link_tasks").select("*").eq("required_package_id", packageId).eq("scheduled_date", date).order("created_at", { ascending: false }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any).rpc("package_active_user_count", { _pkg: packageId }),
     ]);
     setPkg(p as Pkg | null);
     setTasks((t ?? []) as Task[]);
+    setActiveUserCount(Number(cnt ?? 0));
     if (p && !totalAmount) setTotalAmount(Number((p as Pkg).daily_income ?? 0));
   };
 
