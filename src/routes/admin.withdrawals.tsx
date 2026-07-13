@@ -12,11 +12,20 @@ import { useAdminAutoRefresh } from "@/lib/admin-refresh";
 import { reviewWithdrawal } from "@/lib/admin-client";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useSearchHighlight } from "@/hooks/use-search-highlight";
+
+type WithdrawSearch = { q?: string; highlight?: string; filter?: string };
 
 export const Route = createFileRoute("/admin/withdrawals")({
+  validateSearch: (s: Record<string, unknown>): WithdrawSearch => ({
+    q: typeof s.q === "string" ? s.q : undefined,
+    highlight: typeof s.highlight === "string" ? s.highlight : undefined,
+    filter: typeof s.filter === "string" ? s.filter : undefined,
+  }),
   head: () => ({ meta: [{ title: "উইথড্র — Admin" }] }),
   component: WithdrawalsPage,
 });
+
 
 type Filter = "pending" | "approved" | "rejected" | "all";
 type Method = "bkash"|"nagad"|"rocket";
@@ -65,13 +74,17 @@ const PRESET_REASONS = [
 ];
 
 function WithdrawalsPage() {
+  const { highlight, filter: filterFromUrl } = Route.useSearch();
   const [rows, setRows] = useState<Row[] | null>(null);
-  const [filter, setFilter] = useState<Filter>("pending");
+  const [filter, setFilter] = useState<Filter>(
+    (filterFromUrl as Filter) || (highlight ? "all" : "pending")
+  );
   const [reject, setReject] = useState<Row | null>(null);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [detail, setDetail] = useState<Row | null>(null);
   const [detailData, setDetailData] = useState<DetailData | null>(null);
+
 
   const refresh = () => {
     supabase.from("withdrawals")
@@ -125,6 +138,9 @@ function WithdrawalsPage() {
     if (filter === "approved") return rows.filter((r) => r.status === "approved" || r.status === "paid");
     return rows.filter((r) => r.status === filter);
   }, [rows, filter]);
+
+  const { setRowRef } = useSearchHighlight(highlight, adminReady && !!rows);
+
 
   const handleApprove = async (id: string) => {
     setBusy(id);
@@ -189,7 +205,9 @@ function WithdrawalsPage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((r) => (
-            <AdminCard key={r.id} accent="emerald" interactive className="p-4 flex flex-col">
+            <div key={r.id} ref={setRowRef(r.id)}>
+            <AdminCard accent="emerald" interactive className="p-4 flex flex-col">
+
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   <p className="bn-display text-base text-slate-900 truncate">{r.profiles?.full_name ?? "—"}</p>
@@ -229,6 +247,8 @@ function WithdrawalsPage() {
                 )}
               </div>
             </AdminCard>
+            </div>
+
           ))}
         </div>
       )}

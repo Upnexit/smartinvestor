@@ -236,7 +236,7 @@ function SidebarBody({
   );
 }
 
-type SearchRow = {
+type UserRow = {
   id: string;
   full_name: string | null;
   email: string | null;
@@ -245,35 +245,104 @@ type SearchRow = {
   avatar_url: string | null;
 };
 
+type ApprovalRow = {
+  id: string;
+  user_id: string;
+  trx_id: string | null;
+  sender_number: string | null;
+  status: string;
+  packages: { name: string | null; price: number | null } | null;
+  profiles: { full_name: string | null; phone: string | null } | null;
+};
+
+type WithdrawRow = {
+  id: string;
+  user_id: string;
+  amount: number;
+  method: string | null;
+  account_number: string | null;
+  status: string;
+  profiles: { full_name: string | null; phone: string | null } | null;
+};
+
+type DistRow = {
+  user_id: string;
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
+};
+
+type SearchState = {
+  users: UserRow[];
+  approvals: ApprovalRow[];
+  withdrawals: WithdrawRow[];
+  distributors: DistRow[];
+};
+
 function AdminLiveSearch() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
-  const [rows, setRows] = useState<SearchRow[]>([]);
+  const [state, setState] = useState<SearchState>({ users: [], approvals: [], withdrawals: [], distributors: [] });
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const t = q.trim();
-    if (!t) { setRows([]); setLoading(false); return; }
+    if (!t) { setState({ users: [], approvals: [], withdrawals: [], distributors: [] }); setLoading(false); return; }
     setLoading(true);
     const timer = setTimeout(async () => {
       const esc = t.replace(/[%,()]/g, "");
-      const parts = [
-        `full_name.ilike.%${esc}%`,
-        `email.ilike.%${esc}%`,
-        `phone.ilike.%${esc}%`,
-        `user_code.ilike.%${esc}%`,
-        `referral_code.ilike.%${esc}%`,
+      const pat = `%${esc}%`;
+      const usersFilter = [
+        `full_name.ilike.${pat}`,
+        `email.ilike.${pat}`,
+        `phone.ilike.${pat}`,
+        `user_code.ilike.${pat}`,
+        `referral_code.ilike.${pat}`,
       ].join(",");
-      const { data } = await supabase
-        .from("profiles")
-        .select("id,full_name,email,phone,user_code,avatar_url")
-        .or(parts)
-        .limit(8);
-      setRows((data ?? []) as SearchRow[]);
+
+      const [uRes, aRes, wRes, dRes] = await Promise.all([
+        supabase.from("profiles")
+          .select("id,full_name,email,phone,user_code,avatar_url")
+          .or(usersFilter).limit(6),
+        supabase.from("user_packages")
+          .select("id,user_id,trx_id,sender_number,status,packages(name,price),profiles!user_packages_user_id_profiles_fkey(full_name,phone)")
+          .or(`trx_id.ilike.${pat},sender_number.ilike.${pat}`)
+          .order("created_at", { ascending: false }).limit(6),
+        supabase.from("withdrawals")
+          .select("id,user_id,amount,method,account_number,status,profiles!withdrawals_user_id_profiles_fkey(full_name,phone)")
+          .ilike("account_number", pat)
+          .order("created_at", { ascending: false }).limit(6),
+        supabase.from("distributors")
+          .select("user_id,full_name,email,phone")
+          .or(`full_name.ilike.${pat},email.ilike.${pat},phone.ilike.${pat}`)
+          .limit(5),
+      ]);
+
+      // Also pull withdrawals whose user matches by name/phone/user_code
+      let extraWd: WithdrawRow[] = [];
+      const users = (uRes.data ?? []) as UserRow[];
+      if (users.length > 0) {
+        const ids = users.map((u) => u.id);
+        const { data: wu } = await supabase.from("withdrawals")
+          .select("id,user_id,amount,method,account_number,status,profiles!withdrawals_user_id_profiles_fkey(full_name,phone)")
+          .in("user_id", ids)
+          .in("status", ["pending"])
+          .order("created_at", { ascending: false }).limit(5);
+        extraWd = (wu ?? []) as unknown as WithdrawRow[];
+      }
+      const wdMap = new Map<string, WithdrawRow>();
+      [...((wRes.data ?? []) as unknown as WithdrawRow[]), ...extraWd].forEach((r) => wdMap.set(r.id, r));
+
+      setState({
+        users,
+        approvals: (aRes.data ?? []) as unknown as ApprovalRow[],
+        withdrawals: Array.from(wdMap.values()).slice(0, 6),
+        distributors: (dRes.data ?? []) as DistRow[],
+      });
       setLoading(false);
-    }, 250);
+    }, 260);
     return () => clearTimeout(timer);
   }, [q]);
 
@@ -286,6 +355,9 @@ function AdminLiveSearch() {
   }, []);
 
   const t = q.trim();
+  const total = state.users.length + state.approvals.length + state.withdrawals.length + state.distributors.length;
+
+  const close = () => { setOpen(false); };
 
   return (
     <div ref={boxRef} className="relative w-full max-w-[560px]">
@@ -295,67 +367,139 @@ function AdminLiveSearch() {
         value={q}
         onChange={(e) => { setQ(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
-        placeholder="নাম, ফোন, ইউজার আইডি দিয়ে সার্চ..."
+        placeholder="নাম, ফোন, ইউজার আইডি, TrxID দিয়ে সার্চ..."
         className="w-full rounded-xl border border-amber-200 bg-amber-50/30 pl-9 pr-9 py-2 text-sm outline-none transition focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-300/40"
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             navigate({ to: "/admin/users", search: t ? { q: t } : {} });
-            setOpen(false);
+            close();
           }
-          if (e.key === "Escape") setOpen(false);
+          if (e.key === "Escape") close();
         }}
       />
       {loading && <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-orange-500" />}
 
       {open && t && (
-        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-40 max-h-[70vh] overflow-y-auto rounded-2xl border border-amber-200 bg-white/95 backdrop-blur-xl shadow-2xl shadow-orange-500/10 ring-1 ring-amber-100">
-          {loading && rows.length === 0 && (
+        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-40 max-h-[75vh] overflow-y-auto rounded-2xl border border-amber-200 bg-white/95 backdrop-blur-xl shadow-2xl shadow-orange-500/10 ring-1 ring-amber-100">
+          {loading && total === 0 && (
             <p className="px-4 py-6 text-center text-sm text-slate-500">খুঁজছি...</p>
           )}
-          {!loading && rows.length === 0 && (
+          {!loading && total === 0 && (
             <p className="px-4 py-6 text-center text-sm text-slate-500">কোনো ফলাফল নেই</p>
           )}
-          {rows.length > 0 && (
-            <>
-              <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                ইউজার ({rows.length})
-              </p>
-              <ul className="pb-2">
-                {rows.map((r) => (
-                  <li key={r.id}>
-                    <button
-                      onClick={() => {
-                        navigate({ to: "/admin/users/$id", params: { id: r.id } });
-                        setOpen(false);
-                      }}
-                      className="flex w-full items-center gap-3 px-3 py-2 text-left transition hover:bg-amber-50"
-                    >
-                      <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-xs font-bold text-white">
-                        {r.avatar_url ? <img src={r.avatar_url} alt="" className="h-full w-full object-cover" /> : (r.full_name || r.email || "U").slice(0, 1).toUpperCase()}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold text-slate-900">
-                          {r.full_name || "নামহীন"}
-                        </span>
-                        <span className="block truncate text-[11px] text-slate-500">
-                          {[r.user_code, r.phone, r.email].filter(Boolean).join(" • ")}
-                        </span>
-                      </span>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              <button
-                onClick={() => { navigate({ to: "/admin/users", search: { q: t } }); setOpen(false); }}
-                className="block w-full border-t border-amber-100 bg-amber-50/50 px-4 py-2.5 text-center text-xs font-semibold text-orange-700 hover:bg-amber-50"
-              >
-                সব ফলাফল দেখুন →
-              </button>
-            </>
+
+          {state.users.length > 0 && (
+            <SearchGroup label="ইউজার" count={state.users.length} accent="from-sky-500 to-indigo-600">
+              {state.users.map((r) => (
+                <SearchItem
+                  key={r.id}
+                  onClick={() => { navigate({ to: "/admin/users/$id", params: { id: r.id } }); close(); }}
+                  avatar={r.avatar_url}
+                  title={r.full_name || "নামহীন"}
+                  subtitle={[r.user_code, r.phone, r.email].filter(Boolean).join(" • ")}
+                  hoverColor="hover:bg-sky-50"
+                />
+              ))}
+            </SearchGroup>
+          )}
+
+          {state.approvals.length > 0 && (
+            <SearchGroup label="পেমেন্ট অ্যাপ্রুভাল" count={state.approvals.length} accent="from-amber-500 to-orange-600">
+              {state.approvals.map((r) => (
+                <SearchItem
+                  key={r.id}
+                  onClick={() => { navigate({ to: "/admin/approvals", search: { highlight: r.id, filter: "all" as string } }); close(); }}
+                  badge={r.status}
+                  icon={<ShieldCheck className="h-4 w-4 text-amber-600" />}
+                  title={`${r.profiles?.full_name ?? "—"} · ${r.packages?.name ?? "প্যাকেজ"}`}
+                  subtitle={`TrxID: ${r.trx_id ?? "—"} • ${r.sender_number ?? ""}`}
+                  hoverColor="hover:bg-amber-50"
+                />
+              ))}
+            </SearchGroup>
+          )}
+
+          {state.withdrawals.length > 0 && (
+            <SearchGroup label="উইথড্র রিকোয়েস্ট" count={state.withdrawals.length} accent="from-emerald-500 to-teal-600">
+              {state.withdrawals.map((r) => (
+                <SearchItem
+                  key={r.id}
+                  onClick={() => { navigate({ to: "/admin/withdrawals", search: { highlight: r.id, filter: "all" as string } }); close(); }}
+                  badge={r.status}
+                  icon={<ArrowDownToLine className="h-4 w-4 text-emerald-600" />}
+                  title={`${r.profiles?.full_name ?? "—"} · ৳${Number(r.amount).toLocaleString("bn-BD")}`}
+                  subtitle={`${(r.method ?? "").toUpperCase()} • ${r.account_number ?? ""}`}
+                  hoverColor="hover:bg-emerald-50"
+                />
+              ))}
+            </SearchGroup>
+          )}
+
+          {state.distributors.length > 0 && (
+            <SearchGroup label="ডিস্ট্রিবিউটর" count={state.distributors.length} accent="from-indigo-500 to-violet-600">
+              {state.distributors.map((r) => (
+                <SearchItem
+                  key={r.user_id}
+                  onClick={() => { navigate({ to: "/admin/distributors/$id", params: { id: r.user_id } }); close(); }}
+                  icon={<Users2 className="h-4 w-4 text-indigo-600" />}
+                  title={r.full_name || "নামহীন"}
+                  subtitle={[r.phone, r.email].filter(Boolean).join(" • ")}
+                  hoverColor="hover:bg-indigo-50"
+                />
+              ))}
+            </SearchGroup>
+          )}
+
+          {total > 0 && (
+            <button
+              onClick={() => { navigate({ to: "/admin/users", search: { q: t } }); close(); }}
+              className="block w-full border-t border-amber-100 bg-amber-50/50 px-4 py-2.5 text-center text-xs font-semibold text-orange-700 hover:bg-amber-50"
+            >
+              সব ইউজার ফলাফল দেখুন →
+            </button>
           )}
         </div>
       )}
     </div>
   );
 }
+
+function SearchGroup({ label, count, accent, children }: { label: string; count: number; accent: string; children: ReactNode }) {
+  return (
+    <>
+      <p className={cn("mx-3 mt-3 mb-1 inline-block rounded-md bg-gradient-to-r px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-white", accent)}>
+        {label} ({count})
+      </p>
+      <ul className="pb-1">{children}</ul>
+    </>
+  );
+}
+
+function SearchItem({
+  onClick, avatar, icon, title, subtitle, badge, hoverColor,
+}: {
+  onClick: () => void;
+  avatar?: string | null;
+  icon?: ReactNode;
+  title: string;
+  subtitle?: string;
+  badge?: string;
+  hoverColor: string;
+}) {
+  return (
+    <li>
+      <button onClick={onClick} className={cn("flex w-full items-center gap-3 px-3 py-2 text-left transition", hoverColor)}>
+        <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-xs font-bold text-white">
+          {avatar ? <img src={avatar} alt="" className="h-full w-full object-cover" /> : (icon ?? title.slice(0, 1).toUpperCase())}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-slate-900">{title}</span>
+          {subtitle && <span className="block truncate text-[11px] text-slate-500">{subtitle}</span>}
+        </span>
+        {badge && <span className="shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-slate-600">{badge}</span>}
+        <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
+      </button>
+    </li>
+  );
+}
+

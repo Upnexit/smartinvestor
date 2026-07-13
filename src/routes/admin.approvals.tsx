@@ -7,11 +7,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
 import { reviewOrder, signedUrl } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
+import { useSearchHighlight } from "@/hooks/use-search-highlight";
+
+type ApprovalsSearch = { q?: string; highlight?: string; filter?: string };
 
 export const Route = createFileRoute("/admin/approvals")({
+  validateSearch: (s: Record<string, unknown>): ApprovalsSearch => ({
+    q: typeof s.q === "string" ? s.q : undefined,
+    highlight: typeof s.highlight === "string" ? s.highlight : undefined,
+    filter: typeof s.filter === "string" ? s.filter : undefined,
+  }),
   head: () => ({ meta: [{ title: "পেমেন্ট অ্যাপ্রুভাল — Admin" }] }),
   component: ApprovalsPage,
 });
+
 
 type Status = "pending" | "active" | "rejected" | "all";
 type Row = {
@@ -28,13 +37,17 @@ const METHOD: Record<string, string> = {
 };
 
 function ApprovalsPage() {
+  const { q: qFromUrl, highlight, filter: filterFromUrl } = Route.useSearch();
   const [rows, setRows] = useState<Row[] | null>(null);
-  const [filter, setFilter] = useState<Status>("pending");
-  const [q, setQ] = useState("");
+  const [filter, setFilter] = useState<Status>((filterFromUrl as Status) || (highlight ? "all" : "pending"));
+  const [q, setQ] = useState(qFromUrl ?? "");
   const [reject, setReject] = useState<Row | null>(null);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [shot, setShot] = useState<string | null>(null);
+
+  useEffect(() => { if (qFromUrl !== undefined) setQ(qFromUrl); }, [qFromUrl]);
+
 
 
 
@@ -59,9 +72,20 @@ function ApprovalsPage() {
     if (!rows) return null;
     let r = rows;
     if (filter !== "all") r = r.filter((x) => x.status === filter);
-    if (q.trim()) r = r.filter((x) => x.trx_id?.toLowerCase().includes(q.toLowerCase()));
+    if (q.trim()) {
+      const s = q.toLowerCase();
+      r = r.filter((x) =>
+        (x.trx_id ?? "").toLowerCase().includes(s) ||
+        (x.sender_number ?? "").toLowerCase().includes(s) ||
+        (x.profiles?.full_name ?? "").toLowerCase().includes(s) ||
+        (x.profiles?.phone ?? "").toLowerCase().includes(s)
+      );
+    }
     return r;
   }, [rows, filter, q]);
+
+  const { setRowRef } = useSearchHighlight(highlight, adminReady && !!rows);
+
 
   const onApprove = async (id: string) => {
     setBusy(id);
@@ -108,7 +132,9 @@ function ApprovalsPage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {filtered.map((r) => (
-            <AdminCard key={r.id} accent="amber" interactive className="p-4">
+            <div key={r.id} ref={setRowRef(r.id)}>
+            <AdminCard accent="amber" interactive className="p-4">
+
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="bn-display text-base text-slate-900 truncate">{r.profiles?.full_name ?? "—"}</p>
@@ -142,6 +168,8 @@ function ApprovalsPage() {
                 <Link to="/admin/users/$id" params={{ id: r.user_id }} className="text-[11px] font-bold text-sky-700 hover:underline">ইউজার দেখুন →</Link>
               </div>
             </AdminCard>
+            </div>
+
           ))}
         </div>
       )}
