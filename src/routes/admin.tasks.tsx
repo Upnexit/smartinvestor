@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Link2, Plus, Pencil, Trash2, X, Save, Sparkles, Loader2, Wand2, Mic, MicOff, Search, Package as PackageIcon, ChevronRight } from "lucide-react";
+import { Link2, Plus, Pencil, Trash2, X, Save, Sparkles, Loader2, Wand2, Mic, MicOff, Search, Package as PackageIcon, ChevronRight, Users } from "lucide-react";
 import { AdminPageHeader, AdminCard, GradientButton, SoftButton, EmptyState, ConfirmDeleteModal, StatTile, Shimmer } from "@/components/admin/AdminUI";
 import { supabase } from "@/integrations/supabase/client";
 import { saveTask, deleteTask, subscribeTable } from "@/lib/admin-client";
@@ -62,6 +62,7 @@ const TITLE_PRESETS: Record<string, string[]> = {
 function TasksPage() {
   const [rows, setRows] = useState<Task[] | null>(null);
   const [packages, setPackages] = useState<Pkg[]>([]);
+  const [pkgActiveUsers, setPkgActiveUsers] = useState<Map<string, number>>(new Map());
   const [stats, setStats] = useState<{ done: number; paid: number } | null>(null);
   const [edit, setEdit] = useState<Task | null>(null);
   const [del, setDel] = useState<Task | null>(null);
@@ -72,13 +73,18 @@ function TasksPage() {
   const genDesc = useServerFn(generateTaskDescription);
 
   const refresh = async () => {
-    const [{ data, error }, { data: pkgs }] = await Promise.all([
+    const [{ data, error }, { data: pkgs }, { data: counts }] = await Promise.all([
       supabase.from("link_tasks").select("*").order("created_at", { ascending: false }),
       supabase.from("packages").select("id,name,price,active").eq("active", true).order("price"),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any).rpc("packages_active_user_counts"),
     ]);
     if (error) { setRows([]); setStats({ done: 0, paid: 0 }); return; }
     setRows((data ?? []) as unknown as Task[]);
     setPackages((pkgs ?? []) as Pkg[]);
+    const m = new Map<string, number>();
+    ((counts ?? []) as Array<{ package_id: string; active_users: number }>).forEach((r) => m.set(r.package_id, r.active_users));
+    setPkgActiveUsers(m);
     const { data: subs } = await supabase.from("task_submissions").select("status, link_tasks(reward)")
       .eq("status", "approved").gte("created_at", startOfTodayBDISO());
     const done = subs?.length ?? 0;
@@ -213,6 +219,9 @@ function TasksPage() {
                     <div className="flex-1 min-w-0">
                       <p className="bn-display text-sm text-slate-900 truncate">{p.name}</p>
                       <p className="text-[11px] text-slate-500">৳{p.price} • মোট {c.total} • আজ active {c.todayActive}</p>
+                      <p className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200">
+                        <Users className="h-3 w-3" /> {pkgActiveUsers.get(p.id) ?? 0} active user
+                      </p>
                     </div>
                     <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-indigo-600" />
                   </div>

@@ -1349,6 +1349,7 @@ export type Database = {
         Args: { _actor: string; _user_id: string }
         Returns: Json
       }
+      cleanup_old_link_tasks: { Args: never; Returns: number }
       distributor_stats: { Args: { _user_id: string }; Returns: Json }
       expire_user_packages: { Args: never; Returns: undefined }
       has_role: {
@@ -1366,6 +1367,14 @@ export type Database = {
           has_active_package: boolean
           id: string
           user_code: string
+        }[]
+      }
+      package_active_user_count: { Args: { _pkg: string }; Returns: number }
+      packages_active_user_counts: {
+        Args: never
+        Returns: {
+          active_users: number
+          package_id: string
         }[]
       }
       purge_old_activity_logs: { Args: never; Returns: undefined }
