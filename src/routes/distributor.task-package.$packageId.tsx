@@ -185,17 +185,23 @@ function DistPackageTasksPage() {
           <div className="flex-1 min-w-[200px]">
             <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Action types</label>
             <div className="flex flex-wrap gap-1">
-              {ACTIONS.map((a) => {
+              {DIST_ACTIONS.map((a) => {
                 const on = selectedActions.includes(a);
                 return (
                   <button key={a} type="button"
                     onClick={() => setSelectedActions((s) => on ? s.filter((x) => x !== a) : [...s, a])}
-                    className={cn("rounded-full px-2.5 py-1 text-[11px] font-bold ring-1",
+                    className={cn("rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 capitalize",
                       on ? "bg-fuchsia-600 text-white ring-fuchsia-600" : "bg-white text-slate-600 ring-slate-200")}>
                     {a}
                   </button>
                 );
               })}
+              {ADMIN_ONLY_ACTIONS.map((a) => (
+                <span key={a} title="শুধু Admin এই action তৈরি করতে পারবেন"
+                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 bg-slate-100 text-slate-400 ring-slate-200 cursor-not-allowed capitalize">
+                  <Lock className="h-3 w-3" /> {a}
+                </span>
+              ))}
             </div>
           </div>
           <GradientButton accent="fuchsia" busy={genBusy} onClick={runGenerate}>
