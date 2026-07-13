@@ -27,6 +27,7 @@ export const ADMIN_NAV: NavItem[] = [
     children: [
       { to: "/admin/tasks", label: "টাস্ক লিংক ম্যানেজমেন্ট", Icon: ListChecks },
       { to: "/admin/tasks/daily-report", label: "দৈনিক রিপোর্ট", Icon: CalendarDays },
+      { to: "/admin/tasks/distributor-activity", label: "ডিস্ট্রিবিউটর কার্যক্রম", Icon: Activity },
     ] },
   { to: "/admin/community",    label: "কমিউনিটি চ্যাট",      Icon: MessagesSquare,  accent: "purple" },
   { to: "/admin/notices",      label: "নোটিশ ম্যানেজমেন্ট",   Icon: Megaphone,       accent: "fuchsia" },
