@@ -2,7 +2,7 @@ import { useState, useEffect, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, Wallet, User as UserIcon, MessagesSquare,
-  LogOut, Menu, X, ChevronRight, Sparkles, ArrowDownToLine,
+  LogOut, Menu, X, ChevronRight, Sparkles, ArrowDownToLine, ListChecks, Users2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,8 @@ type NavItem = { to: string; label: string; Icon: typeof LayoutDashboard; accent
 
 const NAV: NavItem[] = [
   { to: "/distributor",          label: "ড্যাশবোর্ড",     Icon: LayoutDashboard, accent: "indigo" },
+  { to: "/distributor/tasks",    label: "Task Management", Icon: ListChecks,      accent: "fuchsia" },
+  { to: "/distributor/leads",    label: "লিড / CRM",       Icon: Users2,          accent: "sky" },
   { to: "/distributor/users",    label: "আমার ইউজার",     Icon: Users,           accent: "sky" },
   { to: "/distributor/earnings", label: "কমিশন ও আয়",     Icon: Wallet,          accent: "emerald" },
   { to: "/distributor/withdraw", label: "উইথড্র",         Icon: ArrowDownToLine, accent: "rose" },
@@ -22,9 +24,9 @@ const NAV: NavItem[] = [
 
 const BOTTOM_NAV: { to: string; short: string; Icon: typeof LayoutDashboard; accent: AccentKey }[] = [
   { to: "/distributor",          short: "হোম",     Icon: LayoutDashboard, accent: "indigo" },
-  { to: "/distributor/users",    short: "ইউজার",   Icon: Users,           accent: "sky" },
+  { to: "/distributor/tasks",    short: "টাস্ক",   Icon: ListChecks,      accent: "fuchsia" },
+  { to: "/distributor/leads",    short: "লিড",     Icon: Users2,          accent: "sky" },
   { to: "/distributor/earnings", short: "আয়",      Icon: Wallet,          accent: "emerald" },
-  { to: "/distributor/withdraw", short: "উইথড্র",  Icon: ArrowDownToLine, accent: "rose" },
   { to: "/distributor/profile",  short: "প্রোফাইল", Icon: UserIcon,        accent: "purple" },
 ];
 
