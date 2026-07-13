@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Bell, Users2, ArrowDownToLine, ShieldCheck, Sparkles, X, Loader2 } from "lucide-react";
+import { Bell, Users2, ArrowDownToLine, ShieldCheck, Sparkles, X, Loader2, Activity, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 type Notice = {
   id: string;
-  kind: "application" | "withdrawal" | "order" | "user";
+  kind: "application" | "withdrawal" | "order" | "user" | "dist_generated" | "dist_activated";
   title: string;
   subtitle: string;
   time: string;
@@ -14,10 +14,12 @@ type Notice = {
 };
 
 const KIND_STYLE: Record<Notice["kind"], { grad: string; ring: string; Icon: typeof Bell; label: string }> = {
-  application: { grad: "from-indigo-500 to-violet-600",  ring: "ring-indigo-200",  Icon: Users2,         label: "ডিস্ট্রিবিউটর আবেদন" },
-  withdrawal:  { grad: "from-emerald-500 to-teal-600",    ring: "ring-emerald-200", Icon: ArrowDownToLine, label: "উইথড্র রিকোয়েস্ট" },
-  order:       { grad: "from-orange-500 to-amber-600",    ring: "ring-orange-200",  Icon: ShieldCheck,    label: "পেমেন্ট অ্যাপ্রুভাল" },
-  user:        { grad: "from-sky-500 to-blue-600",        ring: "ring-sky-200",     Icon: Sparkles,       label: "নতুন ইউজার" },
+  application:    { grad: "from-indigo-500 to-violet-600",  ring: "ring-indigo-200",  Icon: Users2,          label: "ডিস্ট্রিবিউটর আবেদন" },
+  withdrawal:     { grad: "from-emerald-500 to-teal-600",   ring: "ring-emerald-200", Icon: ArrowDownToLine, label: "উইথড্র রিকোয়েস্ট" },
+  order:          { grad: "from-orange-500 to-amber-600",   ring: "ring-orange-200",  Icon: ShieldCheck,     label: "পেমেন্ট অ্যাপ্রুভাল" },
+  user:           { grad: "from-sky-500 to-blue-600",       ring: "ring-sky-200",     Icon: Sparkles,        label: "নতুন ইউজার" },
+  dist_generated: { grad: "from-fuchsia-500 to-purple-600", ring: "ring-fuchsia-200", Icon: Activity,        label: "Distributor Task তৈরি" },
+  dist_activated: { grad: "from-emerald-500 to-green-600",  ring: "ring-emerald-200", Icon: CheckCircle2,    label: "Distributor Task Active" },
 };
 
 function timeAgo(iso: string) {
