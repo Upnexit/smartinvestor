@@ -56,6 +56,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCommunityRouteImport } from './routes/_authenticated/community'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin.users.index'
+import { Route as AdminTasksIndexRouteImport } from './routes/admin.tasks.index'
 import { Route as AdminDistributorsIndexRouteImport } from './routes/admin.distributors.index'
 import { Route as DistributorTaskPackagePackageIdRouteImport } from './routes/distributor.task-package.$packageId'
 import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
@@ -299,6 +300,11 @@ const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminUsersRoute,
 } as any)
+const AdminTasksIndexRoute = AdminTasksIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminTasksRoute,
+} as any)
 const AdminDistributorsIndexRoute = AdminDistributorsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -396,6 +402,7 @@ export interface FileRoutesByFullPath {
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/distributor/task-package/$packageId': typeof DistributorTaskPackagePackageIdRoute
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
+  '/admin/tasks/': typeof AdminTasksIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
@@ -430,7 +437,6 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/support': typeof AdminSupportRoute
-  '/admin/tasks': typeof AdminTasksRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/distributor/earnings': typeof DistributorEarningsRoute
   '/distributor/leads': typeof DistributorLeadsRoute
@@ -448,6 +454,7 @@ export interface FileRoutesByTo {
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/distributor/task-package/$packageId': typeof DistributorTaskPackagePackageIdRoute
   '/admin/distributors': typeof AdminDistributorsIndexRoute
+  '/admin/tasks': typeof AdminTasksIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
@@ -506,6 +513,7 @@ export interface FileRoutesById {
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/distributor/task-package/$packageId': typeof DistributorTaskPackagePackageIdRoute
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
+  '/admin/tasks/': typeof AdminTasksIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
@@ -564,6 +572,7 @@ export interface FileRouteTypes {
     | '/admin/users/$id'
     | '/distributor/task-package/$packageId'
     | '/admin/distributors/'
+    | '/admin/tasks/'
     | '/admin/users/'
     | '/api/public/telegram/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -598,7 +607,6 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/support'
-    | '/admin/tasks'
     | '/admin/withdrawals'
     | '/distributor/earnings'
     | '/distributor/leads'
@@ -616,6 +624,7 @@ export interface FileRouteTypes {
     | '/admin/users/$id'
     | '/distributor/task-package/$packageId'
     | '/admin/distributors'
+    | '/admin/tasks'
     | '/admin/users'
     | '/api/public/telegram/webhook'
   id:
@@ -673,6 +682,7 @@ export interface FileRouteTypes {
     | '/admin/users/$id'
     | '/distributor/task-package/$packageId'
     | '/admin/distributors/'
+    | '/admin/tasks/'
     | '/admin/users/'
     | '/api/public/telegram/webhook'
   fileRoutesById: FileRoutesById
@@ -1025,6 +1035,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersIndexRouteImport
       parentRoute: typeof AdminUsersRoute
     }
+    '/admin/tasks/': {
+      id: '/admin/tasks/'
+      path: '/'
+      fullPath: '/admin/tasks/'
+      preLoaderRoute: typeof AdminTasksIndexRouteImport
+      parentRoute: typeof AdminTasksRoute
+    }
     '/admin/distributors/': {
       id: '/admin/distributors/'
       path: '/'
@@ -1139,10 +1156,12 @@ const AdminDistributorsRouteWithChildren =
 
 interface AdminTasksRouteChildren {
   AdminTasksDailyReportRoute: typeof AdminTasksDailyReportRoute
+  AdminTasksIndexRoute: typeof AdminTasksIndexRoute
 }
 
 const AdminTasksRouteChildren: AdminTasksRouteChildren = {
   AdminTasksDailyReportRoute: AdminTasksDailyReportRoute,
+  AdminTasksIndexRoute: AdminTasksIndexRoute,
 }
 
 const AdminTasksRouteWithChildren = AdminTasksRoute._addFileChildren(

@@ -11,7 +11,7 @@ import { generateTaskDescription } from "@/lib/ai.functions";
 import { cn } from "@/lib/utils";
 import { todayBD, startOfTodayBDISO } from "@/lib/bd-time";
 
-export const Route = createFileRoute("/admin/tasks")({
+export const Route = createFileRoute("/admin/tasks/")({
   head: () => ({ meta: [{ title: "টাস্ক লিংক — Admin" }] }),
   component: TasksPage,
 });
