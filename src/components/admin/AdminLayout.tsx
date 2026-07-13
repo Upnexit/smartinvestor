@@ -3,7 +3,8 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, ArrowDownToLine, Package, ShieldCheck, CreditCard,
   ListChecks, MessagesSquare, BarChart3, Activity, Settings, User as UserIcon,
-  LogOut, Menu, X, Search, ChevronRight, Sparkles, Users2, Loader2, Smartphone, Megaphone,
+  LogOut, Menu, X, Search, ChevronRight, ChevronDown, Sparkles, Users2, Loader2, Smartphone, Megaphone,
+  CalendarDays,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -11,7 +12,8 @@ import { ACCENTS, type AccentKey } from "@/lib/admin-accents";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 
-type NavItem = { to: string; label: string; Icon: typeof LayoutDashboard; accent: AccentKey };
+type NavChild = { to: string; label: string; Icon: typeof LayoutDashboard };
+type NavItem = { to: string; label: string; Icon: typeof LayoutDashboard; accent: AccentKey; children?: NavChild[] };
 
 export const ADMIN_NAV: NavItem[] = [
   { to: "/admin",              label: "ড্যাশবোর্ড",         Icon: LayoutDashboard, accent: "amber" },
@@ -21,7 +23,10 @@ export const ADMIN_NAV: NavItem[] = [
   { to: "/admin/packages",     label: "প্যাকেজ",            Icon: Package,         accent: "fuchsia" },
   { to: "/admin/approvals",    label: "পেমেন্ট অ্যাপ্রুভাল",   Icon: ShieldCheck,     accent: "orange" },
   { to: "/admin/payments",     label: "পেমেন্ট গেটওয়ে",      Icon: CreditCard,      accent: "pink" },
-  { to: "/admin/tasks",        label: "টাস্ক লিংক",          Icon: ListChecks,      accent: "rose" },
+  { to: "/admin/tasks",        label: "টাস্ক লিংক",          Icon: ListChecks,      accent: "rose",
+    children: [
+      { to: "/admin/tasks/daily-report", label: "দৈনিক রিপোর্ট", Icon: CalendarDays },
+    ] },
   { to: "/admin/community",    label: "কমিউনিটি চ্যাট",      Icon: MessagesSquare,  accent: "purple" },
   { to: "/admin/notices",      label: "নোটিশ ম্যানেজমেন্ট",   Icon: Megaphone,       accent: "fuchsia" },
   { to: "/admin/support",      label: "সাপোর্ট চ্যাট",       Icon: MessagesSquare,  accent: "rose" },
