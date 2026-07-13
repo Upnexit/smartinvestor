@@ -62,6 +62,7 @@ const TITLE_PRESETS: Record<string, string[]> = {
 function TasksPage() {
   const [rows, setRows] = useState<Task[] | null>(null);
   const [packages, setPackages] = useState<Pkg[]>([]);
+  const [pkgActiveUsers, setPkgActiveUsers] = useState<Map<string, number>>(new Map());
   const [stats, setStats] = useState<{ done: number; paid: number } | null>(null);
   const [edit, setEdit] = useState<Task | null>(null);
   const [del, setDel] = useState<Task | null>(null);
@@ -72,13 +73,18 @@ function TasksPage() {
   const genDesc = useServerFn(generateTaskDescription);
 
   const refresh = async () => {
-    const [{ data, error }, { data: pkgs }] = await Promise.all([
+    const [{ data, error }, { data: pkgs }, { data: counts }] = await Promise.all([
       supabase.from("link_tasks").select("*").order("created_at", { ascending: false }),
       supabase.from("packages").select("id,name,price,active").eq("active", true).order("price"),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any).rpc("packages_active_user_counts"),
     ]);
     if (error) { setRows([]); setStats({ done: 0, paid: 0 }); return; }
     setRows((data ?? []) as unknown as Task[]);
     setPackages((pkgs ?? []) as Pkg[]);
+    const m = new Map<string, number>();
+    ((counts ?? []) as Array<{ package_id: string; active_users: number }>).forEach((r) => m.set(r.package_id, r.active_users));
+    setPkgActiveUsers(m);
     const { data: subs } = await supabase.from("task_submissions").select("status, link_tasks(reward)")
       .eq("status", "approved").gte("created_at", startOfTodayBDISO());
     const done = subs?.length ?? 0;
