@@ -201,6 +201,7 @@ function DistPackageTasksPage() {
               <li><b>Action type</b> সিলেক্ট করুন — Distributor হিসেবে শুধু <b className="text-fuchsia-700">Like</b> ও <b className="text-fuchsia-700">Follow</b> allowed। <b>Share / Comment</b> শুধু Admin তৈরি করতে পারবেন।</li>
               <li>“AI দিয়ে Random FB Link তৈরি” চাপুন — verified 1M+ follower Facebook page থেকে link এসে <b>Draft</b> হিসেবে যোগ হবে।</li>
               <li>প্রতিটি link ক্লিক করে page live আছে কিনা যাচাই করুন (✅ Verified দেখাবে)। ভুল থাকলে ✏️ Edit বা 🗑 Delete করুন।</li>
+              <li><b className="text-rose-700">Facebook page load হচ্ছে না / বন্ধ দেখাচ্ছে?</b> সেই task-এর 🗑 <b>Delete</b> button-এ click করুন — সঙ্গে সঙ্গে <b>একই মূল্যের</b> আরেকটি নতুন Facebook link AI দিয়ে auto-generate হয়ে replace হয়ে যাবে।</li>
               <li>সব ঠিক থাকলে <b>“আমার সব draft Activate”</b> চাপুন — user-দের কাছে task publish হয়ে যাবে।</li>
               <li>নীল <b>Admin</b> ট্যাগ যেসব task-এ আছে সেগুলো Admin তৈরি করেছেন — আপনি শুধু দেখতে পারবেন, edit/delete পারবেন না।</li>
             </ol>
