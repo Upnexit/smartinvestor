@@ -33,6 +33,7 @@ import { Route as DistributorLeadsRouteImport } from './routes/distributor.leads
 import { Route as DistributorEarningsRouteImport } from './routes/distributor.earnings'
 import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminTasksRouteImport } from './routes/admin.tasks'
 import { Route as AdminSupportRouteImport } from './routes/admin.support'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
@@ -184,6 +185,11 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminTasksRoute = AdminTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminSupportRoute = AdminSupportRouteImport.update({
   id: '/support',
   path: '/support',
@@ -295,9 +301,9 @@ const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
   getParentRoute: () => AdminUsersRoute,
 } as any)
 const AdminTasksIndexRoute = AdminTasksIndexRouteImport.update({
-  id: '/tasks/',
-  path: '/tasks/',
-  getParentRoute: () => AdminRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminTasksRoute,
 } as any)
 const AdminDistributorsIndexRoute = AdminDistributorsIndexRouteImport.update({
   id: '/',
@@ -316,9 +322,9 @@ const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
   getParentRoute: () => AdminUsersRoute,
 } as any)
 const AdminTasksDailyReportRoute = AdminTasksDailyReportRouteImport.update({
-  id: '/tasks/daily-report',
-  path: '/tasks/daily-report',
-  getParentRoute: () => AdminRoute,
+  id: '/daily-report',
+  path: '/daily-report',
+  getParentRoute: () => AdminTasksRoute,
 } as any)
 const AdminTaskPackagePackageIdRoute =
   AdminTaskPackagePackageIdRouteImport.update({
@@ -377,6 +383,7 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/support': typeof AdminSupportRoute
+  '/admin/tasks': typeof AdminTasksRouteWithChildren
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/distributor/earnings': typeof DistributorEarningsRoute
@@ -487,6 +494,7 @@ export interface FileRoutesById {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/support': typeof AdminSupportRoute
+  '/admin/tasks': typeof AdminTasksRouteWithChildren
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/distributor/earnings': typeof DistributorEarningsRoute
@@ -545,6 +553,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/support'
+    | '/admin/tasks'
     | '/admin/users'
     | '/admin/withdrawals'
     | '/distributor/earnings'
@@ -654,6 +663,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/support'
+    | '/admin/tasks'
     | '/admin/users'
     | '/admin/withdrawals'
     | '/distributor/earnings'
@@ -864,6 +874,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/tasks': {
+      id: '/admin/tasks'
+      path: '/tasks'
+      fullPath: '/admin/tasks'
+      preLoaderRoute: typeof AdminTasksRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/support': {
       id: '/admin/support'
       path: '/support'
@@ -1020,10 +1037,10 @@ declare module '@tanstack/react-router' {
     }
     '/admin/tasks/': {
       id: '/admin/tasks/'
-      path: '/tasks'
+      path: '/'
       fullPath: '/admin/tasks/'
       preLoaderRoute: typeof AdminTasksIndexRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminTasksRoute
     }
     '/admin/distributors/': {
       id: '/admin/distributors/'
@@ -1048,10 +1065,10 @@ declare module '@tanstack/react-router' {
     }
     '/admin/tasks/daily-report': {
       id: '/admin/tasks/daily-report'
-      path: '/tasks/daily-report'
+      path: '/daily-report'
       fullPath: '/admin/tasks/daily-report'
       preLoaderRoute: typeof AdminTasksDailyReportRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminTasksRoute
     }
     '/admin/task-package/$packageId': {
       id: '/admin/task-package/$packageId'
@@ -1137,6 +1154,20 @@ const AdminDistributorsRouteChildren: AdminDistributorsRouteChildren = {
 const AdminDistributorsRouteWithChildren =
   AdminDistributorsRoute._addFileChildren(AdminDistributorsRouteChildren)
 
+interface AdminTasksRouteChildren {
+  AdminTasksDailyReportRoute: typeof AdminTasksDailyReportRoute
+  AdminTasksIndexRoute: typeof AdminTasksIndexRoute
+}
+
+const AdminTasksRouteChildren: AdminTasksRouteChildren = {
+  AdminTasksDailyReportRoute: AdminTasksDailyReportRoute,
+  AdminTasksIndexRoute: AdminTasksIndexRoute,
+}
+
+const AdminTasksRouteWithChildren = AdminTasksRoute._addFileChildren(
+  AdminTasksRouteChildren,
+)
+
 interface AdminUsersRouteChildren {
   AdminUsersIdRoute: typeof AdminUsersIdRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
@@ -1164,12 +1195,11 @@ interface AdminRouteChildren {
   AdminReportsRoute: typeof AdminReportsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminSupportRoute: typeof AdminSupportRoute
+  AdminTasksRoute: typeof AdminTasksRouteWithChildren
   AdminUsersRoute: typeof AdminUsersRouteWithChildren
   AdminWithdrawalsRoute: typeof AdminWithdrawalsRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminTaskPackagePackageIdRoute: typeof AdminTaskPackagePackageIdRoute
-  AdminTasksDailyReportRoute: typeof AdminTasksDailyReportRoute
-  AdminTasksIndexRoute: typeof AdminTasksIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -1185,12 +1215,11 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminReportsRoute: AdminReportsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminSupportRoute: AdminSupportRoute,
+  AdminTasksRoute: AdminTasksRouteWithChildren,
   AdminUsersRoute: AdminUsersRouteWithChildren,
   AdminWithdrawalsRoute: AdminWithdrawalsRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminTaskPackagePackageIdRoute: AdminTaskPackagePackageIdRoute,
-  AdminTasksDailyReportRoute: AdminTasksDailyReportRoute,
-  AdminTasksIndexRoute: AdminTasksIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
