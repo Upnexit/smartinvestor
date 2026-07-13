@@ -112,10 +112,32 @@ function DistPackageTasksPage() {
     finally { setBatchBusy(false); }
   };
 
-  const deleteOne = async (id: string) => {
-    if (!confirm("এই task ডিলিট করবেন?")) return;
-    try { await deleteFn({ data: { id } }); toast.success("ডিলিট"); load(); }
-    catch (e) { toast.error((e as Error).message); }
+  const deleteOne = async (t: Task) => {
+    if (!confirm("এই Facebook page-টি load হচ্ছে না / বন্ধ? Delete করলে সঙ্গে সঙ্গে একই মূল্যের নতুন link auto-generate হয়ে যাবে।")) return;
+    const tId = toast.loading("পুরনো task delete + নতুন AI link তৈরি হচ্ছে…");
+    try {
+      await deleteFn({ data: { id: t.id } });
+      // auto-generate 1 replacement of same reward + action_type
+      try {
+        const existingUrls = (tasks ?? []).filter((x) => x.id !== t.id).map((x) => x.link_url).filter(Boolean);
+        const action = (DIST_ACTIONS as string[]).includes(t.action_type)
+          ? (t.action_type as GeneratedTask["action_type"])
+          : "like";
+        const res = await genFn({ data: { count: 1, actions: [action], existingUrls } });
+        const rows = res.tasks.map((g) => ({
+          title: g.title, link_url: g.url, action_type: g.action_type, description: g.description,
+        }));
+        if (rows.length) {
+          await bulkFn({ data: { packageId, date, tasks: rows, perReward: Number(t.reward) || perTaskReward || 2 } });
+          toast.success("Delete হয়েছে + নতুন link auto-generate হয়েছে", { id: tId });
+        } else {
+          toast.success("Delete হয়েছে (নতুন link পাওয়া যায়নি)", { id: tId });
+        }
+      } catch (ge) {
+        toast.warning(`Delete হয়েছে — replacement তৈরি ব্যর্থ: ${(ge as Error).message}`, { id: tId });
+      }
+      load();
+    } catch (e) { toast.error((e as Error).message, { id: tId }); }
   };
   const toggleOne = async (t: Task) => {
     try {
