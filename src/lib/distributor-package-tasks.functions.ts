@@ -182,9 +182,28 @@ export const distributorDeleteOwnLinkTask = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
+    const { data: doomed } = await context.supabase.from("link_tasks")
+      .select("id,link_url,reward,action_type,required_package_id,scheduled_date")
+      .eq("id", data.id).eq("created_by_distributor", context.userId).maybeSingle();
     const { error } = await context.supabase.from("link_tasks")
       .delete().eq("id", data.id).eq("created_by_distributor", context.userId);
     if (error) throw new Error(error.message);
+    if (doomed) {
+      await context.supabase.from("activity_logs").insert({
+        user_id: context.userId,
+        event_type: "distributor_task_deleted",
+        meta: {
+          task_id: doomed.id,
+          link_url: doomed.link_url,
+          reward: doomed.reward,
+          action_type: doomed.action_type,
+          package_id: doomed.required_package_id,
+          date: doomed.scheduled_date,
+          reason: "page_unreachable_or_manual",
+          source: "distributor_package_page",
+        },
+      });
+    }
     return { ok: true };
   });
 
