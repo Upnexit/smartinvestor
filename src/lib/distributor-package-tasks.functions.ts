@@ -103,6 +103,20 @@ export const distributorBulkInsertPackageTasks = createServerFn({ method: "POST"
     }));
     const { data: inserted, error } = await context.supabase.from("link_tasks").insert(rows).select();
     if (error) throw new Error(error.message);
+    // Activity log for admin notification + audit
+    await context.supabase.from("activity_logs").insert({
+      user_id: context.userId,
+      event_type: "distributor_task_generated",
+      meta: {
+        package_id: data.packageId,
+        date: data.date,
+        count: inserted?.length ?? 0,
+        per_reward: data.perReward,
+        total_amount: Math.round((inserted?.length ?? 0) * data.perReward * 100) / 100,
+        action_types: Array.from(new Set(data.tasks.map((t) => t.action_type))),
+        source: "distributor_package_page",
+      },
+    });
     return inserted ?? [];
   });
 
