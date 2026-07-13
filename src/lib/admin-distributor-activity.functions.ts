@@ -7,11 +7,14 @@ const EVENT_TYPES = [
   "distributor_task_deleted",
 ] as const;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Json = any;
+
 export type DistributorActivityRow = {
   id: string;
   event_type: string;
   created_at: string;
-  meta: Record<string, unknown>;
+  meta: Json;
   user_id: string;
   distributor_name: string | null;
   distributor_email: string | null;
