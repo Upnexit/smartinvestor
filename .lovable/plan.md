@@ -1,58 +1,113 @@
-# Admin Task Management Restructure
 
-## 1. Task list page (`/admin/tasks`)
+# ডিস্ট্রিবিউটরকে সবসময় ব্যস্ত রাখার পরিকল্পনা
 
-Restructure into two zones:
+বর্তমানে ডিস্ট্রিবিউটর শুধু refer করে কমিশন পায় — কোনো নিয়মিত কাজ নেই। এতে তারা active থাকে না, dropout বাড়ে। নিচে ৭টি কাজের ক্ষেত্র প্রস্তাব করছি, যেগুলো ডিস্ট্রিবিউটরকে daily/weekly ব্যস্ত রাখবে এবং business-এ value যোগ করবে।
 
-**Top zone — Search + Overview**
-- Real-time search box (title/URL/reward)
-- Filter chips: সব / আজকের / আগামীকালের / active / inactive
-- Live task count and today's total reward
+---
 
-**Bottom zone — Package buttons**
-- Each active package renders as a large button card showing: package name, price, daily_tasks, today's task count, active/inactive badge
-- Click → navigates to `/admin/tasks/package/$packageId` (new page)
+## ১. Onboarding & User Support (Primary Duty)
 
-## 2. Package task page (`/admin/tasks/package/$packageId`)
+ডিস্ট্রিবিউটর তার নিজের রেফার করা user-দের জন্য একজন **local mentor/support agent** হবে।
 
-For the selected package (e.g. Crazy Package):
-- Header: package info + daily_tasks × reward = per-user daily amount
-- Date picker (default: today, can pick tomorrow to pre-create)
-- Action bar:
-  - "AI দিয়ে random FB link generate করুন" button
-  - "নতুন task manually add" button
-  - Active/Inactive toggle for the whole day's batch
-- Task list for that package × selected date: each row = link, title, reward, status (draft/active), edit/delete
-- Bulk verify: admin can preview each AI-generated link (open in new tab), edit URL if broken, then bulk-activate
+- **New user welcome call** — প্রতিটি নতুন referred user-কে ২৪ ঘণ্টার মধ্যে call/message করে welcome ও guide করা (checklist সহ)।
+- **Package purchase assist** — যেসব referred user এখনো package কেনেনি (pending status), তাদের follow-up করা।
+- **Task help** — user-রা যদি link task-এ আটকে যায়, ডিস্ট্রিবিউটর WhatsApp/call-এ সাহায্য করবে।
 
-## 3. AI random task generator
+**Track:** Panel-এ "Pending Users" list — যারা package কেনেনি; "Inactive Users" list — যারা ৩ দিন login করেনি।
 
-Server function `generateTasksForPackage({ packageId, date, count })`:
-- Uses Lovable AI Gateway (google/gemini-3-flash-preview) with structured output
-- Prompt: generate `daily_tasks` random plausible public Facebook page/post URLs (like/follow/share tasks in Bengali)
-- Returns array of `{ title, url, action_type, reward }`
-- Inserts into `link_tasks` with `status='draft'`, `scheduled_date=<date>`, `package_id=<id>`
-- Admin reviews → clicks activate → status becomes `active` and visible to users from midnight of `scheduled_date`
+---
 
-## 4. Database migration
+## ২. Daily Check-in / Attendance Task
 
-Add to `link_tasks`:
-- `package_id uuid references packages(id)` — which package this task belongs to
-- `scheduled_date date` — which day it runs
-- `is_draft boolean default true` — admin verify gate
+প্রতিদিন login করে একটি ছোট task complete করলে **daily bonus** (৫–২০ টাকা)।
 
-Auto-activation: a cron / on-read check activates draft tasks when `scheduled_date <= today` AND admin has clicked "activate batch".
+- Daily login streak
+- ৩–৫টি নতুন lead contact log করা (নাম + phone + status: interested/not)
+- ছোট quiz বা training video দেখা
 
-Fetching for users: `tasks.tsx` (user) filters by user's active package + `scheduled_date = today` + `is_draft = false`.
+**Impact:** habit তৈরি হবে, panel-এ প্রতিদিন আসবে।
 
-## 5. Files
+---
 
-- `supabase/migrations/*` — schema change
-- `src/lib/admin-tasks.functions.ts` — `generateTasksForPackage`, `activateTaskBatch`, `listTasksByPackageDate`
-- `src/routes/admin.tasks.tsx` — restructured list + package button grid
-- `src/routes/admin.tasks.package.$packageId.tsx` — new per-package management page
-- `src/routes/_authenticated/tasks.tsx` — update user filter to package + scheduled_date
+## ৩. Lead CRM (নতুন Feature)
 
-## Notes
-- AI generates plausible URLs but does NOT guarantee they resolve — that's why admin verify step exists before activation
-- Pre-creating tomorrow's tasks tonight works because `scheduled_date` gates visibility, not `created_at`
+ডিস্ট্রিবিউটরের জন্য একটি mini-CRM যেখানে সে potential customer-দের track করবে:
+
+```text
+Lead Name | Phone | Source | Status         | Next Follow-up
+Rahim     | 017.. | FB     | Interested     | কাল
+Karim     | 018.. | Friend | Package Bought | —
+```
+
+- Status: New → Contacted → Interested → Converted → Dropped
+- Follow-up reminder notification
+- Converted lead auto-link হবে referral-এর সাথে
+
+---
+
+## ৪. Weekly Target & Leaderboard
+
+- **Weekly target:** ৫ জন নতুন referral, ২ জনের package conversion
+- Target complete করলে **bonus commission** (extra ২–৩%)
+- District-wise / national leaderboard — top ১০ ডিস্ট্রিবিউটর দেখা যাবে
+- Monthly winner পাবে extra reward (cash/gift)
+
+---
+
+## ৫. Content Sharing Task
+
+প্রতিদিন/সপ্তাহে ২–৩টি ready-made content (poster, video, caption) admin panel থেকে dispatch হবে; ডিস্ট্রিবিউটর নিজের FB/WhatsApp-এ share করে screenshot upload করবে।
+
+- Verified share = ছোট bonus (৫–১০ টাকা)
+- Admin approve করবে (task_submissions-এর মতো flow)
+
+---
+
+## ৬. Training & Certification
+
+- Weekly training video/PDF
+- ছোট quiz — pass করলে "Certified Distributor" badge
+- Level up system: Bronze → Silver → Gold → Platinum (commission rate বাড়বে)
+
+---
+
+## ৭. Local Community Building
+
+- ডিস্ট্রিবিউটর তার district-এর user-দের নিয়ে WhatsApp group চালাবে
+- Weekly report submit করবে (কতজন active, কী সমস্যা)
+- District performance dashboard admin দেখতে পাবে
+
+---
+
+## Priority Roadmap (Phase-wise)
+
+| Phase | Feature | Effort | Impact |
+|---|---|---|---|
+| **Phase 1** (সবচেয়ে জরুরি) | Pending/Inactive user list + follow-up tracking, Daily check-in bonus | মাঝারি | High |
+| **Phase 2** | Lead CRM, Weekly target + leaderboard | বড় | High |
+| **Phase 3** | Content sharing task, Training + certification | মাঝারি | Medium |
+| **Phase 4** | Level-up system, District dashboard | বড় | Medium |
+
+---
+
+## Technical Overview (Phase 1 বাস্তবায়ন)
+
+- **New tables:** `distributor_daily_checkins`, `distributor_leads`, `distributor_tasks`
+- **New pages:**
+  - `/distributor/leads` — CRM
+  - `/distributor/tasks` — daily task + check-in
+  - `/distributor/leaderboard`
+- **New server functions:** lead CRUD, check-in claim, target progress
+- **Notification:** pending user follow-up reminder (pg_cron daily)
+- **Admin panel:** target config, content dispatch, task approval
+
+---
+
+## আপনার সিদ্ধান্ত দরকার
+
+1. কোন Phase থেকে শুরু করব? (আমার সুপারিশ: **Phase 1** — quick win)
+2. Daily check-in bonus কত রাখব? (৫/১০/২০ টাকা)
+3. Weekly target complete-এ extra commission কত? (২%/৩%/৫%)
+4. এই ৭টা idea-র মধ্যে কোনটা বাদ দিতে চান বা নতুন যোগ করতে চান?
+
+আপনি সিদ্ধান্ত জানালে সেই অনুযায়ী detailed implementation plan দেব ও কোড লেখা শুরু করব।
