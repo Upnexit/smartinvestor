@@ -7,11 +7,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
 import { reviewOrder, signedUrl } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
+import { useSearchHighlight } from "@/hooks/use-search-highlight";
+
+type ApprovalsSearch = { q?: string; highlight?: string; filter?: string };
 
 export const Route = createFileRoute("/admin/approvals")({
+  validateSearch: (s: Record<string, unknown>): ApprovalsSearch => ({
+    q: typeof s.q === "string" ? s.q : undefined,
+    highlight: typeof s.highlight === "string" ? s.highlight : undefined,
+    filter: typeof s.filter === "string" ? s.filter : undefined,
+  }),
   head: () => ({ meta: [{ title: "পেমেন্ট অ্যাপ্রুভাল — Admin" }] }),
   component: ApprovalsPage,
 });
+
 
 type Status = "pending" | "active" | "rejected" | "all";
 type Row = {
