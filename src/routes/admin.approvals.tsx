@@ -132,7 +132,9 @@ function ApprovalsPage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {filtered.map((r) => (
-            <AdminCard key={r.id} accent="amber" interactive className="p-4">
+            <div key={r.id} ref={setRowRef(r.id)}>
+            <AdminCard accent="amber" interactive className="p-4">
+
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="bn-display text-base text-slate-900 truncate">{r.profiles?.full_name ?? "—"}</p>
