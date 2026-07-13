@@ -26,11 +26,11 @@ type Status = (typeof STATUS_LIST)[number];
 const STATUS_META: Record<Status, {
   label: string; Icon: typeof Users2; grad: string; ring: string; soft: string; text: string;
 }> = {
-  new:        { label: "নতুন যোগাযোগ",   Icon: Sparkles,      grad: "from-slate-500 to-slate-700",    ring: "ring-slate-300",    soft: "bg-slate-50",    text: "text-slate-700" },
-  contacted:  { label: "যোগাযোগ হয়েছে",  Icon: PhoneCall,     grad: "from-sky-500 to-blue-600",       ring: "ring-sky-300",      soft: "bg-sky-50",      text: "text-sky-700" },
-  interested: { label: "আগ্রহী",         Icon: Heart,         grad: "from-amber-500 to-orange-600",   ring: "ring-amber-300",    soft: "bg-amber-50",    text: "text-amber-700" },
-  converted:  { label: "সাইনআপ",        Icon: CheckCircle2,  grad: "from-emerald-500 to-teal-600",   ring: "ring-emerald-300",  soft: "bg-emerald-50",  text: "text-emerald-700" },
-  dropped:    { label: "বাতিল",         Icon: XCircle,       grad: "from-rose-500 to-red-600",       ring: "ring-rose-300",     soft: "bg-rose-50",     text: "text-rose-700" },
+  new:        { label: "নতুন যোগাযোগ",   Icon: Sparkles,      grad: "from-cyan-500 via-sky-500 to-indigo-600",    ring: "ring-sky-300",      soft: "bg-sky-50",      text: "text-sky-700" },
+  contacted:  { label: "যোগাযোগ হয়েছে",  Icon: PhoneCall,     grad: "from-blue-500 via-indigo-500 to-violet-600", ring: "ring-indigo-300",   soft: "bg-indigo-50",   text: "text-indigo-700" },
+  interested: { label: "আগ্রহী",         Icon: Heart,         grad: "from-amber-400 via-orange-500 to-rose-500",  ring: "ring-orange-300",   soft: "bg-orange-50",   text: "text-orange-700" },
+  converted:  { label: "সাইনআপ",        Icon: CheckCircle2,  grad: "from-emerald-400 via-teal-500 to-cyan-600",  ring: "ring-emerald-300",  soft: "bg-emerald-50",  text: "text-emerald-700" },
+  dropped:    { label: "বাতিল",         Icon: XCircle,       grad: "from-rose-500 via-red-500 to-orange-600",    ring: "ring-rose-300",     soft: "bg-rose-50",     text: "text-rose-700" },
 };
 
 function LeadsPage() {
@@ -47,10 +47,11 @@ function LeadsPage() {
 
   const load = async () => {
     setLoading(true);
-    try { setLeads(await listFn({ data: { q, status: statusFilter } }) as Lead[]); }
+    try { setLeads(await listFn({ data: { q: "", status: "" } }) as Lead[]); }
+    catch (e) { toast.error((e as Error).message || "CRM data load হয়নি"); }
     finally { setLoading(false); }
   };
-  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [statusFilter]);
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
   async function handleDelete(id: string) {
     if (!confirm("লিড delete করবেন?")) return;
@@ -64,16 +65,19 @@ function LeadsPage() {
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
-    if (!query) return leads;
-    return leads.filter((l) =>
-      l.name.toLowerCase().includes(query) ||
-      (l.phone ?? "").toLowerCase().includes(query) ||
-      (l.source ?? "").toLowerCase().includes(query));
-  }, [leads, q]);
+    return leads.filter((l) => {
+      if (statusFilter && l.status !== statusFilter) return false;
+      if (!query) return true;
+      return l.name.toLowerCase().includes(query) ||
+        (l.phone ?? "").toLowerCase().includes(query) ||
+        (l.source ?? "").toLowerCase().includes(query) ||
+        (l.notes ?? "").toLowerCase().includes(query);
+    });
+  }, [leads, q, statusFilter]);
 
   return (
     <div className="space-y-4">
-      <AdminPageHeader title="Lead / CRM" subtitle="সম্ভাব্য user track করুন — call, follow-up ও conversion" Icon={Users2} accent="sky"
+      <AdminPageHeader title="Lead / CRM" subtitle="Database থেকে সব lead, status, contact ও follow-up" Icon={Users2} accent="sky"
         action={
           <button onClick={() => setShowModal("new")}
             className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-md hover:scale-[1.02] transition">
@@ -96,7 +100,7 @@ function LeadsPage() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         <input value={q} onChange={(e) => setQ(e.target.value)}
-          placeholder="নাম, ফোন বা source খুঁজুন…"
+          placeholder="নাম, ফোন, source বা note খুঁজুন…"
           className="w-full rounded-xl border border-slate-300 bg-white pl-9 pr-3 py-2.5 text-sm outline-none focus:border-sky-500" />
       </div>
 
@@ -104,7 +108,7 @@ function LeadsPage() {
         <div className="grid place-items-center py-12 text-slate-400"><Loader2 className="h-6 w-6 animate-spin" /></div>
       ) : filtered.length === 0 ? (
         <AdminCard className="p-8 text-center text-sm text-slate-500">
-          কোনো লিড নেই — উপরের "নতুন লিড" বাটনে ক্লিক করুন
+          {leads.length === 0 ? "কোনো লিড নেই — উপরের নতুন লিড বাটনে ক্লিক করুন" : "এই filter/search-এ কোনো lead নেই"}
         </AdminCard>
       ) : (
         <div className="grid gap-2">
