@@ -134,6 +134,7 @@ export function NotificationBell() {
       .on("postgres_changes", { event: "*", schema: "public", table: "distributor_applications" }, () => { loadCount(); if (open) loadItems(); })
       .on("postgres_changes", { event: "*", schema: "public", table: "withdrawals" }, () => { loadCount(); if (open) loadItems(); })
       .on("postgres_changes", { event: "*", schema: "public", table: "user_packages" }, () => { loadCount(); if (open) loadItems(); })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "activity_logs" }, () => { if (open) loadItems(); })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
