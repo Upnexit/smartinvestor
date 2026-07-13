@@ -181,21 +181,22 @@ function StatusButton({ label, grad, count, Icon, active, onClick, total }: {
   return (
     <button onClick={onClick}
       className={cn(
-        "group relative overflow-hidden rounded-2xl p-[1.5px] bg-gradient-to-br transition hover:scale-[1.03] active:scale-[0.98]",
+        "group relative overflow-hidden rounded-2xl bg-gradient-to-br p-3 text-left shadow-lg transition hover:scale-[1.03] active:scale-[0.98]",
         grad,
-        active ? "ring-2 ring-offset-2 ring-slate-900 shadow-lg" : "opacity-90 hover:opacity-100",
+        active ? "ring-2 ring-offset-2 ring-slate-900" : "opacity-90 hover:opacity-100",
       )}>
-      <div className="rounded-[14px] bg-white px-3 py-3 text-left">
-        <div className="flex items-center gap-2">
-          <span className={cn("grid h-9 w-9 place-items-center rounded-xl text-white bg-gradient-to-br shadow-md", grad)}>
+      <span className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(255,255,255,.45),transparent_34%)]" />
+      <div className="relative">
+        <div className="flex items-center gap-2 text-white">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/20 shadow-md ring-1 ring-white/35">
             <Icon className="h-4 w-4" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className={cn("text-[10px] font-bold uppercase tracking-wider", total ? "text-indigo-600" : "text-slate-500")}>{total ? "মোট" : "স্ট্যাটাস"}</p>
-            <p className="bn-display text-xs text-slate-800 truncate">{label}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-white/75">{total ? "মোট" : "স্ট্যাটাস"}</p>
+            <p className="bn-display text-xs truncate drop-shadow">{label}</p>
           </div>
         </div>
-        <p className={cn("mt-1.5 bn-display text-2xl font-black bg-clip-text text-transparent bg-gradient-to-br", grad)}>{count}</p>
+        <p className="mt-1.5 bn-display text-3xl font-black text-white drop-shadow">{count}</p>
       </div>
     </button>
   );
