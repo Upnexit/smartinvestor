@@ -247,6 +247,8 @@ function WithdrawalsPage() {
                 )}
               </div>
             </AdminCard>
+            </div>
+
           ))}
         </div>
       )}
