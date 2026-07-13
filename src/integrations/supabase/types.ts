@@ -197,6 +197,126 @@ export type Database = {
         }
         Relationships: []
       }
+      distributor_earnings: {
+        Row: {
+          amount: number
+          created_at: string
+          distributor_id: string
+          id: string
+          meta: Json | null
+          related_user_id: string | null
+          related_withdrawal_id: string | null
+          source: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          distributor_id: string
+          id?: string
+          meta?: Json | null
+          related_user_id?: string | null
+          related_withdrawal_id?: string | null
+          source: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          distributor_id?: string
+          id?: string
+          meta?: Json | null
+          related_user_id?: string | null
+          related_withdrawal_id?: string | null
+          source?: string
+        }
+        Relationships: []
+      }
+      distributor_leads: {
+        Row: {
+          converted_user_id: string | null
+          created_at: string
+          distributor_id: string
+          id: string
+          name: string
+          next_followup_at: string | null
+          notes: string | null
+          phone: string | null
+          source: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          converted_user_id?: string | null
+          created_at?: string
+          distributor_id: string
+          id?: string
+          name: string
+          next_followup_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          converted_user_id?: string | null
+          created_at?: string
+          distributor_id?: string
+          id?: string
+          name?: string
+          next_followup_at?: string | null
+          notes?: string | null
+          phone?: string | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      distributor_tasks: {
+        Row: {
+          action_type: string
+          created_at: string
+          distributor_id: string
+          fb_page_url: string
+          id: string
+          instruction: string | null
+          published_at: string | null
+          published_task_id: string | null
+          reward: number
+          status: string
+          title: string
+          verified_at: string | null
+        }
+        Insert: {
+          action_type?: string
+          created_at?: string
+          distributor_id: string
+          fb_page_url: string
+          id?: string
+          instruction?: string | null
+          published_at?: string | null
+          published_task_id?: string | null
+          reward?: number
+          status?: string
+          title: string
+          verified_at?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          distributor_id?: string
+          fb_page_url?: string
+          id?: string
+          instruction?: string | null
+          published_at?: string | null
+          published_task_id?: string | null
+          reward?: number
+          status?: string
+          title?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       distributor_withdrawals: {
         Row: {
           account_number: string
@@ -249,6 +369,7 @@ export type Database = {
           commission_rate: number
           created_at: string
           created_by: string | null
+          daily_task_limit: number
           district: string | null
           email: string
           full_name: string
@@ -269,6 +390,7 @@ export type Database = {
           commission_rate?: number
           created_at?: string
           created_by?: string | null
+          daily_task_limit?: number
           district?: string | null
           email: string
           full_name: string
@@ -289,6 +411,7 @@ export type Database = {
           commission_rate?: number
           created_at?: string
           created_by?: string | null
+          daily_task_limit?: number
           district?: string | null
           email?: string
           full_name?: string
@@ -371,6 +494,7 @@ export type Database = {
           active: boolean
           category: string | null
           created_at: string
+          created_by_distributor: string | null
           daily_limit: number
           description: string | null
           id: string
@@ -387,6 +511,7 @@ export type Database = {
           active?: boolean
           category?: string | null
           created_at?: string
+          created_by_distributor?: string | null
           daily_limit?: number
           description?: string | null
           id?: string
@@ -403,6 +528,7 @@ export type Database = {
           active?: boolean
           category?: string | null
           created_at?: string
+          created_by_distributor?: string | null
           daily_limit?: number
           description?: string | null
           id?: string
@@ -1197,6 +1323,7 @@ export type Database = {
           commission_rate: number
           created_at: string
           created_by: string | null
+          daily_task_limit: number
           district: string | null
           email: string
           full_name: string
