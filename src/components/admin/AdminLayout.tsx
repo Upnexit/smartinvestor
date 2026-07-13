@@ -144,24 +144,48 @@ function SidebarBody({
         {ADMIN_NAV.map((item) => {
           const active = item.to === "/admin" ? pathname === "/admin" : pathname.startsWith(item.to);
           const a = ACCENTS[item.accent];
+          const hasChildren = !!item.children?.length;
           return (
-            <Link
-              key={item.to} to={item.to} onClick={onNav}
-              className={cn(
-                "group relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-semibold transition-all duration-300",
-                active ? cn(a.soft, "text-slate-900 translate-x-0.5 ring-1", a.ring) : "text-slate-600 hover:bg-slate-50",
+            <div key={item.to}>
+              <Link
+                to={item.to} onClick={onNav}
+                className={cn(
+                  "group relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-semibold transition-all duration-300",
+                  active ? cn(a.soft, "text-slate-900 translate-x-0.5 ring-1", a.ring) : "text-slate-600 hover:bg-slate-50",
+                )}
+              >
+                <span className={cn(
+                  "grid h-9 w-9 shrink-0 place-items-center rounded-xl text-white bg-gradient-to-br shadow-md transition-all duration-300",
+                  a.chip, a.glow,
+                  active ? "scale-105" : "opacity-90 group-hover:scale-105",
+                )}>
+                  <item.Icon className="h-[18px] w-[18px]" />
+                </span>
+                <span className="flex-1 truncate">{item.label}</span>
+                {hasChildren ? (
+                  active ? <ChevronDown className="h-4 w-4 text-slate-500" /> : <ChevronRight className="h-4 w-4 text-slate-400" />
+                ) : (active && <ChevronRight className="h-4 w-4 text-slate-500" />)}
+              </Link>
+              {hasChildren && active && (
+                <div className="ml-6 mt-1 mb-1 space-y-0.5 border-l-2 border-rose-200 pl-2">
+                  {item.children!.map((c) => {
+                    const cActive = pathname === c.to || pathname.startsWith(c.to + "/");
+                    return (
+                      <Link key={c.to} to={c.to} onClick={onNav}
+                        className={cn(
+                          "flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] font-medium transition",
+                          cActive
+                            ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-sm"
+                            : "text-slate-600 hover:bg-rose-50 hover:text-rose-700",
+                        )}>
+                        <c.Icon className="h-3.5 w-3.5 shrink-0" />
+                        <span className="truncate">{c.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
               )}
-            >
-              <span className={cn(
-                "grid h-9 w-9 shrink-0 place-items-center rounded-xl text-white bg-gradient-to-br shadow-md transition-all duration-300",
-                a.chip, a.glow,
-                active ? "scale-105" : "opacity-90 group-hover:scale-105",
-              )}>
-                <item.Icon className="h-[18px] w-[18px]" />
-              </span>
-              <span className="flex-1 truncate">{item.label}</span>
-              {active && <ChevronRight className="h-4 w-4 text-slate-500" />}
-            </Link>
+            </div>
           );
         })}
       </nav>
