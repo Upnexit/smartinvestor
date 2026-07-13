@@ -20,7 +20,6 @@ function todayBD(): string {
 export const listDistributorPackages = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { todayBD } = await import("./distributor-task-helpers.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const [{ data: pkgs }, { data: tasks }, { data: counts }] = await Promise.all([
