@@ -26,8 +26,10 @@ import { Route as DistributorIndexRouteImport } from './routes/distributor.index
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as DistributorWithdrawRouteImport } from './routes/distributor.withdraw'
 import { Route as DistributorUsersRouteImport } from './routes/distributor.users'
+import { Route as DistributorTasksRouteImport } from './routes/distributor.tasks'
 import { Route as DistributorSupportRouteImport } from './routes/distributor.support'
 import { Route as DistributorProfileRouteImport } from './routes/distributor.profile'
+import { Route as DistributorLeadsRouteImport } from './routes/distributor.leads'
 import { Route as DistributorEarningsRouteImport } from './routes/distributor.earnings'
 import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
@@ -145,6 +147,11 @@ const DistributorUsersRoute = DistributorUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => DistributorRoute,
 } as any)
+const DistributorTasksRoute = DistributorTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => DistributorRoute,
+} as any)
 const DistributorSupportRoute = DistributorSupportRouteImport.update({
   id: '/support',
   path: '/support',
@@ -153,6 +160,11 @@ const DistributorSupportRoute = DistributorSupportRouteImport.update({
 const DistributorProfileRoute = DistributorProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => DistributorRoute,
+} as any)
+const DistributorLeadsRoute = DistributorLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
   getParentRoute: () => DistributorRoute,
 } as any)
 const DistributorEarningsRoute = DistributorEarningsRouteImport.update({
@@ -356,8 +368,10 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/distributor/earnings': typeof DistributorEarningsRoute
+  '/distributor/leads': typeof DistributorLeadsRoute
   '/distributor/profile': typeof DistributorProfileRoute
   '/distributor/support': typeof DistributorSupportRoute
+  '/distributor/tasks': typeof DistributorTasksRoute
   '/distributor/users': typeof DistributorUsersRoute
   '/distributor/withdraw': typeof DistributorWithdrawRoute
   '/admin/': typeof AdminIndexRoute
@@ -404,8 +418,10 @@ export interface FileRoutesByTo {
   '/admin/tasks': typeof AdminTasksRoute
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/distributor/earnings': typeof DistributorEarningsRoute
+  '/distributor/leads': typeof DistributorLeadsRoute
   '/distributor/profile': typeof DistributorProfileRoute
   '/distributor/support': typeof DistributorSupportRoute
+  '/distributor/tasks': typeof DistributorTasksRoute
   '/distributor/users': typeof DistributorUsersRoute
   '/distributor/withdraw': typeof DistributorWithdrawRoute
   '/admin': typeof AdminIndexRoute
@@ -458,8 +474,10 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRouteWithChildren
   '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/distributor/earnings': typeof DistributorEarningsRoute
+  '/distributor/leads': typeof DistributorLeadsRoute
   '/distributor/profile': typeof DistributorProfileRoute
   '/distributor/support': typeof DistributorSupportRoute
+  '/distributor/tasks': typeof DistributorTasksRoute
   '/distributor/users': typeof DistributorUsersRoute
   '/distributor/withdraw': typeof DistributorWithdrawRoute
   '/admin/': typeof AdminIndexRoute
@@ -512,8 +530,10 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/withdrawals'
     | '/distributor/earnings'
+    | '/distributor/leads'
     | '/distributor/profile'
     | '/distributor/support'
+    | '/distributor/tasks'
     | '/distributor/users'
     | '/distributor/withdraw'
     | '/admin/'
@@ -560,8 +580,10 @@ export interface FileRouteTypes {
     | '/admin/tasks'
     | '/admin/withdrawals'
     | '/distributor/earnings'
+    | '/distributor/leads'
     | '/distributor/profile'
     | '/distributor/support'
+    | '/distributor/tasks'
     | '/distributor/users'
     | '/distributor/withdraw'
     | '/admin'
@@ -613,8 +635,10 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/admin/withdrawals'
     | '/distributor/earnings'
+    | '/distributor/leads'
     | '/distributor/profile'
     | '/distributor/support'
+    | '/distributor/tasks'
     | '/distributor/users'
     | '/distributor/withdraw'
     | '/admin/'
@@ -766,6 +790,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DistributorUsersRouteImport
       parentRoute: typeof DistributorRoute
     }
+    '/distributor/tasks': {
+      id: '/distributor/tasks'
+      path: '/tasks'
+      fullPath: '/distributor/tasks'
+      preLoaderRoute: typeof DistributorTasksRouteImport
+      parentRoute: typeof DistributorRoute
+    }
     '/distributor/support': {
       id: '/distributor/support'
       path: '/support'
@@ -778,6 +809,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/distributor/profile'
       preLoaderRoute: typeof DistributorProfileRouteImport
+      parentRoute: typeof DistributorRoute
+    }
+    '/distributor/leads': {
+      id: '/distributor/leads'
+      path: '/leads'
+      fullPath: '/distributor/leads'
+      preLoaderRoute: typeof DistributorLeadsRouteImport
       parentRoute: typeof DistributorRoute
     }
     '/distributor/earnings': {
@@ -1118,8 +1156,10 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface DistributorRouteChildren {
   DistributorEarningsRoute: typeof DistributorEarningsRoute
+  DistributorLeadsRoute: typeof DistributorLeadsRoute
   DistributorProfileRoute: typeof DistributorProfileRoute
   DistributorSupportRoute: typeof DistributorSupportRoute
+  DistributorTasksRoute: typeof DistributorTasksRoute
   DistributorUsersRoute: typeof DistributorUsersRoute
   DistributorWithdrawRoute: typeof DistributorWithdrawRoute
   DistributorIndexRoute: typeof DistributorIndexRoute
@@ -1127,8 +1167,10 @@ interface DistributorRouteChildren {
 
 const DistributorRouteChildren: DistributorRouteChildren = {
   DistributorEarningsRoute: DistributorEarningsRoute,
+  DistributorLeadsRoute: DistributorLeadsRoute,
   DistributorProfileRoute: DistributorProfileRoute,
   DistributorSupportRoute: DistributorSupportRoute,
+  DistributorTasksRoute: DistributorTasksRoute,
   DistributorUsersRoute: DistributorUsersRoute,
   DistributorWithdrawRoute: DistributorWithdrawRoute,
   DistributorIndexRoute: DistributorIndexRoute,
