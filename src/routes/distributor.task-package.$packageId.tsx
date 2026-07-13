@@ -51,7 +51,7 @@ function DistPackageTasksPage() {
   const [date, setDate] = useState(todayBD());
   const [count, setCount] = useState(10);
   const [totalAmount, setTotalAmount] = useState(0);
-  const [selectedActions, setSelectedActions] = useState<GeneratedTask["action_type"][]>(["like", "follow", "share"]);
+  const [selectedActions, setSelectedActions] = useState<GeneratedTask["action_type"][]>(["like", "follow"]);
   const [genBusy, setGenBusy] = useState(false);
   const [batchBusy, setBatchBusy] = useState(false);
   const [edit, setEdit] = useState<Task | null>(null);
