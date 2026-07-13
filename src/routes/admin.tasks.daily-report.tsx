@@ -266,7 +266,7 @@ function DailyReportPage() {
 
       {/* Top stats */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-        <StatTile label="মোট টাস্ক" value={totalTasks} accent="violet" Icon={ListTodo} />
+        <StatTile label="মোট টাস্ক" value={totalTasks} accent="purple" Icon={ListTodo} />
         <StatTile label="মোট Active User" value={totalActive} accent="sky" Icon={Users} />
         <StatTile label="সম্পন্ন করেছে" value={completed.length} accent="emerald" Icon={UserCheck} />
         <StatTile label="সম্পন্ন করেনি" value={notCompleted.length} accent="rose" Icon={UserX} />
