@@ -28,7 +28,8 @@ export const listDistributorPackages = createServerFn({ method: "GET" })
       (context.supabase as any).rpc("packages_active_user_counts"),
     ]);
 
-    const today = todayBD();
+    const bdNow = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Dhaka" }));
+    const today = `${bdNow.getFullYear()}-${String(bdNow.getMonth() + 1).padStart(2, "0")}-${String(bdNow.getDate()).padStart(2, "0")}`;
     const perPkg = new Map<string, { total: number; todayActive: number; mine: number }>();
     (tasks ?? []).forEach((t) => {
       const key = t.required_package_id ?? "";
