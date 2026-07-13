@@ -168,6 +168,8 @@ function ApprovalsPage() {
                 <Link to="/admin/users/$id" params={{ id: r.user_id }} className="text-[11px] font-bold text-sky-700 hover:underline">ইউজার দেখুন →</Link>
               </div>
             </AdminCard>
+            </div>
+
           ))}
         </div>
       )}
