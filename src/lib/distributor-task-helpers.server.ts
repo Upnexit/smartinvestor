@@ -25,6 +25,13 @@ export async function assertDistributor(db: Db, userId: string) {
   if (!isDistributor && !isAdmin) throw new Error("ডিস্ট্রিবিউটর অনুমতি নেই");
 }
 
+export async function assertAdmin(db: Db, userId: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await db.rpc("has_role" as any, { _user_id: userId, _role: "admin" as any });
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("অ্যাডমিন অনুমতি নেই");
+}
+
 export function todayBD(): string {
   const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Dhaka" }));
   const y = d.getFullYear();
