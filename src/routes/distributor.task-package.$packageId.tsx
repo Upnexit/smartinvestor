@@ -112,10 +112,32 @@ function DistPackageTasksPage() {
     finally { setBatchBusy(false); }
   };
 
-  const deleteOne = async (id: string) => {
-    if (!confirm("এই task ডিলিট করবেন?")) return;
-    try { await deleteFn({ data: { id } }); toast.success("ডিলিট"); load(); }
-    catch (e) { toast.error((e as Error).message); }
+  const deleteOne = async (t: Task) => {
+    if (!confirm("এই Facebook page-টি load হচ্ছে না / বন্ধ? Delete করলে সঙ্গে সঙ্গে একই মূল্যের নতুন link auto-generate হয়ে যাবে।")) return;
+    const tId = toast.loading("পুরনো task delete + নতুন AI link তৈরি হচ্ছে…");
+    try {
+      await deleteFn({ data: { id: t.id } });
+      // auto-generate 1 replacement of same reward + action_type
+      try {
+        const existingUrls = (tasks ?? []).filter((x) => x.id !== t.id).map((x) => x.link_url).filter(Boolean);
+        const action = (DIST_ACTIONS as string[]).includes(t.action_type)
+          ? (t.action_type as GeneratedTask["action_type"])
+          : "like";
+        const res = await genFn({ data: { count: 1, actions: [action], existingUrls } });
+        const rows = res.tasks.map((g) => ({
+          title: g.title, link_url: g.url, action_type: g.action_type, description: g.description,
+        }));
+        if (rows.length) {
+          await bulkFn({ data: { packageId, date, tasks: rows, perReward: Number(t.reward) || perTaskReward || 2 } });
+          toast.success("Delete হয়েছে + নতুন link auto-generate হয়েছে", { id: tId });
+        } else {
+          toast.success("Delete হয়েছে (নতুন link পাওয়া যায়নি)", { id: tId });
+        }
+      } catch (ge) {
+        toast.warning(`Delete হয়েছে — replacement তৈরি ব্যর্থ: ${(ge as Error).message}`, { id: tId });
+      }
+      load();
+    } catch (e) { toast.error((e as Error).message, { id: tId }); }
   };
   const toggleOne = async (t: Task) => {
     try {
@@ -179,6 +201,7 @@ function DistPackageTasksPage() {
               <li><b>Action type</b> সিলেক্ট করুন — Distributor হিসেবে শুধু <b className="text-fuchsia-700">Like</b> ও <b className="text-fuchsia-700">Follow</b> allowed। <b>Share / Comment</b> শুধু Admin তৈরি করতে পারবেন।</li>
               <li>“AI দিয়ে Random FB Link তৈরি” চাপুন — verified 1M+ follower Facebook page থেকে link এসে <b>Draft</b> হিসেবে যোগ হবে।</li>
               <li>প্রতিটি link ক্লিক করে page live আছে কিনা যাচাই করুন (✅ Verified দেখাবে)। ভুল থাকলে ✏️ Edit বা 🗑 Delete করুন।</li>
+              <li><b className="text-rose-700">Facebook page load হচ্ছে না / বন্ধ দেখাচ্ছে?</b> সেই task-এর 🗑 <b>Delete</b> button-এ click করুন — সঙ্গে সঙ্গে <b>একই মূল্যের</b> আরেকটি নতুন Facebook link AI দিয়ে auto-generate হয়ে replace হয়ে যাবে।</li>
               <li>সব ঠিক থাকলে <b>“আমার সব draft Activate”</b> চাপুন — user-দের কাছে task publish হয়ে যাবে।</li>
               <li>নীল <b>Admin</b> ট্যাগ যেসব task-এ আছে সেগুলো Admin তৈরি করেছেন — আপনি শুধু দেখতে পারবেন, edit/delete পারবেন না।</li>
             </ol>
@@ -288,7 +311,7 @@ function DistPackageTasksPage() {
                       <SoftButton onClick={() => toggleOne(t)}>
                         {t.is_draft ? <><CheckCircle2 className="h-3.5 w-3.5" /> Activate</> : t.active ? "Off" : "On"}
                       </SoftButton>
-                      <SoftButton className="!from-rose-100 !to-red-200 !text-rose-700 !ring-rose-200" onClick={() => deleteOne(t.id)}>
+                      <SoftButton className="!from-rose-100 !to-red-200 !text-rose-700 !ring-rose-200" onClick={() => deleteOne(t)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </SoftButton>
                     </div>
