@@ -25,6 +25,7 @@ export const ADMIN_NAV: NavItem[] = [
   { to: "/admin/payments",     label: "পেমেন্ট গেটওয়ে",      Icon: CreditCard,      accent: "pink" },
   { to: "/admin/tasks",        label: "টাস্ক লিংক",          Icon: ListChecks,      accent: "rose",
     children: [
+      { to: "/admin/tasks", label: "টাস্ক লিংক ম্যানেজমেন্ট", Icon: ListChecks },
       { to: "/admin/tasks/daily-report", label: "দৈনিক রিপোর্ট", Icon: CalendarDays },
     ] },
   { to: "/admin/community",    label: "কমিউনিটি চ্যাট",      Icon: MessagesSquare,  accent: "purple" },
@@ -123,6 +124,19 @@ function SidebarBody({
   pathname, onNav, onLogout,
 }: { pathname: string; onNav: () => void; onLogout: () => void }) {
   const site = useSiteSettings();
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const activeGroups = ADMIN_NAV.filter((item) => item.children?.length && pathname.startsWith(item.to))
+      .reduce<Record<string, boolean>>((acc, item) => {
+        acc[item.to] = true;
+        return acc;
+      }, {});
+    if (Object.keys(activeGroups).length) {
+      setOpenGroups((prev) => ({ ...prev, ...activeGroups }));
+    }
+  }, [pathname]);
+
   return (
     <div className="flex h-full flex-col p-3 min-h-0">
       <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 px-2.5 ring-1 ring-amber-200/70 h-[60px] shrink-0 flex items-center">
@@ -145,31 +159,51 @@ function SidebarBody({
           const active = item.to === "/admin" ? pathname === "/admin" : pathname.startsWith(item.to);
           const a = ACCENTS[item.accent];
           const hasChildren = !!item.children?.length;
+          const open = hasChildren ? (openGroups[item.to] ?? active) : false;
+          const itemBody = (
+            <>
+              <span className={cn(
+                "grid h-9 w-9 shrink-0 place-items-center rounded-xl text-white bg-gradient-to-br shadow-md transition-all duration-300",
+                a.chip, a.glow,
+                active ? "scale-105" : "opacity-90 group-hover:scale-105",
+              )}>
+                <item.Icon className="h-[18px] w-[18px]" />
+              </span>
+              <span className="flex-1 truncate text-left">{item.label}</span>
+              {hasChildren ? (
+                open ? <ChevronDown className="h-4 w-4 text-slate-500" /> : <ChevronRight className="h-4 w-4 text-slate-400" />
+              ) : (active && <ChevronRight className="h-4 w-4 text-slate-500" />)}
+            </>
+          );
           return (
             <div key={item.to}>
-              <Link
-                to={item.to} onClick={onNav}
-                className={cn(
-                  "group relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-semibold transition-all duration-300",
-                  active ? cn(a.soft, "text-slate-900 translate-x-0.5 ring-1", a.ring) : "text-slate-600 hover:bg-slate-50",
-                )}
-              >
-                <span className={cn(
-                  "grid h-9 w-9 shrink-0 place-items-center rounded-xl text-white bg-gradient-to-br shadow-md transition-all duration-300",
-                  a.chip, a.glow,
-                  active ? "scale-105" : "opacity-90 group-hover:scale-105",
-                )}>
-                  <item.Icon className="h-[18px] w-[18px]" />
-                </span>
-                <span className="flex-1 truncate">{item.label}</span>
-                {hasChildren ? (
-                  active ? <ChevronDown className="h-4 w-4 text-slate-500" /> : <ChevronRight className="h-4 w-4 text-slate-400" />
-                ) : (active && <ChevronRight className="h-4 w-4 text-slate-500" />)}
-              </Link>
-              {hasChildren && active && (
+              {hasChildren ? (
+                <button
+                  type="button"
+                  aria-expanded={open}
+                  onClick={() => setOpenGroups((prev) => ({ ...prev, [item.to]: !open }))}
+                  className={cn(
+                    "group relative flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-semibold transition-all duration-300",
+                    active || open ? cn(a.soft, "text-slate-900 translate-x-0.5 ring-1", a.ring) : "text-slate-600 hover:bg-slate-50",
+                  )}
+                >
+                  {itemBody}
+                </button>
+              ) : (
+                <Link
+                  to={item.to} onClick={onNav}
+                  className={cn(
+                    "group relative flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-semibold transition-all duration-300",
+                    active ? cn(a.soft, "text-slate-900 translate-x-0.5 ring-1", a.ring) : "text-slate-600 hover:bg-slate-50",
+                  )}
+                >
+                  {itemBody}
+                </Link>
+              )}
+              {hasChildren && open && (
                 <div className="ml-6 mt-1 mb-1 space-y-0.5 border-l-2 border-rose-200 pl-2">
                   {item.children!.map((c) => {
-                    const cActive = pathname === c.to || pathname.startsWith(c.to + "/");
+                    const cActive = c.to === item.to ? pathname === c.to : pathname === c.to || pathname.startsWith(c.to + "/");
                     return (
                       <Link key={c.to} to={c.to} onClick={onNav}
                         className={cn(
