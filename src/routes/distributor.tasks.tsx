@@ -26,9 +26,12 @@ function DistTasksPage() {
   const [activeUsers, setActiveUsers] = useState<Record<string, number>>({});
   const [referredCount, setReferredCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showManual, setShowManual] = useState(false);
 
   const load = async () => {
+    setLoading(true);
+    setLoadError(null);
     try {
       const [r, u] = await Promise.all([
         listFn({}),
@@ -39,7 +42,11 @@ function DistTasksPage() {
       setPerPkg(rr.perPkg);
       setActiveUsers(rr.activeUsers);
       setReferredCount((u as { total: number }).total);
-    } catch (e) { toast.error((e as Error).message); }
+    } catch (e) {
+      const msg = (e as Error).message || "Task data load হয়নি";
+      setLoadError(msg);
+      toast.error("Task Management data load হয়নি — আবার চেষ্টা করুন");
+    }
     finally { setLoading(false); }
   };
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
@@ -69,6 +76,14 @@ function DistTasksPage() {
 
       {loading ? (
         <div className="grid place-items-center py-12 text-slate-400"><Loader2 className="h-6 w-6 animate-spin" /></div>
+      ) : loadError ? (
+        <AdminCard accent="rose" className="p-8 text-center">
+          <p className="bn-display text-base text-slate-900">Task data load হয়নি</p>
+          <p className="mt-1 text-xs text-slate-500">Database/server permission যাচাই করে আবার চেষ্টা করুন।</p>
+          <button onClick={load} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-rose-500 to-orange-600 px-4 py-2 text-sm font-bold text-white shadow-md">
+            <Loader2 className="h-4 w-4" /> Reload
+          </button>
+        </AdminCard>
       ) : packages.length === 0 ? (
         <AdminCard className="p-8 text-center text-sm text-slate-500">কোনো active প্যাকেজ নেই</AdminCard>
       ) : (
