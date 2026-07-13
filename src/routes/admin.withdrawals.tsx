@@ -205,7 +205,9 @@ function WithdrawalsPage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((r) => (
-            <AdminCard key={r.id} accent="emerald" interactive className="p-4 flex flex-col">
+            <div key={r.id} ref={setRowRef(r.id)}>
+            <AdminCard accent="emerald" interactive className="p-4 flex flex-col">
+
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   <p className="bn-display text-base text-slate-900 truncate">{r.profiles?.full_name ?? "—"}</p>
