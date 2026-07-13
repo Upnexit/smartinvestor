@@ -20,8 +20,6 @@ function todayBD(): string {
 export const listDistributorPackages = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { assertDistributor, todayBD } = await import("./distributor-task-helpers.server");
-    await assertDistributor(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const [{ data: pkgs }, { data: tasks }, { data: counts }] = await Promise.all([
@@ -59,8 +57,6 @@ export const listPackageTasksForDistributor = createServerFn({ method: "POST" })
     date: typeof d.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d.date) ? d.date : todayBD(),
   }))
   .handler(async ({ data, context }) => {
-    const { assertDistributor } = await import("./distributor-task-helpers.server");
-    await assertDistributor(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: pkg }, { data: tasks }, { data: cnt }] = await Promise.all([
       supabaseAdmin.from("packages").select("id,name,price,daily_tasks,daily_income,duration_days,active")

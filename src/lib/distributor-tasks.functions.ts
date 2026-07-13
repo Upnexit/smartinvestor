@@ -164,8 +164,6 @@ export const publishDistributorTask = createServerFn({ method: "POST" })
 export const getReferredActiveUsers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { assertDistributor } = await import("./distributor-task-helpers.server");
-    await assertDistributor(context.supabase, context.userId);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: profs } = await (context.supabase as any)
       .from("profiles").select("id, user_code, full_name")
