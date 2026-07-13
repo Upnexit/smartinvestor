@@ -195,7 +195,8 @@ function PackageTasksPage() {
           </div>
         } />
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        <StatTile label="Active User" value={activeUserCount} accent="emerald" Icon={CheckCircle2} />
         <StatTile label="দৈনিক লিমিট" value={daily} accent="indigo" Icon={Sparkles} />
         <StatTile label="Draft" value={draftCount} accent="amber" Icon={Circle} />
         <StatTile label="Active" value={activeCount} accent="emerald" Icon={CheckCircle2} />
