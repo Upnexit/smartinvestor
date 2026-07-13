@@ -58,16 +58,13 @@ function DailyReportPage() {
         .select("user_id", { count: "exact", head: false })
         .eq("status", "active");
 
-      // Submissions on selected date, joined with task reward + user profile + package
+      // Submissions on selected date, joined with task reward only
       const subsPromise = supabase
         .from("task_submissions")
-        .select(
-          "user_id, status, reward_credited, link_tasks(reward), profiles!task_submissions_user_id_fkey(full_name,user_code,avatar_url)"
-        )
+        .select("user_id, status, reward_credited, link_tasks(reward)")
         .gte("created_at", dayStartISO)
         .lte("created_at", dayEndISO);
 
-      // Active package for each user (name) — separate lookup
       const [{ data: actRows }, { data: subs }] = await Promise.all([
         totalActivePromise, subsPromise,
       ]);
@@ -75,16 +72,19 @@ function DailyReportPage() {
       const uniqueActive = new Set<string>();
       (actRows ?? []).forEach((r: { user_id: string }) => uniqueActive.add(r.user_id));
 
-      const userIds = Array.from(new Set((subs ?? []).map((s: { user_id: string }) => s.user_id)));
-      let pkgByUser = new Map<string, string>();
+      const userIds = Array.from(new Set(((subs ?? []) as Array<{ user_id: string }>).map((s) => s.user_id)));
+      const pkgByUser = new Map<string, string>();
+      const profileByUser = new Map<string, { full_name: string | null; user_code: string | null; avatar_url: string | null }>();
       if (userIds.length) {
-        const { data: ups } = await supabase
-          .from("user_packages")
-          .select("user_id, packages(name)")
-          .in("user_id", userIds)
-          .eq("status", "active");
+        const [{ data: ups }, { data: profs }] = await Promise.all([
+          supabase.from("user_packages").select("user_id, packages(name)").in("user_id", userIds).eq("status", "active"),
+          supabase.from("profiles").select("id, full_name, user_code, avatar_url").in("id", userIds),
+        ]);
         (ups ?? []).forEach((r: { user_id: string; packages: { name: string } | null }) => {
           if (r.packages?.name) pkgByUser.set(r.user_id, r.packages.name);
+        });
+        (profs ?? []).forEach((p: { id: string; full_name: string | null; user_code: string | null; avatar_url: string | null }) => {
+          profileByUser.set(p.id, { full_name: p.full_name, user_code: p.user_code, avatar_url: p.avatar_url });
         });
       }
 
@@ -93,7 +93,6 @@ function DailyReportPage() {
         status: string;
         reward_credited: number | null;
         link_tasks: { reward: number } | null;
-        profiles: { full_name: string | null; user_code: string | null; avatar_url: string | null } | null;
       };
 
       const map = new Map<string, UserRow>();
@@ -102,11 +101,12 @@ function DailyReportPage() {
         const uid = s.user_id;
         let row = map.get(uid);
         if (!row) {
+          const p = profileByUser.get(uid);
           row = {
             user_id: uid,
-            full_name: s.profiles?.full_name ?? null,
-            user_code: s.profiles?.user_code ?? null,
-            avatar_url: s.profiles?.avatar_url ?? null,
+            full_name: p?.full_name ?? null,
+            user_code: p?.user_code ?? null,
+            avatar_url: p?.avatar_url ?? null,
             package_name: pkgByUser.get(uid) ?? null,
             approved: 0, pending: 0, rejected: 0, total_reward: 0,
           };
