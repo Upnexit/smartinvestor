@@ -37,13 +37,17 @@ const METHOD: Record<string, string> = {
 };
 
 function ApprovalsPage() {
+  const { q: qFromUrl, highlight, filter: filterFromUrl } = Route.useSearch();
   const [rows, setRows] = useState<Row[] | null>(null);
-  const [filter, setFilter] = useState<Status>("pending");
-  const [q, setQ] = useState("");
+  const [filter, setFilter] = useState<Status>((filterFromUrl as Status) || (highlight ? "all" : "pending"));
+  const [q, setQ] = useState(qFromUrl ?? "");
   const [reject, setReject] = useState<Row | null>(null);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [shot, setShot] = useState<string | null>(null);
+
+  useEffect(() => { if (qFromUrl !== undefined) setQ(qFromUrl); }, [qFromUrl]);
+
 
 
 
