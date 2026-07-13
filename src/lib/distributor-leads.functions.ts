@@ -1,18 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
 
-type Db = SupabaseClient<Database>;
 const UUID = /^[0-9a-f-]{36}$/i;
 const STATUSES = ["new", "contacted", "interested", "converted", "dropped"] as const;
-
-async function assertDistributor(db: Db, userId: string) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await db.rpc("has_role" as any, { _user_id: userId, _role: "distributor" as any });
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("forbidden");
-}
 
 function uuid(v: unknown): string {
   if (typeof v !== "string" || !UUID.test(v)) throw new Error("invalid id");
@@ -26,6 +16,7 @@ export const listLeads = createServerFn({ method: "POST" })
     q: typeof d?.q === "string" ? d.q.trim().slice(0, 80) : "",
   }))
   .handler(async ({ data, context }) => {
+    const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let q = (context.supabase as any).from("distributor_leads").select("*")
@@ -48,6 +39,7 @@ export const createLead = createServerFn({ method: "POST" })
     next_followup_at: d?.next_followup_at ? String(d.next_followup_at) : null,
   }))
   .handler(async ({ data, context }) => {
+    const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
     if (!data.name) throw new Error("নাম দিন");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -61,11 +53,13 @@ export const updateLead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string; patch: Record<string, unknown> }) => ({ id: uuid(d.id), patch: d.patch ?? {} }))
   .handler(async ({ data, context }) => {
+    const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
     const allowed = ["name", "phone", "source", "status", "notes", "next_followup_at"];
+    const statuses = ["new", "contacted", "interested", "converted", "dropped"];
     const filtered: Record<string, unknown> = {};
     for (const k of allowed) if (k in data.patch) filtered[k] = data.patch[k];
-    if (filtered.status && !(STATUSES as readonly string[]).includes(filtered.status as string)) throw new Error("invalid status");
+    if (filtered.status && !statuses.includes(filtered.status as string)) throw new Error("invalid status");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: row, error } = await (context.supabase as any).from("distributor_leads")
       .update(filtered).eq("id", data.id).eq("distributor_id", context.userId).select().maybeSingle();
@@ -77,6 +71,7 @@ export const deleteLead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => ({ id: uuid(d.id) }))
   .handler(async ({ data, context }) => {
+    const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (context.supabase as any).from("distributor_leads")
