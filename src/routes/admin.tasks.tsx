@@ -219,6 +219,9 @@ function TasksPage() {
                     <div className="flex-1 min-w-0">
                       <p className="bn-display text-sm text-slate-900 truncate">{p.name}</p>
                       <p className="text-[11px] text-slate-500">৳{p.price} • মোট {c.total} • আজ active {c.todayActive}</p>
+                      <p className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200">
+                        <Users className="h-3 w-3" /> {pkgActiveUsers.get(p.id) ?? 0} active user
+                      </p>
                     </div>
                     <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-indigo-600" />
                   </div>
