@@ -12,11 +12,20 @@ import { useAdminAutoRefresh } from "@/lib/admin-refresh";
 import { reviewWithdrawal } from "@/lib/admin-client";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useSearchHighlight } from "@/hooks/use-search-highlight";
+
+type WithdrawSearch = { q?: string; highlight?: string; filter?: string };
 
 export const Route = createFileRoute("/admin/withdrawals")({
+  validateSearch: (s: Record<string, unknown>): WithdrawSearch => ({
+    q: typeof s.q === "string" ? s.q : undefined,
+    highlight: typeof s.highlight === "string" ? s.highlight : undefined,
+    filter: typeof s.filter === "string" ? s.filter : undefined,
+  }),
   head: () => ({ meta: [{ title: "উইথড্র — Admin" }] }),
   component: WithdrawalsPage,
 });
+
 
 type Filter = "pending" | "approved" | "rejected" | "all";
 type Method = "bkash"|"nagad"|"rocket";
