@@ -103,6 +103,20 @@ export const distributorBulkInsertPackageTasks = createServerFn({ method: "POST"
     }));
     const { data: inserted, error } = await context.supabase.from("link_tasks").insert(rows).select();
     if (error) throw new Error(error.message);
+    // Activity log for admin notification + audit
+    await context.supabase.from("activity_logs").insert({
+      user_id: context.userId,
+      event_type: "distributor_task_generated",
+      meta: {
+        package_id: data.packageId,
+        date: data.date,
+        count: inserted?.length ?? 0,
+        per_reward: data.perReward,
+        total_amount: Math.round((inserted?.length ?? 0) * data.perReward * 100) / 100,
+        action_types: Array.from(new Set(data.tasks.map((t) => t.action_type))),
+        source: "distributor_package_page",
+      },
+    });
     return inserted ?? [];
   });
 
@@ -122,9 +136,25 @@ export const distributorActivateOwnDrafts = createServerFn({ method: "POST" })
       .eq("scheduled_date", data.date)
       .eq("created_by_distributor", context.userId)
       .eq("is_draft", true)
-      .select("id");
+      .select("id,reward,action_type,link_url");
     if (error) throw new Error(error.message);
-    return { activated: rows?.length ?? 0 };
+    const activated = rows?.length ?? 0;
+    if (activated > 0) {
+      const totalAmount = (rows ?? []).reduce((s, r) => s + Number((r as { reward: number }).reward ?? 0), 0);
+      await context.supabase.from("activity_logs").insert({
+        user_id: context.userId,
+        event_type: "distributor_task_activated",
+        meta: {
+          package_id: data.packageId,
+          date: data.date,
+          count: activated,
+          total_amount: Math.round(totalAmount * 100) / 100,
+          task_ids: (rows ?? []).map((r) => (r as { id: string }).id),
+          source: "distributor_package_page",
+        },
+      });
+    }
+    return { activated };
   });
 
 /* Toggle / update own task */
@@ -152,9 +182,28 @@ export const distributorDeleteOwnLinkTask = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
+    const { data: doomed } = await context.supabase.from("link_tasks")
+      .select("id,link_url,reward,action_type,required_package_id,scheduled_date")
+      .eq("id", data.id).eq("created_by_distributor", context.userId).maybeSingle();
     const { error } = await context.supabase.from("link_tasks")
       .delete().eq("id", data.id).eq("created_by_distributor", context.userId);
     if (error) throw new Error(error.message);
+    if (doomed) {
+      await context.supabase.from("activity_logs").insert({
+        user_id: context.userId,
+        event_type: "distributor_task_deleted",
+        meta: {
+          task_id: doomed.id,
+          link_url: doomed.link_url,
+          reward: doomed.reward,
+          action_type: doomed.action_type,
+          package_id: doomed.required_package_id,
+          date: doomed.scheduled_date,
+          reason: "page_unreachable_or_manual",
+          source: "distributor_package_page",
+        },
+      });
+    }
     return { ok: true };
   });
 

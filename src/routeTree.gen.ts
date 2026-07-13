@@ -60,6 +60,7 @@ import { Route as AdminTasksIndexRouteImport } from './routes/admin.tasks.index'
 import { Route as AdminDistributorsIndexRouteImport } from './routes/admin.distributors.index'
 import { Route as DistributorTaskPackagePackageIdRouteImport } from './routes/distributor.task-package.$packageId'
 import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
+import { Route as AdminTasksDistributorActivityRouteImport } from './routes/admin.tasks.distributor-activity'
 import { Route as AdminTasksDailyReportRouteImport } from './routes/admin.tasks.daily-report'
 import { Route as AdminTaskPackagePackageIdRouteImport } from './routes/admin.task-package.$packageId'
 import { Route as AdminDistributorsIdRouteImport } from './routes/admin.distributors.$id'
@@ -321,6 +322,12 @@ const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AdminUsersRoute,
 } as any)
+const AdminTasksDistributorActivityRoute =
+  AdminTasksDistributorActivityRouteImport.update({
+    id: '/distributor-activity',
+    path: '/distributor-activity',
+    getParentRoute: () => AdminTasksRoute,
+  } as any)
 const AdminTasksDailyReportRoute = AdminTasksDailyReportRouteImport.update({
   id: '/daily-report',
   path: '/daily-report',
@@ -399,6 +406,7 @@ export interface FileRoutesByFullPath {
   '/admin/distributors/$id': typeof AdminDistributorsIdRoute
   '/admin/task-package/$packageId': typeof AdminTaskPackagePackageIdRoute
   '/admin/tasks/daily-report': typeof AdminTasksDailyReportRoute
+  '/admin/tasks/distributor-activity': typeof AdminTasksDistributorActivityRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/distributor/task-package/$packageId': typeof DistributorTaskPackagePackageIdRoute
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
@@ -451,6 +459,7 @@ export interface FileRoutesByTo {
   '/admin/distributors/$id': typeof AdminDistributorsIdRoute
   '/admin/task-package/$packageId': typeof AdminTaskPackagePackageIdRoute
   '/admin/tasks/daily-report': typeof AdminTasksDailyReportRoute
+  '/admin/tasks/distributor-activity': typeof AdminTasksDistributorActivityRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/distributor/task-package/$packageId': typeof DistributorTaskPackagePackageIdRoute
   '/admin/distributors': typeof AdminDistributorsIndexRoute
@@ -510,6 +519,7 @@ export interface FileRoutesById {
   '/admin/distributors/$id': typeof AdminDistributorsIdRoute
   '/admin/task-package/$packageId': typeof AdminTaskPackagePackageIdRoute
   '/admin/tasks/daily-report': typeof AdminTasksDailyReportRoute
+  '/admin/tasks/distributor-activity': typeof AdminTasksDistributorActivityRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/distributor/task-package/$packageId': typeof DistributorTaskPackagePackageIdRoute
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
@@ -569,6 +579,7 @@ export interface FileRouteTypes {
     | '/admin/distributors/$id'
     | '/admin/task-package/$packageId'
     | '/admin/tasks/daily-report'
+    | '/admin/tasks/distributor-activity'
     | '/admin/users/$id'
     | '/distributor/task-package/$packageId'
     | '/admin/distributors/'
@@ -621,6 +632,7 @@ export interface FileRouteTypes {
     | '/admin/distributors/$id'
     | '/admin/task-package/$packageId'
     | '/admin/tasks/daily-report'
+    | '/admin/tasks/distributor-activity'
     | '/admin/users/$id'
     | '/distributor/task-package/$packageId'
     | '/admin/distributors'
@@ -679,6 +691,7 @@ export interface FileRouteTypes {
     | '/admin/distributors/$id'
     | '/admin/task-package/$packageId'
     | '/admin/tasks/daily-report'
+    | '/admin/tasks/distributor-activity'
     | '/admin/users/$id'
     | '/distributor/task-package/$packageId'
     | '/admin/distributors/'
@@ -1063,6 +1076,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersIdRouteImport
       parentRoute: typeof AdminUsersRoute
     }
+    '/admin/tasks/distributor-activity': {
+      id: '/admin/tasks/distributor-activity'
+      path: '/distributor-activity'
+      fullPath: '/admin/tasks/distributor-activity'
+      preLoaderRoute: typeof AdminTasksDistributorActivityRouteImport
+      parentRoute: typeof AdminTasksRoute
+    }
     '/admin/tasks/daily-report': {
       id: '/admin/tasks/daily-report'
       path: '/daily-report'
@@ -1156,11 +1176,13 @@ const AdminDistributorsRouteWithChildren =
 
 interface AdminTasksRouteChildren {
   AdminTasksDailyReportRoute: typeof AdminTasksDailyReportRoute
+  AdminTasksDistributorActivityRoute: typeof AdminTasksDistributorActivityRoute
   AdminTasksIndexRoute: typeof AdminTasksIndexRoute
 }
 
 const AdminTasksRouteChildren: AdminTasksRouteChildren = {
   AdminTasksDailyReportRoute: AdminTasksDailyReportRoute,
+  AdminTasksDistributorActivityRoute: AdminTasksDistributorActivityRoute,
   AdminTasksIndexRoute: AdminTasksIndexRoute,
 }
 

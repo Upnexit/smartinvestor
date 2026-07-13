@@ -191,6 +191,36 @@ function TasksPage() {
         subtitle="লাইক ও কমেন্ট টাস্ক পরিচালনা"
         action={<GradientButton accent="rose" onClick={() => setEdit({ ...EMPTY })}><Plus className="h-4 w-4" /> নতুন টাস্ক</GradientButton>} />
 
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Link to="/admin/tasks/daily-report"
+          className="group flex items-center gap-3 rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 p-[1.5px] hover:scale-[1.01] transition">
+          <div className="flex w-full items-center gap-3 rounded-[14px] bg-white px-3.5 py-3">
+            <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 text-orange-700">
+              <span className="bn-display text-lg">📅</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="bn-display text-sm text-slate-900">দৈনিক টাস্ক রিপোর্ট</p>
+              <p className="text-[11px] text-slate-500">কারা কাজ করেছে, কারা করেনি, কত reward গেল</p>
+            </div>
+            <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-orange-600" />
+          </div>
+        </Link>
+        <Link to="/admin/tasks/distributor-activity"
+          className="group flex items-center gap-3 rounded-2xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-purple-600 p-[1.5px] hover:scale-[1.01] transition">
+          <div className="flex w-full items-center gap-3 rounded-[14px] bg-white px-3.5 py-3">
+            <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-indigo-100 to-fuchsia-100 text-indigo-700">
+              <span className="bn-display text-lg">🧑‍💼</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="bn-display text-sm text-slate-900">ডিস্ট্রিবিউটর কার্যক্রম</p>
+              <p className="text-[11px] text-slate-500">কোন distributor কখন task তৈরি/activate/delete করেছে — সম্পূর্ণ analysis</p>
+            </div>
+            <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-indigo-600" />
+          </div>
+        </Link>
+      </div>
+
+
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <StatTile label="মোট টাস্ক" value={totals.total} accent="rose" Icon={Link2} />
         <StatTile label="অ্যাক্টিভ" value={totals.active} accent="emerald" Icon={Link2} />

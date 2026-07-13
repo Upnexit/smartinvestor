@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Bell, Users2, ArrowDownToLine, ShieldCheck, Sparkles, X, Loader2 } from "lucide-react";
+import { Bell, Users2, ArrowDownToLine, ShieldCheck, Sparkles, X, Loader2, Activity, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 type Notice = {
   id: string;
-  kind: "application" | "withdrawal" | "order" | "user";
+  kind: "application" | "withdrawal" | "order" | "user" | "dist_generated" | "dist_activated";
   title: string;
   subtitle: string;
   time: string;
@@ -14,10 +14,12 @@ type Notice = {
 };
 
 const KIND_STYLE: Record<Notice["kind"], { grad: string; ring: string; Icon: typeof Bell; label: string }> = {
-  application: { grad: "from-indigo-500 to-violet-600",  ring: "ring-indigo-200",  Icon: Users2,         label: "ডিস্ট্রিবিউটর আবেদন" },
-  withdrawal:  { grad: "from-emerald-500 to-teal-600",    ring: "ring-emerald-200", Icon: ArrowDownToLine, label: "উইথড্র রিকোয়েস্ট" },
-  order:       { grad: "from-orange-500 to-amber-600",    ring: "ring-orange-200",  Icon: ShieldCheck,    label: "পেমেন্ট অ্যাপ্রুভাল" },
-  user:        { grad: "from-sky-500 to-blue-600",        ring: "ring-sky-200",     Icon: Sparkles,       label: "নতুন ইউজার" },
+  application:    { grad: "from-indigo-500 to-violet-600",  ring: "ring-indigo-200",  Icon: Users2,          label: "ডিস্ট্রিবিউটর আবেদন" },
+  withdrawal:     { grad: "from-emerald-500 to-teal-600",   ring: "ring-emerald-200", Icon: ArrowDownToLine, label: "উইথড্র রিকোয়েস্ট" },
+  order:          { grad: "from-orange-500 to-amber-600",   ring: "ring-orange-200",  Icon: ShieldCheck,     label: "পেমেন্ট অ্যাপ্রুভাল" },
+  user:           { grad: "from-sky-500 to-blue-600",       ring: "ring-sky-200",     Icon: Sparkles,        label: "নতুন ইউজার" },
+  dist_generated: { grad: "from-fuchsia-500 to-purple-600", ring: "ring-fuchsia-200", Icon: Activity,        label: "Distributor Task তৈরি" },
+  dist_activated: { grad: "from-emerald-500 to-green-600",  ring: "ring-emerald-200", Icon: CheckCircle2,    label: "Distributor Task Active" },
 };
 
 function timeAgo(iso: string) {
@@ -51,7 +53,7 @@ export function NotificationBell() {
   async function loadItems() {
     setLoading(true);
     try {
-      const [apps, wds, orders, users] = await Promise.all([
+      const [apps, wds, orders, users, distActs] = await Promise.all([
         supabase.from("distributor_applications")
           .select("id,full_name,district,thana,status,created_at")
           .order("created_at", { ascending: false }).limit(8),
@@ -64,6 +66,10 @@ export function NotificationBell() {
         supabase.from("profiles")
           .select("id,full_name,user_code,created_at")
           .order("created_at", { ascending: false }).limit(4),
+        supabase.from("activity_logs")
+          .select("id,user_id,event_type,meta,created_at")
+          .in("event_type", ["distributor_task_generated", "distributor_task_activated"])
+          .order("created_at", { ascending: false }).limit(10),
       ]);
 
       const list: Notice[] = [];
@@ -99,10 +105,28 @@ export function NotificationBell() {
           time: u.created_at, href: "/admin/users",
         });
       }
+      const distUserIds = Array.from(new Set(((distActs.data ?? []) as Array<{user_id: string}>).map((x) => x.user_id)));
+      const nameMap = new Map<string, string>();
+      if (distUserIds.length) {
+        const { data: names } = await supabase.from("profiles").select("id,full_name").in("id", distUserIds);
+        (names ?? []).forEach((n) => nameMap.set(n.id, n.full_name || ""));
+      }
+      for (const a of (distActs.data ?? []) as Array<{id:string; user_id:string; event_type:string; meta:{count?:number; total_amount?:number}; created_at:string}>) {
+        const kind: Notice["kind"] = a.event_type === "distributor_task_activated" ? "dist_activated" : "dist_generated";
+        const who = nameMap.get(a.user_id) || "Distributor";
+        const label = a.event_type === "distributor_task_activated" ? "✅ Activate করেছে" : "✨ AI দিয়ে তৈরি";
+        list.push({
+          id: `da-${a.id}`, kind,
+          title: `${who} — ${label}`,
+          subtitle: `${a.meta?.count ?? 0}টি task${a.meta?.total_amount ? ` • ৳${a.meta.total_amount}` : ""}`,
+          time: a.created_at, href: "/admin/tasks/distributor-activity",
+        });
+      }
       list.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
-      setItems(list.slice(0, 20));
+      setItems(list.slice(0, 25));
     } finally { setLoading(false); }
   }
+
 
   useEffect(() => {
     loadCount();
@@ -110,6 +134,7 @@ export function NotificationBell() {
       .on("postgres_changes", { event: "*", schema: "public", table: "distributor_applications" }, () => { loadCount(); if (open) loadItems(); })
       .on("postgres_changes", { event: "*", schema: "public", table: "withdrawals" }, () => { loadCount(); if (open) loadItems(); })
       .on("postgres_changes", { event: "*", schema: "public", table: "user_packages" }, () => { loadCount(); if (open) loadItems(); })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "activity_logs" }, () => { if (open) loadItems(); })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
