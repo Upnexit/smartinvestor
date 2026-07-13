@@ -1,21 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
 
-type Db = SupabaseClient<Database>;
 const UUID = /^[0-9a-f-]{36}$/i;
 
-async function assertDistributor(db: Db, userId: string) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await db.rpc("has_role" as any, { _user_id: userId, _role: "distributor" as any });
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("forbidden");
-}
 function uuid(v: unknown): string {
   if (typeof v !== "string" || !UUID.test(v)) throw new Error("invalid id");
   return v;
 }
+
 function todayBD(): string {
   const d = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Dhaka" }));
   const y = d.getFullYear();
@@ -28,6 +20,7 @@ function todayBD(): string {
 export const listDistributorPackages = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    const { assertDistributor, todayBD } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -66,6 +59,7 @@ export const listPackageTasksForDistributor = createServerFn({ method: "POST" })
     date: typeof d.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d.date) ? d.date : todayBD(),
   }))
   .handler(async ({ data, context }) => {
+    const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: pkg }, { data: tasks }, { data: cnt }] = await Promise.all([
@@ -96,6 +90,7 @@ export const distributorBulkInsertPackageTasks = createServerFn({ method: "POST"
     })).filter((t) => t.title && t.link_url),
   }))
   .handler(async ({ data, context }) => {
+    const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
     if (!data.tasks.length) throw new Error("কোনো task নেই");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -126,6 +121,7 @@ export const distributorActivateOwnDrafts = createServerFn({ method: "POST" })
     date: typeof d.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d.date) ? d.date : todayBD(),
   }))
   .handler(async ({ data, context }) => {
+    const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin.from("link_tasks")
@@ -144,6 +140,7 @@ export const distributorUpdateOwnLinkTask = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string; patch: Record<string, unknown> }) => ({ id: uuid(d.id), patch: d.patch ?? {} }))
   .handler(async ({ data, context }) => {
+    const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
     const allowed = ["title", "link_url", "reward", "action_type", "active", "is_draft", "description"];
     const patch: Record<string, unknown> = {};
@@ -162,6 +159,7 @@ export const distributorDeleteOwnLinkTask = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => ({ id: uuid(d.id) }))
   .handler(async ({ data, context }) => {
+    const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("link_tasks")
@@ -177,6 +175,7 @@ export const distributorDeleteOwnDrafts = createServerFn({ method: "POST" })
     date: typeof d.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d.date) ? d.date : todayBD(),
   }))
   .handler(async ({ data, context }) => {
+    const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("link_tasks").delete()

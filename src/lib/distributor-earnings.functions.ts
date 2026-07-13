@@ -1,21 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
-
-type Db = SupabaseClient<Database>;
-
-async function assertDistributor(db: Db, userId: string) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await db.rpc("has_role" as any, { _user_id: userId, _role: "distributor" as any });
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("forbidden");
-}
 
 export const listDistributorEarnings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { source?: string }) => ({ source: typeof d?.source === "string" ? d.source : "" }))
   .handler(async ({ data, context }) => {
+    const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let q = (context.supabase as any).from("distributor_earnings").select("*")
