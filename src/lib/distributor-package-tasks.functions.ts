@@ -20,14 +20,12 @@ function todayBD(): string {
 export const listDistributorPackages = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
     const [{ data: pkgs }, { data: tasks }, { data: counts }] = await Promise.all([
-      supabaseAdmin.from("packages").select("id,name,price,daily_tasks,daily_income,duration_days,active")
+      context.supabase.from("packages").select("id,name,price,daily_tasks,daily_income,duration_days,active")
         .eq("active", true).order("price"),
-      supabaseAdmin.from("link_tasks").select("id,required_package_id,active,is_draft,scheduled_date,created_by_distributor"),
+      context.supabase.from("link_tasks").select("id,required_package_id,active,is_draft,scheduled_date,created_by_distributor"),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (supabaseAdmin as any).rpc("packages_active_user_counts"),
+      (context.supabase as any).rpc("packages_active_user_counts"),
     ]);
 
     const today = todayBD();
@@ -57,15 +55,14 @@ export const listPackageTasksForDistributor = createServerFn({ method: "POST" })
     date: typeof d.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d.date) ? d.date : todayBD(),
   }))
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: pkg }, { data: tasks }, { data: cnt }] = await Promise.all([
-      supabaseAdmin.from("packages").select("id,name,price,daily_tasks,daily_income,duration_days,active")
+      context.supabase.from("packages").select("id,name,price,daily_tasks,daily_income,duration_days,active")
         .eq("id", data.packageId).maybeSingle(),
-      supabaseAdmin.from("link_tasks").select("*")
+      context.supabase.from("link_tasks").select("*")
         .eq("required_package_id", data.packageId).eq("scheduled_date", data.date)
         .order("created_at", { ascending: false }),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (supabaseAdmin as any).rpc("package_active_user_count", { _pkg: data.packageId }),
+      (context.supabase as any).rpc("package_active_user_count", { _pkg: data.packageId }),
     ]);
     return { pkg, tasks: tasks ?? [], activeUserCount: Number(cnt ?? 0), userId: context.userId };
   });
@@ -89,7 +86,6 @@ export const distributorBulkInsertPackageTasks = createServerFn({ method: "POST"
     const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
     if (!data.tasks.length) throw new Error("কোনো task নেই");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const rows = data.tasks.map((t) => ({
       title: t.title,
       link_url: t.link_url,
@@ -104,7 +100,7 @@ export const distributorBulkInsertPackageTasks = createServerFn({ method: "POST"
       required_package_id: data.packageId,
       created_by_distributor: context.userId,
     }));
-    const { data: inserted, error } = await supabaseAdmin.from("link_tasks").insert(rows).select();
+    const { data: inserted, error } = await context.supabase.from("link_tasks").insert(rows).select();
     if (error) throw new Error(error.message);
     return inserted ?? [];
   });
@@ -119,8 +115,7 @@ export const distributorActivateOwnDrafts = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: rows, error } = await supabaseAdmin.from("link_tasks")
+    const { data: rows, error } = await context.supabase.from("link_tasks")
       .update({ is_draft: false, active: true })
       .eq("required_package_id", data.packageId)
       .eq("scheduled_date", data.date)
@@ -141,9 +136,8 @@ export const distributorUpdateOwnLinkTask = createServerFn({ method: "POST" })
     const allowed = ["title", "link_url", "reward", "action_type", "active", "is_draft", "description"];
     const patch: Record<string, unknown> = {};
     for (const k of allowed) if (k in data.patch) patch[k] = data.patch[k];
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: row, error } = await (supabaseAdmin as any).from("link_tasks")
+    const { data: row, error } = await (context.supabase as any).from("link_tasks")
       .update(patch).eq("id", data.id).eq("created_by_distributor", context.userId)
       .select().maybeSingle();
     if (error) throw new Error(error.message);
@@ -157,8 +151,7 @@ export const distributorDeleteOwnLinkTask = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("link_tasks")
+    const { error } = await context.supabase.from("link_tasks")
       .delete().eq("id", data.id).eq("created_by_distributor", context.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -173,8 +166,7 @@ export const distributorDeleteOwnDrafts = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { assertDistributor } = await import("./distributor-task-helpers.server");
     await assertDistributor(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("link_tasks").delete()
+    const { error } = await context.supabase.from("link_tasks").delete()
       .eq("required_package_id", data.packageId)
       .eq("scheduled_date", data.date)
       .eq("created_by_distributor", context.userId)
