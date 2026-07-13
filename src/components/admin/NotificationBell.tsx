@@ -53,7 +53,7 @@ export function NotificationBell() {
   async function loadItems() {
     setLoading(true);
     try {
-      const [apps, wds, orders, users] = await Promise.all([
+      const [apps, wds, orders, users, distActs] = await Promise.all([
         supabase.from("distributor_applications")
           .select("id,full_name,district,thana,status,created_at")
           .order("created_at", { ascending: false }).limit(8),
@@ -66,6 +66,10 @@ export function NotificationBell() {
         supabase.from("profiles")
           .select("id,full_name,user_code,created_at")
           .order("created_at", { ascending: false }).limit(4),
+        supabase.from("activity_logs")
+          .select("id,user_id,event_type,meta,created_at")
+          .in("event_type", ["distributor_task_generated", "distributor_task_activated"])
+          .order("created_at", { ascending: false }).limit(10),
       ]);
 
       const list: Notice[] = [];
@@ -101,10 +105,28 @@ export function NotificationBell() {
           time: u.created_at, href: "/admin/users",
         });
       }
+      const distUserIds = Array.from(new Set(((distActs.data ?? []) as Array<{user_id: string}>).map((x) => x.user_id)));
+      const nameMap = new Map<string, string>();
+      if (distUserIds.length) {
+        const { data: names } = await supabase.from("profiles").select("id,full_name").in("id", distUserIds);
+        (names ?? []).forEach((n) => nameMap.set(n.id, n.full_name || ""));
+      }
+      for (const a of (distActs.data ?? []) as Array<{id:string; user_id:string; event_type:string; meta:{count?:number; total_amount?:number}; created_at:string}>) {
+        const kind: Notice["kind"] = a.event_type === "distributor_task_activated" ? "dist_activated" : "dist_generated";
+        const who = nameMap.get(a.user_id) || "Distributor";
+        const label = a.event_type === "distributor_task_activated" ? "✅ Activate করেছে" : "✨ AI দিয়ে তৈরি";
+        list.push({
+          id: `da-${a.id}`, kind,
+          title: `${who} — ${label}`,
+          subtitle: `${a.meta?.count ?? 0}টি task${a.meta?.total_amount ? ` • ৳${a.meta.total_amount}` : ""}`,
+          time: a.created_at, href: "/admin/tasks/distributor-activity",
+        });
+      }
       list.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
-      setItems(list.slice(0, 20));
+      setItems(list.slice(0, 25));
     } finally { setLoading(false); }
   }
+
 
   useEffect(() => {
     loadCount();
