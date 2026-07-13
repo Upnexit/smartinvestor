@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { toast } from "sonner";
 import {
   ArrowLeft, Sparkles, Loader2, Trash2, ExternalLink, CheckCircle2, Circle,
-  Pencil, Save, X, Calendar as CalendarIcon, RefreshCw, Users,
+  Pencil, Save, X, Calendar as CalendarIcon, RefreshCw, Users, Info, Lock,
 } from "lucide-react";
 import { AdminPageHeader, AdminCard, GradientButton, SoftButton, StatTile, Shimmer, EmptyState } from "@/components/admin/AdminUI";
 import { useServerFn } from "@tanstack/react-start";
@@ -21,7 +21,9 @@ export const Route = createFileRoute("/distributor/task-package/$packageId")({
   component: DistPackageTasksPage,
 });
 
-const ACTIONS: GeneratedTask["action_type"][] = ["like", "follow", "share", "comment"];
+// Distributor can only create like/follow tasks. share/comment are admin-only.
+const DIST_ACTIONS: GeneratedTask["action_type"][] = ["like", "follow"];
+const ADMIN_ONLY_ACTIONS: GeneratedTask["action_type"][] = ["share", "comment"];
 
 type Pkg = { id: string; name: string; price: number; daily_tasks: number | null; daily_income: number | null; duration_days: number | null; active: boolean };
 type Task = {
@@ -49,7 +51,7 @@ function DistPackageTasksPage() {
   const [date, setDate] = useState(todayBD());
   const [count, setCount] = useState(10);
   const [totalAmount, setTotalAmount] = useState(0);
-  const [selectedActions, setSelectedActions] = useState<GeneratedTask["action_type"][]>(["like", "follow", "share"]);
+  const [selectedActions, setSelectedActions] = useState<GeneratedTask["action_type"][]>(["like", "follow"]);
   const [genBusy, setGenBusy] = useState(false);
   const [batchBusy, setBatchBusy] = useState(false);
   const [edit, setEdit] = useState<Task | null>(null);
@@ -164,6 +166,27 @@ function DistPackageTasksPage() {
         <StatTile label="Admin Task" value={adminCount} accent="sky" Icon={Sparkles} />
       </div>
 
+      <AdminCard accent="indigo" className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-fuchsia-600 text-white shadow-md">
+            <Info className="h-4 w-4" />
+          </div>
+          <div className="flex-1 text-sm text-slate-700 leading-relaxed">
+            <p className="bn-display text-base text-slate-900 mb-1">এই প্যাকেজে কীভাবে কাজ করবেন</p>
+            <ol className="list-decimal pl-5 space-y-1 text-[13px]">
+              <li><b>তারিখ</b> সিলেক্ট করুন (উপরে ডানদিকে) — শুধু ঐ দিনের task দেখাবে ও তৈরি হবে।</li>
+              <li><b>কতটি task</b> ও <b>মোট Amount ৳</b> দিন — প্রতি task-এর reward নিজে নিজে ভাগ হয়ে যাবে।</li>
+              <li><b>Action type</b> সিলেক্ট করুন — Distributor হিসেবে শুধু <b className="text-fuchsia-700">Like</b> ও <b className="text-fuchsia-700">Follow</b> allowed। <b>Share / Comment</b> শুধু Admin তৈরি করতে পারবেন।</li>
+              <li>“AI দিয়ে Random FB Link তৈরি” চাপুন — verified 1M+ follower Facebook page থেকে link এসে <b>Draft</b> হিসেবে যোগ হবে।</li>
+              <li>প্রতিটি link ক্লিক করে page live আছে কিনা যাচাই করুন (✅ Verified দেখাবে)। ভুল থাকলে ✏️ Edit বা 🗑 Delete করুন।</li>
+              <li>সব ঠিক থাকলে <b>“আমার সব draft Activate”</b> চাপুন — user-দের কাছে task publish হয়ে যাবে।</li>
+              <li>নীল <b>Admin</b> ট্যাগ যেসব task-এ আছে সেগুলো Admin তৈরি করেছেন — আপনি শুধু দেখতে পারবেন, edit/delete পারবেন না।</li>
+            </ol>
+          </div>
+        </div>
+      </AdminCard>
+
+
       <AdminCard accent="fuchsia" className="p-4">
         <div className="flex flex-wrap items-end gap-3">
           <div>
@@ -183,17 +206,23 @@ function DistPackageTasksPage() {
           <div className="flex-1 min-w-[200px]">
             <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Action types</label>
             <div className="flex flex-wrap gap-1">
-              {ACTIONS.map((a) => {
+              {DIST_ACTIONS.map((a) => {
                 const on = selectedActions.includes(a);
                 return (
                   <button key={a} type="button"
                     onClick={() => setSelectedActions((s) => on ? s.filter((x) => x !== a) : [...s, a])}
-                    className={cn("rounded-full px-2.5 py-1 text-[11px] font-bold ring-1",
+                    className={cn("rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 capitalize",
                       on ? "bg-fuchsia-600 text-white ring-fuchsia-600" : "bg-white text-slate-600 ring-slate-200")}>
                     {a}
                   </button>
                 );
               })}
+              {ADMIN_ONLY_ACTIONS.map((a) => (
+                <span key={a} title="শুধু Admin এই action তৈরি করতে পারবেন"
+                  className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 bg-slate-100 text-slate-400 ring-slate-200 cursor-not-allowed capitalize">
+                  <Lock className="h-3 w-3" /> {a}
+                </span>
+              ))}
             </div>
           </div>
           <GradientButton accent="fuchsia" busy={genBusy} onClick={runGenerate}>
