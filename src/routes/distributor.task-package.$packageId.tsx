@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { toast } from "sonner";
 import {
   ArrowLeft, Sparkles, Loader2, Trash2, ExternalLink, CheckCircle2, Circle,
-  Pencil, Save, X, Calendar as CalendarIcon, RefreshCw, Users,
+  Pencil, Save, X, Calendar as CalendarIcon, RefreshCw, Users, Info, Lock,
 } from "lucide-react";
 import { AdminPageHeader, AdminCard, GradientButton, SoftButton, StatTile, Shimmer, EmptyState } from "@/components/admin/AdminUI";
 import { useServerFn } from "@tanstack/react-start";
@@ -21,7 +21,9 @@ export const Route = createFileRoute("/distributor/task-package/$packageId")({
   component: DistPackageTasksPage,
 });
 
-const ACTIONS: GeneratedTask["action_type"][] = ["like", "follow", "share", "comment"];
+// Distributor can only create like/follow tasks. share/comment are admin-only.
+const DIST_ACTIONS: GeneratedTask["action_type"][] = ["like", "follow"];
+const ADMIN_ONLY_ACTIONS: GeneratedTask["action_type"][] = ["share", "comment"];
 
 type Pkg = { id: string; name: string; price: number; daily_tasks: number | null; daily_income: number | null; duration_days: number | null; active: boolean };
 type Task = {
