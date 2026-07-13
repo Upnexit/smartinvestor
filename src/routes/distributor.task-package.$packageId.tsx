@@ -166,6 +166,27 @@ function DistPackageTasksPage() {
         <StatTile label="Admin Task" value={adminCount} accent="sky" Icon={Sparkles} />
       </div>
 
+      <AdminCard accent="indigo" className="p-4">
+        <div className="flex items-start gap-3">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-fuchsia-600 text-white shadow-md">
+            <Info className="h-4 w-4" />
+          </div>
+          <div className="flex-1 text-sm text-slate-700 leading-relaxed">
+            <p className="bn-display text-base text-slate-900 mb-1">এই প্যাকেজে কীভাবে কাজ করবেন</p>
+            <ol className="list-decimal pl-5 space-y-1 text-[13px]">
+              <li><b>তারিখ</b> সিলেক্ট করুন (উপরে ডানদিকে) — শুধু ঐ দিনের task দেখাবে ও তৈরি হবে।</li>
+              <li><b>কতটি task</b> ও <b>মোট Amount ৳</b> দিন — প্রতি task-এর reward নিজে নিজে ভাগ হয়ে যাবে।</li>
+              <li><b>Action type</b> সিলেক্ট করুন — Distributor হিসেবে শুধু <b className="text-fuchsia-700">Like</b> ও <b className="text-fuchsia-700">Follow</b> allowed। <b>Share / Comment</b> শুধু Admin তৈরি করতে পারবেন।</li>
+              <li>“AI দিয়ে Random FB Link তৈরি” চাপুন — verified 1M+ follower Facebook page থেকে link এসে <b>Draft</b> হিসেবে যোগ হবে।</li>
+              <li>প্রতিটি link ক্লিক করে page live আছে কিনা যাচাই করুন (✅ Verified দেখাবে)। ভুল থাকলে ✏️ Edit বা 🗑 Delete করুন।</li>
+              <li>সব ঠিক থাকলে <b>“আমার সব draft Activate”</b> চাপুন — user-দের কাছে task publish হয়ে যাবে।</li>
+              <li>নীল <b>Admin</b> ট্যাগ যেসব task-এ আছে সেগুলো Admin তৈরি করেছেন — আপনি শুধু দেখতে পারবেন, edit/delete পারবেন না।</li>
+            </ol>
+          </div>
+        </div>
+      </AdminCard>
+
+
       <AdminCard accent="fuchsia" className="p-4">
         <div className="flex flex-wrap items-end gap-3">
           <div>
