@@ -149,7 +149,8 @@ export const distributorUpdateOwnLinkTask = createServerFn({ method: "POST" })
     const patch: Record<string, unknown> = {};
     for (const k of allowed) if (k in data.patch) patch[k] = data.patch[k];
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: row, error } = await supabaseAdmin.from("link_tasks")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: row, error } = await (supabaseAdmin as any).from("link_tasks")
       .update(patch).eq("id", data.id).eq("created_by_distributor", context.userId)
       .select().maybeSingle();
     if (error) throw new Error(error.message);
