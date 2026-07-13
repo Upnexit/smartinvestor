@@ -139,6 +139,9 @@ function WithdrawalsPage() {
     return rows.filter((r) => r.status === filter);
   }, [rows, filter]);
 
+  const { setRowRef } = useSearchHighlight(highlight, adminReady && !!rows);
+
+
   const handleApprove = async (id: string) => {
     setBusy(id);
     try {
