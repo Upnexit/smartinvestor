@@ -577,6 +577,54 @@ export type Database = {
           },
         ]
       }
+      notice_deletion_log: {
+        Row: {
+          audience_count: number
+          body: string
+          deleted_at: string
+          dismissed_count: number
+          id: string
+          notice_created_at: string | null
+          notice_id: string
+          priority: string
+          reason: string
+          target_all_users: boolean
+          target_package_ids: string[]
+          target_user_ids: string[]
+          title: string
+        }
+        Insert: {
+          audience_count?: number
+          body: string
+          deleted_at?: string
+          dismissed_count?: number
+          id?: string
+          notice_created_at?: string | null
+          notice_id: string
+          priority: string
+          reason?: string
+          target_all_users: boolean
+          target_package_ids?: string[]
+          target_user_ids?: string[]
+          title: string
+        }
+        Update: {
+          audience_count?: number
+          body?: string
+          deleted_at?: string
+          dismissed_count?: number
+          id?: string
+          notice_created_at?: string | null
+          notice_id?: string
+          priority?: string
+          reason?: string
+          target_all_users?: boolean
+          target_package_ids?: string[]
+          target_user_ids?: string[]
+          title?: string
+        }
+        Relationships: []
+      }
       notice_dismissals: {
         Row: {
           dismissed_at: string
@@ -1428,6 +1476,14 @@ export type Database = {
           id: string
           user_code: string
         }[]
+      }
+      notice_audience_count: {
+        Args: {
+          _target_all_users: boolean
+          _target_package_ids: string[]
+          _target_user_ids: string[]
+        }
+        Returns: number
       }
       package_active_user_count: { Args: { _pkg: string }; Returns: number }
       packages_active_user_counts: {

@@ -227,3 +227,35 @@ export const improveNoticeText = createServerFn({ method: "POST" })
     return improveNoticeTextWithAI(data.raw, data.priority);
   });
 
+/* ------------------------ AUTO-DELETION LOG ------------------------ */
+
+export type NoticeDeletionLogRow = {
+  id: string;
+  notice_id: string;
+  title: string;
+  body: string;
+  priority: NoticePriority;
+  target_all_users: boolean;
+  target_package_ids: string[];
+  target_user_ids: string[];
+  audience_count: number;
+  dismissed_count: number;
+  notice_created_at: string | null;
+  deleted_at: string;
+  reason: string;
+};
+
+export const listNoticeDeletionLog = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data, error } = await context.supabase
+      .from("notice_deletion_log")
+      .select("*")
+      .order("deleted_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+    return { logs: (data ?? []) as NoticeDeletionLogRow[] };
+  });
+
+

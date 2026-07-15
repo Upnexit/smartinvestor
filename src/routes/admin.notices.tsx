@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Megaphone, Mic, MicOff, Sparkles, Plus, Trash2, Send, Eye, EyeOff, Loader2, AlertTriangle, Info, Users, X, Pencil } from "lucide-react";
+import { Megaphone, Mic, MicOff, Sparkles, Plus, Trash2, Send, Eye, EyeOff, Loader2, AlertTriangle, Info, Users, X, Pencil, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   listAdminNotices, saveNotice, deleteNotice, togglePublishNotice, improveNoticeText, resendNoticeToTelegram,
-  type NoticeRow, type NoticePriority,
+  listNoticeDeletionLog,
+  type NoticeRow, type NoticePriority, type NoticeDeletionLogRow,
 } from "@/lib/notices.functions";
+
 import { GradientButton } from "@/components/admin/AdminUI";
 
 export const Route = createFileRoute("/admin/notices")({
@@ -43,11 +45,14 @@ function NoticesPage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<NoticeRow | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [logs, setLogs] = useState<NoticeDeletionLogRow[]>([]);
+  const [logsLoading, setLogsLoading] = useState(true);
 
   const load = useServerFn(listAdminNotices);
   const rmFn = useServerFn(deleteNotice);
   const pubFn = useServerFn(togglePublishNotice);
   const resendFn = useServerFn(resendNoticeToTelegram);
+  const logFn = useServerFn(listNoticeDeletionLog);
 
   async function refresh() {
     setLoading(true);
@@ -57,14 +62,26 @@ function NoticesPage() {
     } finally { setLoading(false); }
   }
 
+  async function refreshLogs() {
+    setLogsLoading(true);
+    try {
+      const r = await logFn();
+      setLogs(r.logs);
+    } finally { setLogsLoading(false); }
+  }
+
   useEffect(() => {
     (async () => {
       const { data } = await supabase.from("packages").select("id, name").order("sort_order", { ascending: true });
       setPackages((data ?? []) as PackageOpt[]);
-      await refresh();
+      await Promise.all([refresh(), refreshLogs()]);
     })();
+    // Auto-refresh logs every 30s so admins see auto-deletions in near-real time
+    const t = setInterval(() => { refreshLogs().catch(() => {}); }, 30_000);
+    return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   async function onDelete(n: NoticeRow) {
     if (!confirm(`"${n.title}" — এই notice টি delete করবেন?`)) return;
@@ -99,7 +116,7 @@ function NoticesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-3 py-5 sm:px-6 sm:py-8 space-y-5">
+    <div className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-8 space-y-5">
       <header className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 via-fuchsia-500 to-indigo-600 text-white shadow-lg">
@@ -115,31 +132,40 @@ function NoticesPage() {
         </GradientButton>
       </header>
 
-      {loading ? (
-        <div className="rounded-3xl bg-white p-10 grid place-items-center text-slate-500 ring-1 ring-slate-200">
-          <Loader2 className="h-6 w-6 animate-spin" />
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="min-w-0">
+          {loading ? (
+            <div className="rounded-3xl bg-white p-10 grid place-items-center text-slate-500 ring-1 ring-slate-200">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : notices.length === 0 ? (
+            <div className="rounded-3xl bg-white p-10 text-center ring-1 ring-slate-200">
+              <Megaphone className="mx-auto h-10 w-10 text-slate-300" />
+              <p className="mt-2 text-sm font-semibold text-slate-700">এখনও কোনো নোটিশ তৈরি করা হয়নি</p>
+              <p className="text-xs text-slate-500">উপরে "নতুন নোটিশ" বাটনে ক্লিক করে শুরু করুন</p>
+              <p className="mt-3 text-[11px] text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2 inline-block">
+                ✓ সব recipient দেখে ফেললে notice automatic delete হয়ে ডানপাশের log-এ চলে যাবে
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2">
+              {notices.map((n) => (
+                <NoticeCard
+                  key={n.id}
+                  notice={n}
+                  packages={packages}
+                  onEdit={() => { setEditing(n); setFormOpen(true); }}
+                  onDelete={() => onDelete(n)}
+                  onTogglePublish={() => onTogglePublish(n)}
+                  onResend={() => onResend(n)}
+                />
+              ))}
+            </div>
+          )}
         </div>
-      ) : notices.length === 0 ? (
-        <div className="rounded-3xl bg-white p-10 text-center ring-1 ring-slate-200">
-          <Megaphone className="mx-auto h-10 w-10 text-slate-300" />
-          <p className="mt-2 text-sm font-semibold text-slate-700">এখনও কোনো নোটিশ তৈরি করা হয়নি</p>
-          <p className="text-xs text-slate-500">উপরে "নতুন নোটিশ" বাটনে ক্লিক করে শুরু করুন</p>
-        </div>
-      ) : (
-        <div className="grid gap-3 md:grid-cols-2">
-          {notices.map((n) => (
-            <NoticeCard
-              key={n.id}
-              notice={n}
-              packages={packages}
-              onEdit={() => { setEditing(n); setFormOpen(true); }}
-              onDelete={() => onDelete(n)}
-              onTogglePublish={() => onTogglePublish(n)}
-              onResend={() => onResend(n)}
-            />
-          ))}
-        </div>
-      )}
+
+        <DeletionLogPanel logs={logs} loading={logsLoading} onRefresh={refreshLogs} />
+      </div>
 
       {formOpen && (
         <NoticeFormModal
@@ -151,7 +177,69 @@ function NoticesPage() {
       )}
     </div>
   );
+
 }
+
+/* ------------------------ Deletion Log Panel ------------------------ */
+function DeletionLogPanel({
+  logs, loading, onRefresh,
+}: { logs: NoticeDeletionLogRow[]; loading: boolean; onRefresh: () => void }) {
+  return (
+    <aside className="hidden lg:block">
+      <div className="sticky top-4 rounded-3xl bg-white ring-1 ring-slate-200 shadow-soft overflow-hidden">
+        <div className="flex items-center justify-between gap-2 px-4 py-3 bg-gradient-to-r from-slate-50 to-fuchsia-50 border-b border-slate-200">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-slate-600 to-fuchsia-600 text-white shadow">
+              <History className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="bn-display text-sm text-slate-900">Auto-Delete Log</h3>
+              <p className="text-[10px] text-slate-500 leading-tight">সবাই দেখে ফেলার পর delete হওয়া notice</p>
+            </div>
+          </div>
+          <button onClick={onRefresh} className="rounded-lg px-2 py-1 text-[10px] font-bold text-slate-600 hover:bg-white ring-1 ring-slate-200">
+            রিফ্রেশ
+          </button>
+        </div>
+        <div className="max-h-[70vh] overflow-y-auto p-3 space-y-2">
+          {loading ? (
+            <div className="py-10 grid place-items-center text-slate-400">
+              <Loader2 className="h-5 w-5 animate-spin" />
+            </div>
+          ) : logs.length === 0 ? (
+            <div className="py-10 text-center">
+              <History className="mx-auto h-8 w-8 text-slate-300" />
+              <p className="mt-1 text-xs text-slate-500">এখনও কোনো log নেই</p>
+              <p className="text-[10px] text-slate-400">সব recipient একটি notice dismiss করলে এখানে দেখাবে</p>
+            </div>
+          ) : (
+            logs.map((l) => (
+              <div key={l.id} className="rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-3">
+                <div className="flex items-start gap-2">
+                  <span className={`mt-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white ${
+                    l.priority === "critical" ? "bg-rose-600" : l.priority === "warning" ? "bg-amber-600" : "bg-sky-600"
+                  }`}>{l.priority.toUpperCase()}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-slate-800 truncate">{l.title}</p>
+                    <p className="text-[11px] text-slate-600 line-clamp-2 whitespace-pre-line">{l.body}</p>
+                  </div>
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-slate-500">
+                  <span className="inline-flex items-center gap-1">
+                    <Users className="h-3 w-3" /> {l.dismissed_count}/{l.audience_count} দেখেছে
+                  </span>
+                  <time>{new Date(l.deleted_at).toLocaleString("bn-BD", { dateStyle: "short", timeStyle: "short" })}</time>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+
 
 /* ---------------------------- Notice Card ---------------------------- */
 function NoticeCard({
