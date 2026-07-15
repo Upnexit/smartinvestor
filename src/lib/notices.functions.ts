@@ -170,12 +170,34 @@ export const listActiveNoticesForMe = createServerFn({ method: "GET" })
     const filtered = (notices ?? []).filter((n: any) => {
       if (dismissed.has(n.id)) return false;
       if (n.target_all_users) return true;
-      const targets: string[] = Array.isArray(n.target_package_ids) ? n.target_package_ids : [];
-      if (targets.length === 0) return false;
-      return targets.some((pid) => myPackageIds.has(pid));
+      const userTargets: string[] = Array.isArray(n.target_user_ids) ? n.target_user_ids : [];
+      if (userTargets.includes(userId)) return true;
+      const pkgTargets: string[] = Array.isArray(n.target_package_ids) ? n.target_package_ids : [];
+      if (pkgTargets.length > 0 && pkgTargets.some((pid) => myPackageIds.has(pid))) return true;
+      return false;
     }) as NoticeRow[];
 
     return { notices: filtered };
+  });
+
+/** Admin: one-click "you missed today's tasks" notice for a specific user. */
+export const sendMissedTaskNotice = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { user_id: string; date?: string | null }) => ({
+    user_id: String(d.user_id),
+    date: d.date ? String(d.date) : null,
+  }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data: row, error } = await (context.supabase as any).rpc("admin_send_missed_task_notice", {
+      _actor: context.userId,
+      _user_id: data.user_id,
+      _bd_date: data.date,
+    });
+    if (error) throw new Error(error.message);
+    const notice = row as NoticeRow;
+    const telegram = await sendNoticeToTelegramTargets(context.supabase, context.userId, notice);
+    return { notice, telegram };
   });
 
 export const dismissNotice = createServerFn({ method: "POST" })
