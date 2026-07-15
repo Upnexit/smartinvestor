@@ -281,13 +281,16 @@ function MiniStat({ label, value, Icon, from, to }: { label: string; value: stri
   );
 }
 
-function Bio({ label, value, mono, Icon }: { label: string; value: string | null | undefined; mono?: boolean; Icon?: React.ComponentType<{ className?: string }> }) {
+function Bio({ label, value, mono, Icon, copyable }: { label: string; value: string | null | undefined; mono?: boolean; Icon?: React.ComponentType<{ className?: string }>; copyable?: boolean }) {
   return (
     <div className="rounded-xl bg-slate-50 ring-1 ring-slate-100 px-2.5 py-1.5 min-w-0">
       <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
         {Icon && <Icon className="h-2.5 w-2.5" />} {label}
       </p>
-      <p className={cn("mt-0.5 text-slate-900 break-all text-xs", mono && "font-mono")}>{value ?? "—"}</p>
+      <div className="mt-0.5 flex items-center gap-1.5 min-w-0">
+        <p className={cn("text-slate-900 break-all text-xs flex-1 min-w-0", mono && "font-mono")}>{value ?? "—"}</p>
+        {copyable && value && value !== "—" && <CopyButton value={value} label={label} size="xs" />}
+      </div>
     </div>
   );
 }
