@@ -43,6 +43,7 @@ function UsersPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [del, setDel] = useState<User | null>(null);
   const [edit, setEdit] = useState<User | null>(null);
+  const onlineIds = useOnlineUsers();
   const [suspendTarget, setSuspendTarget] = useState<User | null>(null);
 
   const activeFilter = (filter as "all" | "active" | "inactive" | "suspended" | undefined) ?? "all";
