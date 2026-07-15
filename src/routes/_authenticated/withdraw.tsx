@@ -19,6 +19,9 @@ type Method = "bkash" | "nagad" | "rocket";
 type WD = {
   id: string;
   amount: number;
+  gross_amount: number | null;
+  fee: number | null;
+  balance_at_request: number | null;
   method: Method;
   account_number: string;
   status: "pending" | "approved" | "rejected";

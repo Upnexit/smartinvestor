@@ -1002,6 +1002,7 @@ export type Database = {
         Row: {
           account_number: string
           amount: number
+          balance_at_request: number | null
           created_at: string
           fee: number
           gross_amount: number | null
@@ -1019,6 +1020,7 @@ export type Database = {
         Insert: {
           account_number: string
           amount: number
+          balance_at_request?: number | null
           created_at?: string
           fee?: number
           gross_amount?: number | null
@@ -1036,6 +1038,7 @@ export type Database = {
         Update: {
           account_number?: string
           amount?: number
+          balance_at_request?: number | null
           created_at?: string
           fee?: number
           gross_amount?: number | null
@@ -1123,6 +1126,7 @@ export type Database = {
         Returns: {
           account_number: string
           amount: number
+          balance_at_request: number | null
           created_at: string
           fee: number
           gross_amount: number | null
