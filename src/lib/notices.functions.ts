@@ -10,6 +10,7 @@ export type NoticeRow = {
   body: string;
   priority: NoticePriority;
   target_package_ids: string[];
+  target_user_ids: string[];
   target_all_users: boolean;
   published: boolean;
   expires_at: string | null;
