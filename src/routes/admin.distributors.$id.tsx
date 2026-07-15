@@ -4,8 +4,9 @@ import { toast } from "sonner";
 import {
   ArrowLeft, User as UserIcon, Wallet, Users as UsersIcon, Mail, Phone, Hash, Calendar,
   MapPin, BadgeCheck, Activity, LogIn, LogOut, UserPlus, TrendingUp, Award, HandCoins,
-  Clock, ShieldCheck, ShieldOff, CheckCircle2, XCircle,
+  Clock, ShieldCheck, ShieldOff, CheckCircle2, XCircle, ExternalLink,
 } from "lucide-react";
+import { CopyButton } from "@/components/admin/CopyButton";
 import { AdminCard, Shimmer } from "@/components/admin/AdminUI";
 import { getDistributorBundle } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
