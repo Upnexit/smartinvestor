@@ -21,6 +21,7 @@ function ProtectedLayout() {
   const [status, setStatus] = useState<"loading" | "active" | "suspended">("loading");
   const [reason, setReason] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  usePresenceBroadcast(userId);
 
   useEffect(() => {
     let cancelled = false;
