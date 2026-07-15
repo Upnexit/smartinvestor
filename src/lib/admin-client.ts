@@ -106,10 +106,11 @@ export async function getUserBundle(userId: string) {
   ((refs.data ?? []) as Array<{ referred_user_id: string; amount: number | string | null }>).forEach((r) => {
     commissionByUser.set(r.referred_user_id, (commissionByUser.get(r.referred_user_id) ?? 0) + Number(r.amount || 0));
   });
-  const referredUsersWithCommission = ((referredUsers.data ?? []) as Array<{ id: string } & Record<string, unknown>>).map((u) => ({
-    ...u,
+  const referredUsersWithCommission = ((referredUsers.data ?? []) as Array<Record<string, unknown> & { id: string }>).map((u) => ({
+    ...(u as { id: string; full_name: string | null; email: string | null; phone: string | null; user_code: string | null; created_at: string; total_earned: number | string | null }),
     commission_earned: commissionByUser.get(u.id) ?? 0,
   }));
+
   return {
     profile: profile.data,
     packages: packages.data ?? [],
