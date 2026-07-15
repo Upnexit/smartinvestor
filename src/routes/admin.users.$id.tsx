@@ -42,6 +42,9 @@ function UserDetailPage() {
   if (!authReady || !data) return (<><Shimmer className="h-24" /><Shimmer className="h-64" /></>);
   const p = data.profile;
   const suspended = (p as unknown as { status?: string })?.status === "suspended" || (p as unknown as { status?: string })?.status === "banned";
+  const totalWithdrawn = (data.withdrawals as Array<{ status?: string | null; amount?: number | string | null; gross_amount?: number | string | null }>)
+    .filter((w) => w.status === "approved" || w.status === "paid")
+    .reduce((s, w) => s + Number(w.gross_amount ?? w.amount ?? 0), 0);
 
   const toggleSuspend = async () => {
     setBusy(true);
