@@ -7,7 +7,6 @@ import {
   Clock, ShieldCheck, ShieldOff, CheckCircle2, XCircle, ExternalLink,
 } from "lucide-react";
 import { CopyButton } from "@/components/admin/CopyButton";
-import { ImpersonateDialog } from "@/components/admin/ImpersonateDialog";
 import { AdminCard, Shimmer } from "@/components/admin/AdminUI";
 import { getDistributorBundle } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
@@ -24,7 +23,6 @@ function DistributorDetailPage() {
   const { id } = Route.useParams();
   const [data, setData] = useState<Bundle | null>(null);
   const [busy, setBusy] = useState(false);
-  const [impersonateUrl, setImpersonateUrl] = useState<string | null>(null);
   const authReady = useAuthReady();
 
   const load = () => {
@@ -33,13 +31,20 @@ function DistributorDetailPage() {
   useEffect(() => { if (authReady) load(); /* eslint-disable-next-line */ }, [id, authReady]);
 
   const impersonate = async () => {
+    const panelWindow = window.open("about:blank", "_blank");
+    panelWindow?.document.write("<title>Distributor Panel</title><body style='font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0;color:#334155'>ডিস্ট্রিবিউটর প্যানেল খোলা হচ্ছে…</body>");
     setBusy(true);
     try {
       const { adminImpersonateUser } = await import("@/lib/admin.functions");
       const redirectTo = `${window.location.origin}/distributor`;
       const res = await adminImpersonateUser({ data: { userId: id, redirectTo } });
-      setImpersonateUrl(res.url);
+      if (panelWindow && !panelWindow.closed) {
+        panelWindow.location.href = res.url;
+      } else {
+        window.location.href = res.url;
+      }
     } catch (e) {
+      if (panelWindow && !panelWindow.closed) panelWindow.close();
       toast.error(e instanceof Error ? e.message : "ব্যর্থ");
     } finally { setBusy(false); }
   };
@@ -75,7 +80,7 @@ function DistributorDetailPage() {
         <button onClick={impersonate} disabled={busy}
           className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-indigo-500/30 hover:scale-[1.03] transition ring-1 ring-indigo-300/40 disabled:opacity-60"
         >
-          <ExternalLink className="h-4 w-4" /> প্যানেলে প্রবেশ
+          <ExternalLink className="h-4 w-4" /> {busy ? "প্রবেশ হচ্ছে…" : "প্যানেলে প্রবেশ"}
         </button>
         <span className={cn("inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-bold ring-1",
           suspended ? "bg-rose-50 text-rose-700 ring-rose-200" : "bg-emerald-50 text-emerald-700 ring-emerald-200")}>
@@ -199,12 +204,6 @@ function DistributorDetailPage() {
           <ActivityList items={data.user_activity} showActor empty="আন্ডার ইউজারদের কোনো অ্যাক্টিভিটি নেই" />
         </SectionCard>
       </div>
-      <ImpersonateDialog
-        open={!!impersonateUrl}
-        url={impersonateUrl}
-        targetLabel={name}
-        onClose={() => setImpersonateUrl(null)}
-      />
     </>
   );
 }
