@@ -171,6 +171,13 @@ function ProfilePage() {
         setPaymentNumber(p.payment_number ?? "");
         await loadTg(true);
       }
+      const { data: wRows } = await supabase
+        .from("withdrawals")
+        .select("amount, gross_amount, status")
+        .eq("user_id", u.user.id)
+        .in("status", ["approved", "paid"]);
+      const sum = (wRows ?? []).reduce((s: number, r: { amount: number | string | null; gross_amount: number | string | null }) => s + Number(r.gross_amount ?? r.amount ?? 0), 0);
+      setTotalWithdrawn(sum);
       const { data: up } = await supabase
         .from("user_packages")
         .select("expires_at, packages(name)")
