@@ -8,7 +8,6 @@ import { UserEditDrawer } from "@/components/admin/UserEditDrawer";
 import { cn } from "@/lib/utils";
 import { useAuthReady } from "@/hooks/use-auth-ready";
 import { CopyButton } from "@/components/admin/CopyButton";
-import { ImpersonateDialog } from "@/components/admin/ImpersonateDialog";
 
 type EditSearch = { edit?: number };
 
@@ -27,7 +26,6 @@ function UserDetailPage() {
   const [data, setData] = useState<Bundle | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [impersonateUrl, setImpersonateUrl] = useState<string | null>(null);
   const authReady = useAuthReady();
 
   const load = () => {
@@ -60,13 +58,20 @@ function UserDetailPage() {
   };
 
   const impersonate = async () => {
+    const panelWindow = window.open("about:blank", "_blank");
+    panelWindow?.document.write("<title>User Panel</title><body style='font-family:system-ui;display:grid;place-items:center;min-height:100vh;margin:0;color:#334155'>ইউজার প্যানেল খোলা হচ্ছে…</body>");
     setBusy(true);
     try {
       const { adminImpersonateUser } = await import("@/lib/admin.functions");
       const redirectTo = `${window.location.origin}/dashboard`;
       const res = await adminImpersonateUser({ data: { userId: id, redirectTo } });
-      setImpersonateUrl(res.url);
+      if (panelWindow && !panelWindow.closed) {
+        panelWindow.location.href = res.url;
+      } else {
+        window.location.href = res.url;
+      }
     } catch (e) {
+      if (panelWindow && !panelWindow.closed) panelWindow.close();
       toast.error(e instanceof Error ? e.message : "ব্যর্থ");
     } finally { setBusy(false); }
   };
@@ -82,7 +87,7 @@ function UserDetailPage() {
         <button onClick={impersonate} disabled={busy}
           className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-sky-500/30 hover:scale-[1.03] transition ring-1 ring-sky-300/40 disabled:opacity-60"
         >
-          <ExternalLink className="h-4 w-4" /> প্যানেলে প্রবেশ
+          <ExternalLink className="h-4 w-4" /> {busy ? "প্রবেশ হচ্ছে…" : "প্যানেলে প্রবেশ"}
         </button>
         <button onClick={toggleSuspend} disabled={busy}
           className={cn("inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold text-white shadow-lg hover:scale-[1.03] transition ring-1 ring-white/40 disabled:opacity-60",
@@ -299,12 +304,6 @@ function UserDetailPage() {
       {editOpen && p && (
         <UserEditDrawer userId={id} initial={p as never} onClose={() => setEditOpen(false)} onSaved={() => { setEditOpen(false); load(); }} />
       )}
-      <ImpersonateDialog
-        open={!!impersonateUrl}
-        url={impersonateUrl}
-        targetLabel={String((p as unknown as { full_name?: string })?.full_name ?? "ইউজার")}
-        onClose={() => setImpersonateUrl(null)}
-      />
     </>
   );
 }
