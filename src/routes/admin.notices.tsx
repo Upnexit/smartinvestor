@@ -155,9 +155,20 @@ function NoticesPage() {
             <p className="text-xs text-slate-500">প্যাকেজ-ভিত্তিক announcement — voice + AI দিয়ে দ্রুত তৈরি করুন</p>
           </div>
         </div>
-        <GradientButton accent="fuchsia" onClick={() => { setEditing(null); setFormOpen(true); }}>
-          <Plus className="h-4 w-4" /> নতুন নোটিশ
-        </GradientButton>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onSendTestPush}
+            disabled={pushBusy}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-3 py-2 text-xs font-semibold text-emerald-700 shadow-sm hover:from-emerald-100 hover:to-teal-100 disabled:opacity-60"
+            title="নিজেকে test push পাঠাও"
+          >
+            <Send className="h-3.5 w-3.5" /> টেস্ট পুশ
+          </button>
+          <GradientButton accent="fuchsia" onClick={() => { setEditing(null); setFormOpen(true); }}>
+            <Plus className="h-4 w-4" /> নতুন নোটিশ
+          </GradientButton>
+        </div>
       </header>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
