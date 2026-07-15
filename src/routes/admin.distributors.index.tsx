@@ -52,9 +52,10 @@ type DRow = {
   user_id: string; full_name: string; email: string; phone: string | null;
   payment_method: string | null; payment_number: string | null;
   district: string | null; thana: string | null; address: string | null;
-  commission_rate: number; balance: number; total_earned: number;
+  commission_rate: number; balance: number; locked_balance: number; total_earned: number;
   status: string; notes: string | null; users_count: number;
 };
+
 
 type AppRow = {
   id: string; full_name: string; father_name: string | null; phone: string; email: string;
