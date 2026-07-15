@@ -10,8 +10,8 @@ export const Route = createFileRoute("/install")({
   head: () => ({
     meta: [
       { title: "অ্যাপ ইনস্টল করুন — Smart Investor" },
-      { name: "description", content: "Smart Investor মোবাইল অ্যাপ এক ক্লিকে ইনস্টল করুন এবং অফলাইনেও ব্যবহার করুন।" },
-      { property: "og:title", content: "Smart Investor অ্যাপ ডাউনলোড করুন" },
+      { name: "description", content: "Smart Investor মোবাইল অ্যাপ এক ক্লিকে সরাসরি ইনস্টল করুন।" },
+      { property: "og:title", content: "Smart Investor অ্যাপ ইনস্টল করুন" },
       { property: "og:description", content: "এক ক্লিকে ইনস্টল করে হোম স্ক্রিন থেকে ব্যবহার করুন।" },
       { property: "og:url", content: "/install" },
     ],
