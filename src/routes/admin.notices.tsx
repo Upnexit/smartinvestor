@@ -45,11 +45,14 @@ function NoticesPage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<NoticeRow | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [logs, setLogs] = useState<NoticeDeletionLogRow[]>([]);
+  const [logsLoading, setLogsLoading] = useState(true);
 
   const load = useServerFn(listAdminNotices);
   const rmFn = useServerFn(deleteNotice);
   const pubFn = useServerFn(togglePublishNotice);
   const resendFn = useServerFn(resendNoticeToTelegram);
+  const logFn = useServerFn(listNoticeDeletionLog);
 
   async function refresh() {
     setLoading(true);
@@ -59,14 +62,26 @@ function NoticesPage() {
     } finally { setLoading(false); }
   }
 
+  async function refreshLogs() {
+    setLogsLoading(true);
+    try {
+      const r = await logFn();
+      setLogs(r.logs);
+    } finally { setLogsLoading(false); }
+  }
+
   useEffect(() => {
     (async () => {
       const { data } = await supabase.from("packages").select("id, name").order("sort_order", { ascending: true });
       setPackages((data ?? []) as PackageOpt[]);
-      await refresh();
+      await Promise.all([refresh(), refreshLogs()]);
     })();
+    // Auto-refresh logs every 30s so admins see auto-deletions in near-real time
+    const t = setInterval(() => { refreshLogs().catch(() => {}); }, 30_000);
+    return () => clearInterval(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   async function onDelete(n: NoticeRow) {
     if (!confirm(`"${n.title}" — এই notice টি delete করবেন?`)) return;
