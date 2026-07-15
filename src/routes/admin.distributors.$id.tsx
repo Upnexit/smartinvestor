@@ -45,7 +45,9 @@ function DistributorDetailPage() {
   const activePackages = Number(stats.active_packages ?? 0);
   const totalDeposit = Number(stats.total_deposit ?? 0);
   const balance = Number(stats.balance ?? d.balance ?? 0);
+  const lockedBalance = Number(stats.locked_balance ?? d.locked_balance ?? 0);
   const totalEarned = Number(stats.total_earned ?? d.total_earned ?? 0);
+
 
   return (
     <>
@@ -119,12 +121,13 @@ function DistributorDetailPage() {
       {/* FINANCE */}
       <SectionCard title="ফিনান্সিয়াল সারসংক্ষেপ" Icon={HandCoins} accent="emerald">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <BigCard label="ব্যালেন্স" v={`৳${balance.toFixed(0)}`} accent="emerald" />
+          <BigCard label="উত্তোলনযোগ্য ব্যালেন্স" v={`৳${balance.toFixed(0)}`} accent="emerald" />
+          <BigCard label="🔒 লকড ব্যালেন্স" v={`৳${lockedBalance.toLocaleString("bn-BD")}`} accent="amber" />
           <BigCard label="মোট আয়" v={`৳${totalEarned.toFixed(0)}`} accent="fuchsia" />
           <BigCard label="মোট ডিপোজিট" v={`৳${totalDeposit.toFixed(0)}`} accent="sky" />
-          <BigCard label="একটিভ প্যাকেজ" v={activePackages.toLocaleString("bn-BD")} accent="amber" />
         </div>
       </SectionCard>
+
 
       {/* REFERRED USERS - step by step */}
       <SectionCard

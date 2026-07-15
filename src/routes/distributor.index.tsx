@@ -18,7 +18,7 @@ export const Route = createFileRoute("/distributor/")({
   component: DistDashboard,
 });
 
-type Stats = { total_users?: number; active_packages?: number; total_deposit?: number; balance?: number; total_earned?: number };
+type Stats = { total_users?: number; active_packages?: number; total_deposit?: number; balance?: number; locked_balance?: number; total_earned?: number };
 type Profile = { full_name?: string; district?: string; commission_rate?: number };
 type Me = { profile: Profile | null; stats: Stats | null };
 
@@ -142,7 +142,7 @@ function DistDashboard() {
         <div className="pointer-events-none absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-fuchsia-300/25 blur-2xl" />
         <div className="relative flex items-center justify-between">
           <div>
-            <p className="text-xs uppercase tracking-wider text-white/85">আমার ব্যালেন্স</p>
+            <p className="text-xs uppercase tracking-wider text-white/85">উত্তোলনযোগ্য ব্যালেন্স</p>
             <p className="bn-display mt-1 text-4xl">
               {hideBalance ? "৳ ••••" : `৳ ${Number(s?.balance ?? 0).toLocaleString("bn-BD")}`}
             </p>
@@ -161,6 +161,26 @@ function DistDashboard() {
           <Link to="/distributor/users" className="rounded-xl bg-white text-indigo-700 px-3 py-2 text-xs font-bold hover:bg-indigo-50">আমার ইউজার</Link>
         </div>
       </div>
+
+      {/* Locked balance card — separate from the withdrawable balance */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 p-5 text-white shadow-pop">
+        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/15 blur-2xl" />
+        <div className="relative flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-wider text-white/90 flex items-center gap-1">
+              🔒 লকড ব্যালেন্স
+            </p>
+            <p className="bn-display mt-1 text-3xl">
+              {hideBalance ? "৳ ••••" : `৳ ${Number(s?.locked_balance ?? 0).toLocaleString("bn-BD")}`}
+            </p>
+            <p className="mt-1 text-[11px] text-white/90 leading-snug">
+              এই ব্যালেন্স নির্দিষ্ট শর্ত পূরণ হলে unlock হবে — বর্তমানে উত্তোলনযোগ্য নয়।
+            </p>
+          </div>
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/25 backdrop-blur text-2xl">🔒</div>
+        </div>
+      </div>
+
 
       {/* Fully gradient stat tiles */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

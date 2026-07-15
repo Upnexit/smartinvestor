@@ -52,9 +52,10 @@ type DRow = {
   user_id: string; full_name: string; email: string; phone: string | null;
   payment_method: string | null; payment_number: string | null;
   district: string | null; thana: string | null; address: string | null;
-  commission_rate: number; balance: number; total_earned: number;
+  commission_rate: number; balance: number; locked_balance: number; total_earned: number;
   status: string; notes: string | null; users_count: number;
 };
+
 
 type AppRow = {
   id: string; full_name: string; father_name: string | null; phone: string; email: string;
@@ -310,6 +311,11 @@ function AdminDistributorsPage() {
                       <p className="text-sm font-bold text-amber-700">৳{Number(r.balance ?? 0).toFixed(0)}</p>
                     </div>
                   </div>
+                  <div className="mt-2 rounded-lg bg-rose-50 ring-1 ring-rose-200 px-2 py-1.5 flex items-center justify-between">
+                    <span className="text-[10px] font-semibold text-rose-600 flex items-center gap-1">🔒 লকড ব্যালেন্স</span>
+                    <span className="text-sm font-bold text-rose-700">৳{Number(r.locked_balance ?? 0).toLocaleString("bn-BD")}</span>
+                  </div>
+
                   <div className="mt-3 grid grid-cols-4 gap-1.5">
                     <Link to="/admin/distributors/$id" params={{ id: r.user_id }} className="inline-flex items-center justify-center gap-1 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 px-2 py-1.5 text-[11px] font-bold text-white shadow-md shadow-sky-500/30 hover:scale-[1.02] transition">
                       <Eye className="h-3.5 w-3.5" /> ডিটেইল
