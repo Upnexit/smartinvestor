@@ -39,7 +39,8 @@ type Row = {
 };
 
 type HistoryItem = {
-  id: string; amount: number; method: Method | null; account_number: string | null;
+  id: string; amount: number; gross_amount: number | null; fee: number | null;
+  balance_at_request: number | null; method: Method | null; account_number: string | null;
   status: "pending"|"approved"|"rejected"|"paid";
   note: string | null; rejection_reason: string | null;
   created_at: string; reviewed_at: string | null;
@@ -231,6 +232,9 @@ function WithdrawalsPage() {
                 <p className="mt-2 text-xs text-rose-600 line-clamp-2">কারণ: {r.rejection_reason ?? r.note}</p>
               )}
               <p className="mt-2 text-[10px] text-slate-400">{new Date(r.created_at).toLocaleString("bn-BD")}</p>
+              <p className="mt-1 text-[10px] font-bold text-indigo-700 font-mono">
+                Withdraw সময় Balance: {r.balance_at_request != null ? `৳${Number(r.balance_at_request).toLocaleString("bn-BD")}` : "—"}
+              </p>
 
               <div className="mt-3 flex gap-2">
                 <SoftButton className="flex-1" onClick={() => setDetail(r)}>
@@ -346,17 +350,30 @@ function WithdrawalsPage() {
                       <div className="rounded-xl border border-dashed border-slate-300 bg-white p-4 text-center text-xs text-slate-500">এটিই প্রথম উইথড্র রিকোয়েস্ট</div>
                     ) : (
                       <div className="space-y-2 max-h-64 overflow-y-auto">
-                        {detailData.history.map((h) => (
-                          <div key={h.id} className={cn("rounded-xl bg-white ring-1 ring-slate-200 p-2.5 flex items-center gap-3",
-                            h.id === detail.id && "ring-2 ring-emerald-400 bg-emerald-50")}>
-                            <StatusPill status={h.status} compact />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold text-slate-900 font-mono">৳{Number(h.amount).toLocaleString("bn-BD")} <span className="text-[10px] text-slate-500 uppercase">{h.method}</span></p>
-                              <p className="text-[10px] text-slate-500">{new Date(h.created_at).toLocaleString("bn-BD")}</p>
-                              {h.rejection_reason && <p className="text-[10px] text-rose-600">✕ {h.rejection_reason}</p>}
+                        {detailData.history.map((h) => {
+                          const gross = Number(h.gross_amount ?? h.amount ?? 0);
+                          const fee = Number(h.fee ?? 0);
+                          const net = Number(h.amount ?? Math.max(gross - fee, 0));
+                          const requestBalance = h.balance_at_request != null ? Number(h.balance_at_request) : null;
+                          return (
+                            <div key={h.id} className={cn("rounded-xl bg-white ring-1 ring-slate-200 p-2.5",
+                              h.id === detail.id && "ring-2 ring-emerald-400 bg-emerald-50")}>
+                              <div className="flex items-start gap-3">
+                                <StatusPill status={h.status} compact />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                                    <p className="text-sm font-bold text-slate-900 font-mono">৳{net.toLocaleString("bn-BD")} <span className="text-[10px] text-slate-500 uppercase">{h.method ?? "—"}</span></p>
+                                    <p className="text-[10px] font-bold text-indigo-700 font-mono">Balance: {requestBalance != null ? `৳${requestBalance.toLocaleString("bn-BD")}` : "—"}</p>
+                                  </div>
+                                  <p className="text-[10px] text-slate-500">{new Date(h.created_at).toLocaleString("bn-BD")}{h.reviewed_at ? ` · রিভিউ ${new Date(h.reviewed_at).toLocaleDateString("bn-BD")}` : ""}</p>
+                                  <p className="text-[10px] text-slate-500 font-mono">রিকোয়েস্ট ৳{gross.toLocaleString("bn-BD")} · ফি ৳{fee.toLocaleString("bn-BD")}</p>
+                                  {h.account_number && <p className="text-[10px] text-slate-500 font-mono">{h.account_number}</p>}
+                                  {h.rejection_reason && <p className="text-[10px] text-rose-600">✕ {h.rejection_reason}</p>}
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
