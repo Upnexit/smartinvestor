@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { Download, X, Smartphone } from "lucide-react";
+import type {} from "@/lib/install-prompt";
 
 const STORAGE_KEY = "si_mobile_install_prompt_seen";
 
@@ -24,6 +25,7 @@ function isAlreadyInstalled() {
 const BLOCKED_PATHS = ["/our-packages", "/packages", "/checkout", "/auth", "/register", "/install"];
 
 export function MobileInstallPrompt() {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -47,6 +49,22 @@ export function MobileInstallPrompt() {
     try {
       window.localStorage.setItem(STORAGE_KEY, "1");
     } catch { /* ignore */ }
+  };
+
+  const installNow = async () => {
+    const promptEvent = window.__deferredInstallPrompt;
+    if (promptEvent) {
+      try {
+        await promptEvent.prompt();
+        await promptEvent.userChoice;
+        window.__deferredInstallPrompt = null;
+      } catch { /* ignore */ }
+      dismiss();
+      return;
+    }
+
+    dismiss();
+    navigate({ to: "/install" });
   };
 
   if (!open) return null;
@@ -93,14 +111,14 @@ export function MobileInstallPrompt() {
           </p>
 
           <div className="mt-5 flex flex-col gap-2.5">
-            <Link
-              to="/install"
-              onClick={dismiss}
+            <button
+              type="button"
+              onClick={() => void installNow()}
               className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-rose-500/30 transition active:scale-[0.98]"
             >
               <Download className="h-4 w-4" />
               এখনই ইনস্টল করুন
-            </Link>
+            </button>
             <button
               type="button"
               onClick={dismiss}
