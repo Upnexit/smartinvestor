@@ -218,15 +218,16 @@ function UserDetailPage() {
         {data.withdrawals.length === 0 ? <p className="text-xs text-slate-500 text-center py-4">কোনো উইথড্র নেই</p> : (
           <ul className="space-y-2 max-h-72 overflow-y-auto pr-1">
             {(data.withdrawals as Array<{ id: string; amount?: number | string | null; gross_amount?: number | string | null; fee?: number | string | null; balance_at_request?: number | string | null; method?: string | null; account_number?: string | null; status?: string | null; note?: string | null; rejection_reason?: string | null; created_at?: string; reviewed_at?: string | null }>).map((w) => {
-              const amt = Number(w.gross_amount ?? w.amount ?? 0);
-              const bal = w.balance_at_request != null ? Number(w.balance_at_request) : null;
+              const gross = Number(w.gross_amount ?? w.amount ?? 0);
               const fee = Number(w.fee ?? 0);
+              const net = Math.max(gross - fee, 0);
+              const bal = w.balance_at_request != null ? Number(w.balance_at_request) : null;
               return (
                 <li key={w.id} className="rounded-xl ring-1 ring-emerald-100 bg-emerald-50/40 px-3 py-2">
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-sm font-bold">৳{amt.toFixed(0)} <span className="text-xs font-normal text-slate-500">· {w.method ?? "—"}</span>{w.account_number ? <span className="text-[10px] font-mono text-slate-500"> · {w.account_number}</span> : null}</p>
-                      <p className="text-[10px] text-slate-500">{w.created_at ? new Date(w.created_at).toLocaleString("bn-BD") : "—"}</p>
+                      <p className="text-sm font-bold">৳{net.toFixed(0)} <span className="text-xs font-normal text-slate-500">· {w.method ?? "—"}</span>{w.account_number ? <span className="text-[10px] font-mono text-slate-500"> · {w.account_number}</span> : null}</p>
+                      <p className="text-[10px] text-slate-500">{w.created_at ? new Date(w.created_at).toLocaleString("bn-BD") : "—"} · রিকোয়েস্ট ৳{gross.toFixed(0)}{fee > 0 ? ` · ফি ৳${fee.toFixed(0)}` : ""}</p>
                     </div>
                     <span className={cn("shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase",
                       w.status === "approved" || w.status === "paid" ? "bg-emerald-100 text-emerald-700" :
@@ -235,8 +236,7 @@ function UserDetailPage() {
                     </span>
                   </div>
                   <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10.5px] text-slate-600">
-                    <span>রিকোয়েস্টের সময় ব্যালেন্স: <b className="text-slate-900">{bal != null ? `৳${bal.toFixed(0)}` : "—"}</b></span>
-                    {fee > 0 && <span>ফি/ট্যাক্স: <b className="text-slate-900">৳{fee.toFixed(0)}</b></span>}
+                    <span>Withdraw এর সময় Account Balance: <b className="text-slate-900">{bal != null ? `৳${bal.toFixed(0)}` : "—"}</b></span>
                     {w.reviewed_at && <span>রিভিউ: {new Date(w.reviewed_at).toLocaleDateString("bn-BD")}</span>}
                   </div>
                   {(w.rejection_reason || w.note) && (
