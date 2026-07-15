@@ -232,6 +232,9 @@ function WithdrawalsPage() {
                 <p className="mt-2 text-xs text-rose-600 line-clamp-2">কারণ: {r.rejection_reason ?? r.note}</p>
               )}
               <p className="mt-2 text-[10px] text-slate-400">{new Date(r.created_at).toLocaleString("bn-BD")}</p>
+              <p className="mt-1 text-[10px] font-bold text-indigo-700 font-mono">
+                Withdraw সময় Balance: {r.balance_at_request != null ? `৳${Number(r.balance_at_request).toLocaleString("bn-BD")}` : "—"}
+              </p>
 
               <div className="mt-3 flex gap-2">
                 <SoftButton className="flex-1" onClick={() => setDetail(r)}>
