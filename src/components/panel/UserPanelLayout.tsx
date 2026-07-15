@@ -4,11 +4,13 @@ import {
   LayoutDashboard, ListChecks, ArrowDownToLine, Package, MessageCircle,
   Users, User as UserIcon, ChevronRight, LogOut, Sparkles, Menu, X, Bell, Crown, Home, LifeBuoy,
 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { cn } from "@/lib/utils";
 import { NoticeModal } from "@/components/panel/NoticeModal";
 import { PushOptInBanner } from "@/components/panel/PushOptInBanner";
+import { usePushSubscribe } from "@/hooks/use-push-subscribe";
 
 type NavItem = {
   to: string;
