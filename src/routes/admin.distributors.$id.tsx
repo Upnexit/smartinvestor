@@ -45,7 +45,9 @@ function DistributorDetailPage() {
   const activePackages = Number(stats.active_packages ?? 0);
   const totalDeposit = Number(stats.total_deposit ?? 0);
   const balance = Number(stats.balance ?? d.balance ?? 0);
+  const lockedBalance = Number(stats.locked_balance ?? d.locked_balance ?? 0);
   const totalEarned = Number(stats.total_earned ?? d.total_earned ?? 0);
+
 
   return (
     <>
