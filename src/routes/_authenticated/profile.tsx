@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   User as UserIcon, Mail, Phone, Smartphone, Save, Loader2, Lock,
   Copy, Check, ShieldCheck, Crown, Wallet, TrendingUp, BadgeCheck, AlertCircle,
-  Pencil, Send, LinkIcon, Unlink,
+  Pencil, Send, LinkIcon, Unlink, ArrowDownToLine,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -62,6 +62,7 @@ function ProfilePage() {
   const [tgLoadError, setTgLoadError] = useState<string | null>(null);
   const [tgReady, setTgReady] = useState(false);
   const [tgConnecting, setTgConnecting] = useState(false);
+  const [totalWithdrawn, setTotalWithdrawn] = useState<number>(0);
   const tgConnectingRef = useRef(false);
   const tgPollRef = useRef<number | null>(null);
   const tgPollStopRef = useRef<number | null>(null);
@@ -170,6 +171,13 @@ function ProfilePage() {
         setPaymentNumber(p.payment_number ?? "");
         await loadTg(true);
       }
+      const { data: wRows } = await supabase
+        .from("withdrawals")
+        .select("amount, gross_amount, status")
+        .eq("user_id", u.user.id)
+        .in("status", ["approved", "paid"]);
+      const sum = (wRows ?? []).reduce((s: number, r: { amount: number | string | null; gross_amount: number | string | null }) => s + Number(r.gross_amount ?? r.amount ?? 0), 0);
+      setTotalWithdrawn(sum);
       const { data: up } = await supabase
         .from("user_packages")
         .select("expires_at, packages(name)")
@@ -400,9 +408,9 @@ function ProfilePage() {
             <p className="text-[10px] text-white/80">মোট আয়</p>
           </div>
           <div className="rounded-xl bg-white/15 backdrop-blur p-2">
-            <Crown className="mx-auto h-4 w-4" />
-            <p className="bn-display mt-1 text-sm">৳{Number(profile.locked_balance).toFixed(0)}</p>
-            <p className="text-[10px] text-white/80">লকড</p>
+            <ArrowDownToLine className="mx-auto h-4 w-4" />
+            <p className="bn-display mt-1 text-sm">৳{totalWithdrawn.toFixed(0)}</p>
+            <p className="text-[10px] text-white/80">মোট Withdraw</p>
           </div>
         </div>
       </div>

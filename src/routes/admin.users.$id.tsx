@@ -42,6 +42,9 @@ function UserDetailPage() {
   if (!authReady || !data) return (<><Shimmer className="h-24" /><Shimmer className="h-64" /></>);
   const p = data.profile;
   const suspended = (p as unknown as { status?: string })?.status === "suspended" || (p as unknown as { status?: string })?.status === "banned";
+  const totalWithdrawn = (data.withdrawals as Array<{ status?: string | null; amount?: number | string | null; gross_amount?: number | string | null }>)
+    .filter((w) => w.status === "approved" || w.status === "paid")
+    .reduce((s, w) => s + Number(w.gross_amount ?? w.amount ?? 0), 0);
 
   const toggleSuspend = async () => {
     setBusy(true);
@@ -141,7 +144,7 @@ function UserDetailPage() {
         <SectionCard title="ফিনান্সিয়াল" Icon={Wallet} accent="emerald">
           <div className="grid grid-cols-2 gap-2">
             <BigCard label="ব্যালেন্স"     v={`৳${Number(p?.balance ?? 0).toFixed(0)}`}        accent="emerald" />
-            <BigCard label="লকড"           v={`৳${Number(p?.locked_balance ?? 0).toFixed(0)}`} accent="amber" />
+            <BigCard label="মোট Withdraw"  v={`৳${totalWithdrawn.toFixed(0)}`}                    accent="amber" />
             <BigCard label="মোট আর্নিং"    v={`৳${Number(p?.total_earned ?? 0).toFixed(0)}`}   accent="sky" />
             <BigCard label="রেফারেল আয়"   v={`৳${data.referralEarnedTotal.toFixed(0)}`}        accent="fuchsia" />
           </div>
@@ -211,22 +214,39 @@ function UserDetailPage() {
       </div>
 
       {/* BOTTOM: Withdraw (full width) */}
-      <SectionCard title="উইথড্র" Icon={ArrowDownToLine} accent="emerald">
+      <SectionCard title={`উইথড্র (মোট ৳${totalWithdrawn.toFixed(0)} অনুমোদিত)`} Icon={ArrowDownToLine} accent="emerald">
         {data.withdrawals.length === 0 ? <p className="text-xs text-slate-500 text-center py-4">কোনো উইথড্র নেই</p> : (
           <ul className="space-y-2 max-h-72 overflow-y-auto pr-1">
-            {data.withdrawals.map((w: { id: string; amount?: number | string | null; method?: string | null; status?: string | null; created_at?: string }) => (
-              <li key={w.id} className="flex items-center justify-between rounded-xl ring-1 ring-emerald-100 bg-emerald-50/40 px-3 py-2">
-                <div>
-                  <p className="text-sm font-bold">৳{w.amount} <span className="text-xs font-normal text-slate-500">· {w.method}</span></p>
-                  <p className="text-[10px] text-slate-500">{w.created_at ? new Date(w.created_at).toLocaleString("bn-BD") : "—"}</p>
-                </div>
-                <span className={cn("rounded-md px-2 py-0.5 text-[10px] font-bold uppercase",
-                  w.status === "approved" ? "bg-emerald-100 text-emerald-700" :
-                  w.status === "pending" ? "bg-amber-100 text-amber-700" : "bg-rose-100 text-rose-700")}>
-                  {w.status}
-                </span>
-              </li>
-            ))}
+            {(data.withdrawals as Array<{ id: string; amount?: number | string | null; gross_amount?: number | string | null; fee?: number | string | null; balance_at_request?: number | string | null; method?: string | null; account_number?: string | null; status?: string | null; note?: string | null; rejection_reason?: string | null; created_at?: string; reviewed_at?: string | null }>).map((w) => {
+              const amt = Number(w.gross_amount ?? w.amount ?? 0);
+              const bal = w.balance_at_request != null ? Number(w.balance_at_request) : null;
+              const fee = Number(w.fee ?? 0);
+              return (
+                <li key={w.id} className="rounded-xl ring-1 ring-emerald-100 bg-emerald-50/40 px-3 py-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold">৳{amt.toFixed(0)} <span className="text-xs font-normal text-slate-500">· {w.method ?? "—"}</span>{w.account_number ? <span className="text-[10px] font-mono text-slate-500"> · {w.account_number}</span> : null}</p>
+                      <p className="text-[10px] text-slate-500">{w.created_at ? new Date(w.created_at).toLocaleString("bn-BD") : "—"}</p>
+                    </div>
+                    <span className={cn("shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase",
+                      w.status === "approved" || w.status === "paid" ? "bg-emerald-100 text-emerald-700" :
+                      w.status === "pending" ? "bg-amber-100 text-amber-700" : "bg-rose-100 text-rose-700")}>
+                      {w.status}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10.5px] text-slate-600">
+                    <span>রিকোয়েস্টের সময় ব্যালেন্স: <b className="text-slate-900">{bal != null ? `৳${bal.toFixed(0)}` : "—"}</b></span>
+                    {fee > 0 && <span>ফি/ট্যাক্স: <b className="text-slate-900">৳{fee.toFixed(0)}</b></span>}
+                    {w.reviewed_at && <span>রিভিউ: {new Date(w.reviewed_at).toLocaleDateString("bn-BD")}</span>}
+                  </div>
+                  {(w.rejection_reason || w.note) && (
+                    <p className={cn("mt-1 text-[10.5px]", w.status === "rejected" ? "text-rose-700" : "text-slate-600")}>
+                      {w.rejection_reason ? <>বাতিলের কারণ: {w.rejection_reason}</> : <>নোট: {w.note}</>}
+                    </p>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </SectionCard>
