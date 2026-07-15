@@ -452,29 +452,50 @@ function DailyReportPage() {
           <EmptyState Icon={CheckCircle2} accent="emerald" title={search ? "মিল পাওয়া যায়নি" : "সব active user আজ task সম্পন্ন করেছে! 🎉"} />
         ) : (
           <div className="grid gap-2 sm:grid-cols-2">
-            {filteredMissing.map((u) => (
-              <Link
-                key={u.user_id}
-                to="/admin/users/$id"
-                params={{ id: u.user_id }}
-                className="group flex items-center gap-3 rounded-2xl bg-white p-3 ring-1 ring-rose-100 shadow-sm hover:ring-rose-300 hover:shadow-md transition"
-              >
-                <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-rose-400 to-pink-500 text-white font-bold shadow-md">
-                  {u.avatar_url
-                    ? <img src={u.avatar_url} alt="" className="h-full w-full object-cover" />
-                    : (u.full_name || "U").slice(0, 1).toUpperCase()}
+            {filteredMissing.map((u) => {
+              const isSending = notifying.has(u.user_id);
+              const wasSent = notified.has(u.user_id);
+              return (
+                <div
+                  key={u.user_id}
+                  className="group flex items-center gap-3 rounded-2xl bg-white p-3 ring-1 ring-rose-100 shadow-sm hover:ring-rose-300 hover:shadow-md transition"
+                >
+                  <Link
+                    to="/admin/users/$id"
+                    params={{ id: u.user_id }}
+                    className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-rose-400 to-pink-500 text-white font-bold shadow-md"
+                  >
+                    {u.avatar_url
+                      ? <img src={u.avatar_url} alt="" className="h-full w-full object-cover" />
+                      : (u.full_name || "U").slice(0, 1).toUpperCase()}
+                  </Link>
+                  <Link to="/admin/users/$id" params={{ id: u.user_id }} className="min-w-0 flex-1">
+                    <p className="truncate bn-display text-sm text-slate-900">{u.full_name || "নামহীন"}</p>
+                    <p className="truncate text-[11px] text-slate-500 font-mono">
+                      {u.user_code} • ID: {u.user_id.slice(0, 8)}
+                    </p>
+                    {u.package_name && <p className="truncate text-[11px] text-fuchsia-600 font-semibold">📦 {u.package_name}</p>}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSendMissed(u.user_id, u.full_name); }}
+                    disabled={isSending || wasSent}
+                    title={wasSent ? "Notice ইতিমধ্যেই পাঠানো হয়েছে" : "সতর্কতা notice পাঠান"}
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-bold shadow-sm ring-1 transition",
+                      wasSent
+                        ? "bg-emerald-50 text-emerald-700 ring-emerald-200 cursor-default"
+                        : isSending
+                        ? "bg-slate-100 text-slate-500 ring-slate-200 cursor-wait"
+                        : "bg-gradient-to-br from-rose-500 to-pink-600 text-white ring-rose-300 hover:from-rose-600 hover:to-pink-700",
+                    )}
+                  >
+                    {wasSent ? <CheckCircle2 className="h-3.5 w-3.5" /> : isSending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Bell className="h-3.5 w-3.5" />}
+                    {wasSent ? "পাঠানো" : isSending ? "…" : "Notice"}
+                  </button>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate bn-display text-sm text-slate-900">{u.full_name || "নামহীন"}</p>
-                  <p className="truncate text-[11px] text-slate-500 font-mono">
-                    {u.user_code} • ID: {u.user_id.slice(0, 8)}
-                  </p>
-                  {u.package_name && <p className="truncate text-[11px] text-fuchsia-600 font-semibold">📦 {u.package_name}</p>}
-                </div>
-                <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700">সম্পন্ন হয়নি</span>
-                <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-rose-600" />
-              </Link>
-            ))}
+              );
+            })}
           </div>
         )
       )}
