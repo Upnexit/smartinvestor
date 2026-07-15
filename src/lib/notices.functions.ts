@@ -85,7 +85,10 @@ export const saveNotice = createServerFn({ method: "POST" })
     const telegram = data.published
       ? await sendNoticeToTelegramTargets(context.supabase, context.userId, notice)
       : { sent: 0, failed: 0, recipients: 0 };
-    return { notice, telegram };
+    const push = data.published
+      ? await sendWebPushToNoticeTargets(context.supabase, notice)
+      : { sent: 0, failed: 0, recipients: 0 };
+    return { notice, telegram, push };
   });
 
 export const deleteNotice = createServerFn({ method: "POST" })
@@ -116,7 +119,10 @@ export const togglePublishNotice = createServerFn({ method: "POST" })
     const telegram = data.published
       ? await sendNoticeToTelegramTargets(context.supabase, context.userId, notice)
       : { sent: 0, failed: 0, recipients: 0 };
-    return { notice, telegram };
+    const push = data.published
+      ? await sendWebPushToNoticeTargets(context.supabase, notice)
+      : { sent: 0, failed: 0, recipients: 0 };
+    return { notice, telegram, push };
   });
 
 export const resendNoticeToTelegram = createServerFn({ method: "POST" })
