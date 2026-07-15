@@ -7,6 +7,7 @@ import {
   Clock, ShieldCheck, ShieldOff, CheckCircle2, XCircle, ExternalLink,
 } from "lucide-react";
 import { CopyButton } from "@/components/admin/CopyButton";
+import { ImpersonateDialog } from "@/components/admin/ImpersonateDialog";
 import { AdminCard, Shimmer } from "@/components/admin/AdminUI";
 import { getDistributorBundle } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
