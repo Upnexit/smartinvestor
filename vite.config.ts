@@ -39,6 +39,11 @@ export default defineConfig({
           ],
         },
         workbox: {
+          // Apply new SW immediately instead of waiting for every tab to close.
+          skipWaiting: true,
+          clientsClaim: true,
+          // Delete Workbox precaches from previous deploys on activation.
+          cleanupOutdatedCaches: true,
           navigateFallback: "/",
           navigateFallbackDenylist: [/^\/api\//, /^\/~oauth/],
           globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,woff2}"],
@@ -49,7 +54,7 @@ export default defineConfig({
               options: {
                 cacheName: "pages",
                 networkTimeoutSeconds: 4,
-                expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 7 },
+                expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 },
               },
             },
             {
@@ -58,7 +63,7 @@ export default defineConfig({
               handler: "CacheFirst",
               options: {
                 cacheName: "assets",
-                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                expiration: { maxEntries: 150, maxAgeSeconds: 60 * 60 * 24 * 30 },
               },
             },
             {
