@@ -8,6 +8,7 @@ import { UserEditDrawer } from "@/components/admin/UserEditDrawer";
 import { cn } from "@/lib/utils";
 import { useAuthReady } from "@/hooks/use-auth-ready";
 import { CopyButton } from "@/components/admin/CopyButton";
+import { ImpersonateDialog } from "@/components/admin/ImpersonateDialog";
 
 type EditSearch = { edit?: number };
 
