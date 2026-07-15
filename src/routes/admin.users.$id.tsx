@@ -129,10 +129,10 @@ function UserDetailPage() {
         <SectionCard title="প্রোফাইল" Icon={UserIcon} accent="sky">
           <div className="grid grid-cols-2 gap-2">
             <Bio label="পূর্ণ নাম"      value={p?.full_name} />
-            <Bio label="ইউজার ID"        value={p?.user_code} mono />
-            <Bio label="ইমেইল"           value={p?.email} Icon={Mail} />
-            <Bio label="ফোন"             value={p?.phone} Icon={Phone} />
-            <Bio label="রেফারেল কোড"     value={p?.referral_code} mono />
+            <Bio label="ইউজার ID"        value={p?.user_code} mono copyable />
+            <Bio label="ইমেইল"           value={p?.email} Icon={Mail} copyable />
+            <Bio label="ফোন"             value={p?.phone} Icon={Phone} copyable />
+            <Bio label="রেফারেল কোড"     value={p?.referral_code} mono copyable />
             <Bio label="রেফার করেছেন"    value={p?.referred_by ? String(p.referred_by).slice(0,8) + "…" : "—"} mono />
             <Bio label="স্ট্যাটাস"       value={(p as unknown as { status?: string })?.status ?? "active"} />
             <Bio label="আপডেট"           value={p?.updated_at ? new Date(p.updated_at).toLocaleDateString("bn-BD") : "—"} />
