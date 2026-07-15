@@ -139,7 +139,8 @@ export const resendNoticeToTelegram = createServerFn({ method: "POST" })
     if (!row) throw new Error("notice not found");
     const notice = { ...(row as NoticeRow), published: true };
     const telegram = await sendNoticeToTelegramTargets(context.supabase, context.userId, notice);
-    return { telegram };
+    const push = await sendWebPushToNoticeTargets(context.supabase, notice);
+    return { telegram, push };
   });
 
 /* ------------------------------ USER OPS ------------------------------ */
@@ -204,7 +205,8 @@ export const sendMissedTaskNotice = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     const notice = row as NoticeRow;
     const telegram = await sendNoticeToTelegramTargets(context.supabase, context.userId, notice);
-    return { notice, telegram };
+    const push = await sendWebPushToNoticeTargets(context.supabase, notice);
+    return { notice, telegram, push };
   });
 
 export const dismissNotice = createServerFn({ method: "POST" })
