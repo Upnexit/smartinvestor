@@ -7,6 +7,7 @@ import { getUserBundle, setUserStatus } from "@/lib/admin-client";
 import { UserEditDrawer } from "@/components/admin/UserEditDrawer";
 import { cn } from "@/lib/utils";
 import { useAuthReady } from "@/hooks/use-auth-ready";
+import { CopyButton } from "@/components/admin/CopyButton";
 
 type EditSearch = { edit?: number };
 
