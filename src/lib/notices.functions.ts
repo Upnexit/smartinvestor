@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertAdmin, improveNoticeTextWithAI, sendNoticeToTelegramTargets } from "./notices.server";
+import { sendWebPushToNoticeTargets } from "./push.server";
 
 export type NoticePriority = "info" | "warning" | "critical";
 
