@@ -74,6 +74,11 @@ function DistributorDetailPage() {
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div className="flex-1" />
+        <button onClick={impersonate} disabled={busy}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-indigo-500/30 hover:scale-[1.03] transition ring-1 ring-indigo-300/40 disabled:opacity-60"
+        >
+          <ExternalLink className="h-4 w-4" /> প্যানেলে প্রবেশ
+        </button>
         <span className={cn("inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-bold ring-1",
           suspended ? "bg-rose-50 text-rose-700 ring-rose-200" : "bg-emerald-50 text-emerald-700 ring-emerald-200")}>
           {suspended ? <ShieldOff className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
