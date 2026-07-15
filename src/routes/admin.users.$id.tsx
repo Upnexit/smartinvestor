@@ -162,15 +162,19 @@ function UserDetailPage() {
             <p className="text-xs text-slate-500 text-center py-6">এই ইউজার এখনো কাউকে রেফার করেনি</p>
           ) : (
             <ul className="mt-2 max-h-64 overflow-y-auto space-y-1.5 pr-1">
-              {data.referredUsers.map((r: { id: string; full_name: string | null; email: string | null; user_code: string | null; created_at: string; total_earned: number | string | null }) => (
+              {data.referredUsers.map((r: { id: string; full_name: string | null; email: string | null; user_code: string | null; created_at: string; total_earned: number | string | null; commission_earned?: number }) => (
                 <li key={r.id} className="flex items-center justify-between rounded-lg ring-1 ring-fuchsia-100 bg-fuchsia-50/40 px-2.5 py-1.5">
                   <div className="min-w-0">
                     <p className="text-xs truncate font-medium">{r.full_name ?? "—"} <span className="text-[9px] font-mono text-slate-400">{r.user_code}</span></p>
                     <p className="text-[10px] text-slate-500 truncate">{r.email}</p>
                   </div>
-                  <p className="text-xs font-bold text-emerald-700 shrink-0">৳{Number(r.total_earned ?? 0).toFixed(0)}</p>
+                  <div className="shrink-0 text-right">
+                    <p className="text-xs font-bold text-emerald-700">৳{Number(r.commission_earned ?? 0).toFixed(2)}</p>
+                    <p className="text-[9px] text-slate-500">কমিশন</p>
+                  </div>
                 </li>
               ))}
+
             </ul>
           )}
         </SectionCard>
