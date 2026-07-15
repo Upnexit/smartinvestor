@@ -62,6 +62,7 @@ function ProfilePage() {
   const [tgLoadError, setTgLoadError] = useState<string | null>(null);
   const [tgReady, setTgReady] = useState(false);
   const [tgConnecting, setTgConnecting] = useState(false);
+  const [totalWithdrawn, setTotalWithdrawn] = useState<number>(0);
   const tgConnectingRef = useRef(false);
   const tgPollRef = useRef<number | null>(null);
   const tgPollStopRef = useRef<number | null>(null);
