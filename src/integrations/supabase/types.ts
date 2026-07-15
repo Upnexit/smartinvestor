@@ -464,27 +464,54 @@ export type Database = {
       error_logs: {
         Row: {
           context: Json | null
+          count: number
           created_at: string
+          fingerprint: string | null
           id: string
+          last_seen_at: string
           level: string
           message: string
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
           source: string | null
+          url: string | null
+          user_agent: string | null
+          user_id: string | null
         }
         Insert: {
           context?: Json | null
+          count?: number
           created_at?: string
+          fingerprint?: string | null
           id?: string
+          last_seen_at?: string
           level?: string
           message: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
           source?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
         }
         Update: {
           context?: Json | null
+          count?: number
           created_at?: string
+          fingerprint?: string | null
           id?: string
+          last_seen_at?: string
           level?: string
           message?: string
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
           source?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1382,6 +1409,19 @@ export type Database = {
         }[]
       }
       purge_old_activity_logs: { Args: never; Returns: undefined }
+      record_error_log: {
+        Args: {
+          _context: Json
+          _fingerprint: string
+          _level: string
+          _message: string
+          _source: string
+          _url: string
+          _user_agent: string
+          _user_id: string
+        }
+        Returns: string
+      }
       telegram_chat_for_user: {
         Args: { _user_id: string }
         Returns: {
