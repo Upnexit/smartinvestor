@@ -122,7 +122,7 @@ function DistributorDetailPage() {
       <SectionCard title="ফিনান্সিয়াল সারসংক্ষেপ" Icon={HandCoins} accent="emerald">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <BigCard label="উত্তোলনযোগ্য ব্যালেন্স" v={`৳${balance.toFixed(0)}`} accent="emerald" />
-          <BigCard label="🔒 লকড ব্যালেন্স" v={`৳${lockedBalance.toLocaleString("bn-BD")}`} accent="rose" />
+          <BigCard label="🔒 লকড ব্যালেন্স" v={`৳${lockedBalance.toLocaleString("bn-BD")}`} accent="amber" />
           <BigCard label="মোট আয়" v={`৳${totalEarned.toFixed(0)}`} accent="fuchsia" />
           <BigCard label="মোট ডিপোজিট" v={`৳${totalDeposit.toFixed(0)}`} accent="sky" />
         </div>
