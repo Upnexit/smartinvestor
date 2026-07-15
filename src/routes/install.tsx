@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Download, Smartphone, Wifi, Zap, CheckCircle2, ArrowLeft, Share2, Loader2 } from "lucide-react";
+import { Download, Smartphone, Wifi, Zap, CheckCircle2, ArrowLeft, Loader2 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import type {} from "@/lib/install-prompt";
 
@@ -25,28 +25,18 @@ type BIPEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
-function detectPlatform(): "android" | "ios" | "desktop" {
-  if (typeof navigator === "undefined") return "desktop";
-  const ua = navigator.userAgent.toLowerCase();
-  if (/iphone|ipad|ipod/.test(ua)) return "ios";
-  if (/android/.test(ua)) return "android";
-  return "desktop";
-}
-
 function InstallPage() {
   const { site_name, logo_url } = useSiteSettings();
   const [deferred, setDeferred] = useState<BIPEvent | null>(null);
   const [installed, setInstalled] = useState(false);
-  const [platform, setPlatform] = useState<"android" | "ios" | "desktop">("desktop");
   const [busy, setBusy] = useState(false);
-  const [showFallback, setShowFallback] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState("");
+  const [notice, setNotice] = useState("");
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
-    setPlatform(detectPlatform());
     const standalone =
       window.matchMedia?.("(display-mode: standalone)").matches ||
       // @ts-expect-error iOS standalone
@@ -79,22 +69,25 @@ function InstallPage() {
     window.addEventListener("beforeinstallprompt", onPrompt);
     window.addEventListener("pwa-install-available", onAvailable);
     window.addEventListener("appinstalled", onInstalled);
+    window.addEventListener("pwa-installed", onInstalled);
     return () => {
       window.removeEventListener("beforeinstallprompt", onPrompt);
       window.removeEventListener("pwa-install-available", onAvailable);
       window.removeEventListener("appinstalled", onInstalled);
+      window.removeEventListener("pwa-installed", onInstalled);
       timersRef.current.forEach(clearTimeout);
     };
   }, []);
 
   const runInstallingAnimation = (onComplete?: () => void) => {
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
     setInstalling(true);
     setProgress(0);
     const steps: Array<{ p: number; t: string; delay: number }> = [
-      { p: 15, t: "ইনস্টলেশন প্রস্তুত করা হচ্ছে…", delay: 300 },
-      { p: 40, t: "অ্যাপ ফাইল ডাউনলোড হচ্ছে…", delay: 900 },
-      { p: 70, t: "হোম স্ক্রিনে যোগ করা হচ্ছে…", delay: 1600 },
-      { p: 92, t: "ফাইনালাইজিং…", delay: 2300 },
+      { p: 20, t: "ইনস্টল শুরু হচ্ছে…", delay: 180 },
+      { p: 55, t: "হোম স্ক্রিনে অ্যাপ যোগ করা হচ্ছে…", delay: 700 },
+      { p: 92, t: "শেষ ধাপ সম্পন্ন করা হচ্ছে…", delay: 1300 },
     ];
     steps.forEach((s) => {
       const id = setTimeout(() => {
@@ -104,23 +97,26 @@ function InstallPage() {
       timersRef.current.push(id);
     });
     if (onComplete) {
-      const id = setTimeout(onComplete, 2800);
+      const id = setTimeout(onComplete, 1800);
       timersRef.current.push(id);
     }
   };
 
   const handleInstall = async () => {
+    setNotice("");
     // Native install prompt path (Android Chrome / desktop Chrome/Edge).
-    if (deferred) {
+    const promptEvent = deferred ?? window.__deferredInstallPrompt ?? null;
+    if (promptEvent) {
       setBusy(true);
-      runInstallingAnimation();
       try {
-        await deferred.prompt();
-        const choice = await deferred.userChoice;
+        await promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
         setDeferred(null);
+        window.__deferredInstallPrompt = null;
         if (choice.outcome === "accepted") {
+          runInstallingAnimation();
           // Wait for the 'appinstalled' event to flip UI to success.
-          // Fallback: if it doesn't fire within 6s, show success anyway.
+          // Fallback: if it doesn't fire within 4s, show success anyway.
           const fallback = setTimeout(() => {
             setProgress(100);
             setStatusText("অ্যাপ সফলভাবে ইনস্টল হয়েছে!");
@@ -128,26 +124,18 @@ function InstallPage() {
               setInstalling(false);
               setInstalled(true);
             }, 500);
-          }, 6000);
+          }, 4000);
           timersRef.current.push(fallback);
         } else {
-          // User dismissed the OS prompt — cancel animation.
-          timersRef.current.forEach(clearTimeout);
-          timersRef.current = [];
-          setInstalling(false);
-          setProgress(0);
-          setStatusText("");
+          setNotice("ইনস্টল বাতিল হয়েছে। Install Now চাপলে আবার সরাসরি ইনস্টল prompt খুলবে।");
         }
       } finally {
         setBusy(false);
       }
       return;
     }
-    // Otherwise reveal the step-by-step install section right below.
-    setShowFallback(true);
-    setTimeout(() => {
-      document.getElementById("install-steps")?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 50);
+
+    setNotice("এই ব্রাউজারে direct install prompt এখন available নয়। Chrome/Edge দিয়ে খুলে Install Now চাপুন।");
   };
 
 
@@ -231,32 +219,9 @@ function InstallPage() {
                   {busy ? "ইনস্টল হচ্ছে…" : "Install Now"}
                 </button>
 
-                {showFallback && (
-                  <div id="install-steps" className="mt-4 animate-in fade-in slide-in-from-top-2 rounded-2xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200 duration-300">
-
-                    <p className="bn-display font-bold text-amber-900">ইনস্টলেশন ধাপসমূহ:</p>
-                    {platform === "ios" ? (
-                      <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-[13px] leading-relaxed">
-                        <li>নিচের <Share2 className="inline h-3.5 w-3.5" /> <b>Share</b> বাটনে ট্যাপ করুন।</li>
-                        <li>স্ক্রল করে <b>“Add to Home Screen”</b> সিলেক্ট করুন।</li>
-                        <li>উপরের ডানে <b>“Add”</b> ট্যাপ করলেই অ্যাপ ইনস্টল হয়ে যাবে।</li>
-                      </ol>
-                    ) : platform === "android" ? (
-                      <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-[13px] leading-relaxed">
-                        <li>ব্রাউজারের উপরে ডানে <b>মেনু (⋮)</b> আইকনে ট্যাপ করুন।</li>
-                        <li><b>“Install app”</b> অথবা <b>“Add to Home Screen”</b> সিলেক্ট করুন।</li>
-                        <li><b>“Install”</b> কনফার্ম করলেই অ্যাপ হোম স্ক্রিনে যোগ হবে।</li>
-                      </ol>
-                    ) : (
-                      <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-[13px] leading-relaxed">
-                        <li>অ্যাড্রেস বারের ডান পাশে <b>Install</b> (⊕) আইকনে ক্লিক করুন।</li>
-                        <li>অথবা মেনু (⋮) → <b>“Install Smart Investor…”</b> সিলেক্ট করুন।</li>
-                        <li><b>“Install”</b> কনফার্ম করলেই অ্যাপ ইনস্টল হবে।</li>
-                      </ol>
-                    )}
-                    <p className="mt-3 text-[12px] text-amber-800/80">
-                      💡 সেরা অভিজ্ঞতার জন্য {platform === "ios" ? "Safari" : "Chrome"} ব্রাউজার ব্যবহার করুন।
-                    </p>
+                {notice && (
+                  <div className="mt-4 rounded-2xl bg-amber-50 p-4 text-center text-sm font-semibold text-amber-900 ring-1 ring-amber-200">
+                    {notice}
                   </div>
                 )}
               </>
