@@ -142,7 +142,10 @@ function RootComponent() {
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      // Only react to true sign-in/out. USER_UPDATED / TOKEN_REFRESHED fire
+      // on every silent token refresh (every ~1h per session) and would
+      // otherwise nuke the entire query cache for every logged-in user.
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT") return;
       // Fire-and-forget activity log (login / logout).
       try {
         if (event === "SIGNED_IN" && session?.user?.id) {
