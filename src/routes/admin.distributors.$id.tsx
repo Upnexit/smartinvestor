@@ -7,6 +7,7 @@ import {
   Clock, ShieldCheck, ShieldOff, CheckCircle2, XCircle, ExternalLink,
 } from "lucide-react";
 import { CopyButton } from "@/components/admin/CopyButton";
+import { ImpersonateDialog } from "@/components/admin/ImpersonateDialog";
 import { AdminCard, Shimmer } from "@/components/admin/AdminUI";
 import { getDistributorBundle } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,7 @@ function DistributorDetailPage() {
   const { id } = Route.useParams();
   const [data, setData] = useState<Bundle | null>(null);
   const [busy, setBusy] = useState(false);
+  const [impersonateUrl, setImpersonateUrl] = useState<string | null>(null);
   const authReady = useAuthReady();
 
   const load = () => {
@@ -32,16 +34,12 @@ function DistributorDetailPage() {
 
   const impersonate = async () => {
     setBusy(true);
-    const w = window.open("about:blank", "_blank");
     try {
       const { adminImpersonateUser } = await import("@/lib/admin.functions");
       const redirectTo = `${window.location.origin}/distributor`;
       const res = await adminImpersonateUser({ data: { userId: id, redirectTo } });
-      if (w) w.location.href = res.url;
-      else window.open(res.url, "_blank");
-      toast.success("ডিস্ট্রিবিউটরের প্যানেল নতুন ট্যাবে খোলা হয়েছে");
+      setImpersonateUrl(res.url);
     } catch (e) {
-      if (w) w.close();
       toast.error(e instanceof Error ? e.message : "ব্যর্থ");
     } finally { setBusy(false); }
   };
@@ -201,6 +199,12 @@ function DistributorDetailPage() {
           <ActivityList items={data.user_activity} showActor empty="আন্ডার ইউজারদের কোনো অ্যাক্টিভিটি নেই" />
         </SectionCard>
       </div>
+      <ImpersonateDialog
+        open={!!impersonateUrl}
+        url={impersonateUrl}
+        targetLabel={name}
+        onClose={() => setImpersonateUrl(null)}
+      />
     </>
   );
 }

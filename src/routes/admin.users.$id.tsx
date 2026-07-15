@@ -8,6 +8,7 @@ import { UserEditDrawer } from "@/components/admin/UserEditDrawer";
 import { cn } from "@/lib/utils";
 import { useAuthReady } from "@/hooks/use-auth-ready";
 import { CopyButton } from "@/components/admin/CopyButton";
+import { ImpersonateDialog } from "@/components/admin/ImpersonateDialog";
 
 type EditSearch = { edit?: number };
 
@@ -26,6 +27,7 @@ function UserDetailPage() {
   const [data, setData] = useState<Bundle | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [impersonateUrl, setImpersonateUrl] = useState<string | null>(null);
   const authReady = useAuthReady();
 
   const load = () => {
@@ -59,16 +61,12 @@ function UserDetailPage() {
 
   const impersonate = async () => {
     setBusy(true);
-    const w = window.open("about:blank", "_blank");
     try {
       const { adminImpersonateUser } = await import("@/lib/admin.functions");
       const redirectTo = `${window.location.origin}/dashboard`;
       const res = await adminImpersonateUser({ data: { userId: id, redirectTo } });
-      if (w) w.location.href = res.url;
-      else window.open(res.url, "_blank");
-      toast.success("ইউজারের প্যানেল নতুন ট্যাবে খোলা হয়েছে");
+      setImpersonateUrl(res.url);
     } catch (e) {
-      if (w) w.close();
       toast.error(e instanceof Error ? e.message : "ব্যর্থ");
     } finally { setBusy(false); }
   };
@@ -301,6 +299,12 @@ function UserDetailPage() {
       {editOpen && p && (
         <UserEditDrawer userId={id} initial={p as never} onClose={() => setEditOpen(false)} onSaved={() => { setEditOpen(false); load(); }} />
       )}
+      <ImpersonateDialog
+        open={!!impersonateUrl}
+        url={impersonateUrl}
+        targetLabel={String((p as unknown as { full_name?: string })?.full_name ?? "ইউজার")}
+        onClose={() => setImpersonateUrl(null)}
+      />
     </>
   );
 }
