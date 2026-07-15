@@ -89,7 +89,7 @@ function WithdrawalsPage() {
 
   const refresh = () => {
     supabase.from("withdrawals")
-      .select("id,user_id,amount,method,account_number,status,note,rejection_reason,created_at,reviewed_at,profiles!withdrawals_user_id_profiles_fkey(full_name,phone,user_code)")
+      .select("id,user_id,amount,gross_amount,fee,balance_at_request,method,account_number,status,note,rejection_reason,created_at,reviewed_at,profiles!withdrawals_user_id_profiles_fkey(full_name,phone,user_code)")
       .order("created_at", { ascending: false }).limit(200)
       .then(({ data, error }) => {
         if (error) { setRows([]); toast.error(error.message); return; }
