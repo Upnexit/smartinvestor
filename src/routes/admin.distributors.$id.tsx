@@ -101,15 +101,15 @@ function DistributorDetailPage() {
         <SectionCard title="প্রোফাইল ও পেমেন্ট" Icon={UserIcon} accent="sky">
           <div className="grid grid-cols-2 gap-2">
             <Bio label="পূর্ণ নাম" value={name} />
-            <Bio label="ইউজার ID" value={String(p.user_code ?? "—")} mono />
-            <Bio label="ইমেইল" value={email} Icon={Mail} />
-            <Bio label="ফোন" value={phone} Icon={Phone} />
+            <Bio label="ইউজার ID" value={String(p.user_code ?? "—")} mono copyable />
+            <Bio label="ইমেইল" value={email} Icon={Mail} copyable />
+            <Bio label="ফোন" value={phone} Icon={Phone} copyable />
             <Bio label="জেলা" value={district} Icon={MapPin} />
             <Bio label="থানা" value={thana} />
             <Bio label="ঠিকানা" value={(d.address ?? null) as string | null} />
             <Bio label="কমিশন" value={`${Number(d.commission_rate ?? 0)}%`} />
             <Bio label="পেমেন্ট মেথড" value={String(d.payment_method ?? "—")} />
-            <Bio label="পেমেন্ট নম্বর" value={String(d.payment_number ?? "—")} mono />
+            <Bio label="পেমেন্ট নম্বর" value={String(d.payment_number ?? "—")} mono copyable />
           </div>
           {d.notes ? (
             <div className="mt-3 rounded-xl bg-slate-50 ring-1 ring-slate-100 px-3 py-2 text-xs text-slate-700">
