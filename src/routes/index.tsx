@@ -637,7 +637,7 @@ function CTA() {
             </Link>
             <Link to="/install" className="inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-white/70 bg-white/10 px-6 py-3 font-bold text-white backdrop-blur-sm transition-colors hover:bg-white/20 sm:w-auto">
               <Download className="h-5 w-5" />
-              অ্যাপ ডাউনলোড করুন
+              অ্যাপ ইনস্টল করুন
             </Link>
           </div>
         </div>
