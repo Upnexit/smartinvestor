@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { assertAdmin, improveNoticeTextWithAI, sendNoticeToTelegramTargets } from "./notices.server";
+import { sendWebPushToNoticeTargets } from "./push.server";
 
 export type NoticePriority = "info" | "warning" | "critical";
 
@@ -84,7 +85,10 @@ export const saveNotice = createServerFn({ method: "POST" })
     const telegram = data.published
       ? await sendNoticeToTelegramTargets(context.supabase, context.userId, notice)
       : { sent: 0, failed: 0, recipients: 0 };
-    return { notice, telegram };
+    const push = data.published
+      ? await sendWebPushToNoticeTargets(context.supabase, notice)
+      : { sent: 0, failed: 0, recipients: 0 };
+    return { notice, telegram, push };
   });
 
 export const deleteNotice = createServerFn({ method: "POST" })
@@ -115,7 +119,10 @@ export const togglePublishNotice = createServerFn({ method: "POST" })
     const telegram = data.published
       ? await sendNoticeToTelegramTargets(context.supabase, context.userId, notice)
       : { sent: 0, failed: 0, recipients: 0 };
-    return { notice, telegram };
+    const push = data.published
+      ? await sendWebPushToNoticeTargets(context.supabase, notice)
+      : { sent: 0, failed: 0, recipients: 0 };
+    return { notice, telegram, push };
   });
 
 export const resendNoticeToTelegram = createServerFn({ method: "POST" })
@@ -132,7 +139,8 @@ export const resendNoticeToTelegram = createServerFn({ method: "POST" })
     if (!row) throw new Error("notice not found");
     const notice = { ...(row as NoticeRow), published: true };
     const telegram = await sendNoticeToTelegramTargets(context.supabase, context.userId, notice);
-    return { telegram };
+    const push = await sendWebPushToNoticeTargets(context.supabase, notice);
+    return { telegram, push };
   });
 
 /* ------------------------------ USER OPS ------------------------------ */
@@ -197,7 +205,8 @@ export const sendMissedTaskNotice = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     const notice = row as NoticeRow;
     const telegram = await sendNoticeToTelegramTargets(context.supabase, context.userId, notice);
-    return { notice, telegram };
+    const push = await sendWebPushToNoticeTargets(context.supabase, notice);
+    return { notice, telegram, push };
   });
 
 export const dismissNotice = createServerFn({ method: "POST" })

@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { cn } from "@/lib/utils";
 import { NoticeModal } from "@/components/panel/NoticeModal";
+import { PushOptInBanner } from "@/components/panel/PushOptInBanner";
 
 type NavItem = {
   to: string;
@@ -103,6 +104,7 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
 
         {/* Main */}
         <main className="min-w-0 flex-1 pb-24 lg:pb-10">
+          <PushOptInBanner />
           <div className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 sm:py-8">
             {children}
           </div>
