@@ -166,8 +166,11 @@ function NoticeCard({
     critical: "from-rose-500 to-red-600",
   };
   const pMap = useMemo(() => new Map(packages.map((p) => [p.id, p.name])), [packages]);
+  const userTargets = Array.isArray((notice as any).target_user_ids) ? (notice as any).target_user_ids as string[] : [];
   const audience = notice.target_all_users
     ? "সব user"
+    : userTargets.length > 0
+    ? `${userTargets.length} জন নির্দিষ্ট user`
     : notice.target_package_ids.map((id) => pMap.get(id) ?? "?").join(", ") || "—";
   const Icon = notice.priority === "critical" ? AlertTriangle : notice.priority === "warning" ? Megaphone : Info;
 
