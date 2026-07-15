@@ -85,8 +85,7 @@ export async function sendWebPushToNoticeTargets(
           { endpoint: s.endpoint, expirationTime: null, keys: { p256dh: s.p256dh, auth: s.auth } },
           keys,
         );
-        const body = req.body as unknown as ArrayBuffer;
-        const res = await fetch(s.endpoint, { ...req, body: body instanceof Uint8Array ? new Uint8Array(body).buffer.slice(0) : body });
+        const res = await fetch(s.endpoint, req as unknown as RequestInit);
         if (res.ok || res.status === 201 || res.status === 202) {
           sent++;
         } else if (res.status === 404 || res.status === 410) {
