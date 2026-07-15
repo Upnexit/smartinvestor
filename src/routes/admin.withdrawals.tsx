@@ -30,7 +30,8 @@ export const Route = createFileRoute("/admin/withdrawals")({
 type Filter = "pending" | "approved" | "rejected" | "all";
 type Method = "bkash"|"nagad"|"rocket";
 type Row = {
-  id: string; user_id: string; amount: number; method: Method|null;
+  id: string; user_id: string; amount: number; gross_amount: number | null; fee: number | null;
+  balance_at_request: number | null; method: Method|null;
   account_number: string | null; status: "pending"|"approved"|"rejected"|"paid";
   note: string | null; rejection_reason?: string | null;
   created_at: string; reviewed_at: string | null;
