@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import {
   CalendarDays, ArrowLeft, Users, CheckCircle2, Clock, XCircle,
   Coins, Trophy, ListChecks, Search, ChevronRight, TrendingUp,
-  UserCheck, UserX, ListTodo, Timer,
+  UserCheck, UserX, ListTodo, Timer, Bell, Loader2,
 } from "lucide-react";
 import { AdminPageHeader, AdminCard, StatTile, Shimmer, EmptyState } from "@/components/admin/AdminUI";
 import { Calendar } from "@/components/ui/calendar";
@@ -12,6 +12,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { todayBD } from "@/lib/bd-time";
+import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { sendMissedTaskNotice } from "@/lib/notices.functions";
 
 export const Route = createFileRoute("/admin/tasks/daily-report")({
   head: () => ({ meta: [{ title: "দৈনিক টাস্ক রিপোর্ট — Admin" }] }),
