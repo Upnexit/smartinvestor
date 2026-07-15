@@ -199,6 +199,12 @@ function DistributorDetailPage() {
           <ActivityList items={data.user_activity} showActor empty="আন্ডার ইউজারদের কোনো অ্যাক্টিভিটি নেই" />
         </SectionCard>
       </div>
+      <ImpersonateDialog
+        open={!!impersonateUrl}
+        url={impersonateUrl}
+        targetLabel={name}
+        onClose={() => setImpersonateUrl(null)}
+      />
     </>
   );
 }
