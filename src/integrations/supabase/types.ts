@@ -373,6 +373,7 @@ export type Database = {
           district: string | null
           email: string
           full_name: string
+          locked_balance: number
           notes: string | null
           payment_method: Database["public"]["Enums"]["payment_method"] | null
           payment_number: string | null
@@ -394,6 +395,7 @@ export type Database = {
           district?: string | null
           email: string
           full_name: string
+          locked_balance?: number
           notes?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
           payment_number?: string | null
@@ -415,6 +417,7 @@ export type Database = {
           district?: string | null
           email?: string
           full_name?: string
+          locked_balance?: number
           notes?: string | null
           payment_method?: Database["public"]["Enums"]["payment_method"] | null
           payment_number?: string | null
@@ -1434,6 +1437,7 @@ export type Database = {
           district: string | null
           email: string
           full_name: string
+          locked_balance: number
           notes: string | null
           payment_method: Database["public"]["Enums"]["payment_method"] | null
           payment_number: string | null
