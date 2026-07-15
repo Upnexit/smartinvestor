@@ -22,12 +22,29 @@ type Bundle = Awaited<ReturnType<typeof getDistributorBundle>>;
 function DistributorDetailPage() {
   const { id } = Route.useParams();
   const [data, setData] = useState<Bundle | null>(null);
+  const [busy, setBusy] = useState(false);
   const authReady = useAuthReady();
 
   const load = () => {
     getDistributorBundle(id).then(setData).catch((e) => toast.error(e instanceof Error ? e.message : "ব্যর্থ"));
   };
   useEffect(() => { if (authReady) load(); /* eslint-disable-next-line */ }, [id, authReady]);
+
+  const impersonate = async () => {
+    setBusy(true);
+    const w = window.open("about:blank", "_blank");
+    try {
+      const { adminImpersonateUser } = await import("@/lib/admin.functions");
+      const redirectTo = `${window.location.origin}/distributor`;
+      const res = await adminImpersonateUser({ data: { userId: id, redirectTo } });
+      if (w) w.location.href = res.url;
+      else window.open(res.url, "_blank");
+      toast.success("ডিস্ট্রিবিউটরের প্যানেল নতুন ট্যাবে খোলা হয়েছে");
+    } catch (e) {
+      if (w) w.close();
+      toast.error(e instanceof Error ? e.message : "ব্যর্থ");
+    } finally { setBusy(false); }
+  };
 
   if (!authReady || !data) return (<><Shimmer className="h-24" /><Shimmer className="h-64" /></>);
 
