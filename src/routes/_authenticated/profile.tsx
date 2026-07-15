@@ -408,9 +408,9 @@ function ProfilePage() {
             <p className="text-[10px] text-white/80">মোট আয়</p>
           </div>
           <div className="rounded-xl bg-white/15 backdrop-blur p-2">
-            <Crown className="mx-auto h-4 w-4" />
-            <p className="bn-display mt-1 text-sm">৳{Number(profile.locked_balance).toFixed(0)}</p>
-            <p className="text-[10px] text-white/80">লকড</p>
+            <ArrowDownToLine className="mx-auto h-4 w-4" />
+            <p className="bn-display mt-1 text-sm">৳{totalWithdrawn.toFixed(0)}</p>
+            <p className="text-[10px] text-white/80">মোট Withdraw</p>
           </div>
         </div>
       </div>
