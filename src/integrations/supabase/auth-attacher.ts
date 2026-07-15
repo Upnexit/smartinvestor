@@ -48,7 +48,7 @@ async function getSessionWithWait(maxMs = 5000): Promise<string | null> {
       polling = true;
       try {
         let token = await readAccessToken();
-        if (!token && Date.now() - lastRefresh > 1000) {
+        if (!token && Date.now() - lastRefresh > 1500) {
           lastRefresh = Date.now();
           token = await refreshAccessToken();
         }
@@ -57,7 +57,7 @@ async function getSessionWithWait(maxMs = 5000): Promise<string | null> {
       } finally {
         polling = false;
       }
-    }, 150);
+    }, 400);
     const timer = setTimeout(() => finish(null), maxMs);
   });
 }
