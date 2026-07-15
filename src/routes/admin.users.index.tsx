@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { exportCsv, exportExcel, exportPrint, exportPdf } from "@/lib/users-export";
+import { useOnlineUsers } from "@/hooks/use-online-users";
 
 type Search = { q?: string; filter?: string };
 type User = {
