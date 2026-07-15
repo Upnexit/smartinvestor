@@ -88,8 +88,17 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
           </div>
         </Link>
         <div className="flex items-center gap-1.5">
-          <button className="grid h-9 w-9 place-items-center rounded-xl text-slate-600 hover:bg-slate-100" aria-label="নোটিফিকেশন">
+          <button
+            type="button"
+            onClick={handleBellClick}
+            disabled={pushBusy}
+            className="relative grid h-9 w-9 place-items-center rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-60"
+            aria-label="নোটিফিকেশন চালু করুন"
+          >
             <Bell className="h-5 w-5" />
+            {showBellDot && (
+              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
+            )}
           </button>
           <Link
             to="/support"
