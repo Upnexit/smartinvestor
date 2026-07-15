@@ -27,6 +27,7 @@ function UserDetailPage() {
   const [data, setData] = useState<Bundle | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [impersonateUrl, setImpersonateUrl] = useState<string | null>(null);
   const authReady = useAuthReady();
 
   const load = () => {
