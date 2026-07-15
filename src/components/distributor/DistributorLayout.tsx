@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { ACCENTS, type AccentKey } from "@/lib/admin-accents";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { usePresenceBroadcast } from "@/hooks/use-presence-broadcast";
 
 type NavItem = { to: string; label: string; Icon: typeof LayoutDashboard; accent: AccentKey };
 
@@ -35,8 +36,12 @@ export function DistributorLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const site = useSiteSettings();
+  const [uid, setUid] = useState<string | null>(null);
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setUid(data.user?.id ?? null)); }, []);
+  usePresenceBroadcast(uid);
 
   useEffect(() => { setDrawer(false); }, [pathname]);
+
 
   async function logout() {
     await supabase.auth.signOut();

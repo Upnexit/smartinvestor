@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { exportCsv, exportExcel, exportPrint, exportPdf } from "@/lib/users-export";
+import { useOnlineUsers } from "@/hooks/use-online-users";
 
 type Search = { q?: string; filter?: string };
 type User = {
@@ -42,6 +43,7 @@ function UsersPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [del, setDel] = useState<User | null>(null);
   const [edit, setEdit] = useState<User | null>(null);
+  const onlineIds = useOnlineUsers();
   const [suspendTarget, setSuspendTarget] = useState<User | null>(null);
 
   const activeFilter = (filter as "all" | "active" | "inactive" | "suspended" | undefined) ?? "all";
@@ -255,19 +257,35 @@ function UsersPage() {
                   </div>
                 )}
                 <div className="flex items-center gap-3">
-                  <div className={cn("grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br text-white font-bold shadow-lg ring-2 ring-white",
-                    suspended ? "from-rose-500 to-red-600" : isDist ? "from-indigo-500 to-violet-600" : "from-sky-500 to-indigo-600")}>
-                    {(u.full_name ?? "?").slice(0,1).toUpperCase()}
+                  <div className="relative">
+                    <div className={cn("grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br text-white font-bold shadow-lg ring-2 ring-white",
+                      suspended ? "from-rose-500 to-red-600" : isDist ? "from-indigo-500 to-violet-600" : "from-sky-500 to-indigo-600")}>
+                      {(u.full_name ?? "?").slice(0,1).toUpperCase()}
+                    </div>
+                    {(() => {
+                      const isOnline = onlineIds.has(u.id);
+                      return (
+                        <span
+                          title={isOnline ? "এখন অনলাইন" : "অফলাইন"}
+                          className={cn(
+                            "absolute -bottom-0.5 -right-0.5 block h-3.5 w-3.5 rounded-full ring-2 ring-white shadow",
+                            isOnline ? "bg-emerald-500 animate-pulse" : "bg-rose-500"
+                          )}
+                        />
+                      );
+                    })()}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="bn-display text-base text-slate-900 truncate flex items-center gap-1.5">
                       {u.full_name ?? "—"}
+                      {onlineIds.has(u.id) && <span className="inline-flex items-center gap-0.5 rounded-md bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold text-emerald-700 uppercase">● অনলাইন</span>}
                       {suspended && <span className="inline-flex items-center gap-0.5 rounded-md bg-rose-100 px-1.5 py-0.5 text-[9px] font-bold text-rose-700 uppercase"><Ban className="h-2.5 w-2.5" /> সাসপেন্ডেড</span>}
                     </p>
                     <p className="text-xs text-slate-500 truncate">{u.email}</p>
                     <p className="text-xs font-mono text-slate-400">{u.phone}</p>
                   </div>
                 </div>
+
                 <div className="mt-3 grid grid-cols-3 gap-2">
                   <div className="rounded-lg bg-emerald-50 p-2 text-center">
                     <p className="text-[10px] text-emerald-600 font-semibold">ব্যালেন্স</p>
