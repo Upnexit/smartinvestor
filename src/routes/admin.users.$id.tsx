@@ -151,6 +151,7 @@ function UserDetailPage() {
           </div>
           <div className="mt-3 rounded-xl bg-slate-50 ring-1 ring-slate-100 px-3 py-2 text-xs text-slate-600">
             <span className="font-semibold">পেমেন্ট মেথড:</span> {p?.payment_method ?? "—"} · <span className="font-mono">{p?.payment_number ?? "—"}</span>
+            {p?.payment_number && <CopyButton value={p.payment_number} label="পেমেন্ট নম্বর" size="xs" className="ml-1 align-middle" />}
           </div>
         </SectionCard>
 
