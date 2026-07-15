@@ -4,8 +4,9 @@ import { toast } from "sonner";
 import {
   ArrowLeft, User as UserIcon, Wallet, Users as UsersIcon, Mail, Phone, Hash, Calendar,
   MapPin, BadgeCheck, Activity, LogIn, LogOut, UserPlus, TrendingUp, Award, HandCoins,
-  Clock, ShieldCheck, ShieldOff, CheckCircle2, XCircle,
+  Clock, ShieldCheck, ShieldOff, CheckCircle2, XCircle, ExternalLink,
 } from "lucide-react";
+import { CopyButton } from "@/components/admin/CopyButton";
 import { AdminCard, Shimmer } from "@/components/admin/AdminUI";
 import { getDistributorBundle } from "@/lib/admin-client";
 import { cn } from "@/lib/utils";
@@ -21,12 +22,29 @@ type Bundle = Awaited<ReturnType<typeof getDistributorBundle>>;
 function DistributorDetailPage() {
   const { id } = Route.useParams();
   const [data, setData] = useState<Bundle | null>(null);
+  const [busy, setBusy] = useState(false);
   const authReady = useAuthReady();
 
   const load = () => {
     getDistributorBundle(id).then(setData).catch((e) => toast.error(e instanceof Error ? e.message : "ব্যর্থ"));
   };
   useEffect(() => { if (authReady) load(); /* eslint-disable-next-line */ }, [id, authReady]);
+
+  const impersonate = async () => {
+    setBusy(true);
+    const w = window.open("about:blank", "_blank");
+    try {
+      const { adminImpersonateUser } = await import("@/lib/admin.functions");
+      const redirectTo = `${window.location.origin}/distributor`;
+      const res = await adminImpersonateUser({ data: { userId: id, redirectTo } });
+      if (w) w.location.href = res.url;
+      else window.open(res.url, "_blank");
+      toast.success("ডিস্ট্রিবিউটরের প্যানেল নতুন ট্যাবে খোলা হয়েছে");
+    } catch (e) {
+      if (w) w.close();
+      toast.error(e instanceof Error ? e.message : "ব্যর্থ");
+    } finally { setBusy(false); }
+  };
 
   if (!authReady || !data) return (<><Shimmer className="h-24" /><Shimmer className="h-64" /></>);
 
@@ -56,6 +74,11 @@ function DistributorDetailPage() {
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div className="flex-1" />
+        <button onClick={impersonate} disabled={busy}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-indigo-500/30 hover:scale-[1.03] transition ring-1 ring-indigo-300/40 disabled:opacity-60"
+        >
+          <ExternalLink className="h-4 w-4" /> প্যানেলে প্রবেশ
+        </button>
         <span className={cn("inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-bold ring-1",
           suspended ? "bg-rose-50 text-rose-700 ring-rose-200" : "bg-emerald-50 text-emerald-700 ring-emerald-200")}>
           {suspended ? <ShieldOff className="h-3.5 w-3.5" /> : <ShieldCheck className="h-3.5 w-3.5" />}
@@ -100,15 +123,15 @@ function DistributorDetailPage() {
         <SectionCard title="প্রোফাইল ও পেমেন্ট" Icon={UserIcon} accent="sky">
           <div className="grid grid-cols-2 gap-2">
             <Bio label="পূর্ণ নাম" value={name} />
-            <Bio label="ইউজার ID" value={String(p.user_code ?? "—")} mono />
-            <Bio label="ইমেইল" value={email} Icon={Mail} />
-            <Bio label="ফোন" value={phone} Icon={Phone} />
+            <Bio label="ইউজার ID" value={String(p.user_code ?? "—")} mono copyable />
+            <Bio label="ইমেইল" value={email} Icon={Mail} copyable />
+            <Bio label="ফোন" value={phone} Icon={Phone} copyable />
             <Bio label="জেলা" value={district} Icon={MapPin} />
             <Bio label="থানা" value={thana} />
             <Bio label="ঠিকানা" value={(d.address ?? null) as string | null} />
             <Bio label="কমিশন" value={`${Number(d.commission_rate ?? 0)}%`} />
             <Bio label="পেমেন্ট মেথড" value={String(d.payment_method ?? "—")} />
-            <Bio label="পেমেন্ট নম্বর" value={String(d.payment_number ?? "—")} mono />
+            <Bio label="পেমেন্ট নম্বর" value={String(d.payment_number ?? "—")} mono copyable />
           </div>
           {d.notes ? (
             <div className="mt-3 rounded-xl bg-slate-50 ring-1 ring-slate-100 px-3 py-2 text-xs text-slate-700">
@@ -281,13 +304,16 @@ function MiniStat({ label, value, Icon, from, to }: { label: string; value: stri
   );
 }
 
-function Bio({ label, value, mono, Icon }: { label: string; value: string | null | undefined; mono?: boolean; Icon?: React.ComponentType<{ className?: string }> }) {
+function Bio({ label, value, mono, Icon, copyable }: { label: string; value: string | null | undefined; mono?: boolean; Icon?: React.ComponentType<{ className?: string }>; copyable?: boolean }) {
   return (
     <div className="rounded-xl bg-slate-50 ring-1 ring-slate-100 px-2.5 py-1.5 min-w-0">
       <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
         {Icon && <Icon className="h-2.5 w-2.5" />} {label}
       </p>
-      <p className={cn("mt-0.5 text-slate-900 break-all text-xs", mono && "font-mono")}>{value ?? "—"}</p>
+      <div className="mt-0.5 flex items-center gap-1.5 min-w-0">
+        <p className={cn("text-slate-900 break-all text-xs flex-1 min-w-0", mono && "font-mono")}>{value ?? "—"}</p>
+        {copyable && value && value !== "—" && <CopyButton value={value} label={label} size="xs" />}
+      </div>
     </div>
   );
 }

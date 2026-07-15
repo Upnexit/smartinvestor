@@ -7,6 +7,7 @@ import { getUserBundle, setUserStatus } from "@/lib/admin-client";
 import { UserEditDrawer } from "@/components/admin/UserEditDrawer";
 import { cn } from "@/lib/utils";
 import { useAuthReady } from "@/hooks/use-auth-ready";
+import { CopyButton } from "@/components/admin/CopyButton";
 
 type EditSearch = { edit?: number };
 
@@ -128,10 +129,10 @@ function UserDetailPage() {
         <SectionCard title="প্রোফাইল" Icon={UserIcon} accent="sky">
           <div className="grid grid-cols-2 gap-2">
             <Bio label="পূর্ণ নাম"      value={p?.full_name} />
-            <Bio label="ইউজার ID"        value={p?.user_code} mono />
-            <Bio label="ইমেইল"           value={p?.email} Icon={Mail} />
-            <Bio label="ফোন"             value={p?.phone} Icon={Phone} />
-            <Bio label="রেফারেল কোড"     value={p?.referral_code} mono />
+            <Bio label="ইউজার ID"        value={p?.user_code} mono copyable />
+            <Bio label="ইমেইল"           value={p?.email} Icon={Mail} copyable />
+            <Bio label="ফোন"             value={p?.phone} Icon={Phone} copyable />
+            <Bio label="রেফারেল কোড"     value={p?.referral_code} mono copyable />
             <Bio label="রেফার করেছেন"    value={p?.referred_by ? String(p.referred_by).slice(0,8) + "…" : "—"} mono />
             <Bio label="স্ট্যাটাস"       value={(p as unknown as { status?: string })?.status ?? "active"} />
             <Bio label="আপডেট"           value={p?.updated_at ? new Date(p.updated_at).toLocaleDateString("bn-BD") : "—"} />
@@ -150,6 +151,7 @@ function UserDetailPage() {
           </div>
           <div className="mt-3 rounded-xl bg-slate-50 ring-1 ring-slate-100 px-3 py-2 text-xs text-slate-600">
             <span className="font-semibold">পেমেন্ট মেথড:</span> {p?.payment_method ?? "—"} · <span className="font-mono">{p?.payment_number ?? "—"}</span>
+            {p?.payment_number && <CopyButton value={p.payment_number} label="পেমেন্ট নম্বর" size="xs" className="ml-1 align-middle" />}
           </div>
         </SectionCard>
 
@@ -340,13 +342,16 @@ function MiniStat({ label, value, Icon, from, to }: { label: string; value: stri
   );
 }
 
-function Bio({ label, value, mono, Icon }: { label: string; value: string | null | undefined; mono?: boolean; Icon?: React.ComponentType<{ className?: string }> }) {
+function Bio({ label, value, mono, Icon, copyable }: { label: string; value: string | null | undefined; mono?: boolean; Icon?: React.ComponentType<{ className?: string }>; copyable?: boolean }) {
   return (
     <div className="rounded-xl bg-slate-50 ring-1 ring-slate-100 px-2.5 py-1.5 min-w-0">
       <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
         {Icon && <Icon className="h-2.5 w-2.5" />} {label}
       </p>
-      <p className={cn("mt-0.5 text-slate-900 break-all text-xs", mono && "font-mono")}>{value ?? "—"}</p>
+      <div className="mt-0.5 flex items-center gap-1.5 min-w-0">
+        <p className={cn("text-slate-900 break-all text-xs flex-1 min-w-0", mono && "font-mono")}>{value ?? "—"}</p>
+        {copyable && value && value !== "—" && <CopyButton value={value} label={label} size="xs" />}
+      </div>
     </div>
   );
 }
