@@ -41,6 +41,7 @@ export const saveNotice = createServerFn({ method: "POST" })
     body: string;
     priority: NoticePriority;
     target_package_ids: string[];
+    target_user_ids?: string[];
     target_all_users: boolean;
     published: boolean;
     expires_at?: string | null;
@@ -50,6 +51,7 @@ export const saveNotice = createServerFn({ method: "POST" })
     body: String(d.body ?? "").slice(0, 4000).trim(),
     priority: (["info", "warning", "critical"].includes(d.priority) ? d.priority : "info") as NoticePriority,
     target_package_ids: Array.isArray(d.target_package_ids) ? d.target_package_ids.slice(0, 30) : [],
+    target_user_ids: Array.isArray(d.target_user_ids) ? d.target_user_ids.slice(0, 500) : [],
     target_all_users: !!d.target_all_users,
     published: !!d.published,
     expires_at: d.expires_at ? String(d.expires_at) : null,
@@ -57,8 +59,8 @@ export const saveNotice = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
     if (!data.title || !data.body) throw new Error("Title ও body আবশ্যক");
-    if (!data.target_all_users && data.target_package_ids.length === 0) {
-      throw new Error("অন্তত একটি package select করুন অথবা 'সব user' চিহ্নিত করুন");
+    if (!data.target_all_users && data.target_package_ids.length === 0 && data.target_user_ids.length === 0) {
+      throw new Error("অন্তত একটি package/user select করুন অথবা 'সব user' চিহ্নিত করুন");
     }
 
     const payload = {
@@ -66,6 +68,7 @@ export const saveNotice = createServerFn({ method: "POST" })
       body: data.body,
       priority: data.priority,
       target_package_ids: data.target_all_users ? [] : data.target_package_ids,
+      target_user_ids: data.target_all_users ? [] : data.target_user_ids,
       target_all_users: data.target_all_users,
       published: data.published,
       expires_at: data.expires_at,
