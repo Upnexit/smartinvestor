@@ -299,6 +299,12 @@ function UserDetailPage() {
       {editOpen && p && (
         <UserEditDrawer userId={id} initial={p as never} onClose={() => setEditOpen(false)} onSaved={() => { setEditOpen(false); load(); }} />
       )}
+      <ImpersonateDialog
+        open={!!impersonateUrl}
+        url={impersonateUrl}
+        targetLabel={String((p as unknown as { full_name?: string })?.full_name ?? "ইউজার")}
+        onClose={() => setImpersonateUrl(null)}
+      />
     </>
   );
 }
