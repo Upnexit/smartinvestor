@@ -9,6 +9,8 @@ import {
   listNoticeDeletionLog,
   type NoticeRow, type NoticePriority, type NoticeDeletionLogRow,
 } from "@/lib/notices.functions";
+import { sendPushSelfTest } from "@/lib/push.functions";
+import { usePushSubscribe } from "@/hooks/use-push-subscribe";
 
 import { GradientButton } from "@/components/admin/AdminUI";
 
