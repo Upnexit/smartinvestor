@@ -34,11 +34,13 @@ export async function sendNoticeToTelegramTargets(
 ): Promise<{ sent: number; failed: number; recipients: number }> {
   if (!notice.published) return { sent: 0, failed: 0, recipients: 0 };
 
-  const targets = Array.isArray(notice.target_package_ids) ? notice.target_package_ids : [];
+  const pkgTargets = Array.isArray(notice.target_package_ids) ? notice.target_package_ids : [];
+  const userTargets = Array.isArray(notice.target_user_ids) ? notice.target_user_ids : [];
   const { data, error } = await supabase.rpc("telegram_notice_recipients", {
     _actor: actorId,
     _target_all_users: !!notice.target_all_users,
-    _target_package_ids: targets,
+    _target_package_ids: pkgTargets,
+    _target_user_ids: userTargets,
   });
 
   if (error) {

@@ -10,6 +10,7 @@ export type NoticeRow = {
   body: string;
   priority: NoticePriority;
   target_package_ids: string[];
+  target_user_ids: string[];
   target_all_users: boolean;
   published: boolean;
   expires_at: string | null;
@@ -40,6 +41,7 @@ export const saveNotice = createServerFn({ method: "POST" })
     body: string;
     priority: NoticePriority;
     target_package_ids: string[];
+    target_user_ids?: string[];
     target_all_users: boolean;
     published: boolean;
     expires_at?: string | null;
@@ -49,6 +51,7 @@ export const saveNotice = createServerFn({ method: "POST" })
     body: String(d.body ?? "").slice(0, 4000).trim(),
     priority: (["info", "warning", "critical"].includes(d.priority) ? d.priority : "info") as NoticePriority,
     target_package_ids: Array.isArray(d.target_package_ids) ? d.target_package_ids.slice(0, 30) : [],
+    target_user_ids: Array.isArray(d.target_user_ids) ? d.target_user_ids.slice(0, 500) : [],
     target_all_users: !!d.target_all_users,
     published: !!d.published,
     expires_at: d.expires_at ? String(d.expires_at) : null,
@@ -56,8 +59,8 @@ export const saveNotice = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
     if (!data.title || !data.body) throw new Error("Title ও body আবশ্যক");
-    if (!data.target_all_users && data.target_package_ids.length === 0) {
-      throw new Error("অন্তত একটি package select করুন অথবা 'সব user' চিহ্নিত করুন");
+    if (!data.target_all_users && data.target_package_ids.length === 0 && data.target_user_ids.length === 0) {
+      throw new Error("অন্তত একটি package/user select করুন অথবা 'সব user' চিহ্নিত করুন");
     }
 
     const payload = {
@@ -65,6 +68,7 @@ export const saveNotice = createServerFn({ method: "POST" })
       body: data.body,
       priority: data.priority,
       target_package_ids: data.target_all_users ? [] : data.target_package_ids,
+      target_user_ids: data.target_all_users ? [] : data.target_user_ids,
       target_all_users: data.target_all_users,
       published: data.published,
       expires_at: data.expires_at,
@@ -166,12 +170,34 @@ export const listActiveNoticesForMe = createServerFn({ method: "GET" })
     const filtered = (notices ?? []).filter((n: any) => {
       if (dismissed.has(n.id)) return false;
       if (n.target_all_users) return true;
-      const targets: string[] = Array.isArray(n.target_package_ids) ? n.target_package_ids : [];
-      if (targets.length === 0) return false;
-      return targets.some((pid) => myPackageIds.has(pid));
+      const userTargets: string[] = Array.isArray(n.target_user_ids) ? n.target_user_ids : [];
+      if (userTargets.includes(userId)) return true;
+      const pkgTargets: string[] = Array.isArray(n.target_package_ids) ? n.target_package_ids : [];
+      if (pkgTargets.length > 0 && pkgTargets.some((pid) => myPackageIds.has(pid))) return true;
+      return false;
     }) as NoticeRow[];
 
     return { notices: filtered };
+  });
+
+/** Admin: one-click "you missed today's tasks" notice for a specific user. */
+export const sendMissedTaskNotice = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { user_id: string; date?: string | null }) => ({
+    user_id: String(d.user_id),
+    date: d.date ? String(d.date) : null,
+  }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data: row, error } = await (context.supabase as any).rpc("admin_send_missed_task_notice", {
+      _actor: context.userId,
+      _user_id: data.user_id,
+      _bd_date: data.date,
+    });
+    if (error) throw new Error(error.message);
+    const notice = row as NoticeRow;
+    const telegram = await sendNoticeToTelegramTargets(context.supabase, context.userId, notice);
+    return { notice, telegram };
   });
 
 export const dismissNotice = createServerFn({ method: "POST" })

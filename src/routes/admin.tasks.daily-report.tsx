@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import {
   CalendarDays, ArrowLeft, Users, CheckCircle2, Clock, XCircle,
   Coins, Trophy, ListChecks, Search, ChevronRight, TrendingUp,
-  UserCheck, UserX, ListTodo, Timer,
+  UserCheck, UserX, ListTodo, Timer, Bell, Loader2,
 } from "lucide-react";
 import { AdminPageHeader, AdminCard, StatTile, Shimmer, EmptyState } from "@/components/admin/AdminUI";
 import { Calendar } from "@/components/ui/calendar";
@@ -12,6 +12,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { todayBD } from "@/lib/bd-time";
+import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { sendMissedTaskNotice } from "@/lib/notices.functions";
 
 export const Route = createFileRoute("/admin/tasks/daily-report")({
   head: () => ({ meta: [{ title: "দৈনিক টাস্ক রিপোর্ট — Admin" }] }),
@@ -68,6 +71,23 @@ function DailyReportPage() {
   const [tab, setTab] = useState<"done" | "missing">("done");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [notifying, setNotifying] = useState<Set<string>>(new Set());
+  const [notified, setNotified] = useState<Set<string>>(new Set());
+  const sendMissed = useServerFn(sendMissedTaskNotice);
+
+  async function handleSendMissed(userId: string, name: string | null) {
+    if (notifying.has(userId)) return;
+    setNotifying((s) => new Set(s).add(userId));
+    try {
+      await sendMissed({ data: { user_id: userId, date: dateStr } });
+      setNotified((s) => new Set(s).add(userId));
+      toast.success(`${name || "User"}-কে সতর্কতা notice পাঠানো হয়েছে`);
+    } catch (e: any) {
+      toast.error(e?.message || "Notice পাঠানো যায়নি");
+    } finally {
+      setNotifying((s) => { const n = new Set(s); n.delete(userId); return n; });
+    }
+  }
 
   const dateStr = useMemo(() => format(date, "yyyy-MM-dd"), [date]);
   const isToday = dateStr === todayBD();
@@ -79,17 +99,26 @@ function DailyReportPage() {
       const dayStartISO = new Date(`${dateStr}T00:00:00+06:00`).toISOString();
       const dayEndISO = new Date(`${dateStr}T23:59:59.999+06:00`).toISOString();
 
+      // "Active on that BD date" = any user_package that was activated on/before day-end
+      // and had not expired before day-start. This is correct for both today and past dates.
       const [
-        { data: actRows },
-        { data: subs },
+        { data: pkgRows },
+        { data: subs, error: subsErr },
         { data: tasks },
       ] = await Promise.all([
-        supabase.from("user_packages").select("user_id, package_id, packages(name)").eq("status", "active"),
+        supabase
+          .from("user_packages")
+          .select("user_id, package_id, status, activated_at, expires_at, packages(name)")
+          .in("status", ["active", "expired"])
+          .lte("activated_at", dayEndISO)
+          .or(`expires_at.is.null,expires_at.gt.${dayStartISO}`)
+          .limit(5000),
         supabase
           .from("task_submissions")
           .select("id, user_id, task_id, status, reward_credited, created_at, link_tasks(title, reward)")
           .gte("created_at", dayStartISO)
-          .lte("created_at", dayEndISO),
+          .lte("created_at", dayEndISO)
+          .limit(5000),
         supabase
           .from("link_tasks")
           .select("id, scheduled_date, created_at, is_draft, active")
@@ -97,8 +126,10 @@ function DailyReportPage() {
           .or(`scheduled_date.eq.${dateStr},and(scheduled_date.is.null,created_at.gte.${dayStartISO},created_at.lte.${dayEndISO})`),
       ]);
 
+      if (subsErr) console.warn("[daily-report] submissions query error:", subsErr.message);
+
       const activeUsers = new Map<string, { pkg: string | null }>();
-      (actRows ?? []).forEach((r: { user_id: string; packages: { name: string } | null }) => {
+      (pkgRows ?? []).forEach((r: { user_id: string; packages: { name: string } | null }) => {
         if (!activeUsers.has(r.user_id)) {
           activeUsers.set(r.user_id, { pkg: r.packages?.name ?? null });
         }
@@ -421,29 +452,50 @@ function DailyReportPage() {
           <EmptyState Icon={CheckCircle2} accent="emerald" title={search ? "মিল পাওয়া যায়নি" : "সব active user আজ task সম্পন্ন করেছে! 🎉"} />
         ) : (
           <div className="grid gap-2 sm:grid-cols-2">
-            {filteredMissing.map((u) => (
-              <Link
-                key={u.user_id}
-                to="/admin/users/$id"
-                params={{ id: u.user_id }}
-                className="group flex items-center gap-3 rounded-2xl bg-white p-3 ring-1 ring-rose-100 shadow-sm hover:ring-rose-300 hover:shadow-md transition"
-              >
-                <div className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-rose-400 to-pink-500 text-white font-bold shadow-md">
-                  {u.avatar_url
-                    ? <img src={u.avatar_url} alt="" className="h-full w-full object-cover" />
-                    : (u.full_name || "U").slice(0, 1).toUpperCase()}
+            {filteredMissing.map((u) => {
+              const isSending = notifying.has(u.user_id);
+              const wasSent = notified.has(u.user_id);
+              return (
+                <div
+                  key={u.user_id}
+                  className="group flex items-center gap-3 rounded-2xl bg-white p-3 ring-1 ring-rose-100 shadow-sm hover:ring-rose-300 hover:shadow-md transition"
+                >
+                  <Link
+                    to="/admin/users/$id"
+                    params={{ id: u.user_id }}
+                    className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-rose-400 to-pink-500 text-white font-bold shadow-md"
+                  >
+                    {u.avatar_url
+                      ? <img src={u.avatar_url} alt="" className="h-full w-full object-cover" />
+                      : (u.full_name || "U").slice(0, 1).toUpperCase()}
+                  </Link>
+                  <Link to="/admin/users/$id" params={{ id: u.user_id }} className="min-w-0 flex-1">
+                    <p className="truncate bn-display text-sm text-slate-900">{u.full_name || "নামহীন"}</p>
+                    <p className="truncate text-[11px] text-slate-500 font-mono">
+                      {u.user_code} • ID: {u.user_id.slice(0, 8)}
+                    </p>
+                    {u.package_name && <p className="truncate text-[11px] text-fuchsia-600 font-semibold">📦 {u.package_name}</p>}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSendMissed(u.user_id, u.full_name); }}
+                    disabled={isSending || wasSent}
+                    title={wasSent ? "Notice ইতিমধ্যেই পাঠানো হয়েছে" : "সতর্কতা notice পাঠান"}
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-bold shadow-sm ring-1 transition",
+                      wasSent
+                        ? "bg-emerald-50 text-emerald-700 ring-emerald-200 cursor-default"
+                        : isSending
+                        ? "bg-slate-100 text-slate-500 ring-slate-200 cursor-wait"
+                        : "bg-gradient-to-br from-rose-500 to-pink-600 text-white ring-rose-300 hover:from-rose-600 hover:to-pink-700",
+                    )}
+                  >
+                    {wasSent ? <CheckCircle2 className="h-3.5 w-3.5" /> : isSending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Bell className="h-3.5 w-3.5" />}
+                    {wasSent ? "পাঠানো" : isSending ? "…" : "Notice"}
+                  </button>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate bn-display text-sm text-slate-900">{u.full_name || "নামহীন"}</p>
-                  <p className="truncate text-[11px] text-slate-500 font-mono">
-                    {u.user_code} • ID: {u.user_id.slice(0, 8)}
-                  </p>
-                  {u.package_name && <p className="truncate text-[11px] text-fuchsia-600 font-semibold">📦 {u.package_name}</p>}
-                </div>
-                <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700">সম্পন্ন হয়নি</span>
-                <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-rose-600" />
-              </Link>
-            ))}
+              );
+            })}
           </div>
         )
       )}

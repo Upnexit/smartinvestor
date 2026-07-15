@@ -617,6 +617,7 @@ export type Database = {
           published: boolean
           target_all_users: boolean
           target_package_ids: string[]
+          target_user_ids: string[]
           title: string
           updated_at: string
         }
@@ -630,6 +631,7 @@ export type Database = {
           published?: boolean
           target_all_users?: boolean
           target_package_ids?: string[]
+          target_user_ids?: string[]
           title: string
           updated_at?: string
         }
@@ -643,6 +645,7 @@ export type Database = {
           published?: boolean
           target_all_users?: boolean
           target_package_ids?: string[]
+          target_user_ids?: string[]
           title?: string
           updated_at?: string
         }
@@ -1187,6 +1190,7 @@ export type Database = {
           published: boolean
           target_all_users: boolean
           target_package_ids: string[]
+          target_user_ids: string[]
           title: string
           updated_at: string
         }
@@ -1217,6 +1221,29 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "packages"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_send_missed_task_notice: {
+        Args: { _actor: string; _bd_date: string; _user_id: string }
+        Returns: {
+          body: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          priority: string
+          published: boolean
+          target_all_users: boolean
+          target_package_ids: string[]
+          target_user_ids: string[]
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "notices"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -1275,6 +1302,7 @@ export type Database = {
           published: boolean
           target_all_users: boolean
           target_package_ids: string[]
+          target_user_ids: string[]
           title: string
           updated_at: string
         }
@@ -1447,18 +1475,32 @@ export type Database = {
           user_code: string
         }[]
       }
-      telegram_notice_recipients: {
-        Args: {
-          _actor: string
-          _target_all_users: boolean
-          _target_package_ids?: string[]
-        }
-        Returns: {
-          chat_id: number
-          full_name: string
-          user_id: string
-        }[]
-      }
+      telegram_notice_recipients:
+        | {
+            Args: {
+              _actor: string
+              _target_all_users: boolean
+              _target_package_ids?: string[]
+            }
+            Returns: {
+              chat_id: number
+              full_name: string
+              user_id: string
+            }[]
+          }
+        | {
+            Args: {
+              _actor: string
+              _target_all_users: boolean
+              _target_package_ids?: string[]
+              _target_user_ids?: string[]
+            }
+            Returns: {
+              chat_id: number
+              full_name: string
+              user_id: string
+            }[]
+          }
     }
     Enums: {
       app_role: "admin" | "user" | "distributor"
