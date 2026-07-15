@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { ACCENTS, type AccentKey } from "@/lib/admin-accents";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { usePresenceBroadcast } from "@/hooks/use-presence-broadcast";
 
 type NavItem = { to: string; label: string; Icon: typeof LayoutDashboard; accent: AccentKey };
 
