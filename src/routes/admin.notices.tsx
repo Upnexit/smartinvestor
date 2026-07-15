@@ -180,6 +180,67 @@ function NoticesPage() {
 
 }
 
+/* ------------------------ Deletion Log Panel ------------------------ */
+function DeletionLogPanel({
+  logs, loading, onRefresh,
+}: { logs: NoticeDeletionLogRow[]; loading: boolean; onRefresh: () => void }) {
+  return (
+    <aside className="hidden lg:block">
+      <div className="sticky top-4 rounded-3xl bg-white ring-1 ring-slate-200 shadow-soft overflow-hidden">
+        <div className="flex items-center justify-between gap-2 px-4 py-3 bg-gradient-to-r from-slate-50 to-fuchsia-50 border-b border-slate-200">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-slate-600 to-fuchsia-600 text-white shadow">
+              <History className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="bn-display text-sm text-slate-900">Auto-Delete Log</h3>
+              <p className="text-[10px] text-slate-500 leading-tight">সবাই দেখে ফেলার পর delete হওয়া notice</p>
+            </div>
+          </div>
+          <button onClick={onRefresh} className="rounded-lg px-2 py-1 text-[10px] font-bold text-slate-600 hover:bg-white ring-1 ring-slate-200">
+            রিফ্রেশ
+          </button>
+        </div>
+        <div className="max-h-[70vh] overflow-y-auto p-3 space-y-2">
+          {loading ? (
+            <div className="py-10 grid place-items-center text-slate-400">
+              <Loader2 className="h-5 w-5 animate-spin" />
+            </div>
+          ) : logs.length === 0 ? (
+            <div className="py-10 text-center">
+              <History className="mx-auto h-8 w-8 text-slate-300" />
+              <p className="mt-1 text-xs text-slate-500">এখনও কোনো log নেই</p>
+              <p className="text-[10px] text-slate-400">সব recipient একটি notice dismiss করলে এখানে দেখাবে</p>
+            </div>
+          ) : (
+            logs.map((l) => (
+              <div key={l.id} className="rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-3">
+                <div className="flex items-start gap-2">
+                  <span className={`mt-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold text-white ${
+                    l.priority === "critical" ? "bg-rose-600" : l.priority === "warning" ? "bg-amber-600" : "bg-sky-600"
+                  }`}>{l.priority.toUpperCase()}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-slate-800 truncate">{l.title}</p>
+                    <p className="text-[11px] text-slate-600 line-clamp-2 whitespace-pre-line">{l.body}</p>
+                  </div>
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-slate-500">
+                  <span className="inline-flex items-center gap-1">
+                    <Users className="h-3 w-3" /> {l.dismissed_count}/{l.audience_count} দেখেছে
+                  </span>
+                  <time>{new Date(l.deleted_at).toLocaleString("bn-BD", { dateStyle: "short", timeStyle: "short" })}</time>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+
+
 /* ---------------------------- Notice Card ---------------------------- */
 function NoticeCard({
   notice, packages, onEdit, onDelete, onTogglePublish, onResend,
