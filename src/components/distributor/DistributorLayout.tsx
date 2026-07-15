@@ -36,8 +36,12 @@ export function DistributorLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const site = useSiteSettings();
+  const [uid, setUid] = useState<string | null>(null);
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setUid(data.user?.id ?? null)); }, []);
+  usePresenceBroadcast(uid);
 
   useEffect(() => { setDrawer(false); }, [pathname]);
+
 
   async function logout() {
     await supabase.auth.signOut();
