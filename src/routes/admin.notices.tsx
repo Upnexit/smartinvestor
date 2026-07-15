@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Megaphone, Mic, MicOff, Sparkles, Plus, Trash2, Send, Eye, EyeOff, Loader2, AlertTriangle, Info, Users, X, Pencil } from "lucide-react";
+import { Megaphone, Mic, MicOff, Sparkles, Plus, Trash2, Send, Eye, EyeOff, Loader2, AlertTriangle, Info, Users, X, Pencil, History } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   listAdminNotices, saveNotice, deleteNotice, togglePublishNotice, improveNoticeText, resendNoticeToTelegram,
-  type NoticeRow, type NoticePriority,
+  listNoticeDeletionLog,
+  type NoticeRow, type NoticePriority, type NoticeDeletionLogRow,
 } from "@/lib/notices.functions";
+
 import { GradientButton } from "@/components/admin/AdminUI";
 
 export const Route = createFileRoute("/admin/notices")({
