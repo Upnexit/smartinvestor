@@ -18,7 +18,7 @@ export const Route = createFileRoute("/distributor/")({
   component: DistDashboard,
 });
 
-type Stats = { total_users?: number; active_packages?: number; total_deposit?: number; balance?: number; total_earned?: number };
+type Stats = { total_users?: number; active_packages?: number; total_deposit?: number; balance?: number; locked_balance?: number; total_earned?: number };
 type Profile = { full_name?: string; district?: string; commission_rate?: number };
 type Me = { profile: Profile | null; stats: Stats | null };
 
