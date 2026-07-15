@@ -101,18 +101,28 @@ export async function getUserBundle(userId: string) {
     supabase.from("activity_logs").select("id,event_type,meta,ip,user_agent,created_at").eq("user_id", userId).gte("created_at", dhakaDayStartISO()).order("created_at", { ascending: false }).limit(100),
   ]);
   const earnedSum = (totalRefEarned.data ?? []).reduce((s: number, r: { amount: number | string | null }) => s + Number(r.amount || 0), 0);
+  // Commission per referred user (sum from referral_earnings)
+  const commissionByUser = new Map<string, number>();
+  ((refs.data ?? []) as Array<{ referred_user_id: string; amount: number | string | null }>).forEach((r) => {
+    commissionByUser.set(r.referred_user_id, (commissionByUser.get(r.referred_user_id) ?? 0) + Number(r.amount || 0));
+  });
+  const referredUsersWithCommission = ((referredUsers.data ?? []) as Array<{ id: string } & Record<string, unknown>>).map((u) => ({
+    ...u,
+    commission_earned: commissionByUser.get(u.id) ?? 0,
+  }));
   return {
     profile: profile.data,
     packages: packages.data ?? [],
     withdrawals: withdrawals.data ?? [],
     tasks: tasks.data ?? [],
     referrals: refs.data ?? [],
-    referredUsers: referredUsers.data ?? [],
+    referredUsers: referredUsersWithCommission,
     referralCount: totalRefCount.count ?? 0,
     referralEarnedTotal: earnedSum,
     activity: activity.data ?? [],
   };
 }
+
 
 export async function updateUser(userId: string, patch: Record<string, unknown>) {
   const a = await actorId();
