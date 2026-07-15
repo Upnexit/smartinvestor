@@ -24,6 +24,7 @@ function DistributorDetailPage() {
   const { id } = Route.useParams();
   const [data, setData] = useState<Bundle | null>(null);
   const [busy, setBusy] = useState(false);
+  const [impersonateUrl, setImpersonateUrl] = useState<string | null>(null);
   const authReady = useAuthReady();
 
   const load = () => {
@@ -33,16 +34,12 @@ function DistributorDetailPage() {
 
   const impersonate = async () => {
     setBusy(true);
-    const w = window.open("about:blank", "_blank");
     try {
       const { adminImpersonateUser } = await import("@/lib/admin.functions");
       const redirectTo = `${window.location.origin}/distributor`;
       const res = await adminImpersonateUser({ data: { userId: id, redirectTo } });
-      if (w) w.location.href = res.url;
-      else window.open(res.url, "_blank");
-      toast.success("ডিস্ট্রিবিউটরের প্যানেল নতুন ট্যাবে খোলা হয়েছে");
+      setImpersonateUrl(res.url);
     } catch (e) {
-      if (w) w.close();
       toast.error(e instanceof Error ? e.message : "ব্যর্থ");
     } finally { setBusy(false); }
   };
