@@ -144,7 +144,7 @@ function UserDetailPage() {
         <SectionCard title="ফিনান্সিয়াল" Icon={Wallet} accent="emerald">
           <div className="grid grid-cols-2 gap-2">
             <BigCard label="ব্যালেন্স"     v={`৳${Number(p?.balance ?? 0).toFixed(0)}`}        accent="emerald" />
-            <BigCard label="লকড"           v={`৳${Number(p?.locked_balance ?? 0).toFixed(0)}`} accent="amber" />
+            <BigCard label="মোট Withdraw"  v={`৳${totalWithdrawn.toFixed(0)}`}                    accent="rose" />
             <BigCard label="মোট আর্নিং"    v={`৳${Number(p?.total_earned ?? 0).toFixed(0)}`}   accent="sky" />
             <BigCard label="রেফারেল আয়"   v={`৳${data.referralEarnedTotal.toFixed(0)}`}        accent="fuchsia" />
           </div>
