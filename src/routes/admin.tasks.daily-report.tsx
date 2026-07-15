@@ -71,6 +71,23 @@ function DailyReportPage() {
   const [tab, setTab] = useState<"done" | "missing">("done");
   const [pickerOpen, setPickerOpen] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [notifying, setNotifying] = useState<Set<string>>(new Set());
+  const [notified, setNotified] = useState<Set<string>>(new Set());
+  const sendMissed = useServerFn(sendMissedTaskNotice);
+
+  async function handleSendMissed(userId: string, name: string | null) {
+    if (notifying.has(userId)) return;
+    setNotifying((s) => new Set(s).add(userId));
+    try {
+      await sendMissed({ data: { user_id: userId, date: dateStr } });
+      setNotified((s) => new Set(s).add(userId));
+      toast.success(`${name || "User"}-কে সতর্কতা notice পাঠানো হয়েছে`);
+    } catch (e: any) {
+      toast.error(e?.message || "Notice পাঠানো যায়নি");
+    } finally {
+      setNotifying((s) => { const n = new Set(s); n.delete(userId); return n; });
+    }
+  }
 
   const dateStr = useMemo(() => format(date, "yyyy-MM-dd"), [date]);
   const isToday = dateStr === todayBD();
