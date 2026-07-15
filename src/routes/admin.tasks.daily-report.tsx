@@ -82,17 +82,26 @@ function DailyReportPage() {
       const dayStartISO = new Date(`${dateStr}T00:00:00+06:00`).toISOString();
       const dayEndISO = new Date(`${dateStr}T23:59:59.999+06:00`).toISOString();
 
+      // "Active on that BD date" = any user_package that was activated on/before day-end
+      // and had not expired before day-start. This is correct for both today and past dates.
       const [
-        { data: actRows },
-        { data: subs },
+        { data: pkgRows },
+        { data: subs, error: subsErr },
         { data: tasks },
       ] = await Promise.all([
-        supabase.from("user_packages").select("user_id, package_id, packages(name)").eq("status", "active"),
+        supabase
+          .from("user_packages")
+          .select("user_id, package_id, status, activated_at, expires_at, packages(name)")
+          .in("status", ["active", "expired"])
+          .lte("activated_at", dayEndISO)
+          .or(`expires_at.is.null,expires_at.gt.${dayStartISO}`)
+          .limit(5000),
         supabase
           .from("task_submissions")
           .select("id, user_id, task_id, status, reward_credited, created_at, link_tasks(title, reward)")
           .gte("created_at", dayStartISO)
-          .lte("created_at", dayEndISO),
+          .lte("created_at", dayEndISO)
+          .limit(5000),
         supabase
           .from("link_tasks")
           .select("id, scheduled_date, created_at, is_draft, active")
@@ -100,8 +109,10 @@ function DailyReportPage() {
           .or(`scheduled_date.eq.${dateStr},and(scheduled_date.is.null,created_at.gte.${dayStartISO},created_at.lte.${dayEndISO})`),
       ]);
 
+      if (subsErr) console.warn("[daily-report] submissions query error:", subsErr.message);
+
       const activeUsers = new Map<string, { pkg: string | null }>();
-      (actRows ?? []).forEach((r: { user_id: string; packages: { name: string } | null }) => {
+      (pkgRows ?? []).forEach((r: { user_id: string; packages: { name: string } | null }) => {
         if (!activeUsers.has(r.user_id)) {
           activeUsers.set(r.user_id, { pkg: r.packages?.name ?? null });
         }
