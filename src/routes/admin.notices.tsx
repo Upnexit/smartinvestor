@@ -9,6 +9,8 @@ import {
   listNoticeDeletionLog,
   type NoticeRow, type NoticePriority, type NoticeDeletionLogRow,
 } from "@/lib/notices.functions";
+import { sendPushSelfTest } from "@/lib/push.functions";
+import { usePushSubscribe } from "@/hooks/use-push-subscribe";
 
 import { GradientButton } from "@/components/admin/AdminUI";
 
@@ -53,6 +55,32 @@ function NoticesPage() {
   const pubFn = useServerFn(togglePublishNotice);
   const resendFn = useServerFn(resendNoticeToTelegram);
   const logFn = useServerFn(listNoticeDeletionLog);
+  const testPushFn = useServerFn(sendPushSelfTest);
+  const { status: pushStatus, busy: pushBusy, subscribe: pushSubscribe } = usePushSubscribe();
+
+  async function onSendTestPush() {
+    if (pushStatus === "default" || pushStatus === "denied") {
+      const r = await pushSubscribe();
+      if (!r.ok) {
+        if (r.reason === "permission") toast.error("অনুমতি না দিলে test আসবে না");
+        else if (r.reason === "preview") toast.info("Preview-এ কাজ করে না — published অ্যাপে টেস্ট করুন");
+        else if (r.reason === "unauth") toast.error("প্রথমে login করুন");
+        else toast.error("Notification চালু করা যায়নি");
+        return;
+      }
+    }
+    const tid = toast.loading("টেস্ট পুশ পাঠাচ্ছে...");
+    try {
+      const r = await testPushFn();
+      if (r.recipients === 0) {
+        toast.message("কোনো subscribed device পাওয়া যায়নি — বেল আইকনে ট্যাপ করে চালু করুন", { id: tid });
+      } else {
+        toast.success(`পাঠানো হয়েছে — ${r.sent}/${r.recipients}${r.failed ? ` (${r.failed} ব্যর্থ)` : ""}`, { id: tid });
+      }
+    } catch (e) {
+      toast.error((e as Error).message, { id: tid });
+    }
+  }
 
   async function refresh() {
     setLoading(true);
@@ -127,9 +155,20 @@ function NoticesPage() {
             <p className="text-xs text-slate-500">প্যাকেজ-ভিত্তিক announcement — voice + AI দিয়ে দ্রুত তৈরি করুন</p>
           </div>
         </div>
-        <GradientButton accent="fuchsia" onClick={() => { setEditing(null); setFormOpen(true); }}>
-          <Plus className="h-4 w-4" /> নতুন নোটিশ
-        </GradientButton>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onSendTestPush}
+            disabled={pushBusy}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-3 py-2 text-xs font-semibold text-emerald-700 shadow-sm hover:from-emerald-100 hover:to-teal-100 disabled:opacity-60"
+            title="নিজেকে test push পাঠাও"
+          >
+            <Send className="h-3.5 w-3.5" /> টেস্ট পুশ
+          </button>
+          <GradientButton accent="fuchsia" onClick={() => { setEditing(null); setFormOpen(true); }}>
+            <Plus className="h-4 w-4" /> নতুন নোটিশ
+          </GradientButton>
+        </div>
       </header>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">

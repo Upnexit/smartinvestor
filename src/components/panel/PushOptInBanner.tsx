@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { usePushSubscribe } from "@/hooks/use-push-subscribe";
 
 const DISMISS_KEY = "si_push_optin_dismissed_at";
-const COOLDOWN_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
+const COOLDOWN_MS = 12 * 60 * 60 * 1000; // 12 hours — re-prompt often enough
 
 export function PushOptInBanner() {
   const { status, busy, subscribe } = usePushSubscribe();

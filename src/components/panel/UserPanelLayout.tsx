@@ -4,11 +4,13 @@ import {
   LayoutDashboard, ListChecks, ArrowDownToLine, Package, MessageCircle,
   Users, User as UserIcon, ChevronRight, LogOut, Sparkles, Menu, X, Bell, Crown, Home, LifeBuoy,
 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { cn } from "@/lib/utils";
 import { NoticeModal } from "@/components/panel/NoticeModal";
 import { PushOptInBanner } from "@/components/panel/PushOptInBanner";
+import { usePushSubscribe } from "@/hooks/use-push-subscribe";
 
 type NavItem = {
   to: string;
@@ -39,11 +41,38 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
   const activeItem = NAV.find((n) => pathname.startsWith(n.to)) ?? NAV[0];
   const navigate = useNavigate();
   const site = useSiteSettings();
+  const { status: pushStatus, busy: pushBusy, subscribe: pushSubscribe } = usePushSubscribe();
 
   async function handleLogout() {
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   }
+
+  async function handleBellClick() {
+    if (pushBusy) return;
+    if (pushStatus === "subscribed" || pushStatus === "granted") {
+      toast.success("নোটিফিকেশন ইতিমধ্যেই চালু আছে ✅");
+      return;
+    }
+    if (pushStatus === "denied") {
+      toast.error("ব্রাউজার সেটিংস থেকে notification অনুমতি দিন");
+      return;
+    }
+    if (pushStatus === "unsupported") {
+      toast.info("এই ব্রাউজারে notification সাপোর্ট নেই");
+      return;
+    }
+    if (pushStatus === "blocked-preview") {
+      toast.info("Preview-এ কাজ করে না — published অ্যাপে খুলুন");
+      return;
+    }
+    const r = await pushSubscribe();
+    if (r.ok) toast.success("নোটিফিকেশন চালু হয়েছে ✅");
+    else if (r.reason === "permission") toast.error("অনুমতি না দিলে notification আসবে না");
+    else toast.error("Notification চালু করা যায়নি");
+  }
+
+  const showBellDot = pushStatus === "default";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50/30 to-rose-50/40">
@@ -59,8 +88,17 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
           </div>
         </Link>
         <div className="flex items-center gap-1.5">
-          <button className="grid h-9 w-9 place-items-center rounded-xl text-slate-600 hover:bg-slate-100" aria-label="নোটিফিকেশন">
+          <button
+            type="button"
+            onClick={handleBellClick}
+            disabled={pushBusy}
+            className="relative grid h-9 w-9 place-items-center rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-60"
+            aria-label="নোটিফিকেশন চালু করুন"
+          >
             <Bell className="h-5 w-5" />
+            {showBellDot && (
+              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
+            )}
           </button>
           <Link
             to="/support"
