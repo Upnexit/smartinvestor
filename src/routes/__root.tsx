@@ -17,6 +17,7 @@ import { MaintenanceScreen } from "@/components/MaintenanceScreen";
 import { MobileInstallPrompt } from "@/components/MobileInstallPrompt";
 import { registerPWA } from "../lib/pwa-register";
 import { initInstallPromptCapture } from "../lib/install-prompt";
+import { installGlobalErrorMonitor, captureError } from "../lib/error-monitor-client";
 
 // ============================================================
 // MAINTENANCE MODE TOGGLE
