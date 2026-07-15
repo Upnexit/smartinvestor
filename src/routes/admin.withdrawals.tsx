@@ -30,7 +30,8 @@ export const Route = createFileRoute("/admin/withdrawals")({
 type Filter = "pending" | "approved" | "rejected" | "all";
 type Method = "bkash"|"nagad"|"rocket";
 type Row = {
-  id: string; user_id: string; amount: number; method: Method|null;
+  id: string; user_id: string; amount: number; gross_amount: number | null; fee: number | null;
+  balance_at_request: number | null; method: Method|null;
   account_number: string | null; status: "pending"|"approved"|"rejected"|"paid";
   note: string | null; rejection_reason?: string | null;
   created_at: string; reviewed_at: string | null;
@@ -88,7 +89,7 @@ function WithdrawalsPage() {
 
   const refresh = () => {
     supabase.from("withdrawals")
-      .select("id,user_id,amount,method,account_number,status,note,rejection_reason,created_at,reviewed_at,profiles!withdrawals_user_id_profiles_fkey(full_name,phone,user_code)")
+      .select("id,user_id,amount,gross_amount,fee,balance_at_request,method,account_number,status,note,rejection_reason,created_at,reviewed_at,profiles!withdrawals_user_id_profiles_fkey(full_name,phone,user_code)")
       .order("created_at", { ascending: false }).limit(200)
       .then(({ data, error }) => {
         if (error) { setRows([]); toast.error(error.message); return; }
@@ -279,6 +280,20 @@ function WithdrawalsPage() {
                   <button onClick={() => detail.account_number && navigator.clipboard.writeText(detail.account_number).then(() => toast.success("কপি হয়েছে"))} className="ml-auto rounded-md bg-white/20 px-2 py-1 hover:bg-white/30"><Copy className="h-3 w-3" /></button>
                 </div>
                 <p className="mt-2 text-[11px] text-white/80">{new Date(detail.created_at).toLocaleString("bn-BD")}</p>
+                <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
+                  <div className="rounded-lg bg-white/15 px-2 py-1 backdrop-blur">
+                    <p className="text-white/75">মোট (Gross)</p>
+                    <p className="font-mono font-bold">৳{Number(detail.gross_amount ?? detail.amount).toFixed(2)}</p>
+                  </div>
+                  <div className="rounded-lg bg-white/15 px-2 py-1 backdrop-blur">
+                    <p className="text-white/75">চার্জ (২%)</p>
+                    <p className="font-mono font-bold">৳{Number(detail.fee ?? 0).toFixed(2)}</p>
+                  </div>
+                  <div className="rounded-lg bg-white/15 px-2 py-1 backdrop-blur">
+                    <p className="text-white/75">তখনকার ব্যালেন্স</p>
+                    <p className="font-mono font-bold">{detail.balance_at_request != null ? `৳${Number(detail.balance_at_request).toFixed(2)}` : "—"}</p>
+                  </div>
+                </div>
               </div>
 
               {/* User info */}

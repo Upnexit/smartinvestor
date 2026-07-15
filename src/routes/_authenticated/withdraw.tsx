@@ -19,6 +19,9 @@ type Method = "bkash" | "nagad" | "rocket";
 type WD = {
   id: string;
   amount: number;
+  gross_amount: number | null;
+  fee: number | null;
+  balance_at_request: number | null;
   method: Method;
   account_number: string;
   status: "pending" | "approved" | "rejected";
@@ -286,6 +289,16 @@ function WithdrawPage() {
                   <div className="flex-1 min-w-0">
                     <p className="bn-display text-sm text-slate-900">৳{Number(w.amount).toFixed(2)} · {b.name}</p>
                     <p className="text-[11px] text-slate-500 font-mono">{w.account_number} · {new Date(w.created_at).toLocaleString("bn-BD")}</p>
+                    {(w.gross_amount != null || w.fee != null) && (
+                      <p className="text-[11px] text-slate-500 font-mono">
+                        মোট ৳{Number(w.gross_amount ?? w.amount).toFixed(2)} · চার্জ ৳{Number(w.fee ?? 0).toFixed(2)}
+                      </p>
+                    )}
+                    {w.balance_at_request != null && (
+                      <p className="text-[11px] text-indigo-600 font-mono">
+                        রিকোয়েস্টের সময় ব্যালেন্স: ৳{Number(w.balance_at_request).toFixed(2)}
+                      </p>
+                    )}
                     {w.rejection_reason && <p className="text-[11px] text-rose-600 mt-0.5">কারণ: {w.rejection_reason}</p>}
                   </div>
                   <StatusBadge status={w.status} />
