@@ -41,11 +41,38 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
   const activeItem = NAV.find((n) => pathname.startsWith(n.to)) ?? NAV[0];
   const navigate = useNavigate();
   const site = useSiteSettings();
+  const { status: pushStatus, busy: pushBusy, subscribe: pushSubscribe } = usePushSubscribe();
 
   async function handleLogout() {
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   }
+
+  async function handleBellClick() {
+    if (pushBusy) return;
+    if (pushStatus === "subscribed" || pushStatus === "granted") {
+      toast.success("নোটিফিকেশন ইতিমধ্যেই চালু আছে ✅");
+      return;
+    }
+    if (pushStatus === "denied") {
+      toast.error("ব্রাউজার সেটিংস থেকে notification অনুমতি দিন");
+      return;
+    }
+    if (pushStatus === "unsupported") {
+      toast.info("এই ব্রাউজারে notification সাপোর্ট নেই");
+      return;
+    }
+    if (pushStatus === "blocked-preview") {
+      toast.info("Preview-এ কাজ করে না — published অ্যাপে খুলুন");
+      return;
+    }
+    const r = await pushSubscribe();
+    if (r.ok) toast.success("নোটিফিকেশন চালু হয়েছে ✅");
+    else if (r.reason === "permission") toast.error("অনুমতি না দিলে notification আসবে না");
+    else toast.error("Notification চালু করা যায়নি");
+  }
+
+  const showBellDot = pushStatus === "default";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50/30 to-rose-50/40">
