@@ -38,6 +38,22 @@ export function registerPWA() {
   }
 
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register(SW_URL, { scope: "/" }).catch(() => { /* noop */ });
+    navigator.serviceWorker
+      .register(SW_URL, { scope: "/" })
+      .then((reg) => {
+        // Poll for a new version every hour so long-open installed apps
+        // pick up deploys without waiting for a full reopen.
+        try { setInterval(() => { reg.update().catch(() => {}); }, 60 * 60 * 1000); } catch { /* noop */ }
+      })
+      .catch(() => { /* noop */ });
+
+    // When a new SW takes control (via skipWaiting + clientsClaim),
+    // reload once so the user sees the fresh build immediately.
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (reloaded) return;
+      reloaded = true;
+      window.location.reload();
+    });
   });
 }
