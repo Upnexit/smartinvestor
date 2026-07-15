@@ -17,6 +17,7 @@ import { MaintenanceScreen } from "@/components/MaintenanceScreen";
 import { MobileInstallPrompt } from "@/components/MobileInstallPrompt";
 import { registerPWA } from "../lib/pwa-register";
 import { initInstallPromptCapture } from "../lib/install-prompt";
+import { installGlobalErrorMonitor, captureError } from "../lib/error-monitor-client";
 
 // ============================================================
 // MAINTENANCE MODE TOGGLE
@@ -52,6 +53,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    captureError({ error, source: "route_error_boundary", level: "error" });
   }, [error]);
 
   return (
@@ -138,7 +140,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
 
-  useEffect(() => { registerPWA(); initInstallPromptCapture(); }, []);
+  useEffect(() => { registerPWA(); initInstallPromptCapture(); installGlobalErrorMonitor(); }, []);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
