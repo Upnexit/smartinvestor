@@ -1408,6 +1408,7 @@ export type Database = {
         Args: { _actor: string; _user_id: string }
         Returns: Json
       }
+      auto_send_missed_task_notices: { Args: never; Returns: number }
       cleanup_old_link_tasks: { Args: never; Returns: number }
       distributor_stats: { Args: { _user_id: string }; Returns: Json }
       expire_user_packages: { Args: never; Returns: undefined }
