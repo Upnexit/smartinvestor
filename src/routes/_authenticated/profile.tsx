@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   User as UserIcon, Mail, Phone, Smartphone, Save, Loader2, Lock,
   Copy, Check, ShieldCheck, Crown, Wallet, TrendingUp, BadgeCheck, AlertCircle,
-  Pencil, Send, LinkIcon, Unlink,
+  Pencil, Send, LinkIcon, Unlink, ArrowDownToLine,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
