@@ -116,7 +116,7 @@ function NoticesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-3 py-5 sm:px-6 sm:py-8 space-y-5">
+    <div className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-8 space-y-5">
       <header className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 via-fuchsia-500 to-indigo-600 text-white shadow-lg">
@@ -132,31 +132,40 @@ function NoticesPage() {
         </GradientButton>
       </header>
 
-      {loading ? (
-        <div className="rounded-3xl bg-white p-10 grid place-items-center text-slate-500 ring-1 ring-slate-200">
-          <Loader2 className="h-6 w-6 animate-spin" />
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="min-w-0">
+          {loading ? (
+            <div className="rounded-3xl bg-white p-10 grid place-items-center text-slate-500 ring-1 ring-slate-200">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : notices.length === 0 ? (
+            <div className="rounded-3xl bg-white p-10 text-center ring-1 ring-slate-200">
+              <Megaphone className="mx-auto h-10 w-10 text-slate-300" />
+              <p className="mt-2 text-sm font-semibold text-slate-700">এখনও কোনো নোটিশ তৈরি করা হয়নি</p>
+              <p className="text-xs text-slate-500">উপরে "নতুন নোটিশ" বাটনে ক্লিক করে শুরু করুন</p>
+              <p className="mt-3 text-[11px] text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2 inline-block">
+                ✓ সব recipient দেখে ফেললে notice automatic delete হয়ে ডানপাশের log-এ চলে যাবে
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2">
+              {notices.map((n) => (
+                <NoticeCard
+                  key={n.id}
+                  notice={n}
+                  packages={packages}
+                  onEdit={() => { setEditing(n); setFormOpen(true); }}
+                  onDelete={() => onDelete(n)}
+                  onTogglePublish={() => onTogglePublish(n)}
+                  onResend={() => onResend(n)}
+                />
+              ))}
+            </div>
+          )}
         </div>
-      ) : notices.length === 0 ? (
-        <div className="rounded-3xl bg-white p-10 text-center ring-1 ring-slate-200">
-          <Megaphone className="mx-auto h-10 w-10 text-slate-300" />
-          <p className="mt-2 text-sm font-semibold text-slate-700">এখনও কোনো নোটিশ তৈরি করা হয়নি</p>
-          <p className="text-xs text-slate-500">উপরে "নতুন নোটিশ" বাটনে ক্লিক করে শুরু করুন</p>
-        </div>
-      ) : (
-        <div className="grid gap-3 md:grid-cols-2">
-          {notices.map((n) => (
-            <NoticeCard
-              key={n.id}
-              notice={n}
-              packages={packages}
-              onEdit={() => { setEditing(n); setFormOpen(true); }}
-              onDelete={() => onDelete(n)}
-              onTogglePublish={() => onTogglePublish(n)}
-              onResend={() => onResend(n)}
-            />
-          ))}
-        </div>
-      )}
+
+        <DeletionLogPanel logs={logs} loading={logsLoading} onRefresh={refreshLogs} />
+      </div>
 
       {formOpen && (
         <NoticeFormModal
@@ -168,6 +177,7 @@ function NoticesPage() {
       )}
     </div>
   );
+
 }
 
 /* ---------------------------- Notice Card ---------------------------- */
