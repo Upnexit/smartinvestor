@@ -64,9 +64,7 @@ function PackageTasksPage() {
     setTasks((t ?? []) as Task[]);
     setActiveUserCount(Number(cnt ?? 0));
     if (p) {
-      const quota = fixedQuota(p as Pkg);
       if (!totalAmount) setTotalAmount(Number((p as Pkg).daily_income ?? 0));
-      setCount((current) => (current === 10 ? quota : current));
     }
   };
 
@@ -129,10 +127,6 @@ function PackageTasksPage() {
     try {
       const ids = tasks.filter((t) => t.is_draft).map((t) => t.id);
       if (!ids.length) { toast.info("কোনো draft নেই"); return; }
-      if (activeCount + ids.length < daily) {
-        toast.error(`${pkg?.name ?? "এই package"}-এর জন্য ${daily}টি task active রাখা বাধ্যতামূলক। আগে আরও ${daily - activeCount - ids.length}টি draft তৈরি করুন।`);
-        return;
-      }
       const { error } = await supabase.from("link_tasks")
         .update({ is_draft: false, active: true })
         .in("id", ids);
@@ -164,10 +158,6 @@ function PackageTasksPage() {
     toast.success("ডিলিট"); load();
   };
   const toggleOne = async (t: Task) => {
-    if (t.is_draft && activeCount + 1 < daily) {
-      toast.error(`${pkg?.name ?? "এই package"}-এর জন্য ${daily}টি task একসাথে active করতে হবে। সব draft তৈরি করে "সব draft Activate" করুন।`);
-      return;
-    }
     const patch = t.is_draft ? { is_draft: false, active: true } : { active: !t.active };
     const { error } = await supabase.from("link_tasks").update(patch).eq("id", t.id);
     if (error) { toast.error(error.message); return; }
