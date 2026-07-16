@@ -169,7 +169,15 @@ function TasksPage() {
       setActiveTask(null);
       setLinkOpened(false);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "সাবমিট ব্যর্থ", { id: tId });
+      const raw = e instanceof Error ? e.message : String(e);
+      let msg = raw;
+      if (/duplicate key|unique|23505/i.test(raw)) msg = "এই টাস্কটি আপনি আগেই সম্পন্ন করেছেন";
+      else if (/row-level security|permission denied|42501/i.test(raw)) msg = "অনুমতি নেই — আবার লগইন করুন";
+      else if (/active প্যাকেজ/.test(raw)) msg = "টাস্ক করতে হলে একটি active প্যাকেজ লাগবে";
+      else if (/দৈনিক টাস্ক লিমিট/.test(raw)) msg = raw;
+      else if (/আজ ইতিমধ্যেই/.test(raw)) msg = raw;
+      else if (!raw || raw === "{}") msg = "সাবমিট ব্যর্থ — আবার চেষ্টা করুন";
+      toast.error(msg, { id: tId });
     } finally {
       setSubmittingId(null);
     }
