@@ -24,7 +24,15 @@ type Task = {
   reward: number;
   daily_limit: number;
   required_package_id: string | null;
+  scheduled_date?: string | null;
+  is_draft?: boolean;
 };
+
+type ActivePackage = { package_id: string; packages?: { name?: string | null; daily_tasks?: number | null } | null };
+
+function quotaForPackage(pkg: ActivePackage) {
+  return (pkg.packages?.name ?? "").toLowerCase().includes("crazy") ? 5 : 10;
+}
 
 type Submission = {
   task_id: string;
@@ -58,10 +66,11 @@ function TasksPage() {
       const [{ data: s }, { data: up }, { data: prof }] = await Promise.all([
         supabase.from("task_submissions").select("task_id,status,created_at").eq("user_id", u.user.id)
           .gte("created_at", startOfTodayBDISO()),
-        supabase.from("user_packages").select("package_id").eq("user_id", u.user.id).eq("status", "active"),
+        supabase.from("user_packages").select("package_id, packages(name,daily_tasks)").eq("user_id", u.user.id).eq("status", "active"),
         supabase.from("profiles").select("email_verified").eq("id", u.user.id).maybeSingle(),
       ]);
-      const activePkgIds = (up ?? []).map((r: { package_id: string }) => r.package_id);
+      const activePackages = (up ?? []) as ActivePackage[];
+      const activePkgIds = activePackages.map((r) => r.package_id);
       setHasActivePkg(activePkgIds.length > 0);
       // Fetch tasks: either unrestricted (null) OR restricted to one of user's active packages
       let tq = supabase.from("link_tasks").select("*").eq("active", true).order("created_at", { ascending: false });
@@ -72,7 +81,17 @@ function TasksPage() {
         tq = tq.is("required_package_id", null);
       }
       const { data: t } = await tq;
-      setTasks((t ?? []) as Task[]);
+      const allTasks = ((t ?? []) as Task[]).filter((task) => !task.is_draft);
+      const preferredPackage = activePackages
+        .slice()
+        .sort((a, b) => quotaForPackage(b) - quotaForPackage(a))[0];
+      const quota = preferredPackage ? quotaForPackage(preferredPackage) : 0;
+      const packageSpecific = preferredPackage
+        ? allTasks.filter((task) => task.required_package_id === preferredPackage.package_id)
+        : [];
+      const globalTasks = allTasks.filter((task) => task.required_package_id === null);
+      const todaysTasks = [...packageSpecific, ...globalTasks].slice(0, quota || undefined);
+      setTasks(todaysTasks);
       setSubs((s ?? []) as Submission[]);
       setEmailVerified(!!prof?.email_verified);
     })();
