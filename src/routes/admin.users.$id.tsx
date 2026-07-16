@@ -208,19 +208,9 @@ function UserDetailPage() {
           )}
         </SectionCard>
 
-        <SectionCard title="টাস্ক" Icon={ListChecks} accent="rose">
-          {data.tasks.length === 0 ? <p className="text-xs text-slate-500 text-center py-4">কোনো টাস্ক নেই</p> : (
-            <ul className="space-y-2 max-h-64 overflow-y-auto pr-1">
-              {data.tasks.map((t: { id: string; link_tasks?: { title?: string; reward?: number | string | null } | null }) => (
-                <li key={t.id} className="flex items-center justify-between rounded-xl ring-1 ring-rose-100 bg-rose-50/40 px-3 py-2 text-sm">
-                  <span className="truncate">{t.link_tasks?.title ?? "—"}</span>
-                  <span className="font-bold text-rose-700 shrink-0">৳{Number(t.link_tasks?.reward ?? 0)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </SectionCard>
+        <TaskHistorySection tasks={data.tasks as TaskRow[]} />
       </div>
+
 
       {/* BOTTOM: Withdraw (full width) */}
       <SectionCard title={`উইথড্র (মোট ৳${totalWithdrawn.toFixed(0)} অনুমোদিত)`} Icon={ArrowDownToLine} accent="emerald">
@@ -369,3 +359,120 @@ function BigCard({ label, v, accent }: { label: string; v: string; accent: "emer
     </div>
   );
 }
+
+/* ---------- Task history ---------- */
+
+type TaskRow = {
+  id: string;
+  task_id: string;
+  status: "pending" | "approved" | "rejected" | string | null;
+  created_at: string;
+  link_tasks?: { title?: string | null; reward?: number | string | null; action_type?: string | null } | null;
+};
+
+function bdDateKey(iso: string): string {
+  // Return YYYY-MM-DD in Asia/Dhaka (UTC+6)
+  const d = new Date(iso);
+  const bd = new Date(d.getTime() + 6 * 3600_000);
+  return bd.toISOString().slice(0, 10);
+}
+function todayBDKey(): string {
+  const now = new Date();
+  const bd = new Date(now.getTime() + 6 * 3600_000);
+  return bd.toISOString().slice(0, 10);
+}
+
+function TaskHistorySection({ tasks }: { tasks: TaskRow[] }) {
+  const [date, setDate] = useState<string>(todayBDKey());
+
+  // Available dates the user actually submitted tasks (BD day), for quick chips.
+  const availableDates = Array.from(new Set(tasks.map((t) => bdDateKey(t.created_at)))).sort((a, b) => b.localeCompare(a));
+
+  const filtered = tasks.filter((t) => bdDateKey(t.created_at) === date);
+  const approvedForDate = filtered.filter((t) => t.status === "approved");
+  const totalEarnedForDate = approvedForDate.reduce((s, t) => s + Number(t.link_tasks?.reward ?? 0), 0);
+
+  const todayApproved = tasks.filter((t) => t.status === "approved" && bdDateKey(t.created_at) === todayBDKey());
+  const todayTotal = todayApproved.reduce((s, t) => s + Number(t.link_tasks?.reward ?? 0), 0);
+
+  return (
+    <SectionCard title="টাস্ক হিস্ট্রি" Icon={ListChecks} accent="rose">
+      {/* Top summary row */}
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        <div className="rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 p-3 text-white shadow-md ring-1 ring-white/30">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/85">আজ মোট আয় (টাস্ক)</p>
+          <p className="mt-0.5 bn-display text-xl font-extrabold">৳{todayTotal.toFixed(0)}</p>
+          <p className="text-[10px] text-white/80">{todayApproved.length.toLocaleString("bn-BD")} টি টাস্ক আজ সম্পন্ন</p>
+        </div>
+        <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-3 text-white shadow-md ring-1 ring-white/30">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-white/85">সিলেক্টেড দিনে আয়</p>
+          <p className="mt-0.5 bn-display text-xl font-extrabold">৳{totalEarnedForDate.toFixed(0)}</p>
+          <p className="text-[10px] text-white/80">{approvedForDate.length.toLocaleString("bn-BD")} টি অনুমোদিত · {date}</p>
+        </div>
+      </div>
+
+      {/* Date filter */}
+      <div className="flex flex-wrap items-center gap-2 mb-2">
+        <label className="text-[11px] font-bold text-slate-600">তারিখ:</label>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="rounded-lg ring-1 ring-slate-200 bg-white px-2 py-1 text-xs"
+        />
+        <button
+          onClick={() => setDate(todayBDKey())}
+          className="rounded-lg bg-rose-100 text-rose-700 px-2 py-1 text-[10px] font-bold hover:bg-rose-200"
+        >
+          আজ
+        </button>
+        {availableDates.slice(0, 6).map((d) => (
+          <button
+            key={d}
+            onClick={() => setDate(d)}
+            className={cn(
+              "rounded-lg px-2 py-1 text-[10px] font-bold ring-1",
+              d === date ? "bg-rose-500 text-white ring-rose-500" : "bg-white text-slate-600 ring-slate-200 hover:bg-slate-50"
+            )}
+          >
+            {d.slice(5)}
+          </button>
+        ))}
+      </div>
+
+      {/* Task list for the selected date */}
+      {filtered.length === 0 ? (
+        <p className="text-xs text-slate-500 text-center py-6">এই তারিখে কোনো টাস্ক পাওয়া যায়নি</p>
+      ) : (
+        <ul className="space-y-1.5 max-h-96 overflow-y-auto pr-1">
+          {filtered.map((t) => {
+            const dt = new Date(t.created_at);
+            const timeStr = dt.toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            const statusColor =
+              t.status === "approved" ? "bg-emerald-100 text-emerald-700"
+              : t.status === "pending" ? "bg-amber-100 text-amber-700"
+              : "bg-rose-100 text-rose-700";
+            return (
+              <li key={t.id} className="flex items-center justify-between gap-2 rounded-xl ring-1 ring-rose-100 bg-rose-50/40 px-3 py-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium truncate">{t.link_tasks?.title ?? "—"}</p>
+                  <p className="text-[10px] text-slate-500">
+                    <Calendar className="inline h-2.5 w-2.5 mr-0.5" />{timeStr}
+                    {t.link_tasks?.action_type ? <> · <span className="uppercase font-mono">{t.link_tasks.action_type}</span></> : null}
+                  </p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="text-sm font-bold text-rose-700">৳{Number(t.link_tasks?.reward ?? 0).toFixed(0)}</p>
+                  <span className={cn("inline-block rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase", statusColor)}>
+                    {t.status}
+                  </span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </SectionCard>
+  );
+}
+
