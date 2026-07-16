@@ -100,44 +100,95 @@ function localNoticeFormat(raw: string) {
   return { title: title || "গুরুত্বপূর্ণ নোটিশ", body: raw.trim().slice(0, 4000) };
 }
 
+const NOTICE_MODELS = [
+  "google/gemini-3.5-flash",
+  "google/gemini-2.5-flash",
+  "openai/gpt-5.4-mini",
+];
+
 export async function improveNoticeTextWithAI(raw: string, priority: NoticePriority) {
   const lovableKey = envValue("LOVABLE_API_KEY");
-  if (!lovableKey) return localNoticeFormat(raw);
-
-  const { getBusinessContext } = await import("./ai-context.server");
-  const ctx = await getBusinessContext();
-  const system = `You rewrite raw Bengali speech-to-text notes into short, professional Bangla notices for the Smart Investor platform.
-
-STRICT OUTPUT:
-Line 1: শিরোনাম: <short 4-8 word title in Bengali>
-Line 2 onwards: notice body — 2-6 short, clear Bangla sentences or bullets (use "•").
-No preface, no code fences, no markdown headings, no English unless a brand name.
-Tone: ${priority === "critical" ? "জরুরি ও সরাসরি" : priority === "warning" ? "সতর্কতামূলক ও নম্র" : "বন্ধুত্বপূর্ণ ও তথ্যবহুল"}.
-
-${ctx}`;
-
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Lovable-API-Key": lovableKey,
-      "X-Lovable-AIG-SDK": "smart-investor-notices",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: `Raw voice/text note from admin:\n"""${raw}"""\n\nএটিকে উপরের format-এ পরিষ্কার Bangla notice হিসেবে rewrite করুন। বানান, বিরাম, বাক্যগঠন সব ঠিক করুন। অতিরিক্ত তথ্য বানাবেন না।` },
-      ],
-    }),
-  });
-
-  if (!res.ok) {
-    if (res.status === 429) throw new Error("AI ব্যস্ত — কিছুক্ষণ পরে চেষ্টা করুন");
-    if (res.status === 402) throw new Error("AI ক্রেডিট শেষ");
+  if (!lovableKey) {
+    console.warn("[notice-ai] LOVABLE_API_KEY missing — falling back to local format");
     return localNoticeFormat(raw);
   }
-  const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-  const out = json.choices?.[0]?.message?.content?.trim();
-  return out ? parseImprovedNotice(out) : localNoticeFormat(raw);
+
+  let ctx = "";
+  try {
+    const { getBusinessContext } = await import("./ai-context.server");
+    ctx = await getBusinessContext();
+  } catch (e) {
+    console.warn("[notice-ai] business context load failed:", (e as Error).message);
+  }
+
+  const toneLine =
+    priority === "critical"
+      ? "জরুরি, সরাসরি ও দৃঢ় — কোনো ভূমিকা নয়, সরাসরি সমস্যা/পদক্ষেপ বলুন।"
+      : priority === "warning"
+      ? "সতর্কতামূলক, নম্র কিন্তু স্পষ্ট — সম্ভাব্য ঝুঁকি ও করণীয় জানান।"
+      : "পেশাদার, বন্ধুত্বপূর্ণ ও তথ্যবহুল — গ্রাহককে গুরুত্বপূর্ণ তথ্য জানান।";
+
+  const system = `আপনি Smart Investor প্ল্যাটফর্মের সিনিয়র কমিউনিকেশন এডিটর। Admin-এর কাঁচা bangla voice/text note-কে একটি পেশাদার (professional), সুস্পষ্ট Bangla notice-এ পরিণত করুন — যেন এটি সরাসরি হাজার হাজার user-এর কাছে যাবে।
+
+কঠোর OUTPUT ফরম্যাট (ঠিক এই format ছাড়া কিছু না):
+Line 1: শিরোনাম: <৪-৮ শব্দের সংক্ষিপ্ত, শক্তিশালী বাংলা শিরোনাম>
+Line 2: (ফাঁকা)
+Line 3+: notice body — ২-৬ লাইন। প্রয়োজনে "•" bullet ব্যবহার করুন। প্রতিটি লাইন ছোট, স্পষ্ট, ভুল বানান/বিরাম ছাড়া।
+
+নিয়ম:
+- শুধু বাংলায় লিখুন (ব্র্যান্ড নাম যেমন bKash, Nagad, Telegram ইংরেজিতে থাকতে পারে)।
+- কোনো preface, markdown heading, code fence, quote, বা "এখানে notice দিলাম" জাতীয় কথা নয়।
+- কল্পনা করে নতুন তথ্য, টাকার পরিমাণ, তারিখ, বা নিয়ম যোগ করবেন না — শুধু admin যা বলেছেন সেটাই পরিষ্কার করুন।
+- বানান, বিরামচিহ্ন, বাক্যগঠন ঠিক করুন। ইমোজি সর্বোচ্চ ১টি এবং শুধু শিরোনামে গ্রহণযোগ্য।
+- Tone: ${toneLine}
+- Body-তে শেষে করণীয় (call-to-action) বা যোগাযোগের নির্দেশ থাকলে ভালো।
+
+${ctx ? `\nপ্ল্যাটফর্ম প্রসঙ্গ (তথ্যের সাথে সামঞ্জস্য রাখুন, তবে নতুন কিছু বানাবেন না):\n${ctx}` : ""}`;
+
+  const userMsg = `Admin-এর কাঁচা note:\n"""${raw}"""\n\nউপরের কঠোর format অনুসরণ করে এটিকে পেশাদার Bangla notice-এ rewrite করুন।`;
+
+  let lastErr = "";
+  for (const model of NOTICE_MODELS) {
+    try {
+      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${lovableKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          temperature: 0.5,
+          max_tokens: 700,
+          messages: [
+            { role: "system", content: system },
+            { role: "user", content: userMsg },
+          ],
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        lastErr = `${model} → ${res.status}: ${text.slice(0, 200)}`;
+        console.warn("[notice-ai]", lastErr);
+        if (res.status === 429) throw new Error("AI সাময়িকভাবে ব্যস্ত — কিছুক্ষণ পরে আবার চেষ্টা করুন");
+        if (res.status === 402) throw new Error("AI ক্রেডিট শেষ — অ্যাডমিনকে জানান");
+        // 400/404/5xx → next model
+        continue;
+      }
+      const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+      const out = json.choices?.[0]?.message?.content?.trim();
+      if (out) return parseImprovedNotice(out);
+      lastErr = `${model} → empty response`;
+      console.warn("[notice-ai]", lastErr);
+    } catch (e) {
+      const msg = (e as Error).message;
+      if (msg.includes("ব্যস্ত") || msg.includes("ক্রেডিট")) throw e;
+      lastErr = `${model} → ${msg}`;
+      console.warn("[notice-ai] fetch error:", lastErr);
+    }
+  }
+
+  console.warn("[notice-ai] all models failed, falling back. lastErr=", lastErr);
+  return localNoticeFormat(raw);
 }
