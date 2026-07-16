@@ -1531,6 +1531,7 @@ export type Database = {
         Returns: number
       }
       package_active_user_count: { Args: { _pkg: string }; Returns: number }
+      package_task_quota: { Args: { _package_id: string }; Returns: number }
       packages_active_user_counts: {
         Args: never
         Returns: {
