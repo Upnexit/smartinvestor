@@ -507,9 +507,13 @@ function TaskDetailModal({
             <p className="text-center text-[11px] font-semibold text-slate-600">
               {!linkOpened
                 ? "প্রথমে উপরের লিংকে যান ও কাজ সম্পন্ন করুন"
-                : secondsLeft > 0
-                  ? `⏳ কাজ সম্পন্ন করুন — ${secondsLeft} সেকেন্ড পর Submit unlock হবে`
-                  : "কাজটি সম্পন্ন করলে সম্পন্ন করে Submit-এ ক্লিক করুন"}
+                : !returned
+                  ? "⏳ লিংকে কাজ সম্পন্ন করে এই tab-এ ফিরে আসুন"
+                  : !awayEnough
+                    ? "⚠️ লিংকে অন্তত ৫ সেকেন্ড সময় নিয়ে কাজ করুন, তারপর ফিরে আসুন"
+                    : secondsLeft > 0
+                      ? `⏳ যাচাই চলছে — ${secondsLeft} সেকেন্ড পর Submit unlock হবে`
+                      : "✓ এবার Submit বাটনে ক্লিক করুন"}
             </p>
             <button
               onClick={onSubmit}
