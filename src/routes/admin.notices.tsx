@@ -352,6 +352,11 @@ function NoticeFormModal({
   const [priority, setPriority] = useState<NoticePriority>(initial?.priority ?? "info");
   const [allUsers, setAllUsers] = useState(initial?.target_all_users ?? false);
   const [pkgIds, setPkgIds] = useState<string[]>(initial?.target_package_ids ?? []);
+  const [userIds, setUserIds] = useState<string[]>(initial?.target_user_ids ?? []);
+  const [userMeta, setUserMeta] = useState<Record<string, NoticeUserLookupRow>>({});
+  const [userQuery, setUserQuery] = useState("");
+  const [userResults, setUserResults] = useState<NoticeUserLookupRow[]>([]);
+  const [userSearching, setUserSearching] = useState(false);
   const [publishNow, setPublishNow] = useState(initial?.published ?? true);
   const [expiresAt, setExpiresAt] = useState<string>(initial?.expires_at ? initial.expires_at.slice(0, 10) : "");
 
@@ -368,9 +373,33 @@ function NoticeFormModal({
 
   const saveFn = useServerFn(saveNotice);
   const improveFn = useServerFn(improveNoticeText);
+  const lookupFn = useServerFn(lookupUsersForNotice);
 
   function togglePkg(id: string) {
     setPkgIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  }
+
+  function addUser(u: NoticeUserLookupRow) {
+    setUserIds((prev) => prev.includes(u.id) ? prev : [...prev, u.id]);
+    setUserMeta((prev) => ({ ...prev, [u.id]: u }));
+    setUserQuery("");
+    setUserResults([]);
+  }
+  function removeUser(id: string) {
+    setUserIds((prev) => prev.filter((x) => x !== id));
+  }
+  async function runUserSearch() {
+    const q = userQuery.trim();
+    if (!q) { setUserResults([]); return; }
+    setUserSearching(true);
+    try {
+      const r = await lookupFn({ data: { query: q } });
+      setUserResults(r.users);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setUserSearching(false);
+    }
   }
 
   function startVoice() {
