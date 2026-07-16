@@ -6,8 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   listAdminNotices, saveNotice, deleteNotice, togglePublishNotice, improveNoticeText, resendNoticeToTelegram,
-  listNoticeDeletionLog,
-  type NoticeRow, type NoticePriority, type NoticeDeletionLogRow,
+  listNoticeDeletionLog, lookupUsersForNotice,
+  type NoticeRow, type NoticePriority, type NoticeDeletionLogRow, type NoticeUserLookupRow,
 } from "@/lib/notices.functions";
 import { sendPushSelfTest } from "@/lib/push.functions";
 import { usePushSubscribe } from "@/hooks/use-push-subscribe";
@@ -352,6 +352,11 @@ function NoticeFormModal({
   const [priority, setPriority] = useState<NoticePriority>(initial?.priority ?? "info");
   const [allUsers, setAllUsers] = useState(initial?.target_all_users ?? false);
   const [pkgIds, setPkgIds] = useState<string[]>(initial?.target_package_ids ?? []);
+  const [userIds, setUserIds] = useState<string[]>(initial?.target_user_ids ?? []);
+  const [userMeta, setUserMeta] = useState<Record<string, NoticeUserLookupRow>>({});
+  const [userQuery, setUserQuery] = useState("");
+  const [userResults, setUserResults] = useState<NoticeUserLookupRow[]>([]);
+  const [userSearching, setUserSearching] = useState(false);
   const [publishNow, setPublishNow] = useState(initial?.published ?? true);
   const [expiresAt, setExpiresAt] = useState<string>(initial?.expires_at ? initial.expires_at.slice(0, 10) : "");
 
@@ -368,9 +373,33 @@ function NoticeFormModal({
 
   const saveFn = useServerFn(saveNotice);
   const improveFn = useServerFn(improveNoticeText);
+  const lookupFn = useServerFn(lookupUsersForNotice);
 
   function togglePkg(id: string) {
     setPkgIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  }
+
+  function addUser(u: NoticeUserLookupRow) {
+    setUserIds((prev) => prev.includes(u.id) ? prev : [...prev, u.id]);
+    setUserMeta((prev) => ({ ...prev, [u.id]: u }));
+    setUserQuery("");
+    setUserResults([]);
+  }
+  function removeUser(id: string) {
+    setUserIds((prev) => prev.filter((x) => x !== id));
+  }
+  async function runUserSearch() {
+    const q = userQuery.trim();
+    if (!q) { setUserResults([]); return; }
+    setUserSearching(true);
+    try {
+      const r = await lookupFn({ data: { query: q } });
+      setUserResults(r.users);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setUserSearching(false);
+    }
   }
 
   function startVoice() {
@@ -417,7 +446,10 @@ function NoticeFormModal({
 
   async function submit() {
     if (!title.trim() || !body.trim()) { setError("Title ও body আবশ্যক"); return; }
-    if (!allUsers && pkgIds.length === 0) { setError("অন্তত একটি package select করুন অথবা 'সব user' চিহ্নিত করুন"); return; }
+    if (!allUsers && pkgIds.length === 0 && userIds.length === 0) {
+      setError("অন্তত একটি package বা user select করুন অথবা 'সব user' চিহ্নিত করুন");
+      return;
+    }
     setSaving(true); setError(null);
     try {
       const r = await saveFn({ data: {
@@ -426,6 +458,7 @@ function NoticeFormModal({
         body: body.trim(),
         priority,
         target_package_ids: pkgIds,
+        target_user_ids: userIds,
         target_all_users: allUsers,
         published: publishNow,
         expires_at: expiresAt ? new Date(expiresAt + "T23:59:59").toISOString() : null,
@@ -542,7 +575,70 @@ function NoticeFormModal({
                 ))}
               </div>
             )}
+
+            {!allUsers && (
+              <div className="mt-3 rounded-xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-sky-50 p-3">
+                <p className="text-[11px] font-bold text-indigo-800 mb-1.5">
+                  🎯 নির্দিষ্ট user-কে পাঠান (ID / user code / phone / email / নাম দিয়ে খুঁজুন)
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    value={userQuery}
+                    onChange={(e) => setUserQuery(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); runUserSearch(); } }}
+                    placeholder="যেমন: SI-12345, 017xxxxxxxx, নাম বা email"
+                    className="flex-1 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm"
+                  />
+                  <button type="button" onClick={runUserSearch} disabled={userSearching || !userQuery.trim()}
+                    className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 text-white px-3 py-2 text-xs font-bold disabled:opacity-60">
+                    {userSearching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "খুঁজুন"}
+                  </button>
+                </div>
+
+                {userResults.length > 0 && (
+                  <div className="mt-2 max-h-40 overflow-y-auto rounded-lg bg-white ring-1 ring-indigo-100 divide-y divide-slate-100">
+                    {userResults.map((u) => {
+                      const selected = userIds.includes(u.id);
+                      return (
+                        <button key={u.id} type="button" onClick={() => addUser(u)} disabled={selected}
+                          className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between gap-2 ${selected ? "bg-emerald-50 text-emerald-700" : "hover:bg-indigo-50"}`}>
+                          <span className="min-w-0">
+                            <span className="font-bold">{u.full_name || "নামহীন"}</span>{" "}
+                            <span className="text-slate-500">· {u.user_code}</span>
+                            {u.phone && <span className="text-slate-400"> · {u.phone}</span>}
+                          </span>
+                          <span className="shrink-0 text-[10px] font-bold">
+                            {selected ? "✓ যোগ হয়েছে" : "+ যোগ"}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {userIds.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-[10px] font-bold text-slate-600 mb-1">নির্বাচিত ({userIds.length}):</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {userIds.map((id) => {
+                        const meta = userMeta[id];
+                        const label = meta ? `${meta.user_code}${meta.full_name ? ` · ${meta.full_name}` : ""}` : id.slice(0, 8);
+                        return (
+                          <span key={id} className="inline-flex items-center gap-1 rounded-full bg-indigo-600 text-white px-2 py-0.5 text-[10px] font-bold">
+                            {label}
+                            <button type="button" onClick={() => removeUser(id)} className="hover:bg-white/20 rounded-full p-0.5">
+                              <X className="h-2.5 w-2.5" />
+                            </button>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
+
 
           {/* Options */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

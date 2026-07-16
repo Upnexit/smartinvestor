@@ -236,6 +236,46 @@ export const improveNoticeText = createServerFn({ method: "POST" })
     return improveNoticeTextWithAI(data.raw, data.priority);
   });
 
+/* -------------------- USER LOOKUP (for single-user targeting) -------------------- */
+
+export type NoticeUserLookupRow = {
+  id: string;
+  user_code: string;
+  full_name: string | null;
+  phone: string | null;
+  email: string | null;
+};
+
+export const lookupUsersForNotice = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { query: string }) => ({
+    query: String(d.query ?? "").slice(0, 100).trim(),
+  }))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const q = data.query;
+    if (!q) return { users: [] as NoticeUserLookupRow[] };
+
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(q);
+    const like = `%${q.replace(/[%_]/g, (m) => `\\${m}`)}%`;
+
+    const orParts = [
+      `user_code.ilike.${like}`,
+      `phone.ilike.${like}`,
+      `email.ilike.${like}`,
+      `full_name.ilike.${like}`,
+    ];
+    if (isUuid) orParts.push(`id.eq.${q}`);
+
+    const { data: rows, error } = await context.supabase
+      .from("profiles")
+      .select("id, user_code, full_name, phone, email")
+      .or(orParts.join(","))
+      .limit(20);
+    if (error) throw new Error(error.message);
+    return { users: (rows ?? []) as NoticeUserLookupRow[] };
+  });
+
 /* ------------------------ AUTO-DELETION LOG ------------------------ */
 
 export type NoticeDeletionLogRow = {
