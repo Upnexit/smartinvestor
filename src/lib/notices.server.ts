@@ -158,8 +158,8 @@ ${ctx ? `\nপ্ল্যাটফর্ম প্রসঙ্গ (শুধু
         },
         body: JSON.stringify({
           model,
-          temperature: 0.5,
-          max_tokens: 700,
+          temperature: 0.3,
+          max_tokens: 350,
           messages: [
             { role: "system", content: system },
             { role: "user", content: userMsg },
