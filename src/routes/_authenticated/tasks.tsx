@@ -72,8 +72,13 @@ function TasksPage() {
       const activePackages = (up ?? []) as ActivePackage[];
       const activePkgIds = activePackages.map((r) => r.package_id);
       setHasActivePkg(activePkgIds.length > 0);
-      // Fetch tasks: either unrestricted (null) OR restricted to one of user's active packages
-      let tq = supabase.from("link_tasks").select("*").eq("active", true).order("created_at", { ascending: false });
+      // Fetch tasks: শুধু আজকের scheduled_date (BD) — পুরনো দিনের active task দেখালে
+      // user সেগুলো submit করতে গিয়ে UNIQUE(user_id, task_id) constraint hit করত।
+      const today = todayBD();
+      let tq = supabase.from("link_tasks").select("*")
+        .eq("active", true)
+        .eq("scheduled_date", today)
+        .order("created_at", { ascending: false });
       if (activePkgIds.length > 0) {
         const list = activePkgIds.map((id) => `"${id}"`).join(",");
         tq = tq.or(`required_package_id.is.null,required_package_id.in.(${list})`);
@@ -81,7 +86,13 @@ function TasksPage() {
         tq = tq.is("required_package_id", null);
       }
       const { data: t } = await tq;
-      const allTasks = ((t ?? []) as Task[]).filter((task) => !task.is_draft);
+      const submittedTaskIds = new Set(((s ?? []) as Submission[])
+        .filter((sub) => sub.status !== "rejected")
+        .map((sub) => sub.task_id));
+      const allTasks = ((t ?? []) as Task[])
+        .filter((task) => !task.is_draft)
+        // Extra safety: exclude any task the user already has a non-rejected submission for
+        .filter((task) => !submittedTaskIds.has(task.id));
       const preferredPackage = activePackages
         .slice()
         .sort((a, b) => quotaForPackage(b) - quotaForPackage(a))[0];
