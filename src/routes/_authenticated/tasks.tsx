@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   ListChecks, ExternalLink, ThumbsUp, MessageCircle, Share2, Eye,
@@ -361,18 +361,35 @@ function TaskDetailModal({
   const meta = ACTION_META[task.action_type] ?? ACTION_META.like;
   const Icon = meta.icon;
   const steps = parseSteps(task.description);
-  const [secondsLeft, setSecondsLeft] = useState(15);
+  const WAIT_SECONDS = 10;      // return-এর পর tab-এ থাকতে হবে
+  const MIN_AWAY_MS = 5000;     // লিংকে ন্যূনতম সময়
+  const TAP_GUARD_MS = 800;     // return-এর সাথে সাথে accidental tap block
+  const [secondsLeft, setSecondsLeft] = useState(WAIT_SECONDS);
   const [returned, setReturned] = useState(false);
+  const [awayEnough, setAwayEnough] = useState(false);
+  const [tapGuard, setTapGuard] = useState(false);
+  const hiddenAtRef = useRef<number | null>(null);
 
-  // Countdown after link opened
+  // Countdown শুধু tab visible + returned থাকা অবস্থায় ticks করে
   useEffect(() => {
-    if (!linkOpened) { setSecondsLeft(15); return; }
+    if (!linkOpened || !returned) return;
     if (secondsLeft <= 0) return;
     const t = setTimeout(() => setSecondsLeft((s) => s - 1), 1000);
     return () => clearTimeout(t);
-  }, [linkOpened, secondsLeft]);
+  }, [linkOpened, returned, secondsLeft]);
 
-  // Detect return to our tab + flash title
+  // Reset যখন নতুন task খোলা হয়
+  useEffect(() => {
+    if (!linkOpened) {
+      setSecondsLeft(WAIT_SECONDS);
+      setReturned(false);
+      setAwayEnough(false);
+      setTapGuard(false);
+      hiddenAtRef.current = null;
+    }
+  }, [linkOpened]);
+
+  // Visibility tracking + title flash
   useEffect(() => {
     if (!linkOpened) return;
     const originalTitle = document.title;
@@ -390,15 +407,28 @@ function TaskDetailModal({
       document.title = originalTitle;
     };
     const onVis = () => {
-      if (document.visibilityState === "hidden") { startFlash(); setReturned(false); }
-      else { stopFlash(); setReturned(true); }
+      if (document.visibilityState === "hidden") {
+        startFlash();
+        setReturned(false);
+        hiddenAtRef.current = Date.now();
+      } else {
+        stopFlash();
+        const awayMs = hiddenAtRef.current ? Date.now() - hiddenAtRef.current : 0;
+        if (awayMs >= MIN_AWAY_MS) {
+          setAwayEnough(true);
+          setReturned(true);
+          setSecondsLeft(WAIT_SECONDS); // ফিরে এসে fresh countdown
+          setTapGuard(true);
+          setTimeout(() => setTapGuard(false), TAP_GUARD_MS);
+        }
+      }
     };
     document.addEventListener("visibilitychange", onVis);
     startFlash();
     return () => { document.removeEventListener("visibilitychange", onVis); stopFlash(); };
   }, [linkOpened]);
 
-  const canSubmit = linkOpened && secondsLeft <= 0;
+  const canSubmit = linkOpened && returned && awayEnough && secondsLeft <= 0 && !tapGuard;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm p-0 sm:p-4">
@@ -477,9 +507,13 @@ function TaskDetailModal({
             <p className="text-center text-[11px] font-semibold text-slate-600">
               {!linkOpened
                 ? "প্রথমে উপরের লিংকে যান ও কাজ সম্পন্ন করুন"
-                : secondsLeft > 0
-                  ? `⏳ কাজ সম্পন্ন করুন — ${secondsLeft} সেকেন্ড পর Submit unlock হবে`
-                  : "কাজটি সম্পন্ন করলে সম্পন্ন করে Submit-এ ক্লিক করুন"}
+                : !returned
+                  ? "⏳ লিংকে কাজ সম্পন্ন করে এই tab-এ ফিরে আসুন"
+                  : !awayEnough
+                    ? "⚠️ লিংকে অন্তত ৫ সেকেন্ড সময় নিয়ে কাজ করুন, তারপর ফিরে আসুন"
+                    : secondsLeft > 0
+                      ? `⏳ যাচাই চলছে — ${secondsLeft} সেকেন্ড পর Submit unlock হবে`
+                      : "✓ এবার Submit বাটনে ক্লিক করুন"}
             </p>
             <button
               onClick={onSubmit}
