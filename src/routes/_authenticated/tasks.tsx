@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { startOfTodayBDISO } from "@/lib/bd-time";
+import { startOfTodayBDISO, todayBD } from "@/lib/bd-time";
 
 export const Route = createFileRoute("/_authenticated/tasks")({
   head: () => ({ meta: [{ title: "আজকের টাস্ক — Smart Investor" }] }),
