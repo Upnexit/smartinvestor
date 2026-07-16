@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, ArrowDownToLine, Package, ShieldCheck, CreditCard,
   ListChecks, MessagesSquare, BarChart3, Activity, Settings, User as UserIcon,
   LogOut, Menu, X, Search, ChevronRight, ChevronDown, Sparkles, Users2, Loader2, Smartphone, Megaphone,
-  CalendarDays,
+  CalendarDays, DatabaseBackup,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -36,6 +36,7 @@ export const ADMIN_NAV: NavItem[] = [
   { to: "/admin/app-installs", label: "অ্যাপ ইনস্টল",         Icon: Smartphone,      accent: "cyan" },
   { to: "/admin/monitor",      label: "সিস্টেম মনিটর",       Icon: Activity,        accent: "lime" },
   { to: "/admin/settings",     label: "হোমপেজ সেটিংস",       Icon: Settings,        accent: "teal" },
+  { to: "/admin/backup",       label: "ডেটা ব্যাকআপ",         Icon: DatabaseBackup,  accent: "emerald" },
   { to: "/admin/profile",      label: "অ্যাডমিন প্রোফাইল",     Icon: UserIcon,        accent: "slate" },
 ];
 

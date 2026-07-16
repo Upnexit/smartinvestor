@@ -44,6 +44,7 @@ import { Route as AdminNoticesRouteImport } from './routes/admin.notices'
 import { Route as AdminMonitorRouteImport } from './routes/admin.monitor'
 import { Route as AdminDistributorsRouteImport } from './routes/admin.distributors'
 import { Route as AdminCommunityRouteImport } from './routes/admin.community'
+import { Route as AdminBackupRouteImport } from './routes/admin.backup'
 import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
 import { Route as AdminAppInstallsRouteImport } from './routes/admin.app-installs'
 import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticated/withdraw'
@@ -242,6 +243,11 @@ const AdminCommunityRoute = AdminCommunityRouteImport.update({
   path: '/community',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminBackupRoute = AdminBackupRouteImport.update({
+  id: '/backup',
+  path: '/backup',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminApprovalsRoute = AdminApprovalsRouteImport.update({
   id: '/approvals',
   path: '/approvals',
@@ -387,6 +393,7 @@ export interface FileRoutesByFullPath {
   '/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/app-installs': typeof AdminAppInstallsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
+  '/admin/backup': typeof AdminBackupRoute
   '/admin/community': typeof AdminCommunityRoute
   '/admin/distributors': typeof AdminDistributorsRouteWithChildren
   '/admin/monitor': typeof AdminMonitorRoute
@@ -444,6 +451,7 @@ export interface FileRoutesByTo {
   '/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/app-installs': typeof AdminAppInstallsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
+  '/admin/backup': typeof AdminBackupRoute
   '/admin/community': typeof AdminCommunityRoute
   '/admin/monitor': typeof AdminMonitorRoute
   '/admin/notices': typeof AdminNoticesRoute
@@ -502,6 +510,7 @@ export interface FileRoutesById {
   '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/app-installs': typeof AdminAppInstallsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
+  '/admin/backup': typeof AdminBackupRoute
   '/admin/community': typeof AdminCommunityRoute
   '/admin/distributors': typeof AdminDistributorsRouteWithChildren
   '/admin/monitor': typeof AdminMonitorRoute
@@ -563,6 +572,7 @@ export interface FileRouteTypes {
     | '/withdraw'
     | '/admin/app-installs'
     | '/admin/approvals'
+    | '/admin/backup'
     | '/admin/community'
     | '/admin/distributors'
     | '/admin/monitor'
@@ -620,6 +630,7 @@ export interface FileRouteTypes {
     | '/withdraw'
     | '/admin/app-installs'
     | '/admin/approvals'
+    | '/admin/backup'
     | '/admin/community'
     | '/admin/monitor'
     | '/admin/notices'
@@ -677,6 +688,7 @@ export interface FileRouteTypes {
     | '/_authenticated/withdraw'
     | '/admin/app-installs'
     | '/admin/approvals'
+    | '/admin/backup'
     | '/admin/community'
     | '/admin/distributors'
     | '/admin/monitor'
@@ -978,6 +990,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCommunityRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/backup': {
+      id: '/admin/backup'
+      path: '/backup'
+      fullPath: '/admin/backup'
+      preLoaderRoute: typeof AdminBackupRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/approvals': {
       id: '/admin/approvals'
       path: '/approvals'
@@ -1228,6 +1247,7 @@ const AdminUsersRouteWithChildren = AdminUsersRoute._addFileChildren(
 interface AdminRouteChildren {
   AdminAppInstallsRoute: typeof AdminAppInstallsRoute
   AdminApprovalsRoute: typeof AdminApprovalsRoute
+  AdminBackupRoute: typeof AdminBackupRoute
   AdminCommunityRoute: typeof AdminCommunityRoute
   AdminDistributorsRoute: typeof AdminDistributorsRouteWithChildren
   AdminMonitorRoute: typeof AdminMonitorRoute
@@ -1248,6 +1268,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAppInstallsRoute: AdminAppInstallsRoute,
   AdminApprovalsRoute: AdminApprovalsRoute,
+  AdminBackupRoute: AdminBackupRoute,
   AdminCommunityRoute: AdminCommunityRoute,
   AdminDistributorsRoute: AdminDistributorsRouteWithChildren,
   AdminMonitorRoute: AdminMonitorRoute,
