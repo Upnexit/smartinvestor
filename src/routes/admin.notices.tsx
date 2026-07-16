@@ -446,7 +446,10 @@ function NoticeFormModal({
 
   async function submit() {
     if (!title.trim() || !body.trim()) { setError("Title ও body আবশ্যক"); return; }
-    if (!allUsers && pkgIds.length === 0) { setError("অন্তত একটি package select করুন অথবা 'সব user' চিহ্নিত করুন"); return; }
+    if (!allUsers && pkgIds.length === 0 && userIds.length === 0) {
+      setError("অন্তত একটি package বা user select করুন অথবা 'সব user' চিহ্নিত করুন");
+      return;
+    }
     setSaving(true); setError(null);
     try {
       const r = await saveFn({ data: {
@@ -455,6 +458,7 @@ function NoticeFormModal({
         body: body.trim(),
         priority,
         target_package_ids: pkgIds,
+        target_user_ids: userIds,
         target_all_users: allUsers,
         published: publishNow,
         expires_at: expiresAt ? new Date(expiresAt + "T23:59:59").toISOString() : null,
