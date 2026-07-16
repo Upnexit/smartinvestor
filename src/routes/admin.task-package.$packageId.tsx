@@ -158,10 +158,6 @@ function PackageTasksPage() {
     toast.success("ডিলিট"); load();
   };
   const toggleOne = async (t: Task) => {
-    if (t.is_draft && activeCount + 1 < daily) {
-      toast.error(`${pkg?.name ?? "এই package"}-এর জন্য ${daily}টি task একসাথে active করতে হবে। সব draft তৈরি করে "সব draft Activate" করুন।`);
-      return;
-    }
     const patch = t.is_draft ? { is_draft: false, active: true } : { active: !t.active };
     const { error } = await supabase.from("link_tasks").update(patch).eq("id", t.id);
     if (error) { toast.error(error.message); return; }
