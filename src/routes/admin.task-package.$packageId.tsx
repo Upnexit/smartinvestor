@@ -64,9 +64,7 @@ function PackageTasksPage() {
     setTasks((t ?? []) as Task[]);
     setActiveUserCount(Number(cnt ?? 0));
     if (p) {
-      const quota = fixedQuota(p as Pkg);
       if (!totalAmount) setTotalAmount(Number((p as Pkg).daily_income ?? 0));
-      setCount((current) => (current === 10 ? quota : current));
     }
   };
 
