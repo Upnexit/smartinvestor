@@ -6,8 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   listAdminNotices, saveNotice, deleteNotice, togglePublishNotice, improveNoticeText, resendNoticeToTelegram,
-  listNoticeDeletionLog,
-  type NoticeRow, type NoticePriority, type NoticeDeletionLogRow,
+  listNoticeDeletionLog, lookupUsersForNotice,
+  type NoticeRow, type NoticePriority, type NoticeDeletionLogRow, type NoticeUserLookupRow,
 } from "@/lib/notices.functions";
 import { sendPushSelfTest } from "@/lib/push.functions";
 import { usePushSubscribe } from "@/hooks/use-push-subscribe";
