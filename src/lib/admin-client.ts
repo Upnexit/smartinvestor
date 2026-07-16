@@ -93,7 +93,7 @@ export async function getUserBundle(userId: string) {
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
     supabase.from("user_packages").select("*, packages(name,price)").eq("user_id", userId).order("created_at", { ascending: false }),
     supabase.from("withdrawals").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
-    supabase.from("task_submissions").select("*, link_tasks(title,reward)").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
+    supabase.from("task_submissions").select("*, link_tasks(title,reward,action_type)").eq("user_id", userId).order("created_at", { ascending: false }).limit(2000),
     supabase.from("referral_earnings").select("*").eq("referrer_id", userId).order("created_at", { ascending: false }).limit(100),
     supabase.from("profiles").select("id,full_name,email,phone,user_code,created_at,total_earned").eq("referred_by", userId).order("created_at", { ascending: false }).limit(200),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("referred_by", userId),
