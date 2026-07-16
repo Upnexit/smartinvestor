@@ -66,6 +66,7 @@ import { Route as AdminTaskPackagePackageIdRouteImport } from './routes/admin.ta
 import { Route as AdminDistributorsIdRouteImport } from './routes/admin.distributors.$id'
 import { Route as AuthenticatedPackagesIdRouteImport } from './routes/_authenticated/packages.$id'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram.webhook'
+import { Route as ApiPublicHooksDailyBackupRouteImport } from './routes/api/public/hooks/daily-backup'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -355,6 +356,12 @@ const ApiPublicTelegramWebhookRoute =
     path: '/api/public/telegram/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksDailyBackupRoute =
+  ApiPublicHooksDailyBackupRouteImport.update({
+    id: '/api/public/hooks/daily-backup',
+    path: '/api/public/hooks/daily-backup',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -412,6 +419,7 @@ export interface FileRoutesByFullPath {
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
   '/admin/tasks/': typeof AdminTasksIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/api/public/hooks/daily-backup': typeof ApiPublicHooksDailyBackupRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -465,6 +473,7 @@ export interface FileRoutesByTo {
   '/admin/distributors': typeof AdminDistributorsIndexRoute
   '/admin/tasks': typeof AdminTasksIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
+  '/api/public/hooks/daily-backup': typeof ApiPublicHooksDailyBackupRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
 export interface FileRoutesById {
@@ -525,6 +534,7 @@ export interface FileRoutesById {
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
   '/admin/tasks/': typeof AdminTasksIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/api/public/hooks/daily-backup': typeof ApiPublicHooksDailyBackupRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
 export interface FileRouteTypes {
@@ -585,6 +595,7 @@ export interface FileRouteTypes {
     | '/admin/distributors/'
     | '/admin/tasks/'
     | '/admin/users/'
+    | '/api/public/hooks/daily-backup'
     | '/api/public/telegram/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -638,6 +649,7 @@ export interface FileRouteTypes {
     | '/admin/distributors'
     | '/admin/tasks'
     | '/admin/users'
+    | '/api/public/hooks/daily-backup'
     | '/api/public/telegram/webhook'
   id:
     | '__root__'
@@ -697,6 +709,7 @@ export interface FileRouteTypes {
     | '/admin/distributors/'
     | '/admin/tasks/'
     | '/admin/users/'
+    | '/api/public/hooks/daily-backup'
     | '/api/public/telegram/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -714,6 +727,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   RegisterRoute: typeof RegisterRoute
   TermsRoute: typeof TermsRoute
+  ApiPublicHooksDailyBackupRoute: typeof ApiPublicHooksDailyBackupRoute
   ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
 }
 
@@ -1118,6 +1132,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicTelegramWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/daily-backup': {
+      id: '/api/public/hooks/daily-backup'
+      path: '/api/public/hooks/daily-backup'
+      fullPath: '/api/public/hooks/daily-backup'
+      preLoaderRoute: typeof ApiPublicHooksDailyBackupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1288,6 +1309,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   RegisterRoute: RegisterRoute,
   TermsRoute: TermsRoute,
+  ApiPublicHooksDailyBackupRoute: ApiPublicHooksDailyBackupRoute,
   ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,
 }
 export const routeTree = rootRouteImport
