@@ -208,19 +208,9 @@ function UserDetailPage() {
           )}
         </SectionCard>
 
-        <SectionCard title="টাস্ক" Icon={ListChecks} accent="rose">
-          {data.tasks.length === 0 ? <p className="text-xs text-slate-500 text-center py-4">কোনো টাস্ক নেই</p> : (
-            <ul className="space-y-2 max-h-64 overflow-y-auto pr-1">
-              {data.tasks.map((t: { id: string; link_tasks?: { title?: string; reward?: number | string | null } | null }) => (
-                <li key={t.id} className="flex items-center justify-between rounded-xl ring-1 ring-rose-100 bg-rose-50/40 px-3 py-2 text-sm">
-                  <span className="truncate">{t.link_tasks?.title ?? "—"}</span>
-                  <span className="font-bold text-rose-700 shrink-0">৳{Number(t.link_tasks?.reward ?? 0)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </SectionCard>
+        <TaskHistorySection tasks={data.tasks as TaskRow[]} />
       </div>
+
 
       {/* BOTTOM: Withdraw (full width) */}
       <SectionCard title={`উইথড্র (মোট ৳${totalWithdrawn.toFixed(0)} অনুমোদিত)`} Icon={ArrowDownToLine} accent="emerald">
