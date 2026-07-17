@@ -41,6 +41,7 @@ export function DistributorFormModal({
     phone: "", payment_method: "bkash", payment_number: "",
     district: "", thana: "", address: "",
     commission_rate: 5, notes: "", balance: 0,
+    can_manage_withdrawals: false,
   });
   const [showPw, setShowPw] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -62,6 +63,7 @@ export function DistributorFormModal({
         commission_rate: editing.commission_rate ?? 5,
         notes: editing.notes ?? "",
         balance: Number(editing.balance ?? 0),
+        can_manage_withdrawals: !!editing.can_manage_withdrawals,
       });
     } else {
       setForm({
@@ -77,10 +79,11 @@ export function DistributorFormModal({
         commission_rate: 5,
         notes: prefill?.notes ?? "",
         balance: initialBalance ?? 0,
+        can_manage_withdrawals: false,
       });
     }
     setShowPw(false); setCopied(false);
-  }, [editing, open, prefill, initialPassword]);
+  }, [editing, open, prefill, initialPassword, initialBalance]);
 
   // Form completion meter
   const completion = useMemo(() => {
