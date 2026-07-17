@@ -451,7 +451,7 @@ function DailyReportPage() {
                                 {fmtTime(s.created_at)} • {new Date(s.created_at).toLocaleDateString("bn-BD")}
                               </p>
                             </div>
-                            <span className="text-xs font-bold text-fuchsia-700">৳{Number(s.reward_credited ?? s.task_reward).toFixed(2)}</span>
+                            <span className="text-xs font-bold text-fuchsia-700">৳{(Number(s.reward_credited) > 0 ? Number(s.reward_credited) : Number(s.task_reward)).toFixed(2)}</span>
                           </div>
                         ))}
                       </div>
