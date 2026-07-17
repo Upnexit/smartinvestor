@@ -212,11 +212,11 @@ function DistWithdrawalsPage() {
                   </div>
                   {r.status === "pending" && (
                     <div className="mt-3 flex flex-wrap justify-end gap-2">
-                      <SoftButton onClick={() => { setReject(r); setReason(""); }} accent="rose" disabled={busy === r.id}>
+                      <SoftButton onClick={() => { setReject(r); setReason(""); }} accent="rose">
                         <X className="h-3.5 w-3.5" /> রিজেক্ট
                       </SoftButton>
-                      <GradientButton accent="emerald" onClick={() => handleApprove(r.id)} disabled={busy === r.id}>
-                        {busy === r.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />} অ্যাপ্রুভ
+                      <GradientButton accent="emerald" onClick={() => handleApprove(r.id)} disabled={busy === r.id} busy={busy === r.id}>
+                        <Check className="h-3.5 w-3.5" /> অ্যাপ্রুভ
                       </GradientButton>
                     </div>
                   )}
