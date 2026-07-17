@@ -366,6 +366,7 @@ export type Database = {
         Row: {
           address: string | null
           balance: number
+          can_manage_withdrawals: boolean
           commission_rate: number
           created_at: string
           created_by: string | null
@@ -388,6 +389,7 @@ export type Database = {
         Insert: {
           address?: string | null
           balance?: number
+          can_manage_withdrawals?: boolean
           commission_rate?: number
           created_at?: string
           created_by?: string | null
@@ -410,6 +412,7 @@ export type Database = {
         Update: {
           address?: string | null
           balance?: number
+          can_manage_withdrawals?: boolean
           commission_rate?: number
           created_at?: string
           created_by?: string | null
@@ -1471,6 +1474,7 @@ export type Database = {
         Returns: {
           address: string | null
           balance: number
+          can_manage_withdrawals: boolean
           commission_rate: number
           created_at: string
           created_by: string | null
@@ -1503,6 +1507,10 @@ export type Database = {
       }
       auto_send_missed_task_notices: { Args: never; Returns: number }
       cleanup_old_link_tasks: { Args: never; Returns: number }
+      distributor_can_manage_withdrawals: {
+        Args: { _uid: string }
+        Returns: boolean
+      }
       distributor_stats: { Args: { _user_id: string }; Returns: Json }
       expire_user_packages: { Args: never; Returns: undefined }
       has_role: {
