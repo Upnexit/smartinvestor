@@ -31,6 +31,10 @@ type Task = {
 type ActivePackage = { package_id: string; packages?: { name?: string | null; daily_tasks?: number | null } | null };
 
 function quotaForPackage(pkg: ActivePackage) {
+  // Admin-এর সেট করা daily_tasks কে সর্বোচ্চ priority দাও — যাতে admin ১০টা দিলে ১০টাই যায়।
+  const dbLimit = Number(pkg.packages?.daily_tasks);
+  if (Number.isFinite(dbLimit) && dbLimit > 0) return Math.floor(dbLimit);
+  // Fallback (পুরনো প্যাকেজ যেখানে daily_tasks সেট নেই)
   return (pkg.packages?.name ?? "").toLowerCase().includes("crazy") ? 5 : 10;
 }
 
@@ -362,11 +366,9 @@ function TaskDetailModal({
   const Icon = meta.icon;
   const steps = parseSteps(task.description);
   const WAIT_SECONDS = 10;      // return-এর পর tab-এ থাকতে হবে
-  const MIN_AWAY_MS = 5000;     // লিংকে ন্যূনতম সময়
   const TAP_GUARD_MS = 800;     // return-এর সাথে সাথে accidental tap block
   const [secondsLeft, setSecondsLeft] = useState(WAIT_SECONDS);
   const [returned, setReturned] = useState(false);
-  const [awayEnough, setAwayEnough] = useState(false);
   const [tapGuard, setTapGuard] = useState(false);
   const hiddenAtRef = useRef<number | null>(null);
 
@@ -383,7 +385,6 @@ function TaskDetailModal({
     if (!linkOpened) {
       setSecondsLeft(WAIT_SECONDS);
       setReturned(false);
-      setAwayEnough(false);
       setTapGuard(false);
       hiddenAtRef.current = null;
     }
@@ -413,14 +414,12 @@ function TaskDetailModal({
         hiddenAtRef.current = Date.now();
       } else {
         stopFlash();
-        const awayMs = hiddenAtRef.current ? Date.now() - hiddenAtRef.current : 0;
-        if (awayMs >= MIN_AWAY_MS) {
-          setAwayEnough(true);
-          setReturned(true);
-          setSecondsLeft(WAIT_SECONDS); // ফিরে এসে fresh countdown
-          setTapGuard(true);
-          setTimeout(() => setTapGuard(false), TAP_GUARD_MS);
-        }
+        // ban/unavailable account থেকে দ্রুত ফিরে আসলেও Submit unlock হবে —
+        // ১০ সেকেন্ড countdown-ই যাচাইয়ের জন্য যথেষ্ট।
+        setReturned(true);
+        setSecondsLeft(WAIT_SECONDS);
+        setTapGuard(true);
+        setTimeout(() => setTapGuard(false), TAP_GUARD_MS);
       }
     };
     document.addEventListener("visibilitychange", onVis);
@@ -428,7 +427,7 @@ function TaskDetailModal({
     return () => { document.removeEventListener("visibilitychange", onVis); stopFlash(); };
   }, [linkOpened]);
 
-  const canSubmit = linkOpened && returned && awayEnough && secondsLeft <= 0 && !tapGuard;
+  const canSubmit = linkOpened && returned && secondsLeft <= 0 && !tapGuard;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm p-0 sm:p-4">
@@ -509,11 +508,9 @@ function TaskDetailModal({
                 ? "প্রথমে উপরের লিংকে যান ও কাজ সম্পন্ন করুন"
                 : !returned
                   ? "⏳ লিংকে কাজ সম্পন্ন করে এই tab-এ ফিরে আসুন"
-                  : !awayEnough
-                    ? "⚠️ লিংকে অন্তত ৫ সেকেন্ড সময় নিয়ে কাজ করুন, তারপর ফিরে আসুন"
-                    : secondsLeft > 0
-                      ? `⏳ যাচাই চলছে — ${secondsLeft} সেকেন্ড পর Submit unlock হবে`
-                      : "✓ এবার Submit বাটনে ক্লিক করুন"}
+                  : secondsLeft > 0
+                    ? `⏳ যাচাই চলছে — ${secondsLeft} সেকেন্ড পর Submit unlock হবে`
+                    : "✓ এবার Submit বাটনে ক্লিক করুন"}
             </p>
             <button
               onClick={onSubmit}
