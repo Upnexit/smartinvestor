@@ -2,7 +2,7 @@ import { useState, useEffect, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, Wallet, User as UserIcon, MessagesSquare,
-  LogOut, Menu, X, ChevronRight, Sparkles, ArrowDownToLine, ListChecks, Users2, HeadphonesIcon,
+  LogOut, Menu, X, ChevronRight, Sparkles, ArrowDownToLine, ListChecks, Users2, Headphones,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
