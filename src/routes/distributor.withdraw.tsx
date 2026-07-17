@@ -32,7 +32,7 @@ const BRAND: Record<Method, { name: string; from: string; to: string }> = {
   rocket: { name: "Rocket", from: "from-purple-500",  to: "to-fuchsia-700" },
 };
 
-const MIN_WITHDRAW = 500;
+const MIN_WITHDRAW = 100;
 
 function DistWithdrawPage() {
   const [balance, setBalance] = useState(0);
