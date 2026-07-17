@@ -32,6 +32,7 @@ type DistributorInput = {
   initial_balance?: number;
   application_id?: string;
   balance?: number | null;
+  locked_balance?: number | null;
   can_manage_withdrawals?: boolean;
 };
 
