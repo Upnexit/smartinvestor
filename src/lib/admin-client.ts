@@ -186,6 +186,9 @@ function normalizeDistributorPatch(input: DistributorInput) {
   if (input.balance !== undefined && input.balance !== null) {
     base.balance = Math.max(Number(input.balance) || 0, 0);
   }
+  if (input.locked_balance !== undefined && input.locked_balance !== null) {
+    base.locked_balance = Math.max(Number(input.locked_balance) || 0, 0);
+  }
   if (input.can_manage_withdrawals !== undefined) {
     base.can_manage_withdrawals = !!input.can_manage_withdrawals;
   }
