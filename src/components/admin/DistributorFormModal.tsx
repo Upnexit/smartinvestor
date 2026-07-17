@@ -64,6 +64,7 @@ export function DistributorFormModal({
         commission_rate: editing.commission_rate ?? 5,
         notes: editing.notes ?? "",
         balance: Number(editing.balance ?? 0),
+        locked_balance: Number(editing.locked_balance ?? 0),
         can_manage_withdrawals: !!editing.can_manage_withdrawals,
       });
     } else {
