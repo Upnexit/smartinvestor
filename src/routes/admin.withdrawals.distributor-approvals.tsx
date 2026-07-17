@@ -50,6 +50,7 @@ function DistributorApprovalsPage() {
   const [rows, setRows] = useState<Row[]>([]);
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [view, setView] = useState<"grouped" | "flat">("grouped");
 
   useEffect(() => {
     let cancelled = false;
