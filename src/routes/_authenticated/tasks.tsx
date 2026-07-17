@@ -366,11 +366,9 @@ function TaskDetailModal({
   const Icon = meta.icon;
   const steps = parseSteps(task.description);
   const WAIT_SECONDS = 10;      // return-এর পর tab-এ থাকতে হবে
-  const MIN_AWAY_MS = 5000;     // লিংকে ন্যূনতম সময়
   const TAP_GUARD_MS = 800;     // return-এর সাথে সাথে accidental tap block
   const [secondsLeft, setSecondsLeft] = useState(WAIT_SECONDS);
   const [returned, setReturned] = useState(false);
-  const [awayEnough, setAwayEnough] = useState(false);
   const [tapGuard, setTapGuard] = useState(false);
   const hiddenAtRef = useRef<number | null>(null);
 
