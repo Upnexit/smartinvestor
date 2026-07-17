@@ -15,6 +15,7 @@ type DistributorRow = {
   district: string | null; thana: string | null; address: string | null;
   commission_rate: number; status: string; notes: string | null;
   balance?: number | null;
+  can_manage_withdrawals?: boolean | null;
 };
 
 const PAYMENT_OPTIONS = [
@@ -40,6 +41,7 @@ export function DistributorFormModal({
     phone: "", payment_method: "bkash", payment_number: "",
     district: "", thana: "", address: "",
     commission_rate: 5, notes: "", balance: 0,
+    can_manage_withdrawals: false,
   });
   const [showPw, setShowPw] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -61,6 +63,7 @@ export function DistributorFormModal({
         commission_rate: editing.commission_rate ?? 5,
         notes: editing.notes ?? "",
         balance: Number(editing.balance ?? 0),
+        can_manage_withdrawals: !!editing.can_manage_withdrawals,
       });
     } else {
       setForm({
@@ -76,10 +79,11 @@ export function DistributorFormModal({
         commission_rate: 5,
         notes: prefill?.notes ?? "",
         balance: initialBalance ?? 0,
+        can_manage_withdrawals: false,
       });
     }
     setShowPw(false); setCopied(false);
-  }, [editing, open, prefill, initialPassword]);
+  }, [editing, open, prefill, initialPassword, initialBalance]);
 
   // Form completion meter
   const completion = useMemo(() => {
@@ -400,7 +404,29 @@ export function DistributorFormModal({
               </div>
             </div>
           </Section>
+
+          {/* ─── Permissions ─── */}
+          <Section icon={<ShieldCheck className="h-4 w-4" />} title="বিশেষ অনুমতি" accent="violet">
+            <label className={`flex cursor-pointer items-start gap-3 rounded-xl border-2 p-3 transition ${form.can_manage_withdrawals ? "border-emerald-400 bg-emerald-50/60" : "border-slate-200 bg-white hover:bg-slate-50"}`}>
+              <input
+                type="checkbox"
+                checked={form.can_manage_withdrawals}
+                onChange={(e) => setForm({ ...form, can_manage_withdrawals: e.target.checked })}
+                className="mt-0.5 h-5 w-5 accent-emerald-600"
+              />
+              <span className="flex-1">
+                <span className="block text-sm font-bold text-slate-800">উইথড্র রিকোয়েস্ট ম্যানেজমেন্ট অ্যাক্সেস</span>
+                <span className="mt-0.5 block text-[11px] text-slate-500">
+                  এটি চালু করলে এই ডিস্ট্রিবিউটর তাঁর প্যানেল থেকে সকল ইউজারের উইথড্র রিকোয়েস্ট দেখতে ও অ্যাপ্রুভ/রিজেক্ট করতে পারবেন — অ্যাডমিনের মতোই।
+                </span>
+              </span>
+              <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${form.can_manage_withdrawals ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-600"}`}>
+                {form.can_manage_withdrawals ? "চালু" : "বন্ধ"}
+              </span>
+            </label>
+          </Section>
         </form>
+
 
         {/* Footer */}
         <div className="border-t border-slate-100 bg-slate-50/60 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

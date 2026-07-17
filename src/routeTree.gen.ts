@@ -24,6 +24,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DistributorIndexRouteImport } from './routes/distributor.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as DistributorWithdrawalsRouteImport } from './routes/distributor.withdrawals'
 import { Route as DistributorWithdrawRouteImport } from './routes/distributor.withdraw'
 import { Route as DistributorUsersRouteImport } from './routes/distributor.users'
 import { Route as DistributorTasksRouteImport } from './routes/distributor.tasks'
@@ -142,6 +143,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const DistributorWithdrawalsRoute = DistributorWithdrawalsRouteImport.update({
+  id: '/withdrawals',
+  path: '/withdrawals',
+  getParentRoute: () => DistributorRoute,
 } as any)
 const DistributorWithdrawRoute = DistributorWithdrawRouteImport.update({
   id: '/withdraw',
@@ -414,6 +420,7 @@ export interface FileRoutesByFullPath {
   '/distributor/tasks': typeof DistributorTasksRoute
   '/distributor/users': typeof DistributorUsersRoute
   '/distributor/withdraw': typeof DistributorWithdrawRoute
+  '/distributor/withdrawals': typeof DistributorWithdrawalsRoute
   '/admin/': typeof AdminIndexRoute
   '/distributor/': typeof DistributorIndexRoute
   '/packages/$id': typeof AuthenticatedPackagesIdRoute
@@ -469,6 +476,7 @@ export interface FileRoutesByTo {
   '/distributor/tasks': typeof DistributorTasksRoute
   '/distributor/users': typeof DistributorUsersRoute
   '/distributor/withdraw': typeof DistributorWithdrawRoute
+  '/distributor/withdrawals': typeof DistributorWithdrawalsRoute
   '/admin': typeof AdminIndexRoute
   '/distributor': typeof DistributorIndexRoute
   '/packages/$id': typeof AuthenticatedPackagesIdRoute
@@ -531,6 +539,7 @@ export interface FileRoutesById {
   '/distributor/tasks': typeof DistributorTasksRoute
   '/distributor/users': typeof DistributorUsersRoute
   '/distributor/withdraw': typeof DistributorWithdrawRoute
+  '/distributor/withdrawals': typeof DistributorWithdrawalsRoute
   '/admin/': typeof AdminIndexRoute
   '/distributor/': typeof DistributorIndexRoute
   '/_authenticated/packages/$id': typeof AuthenticatedPackagesIdRoute
@@ -593,6 +602,7 @@ export interface FileRouteTypes {
     | '/distributor/tasks'
     | '/distributor/users'
     | '/distributor/withdraw'
+    | '/distributor/withdrawals'
     | '/admin/'
     | '/distributor/'
     | '/packages/$id'
@@ -648,6 +658,7 @@ export interface FileRouteTypes {
     | '/distributor/tasks'
     | '/distributor/users'
     | '/distributor/withdraw'
+    | '/distributor/withdrawals'
     | '/admin'
     | '/distributor'
     | '/packages/$id'
@@ -709,6 +720,7 @@ export interface FileRouteTypes {
     | '/distributor/tasks'
     | '/distributor/users'
     | '/distributor/withdraw'
+    | '/distributor/withdrawals'
     | '/admin/'
     | '/distributor/'
     | '/_authenticated/packages/$id'
@@ -849,6 +861,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/distributor/withdrawals': {
+      id: '/distributor/withdrawals'
+      path: '/withdrawals'
+      fullPath: '/distributor/withdrawals'
+      preLoaderRoute: typeof DistributorWithdrawalsRouteImport
+      parentRoute: typeof DistributorRoute
     }
     '/distributor/withdraw': {
       id: '/distributor/withdraw'
@@ -1296,6 +1315,7 @@ interface DistributorRouteChildren {
   DistributorTasksRoute: typeof DistributorTasksRoute
   DistributorUsersRoute: typeof DistributorUsersRoute
   DistributorWithdrawRoute: typeof DistributorWithdrawRoute
+  DistributorWithdrawalsRoute: typeof DistributorWithdrawalsRoute
   DistributorIndexRoute: typeof DistributorIndexRoute
   DistributorTaskPackagePackageIdRoute: typeof DistributorTaskPackagePackageIdRoute
 }
@@ -1308,6 +1328,7 @@ const DistributorRouteChildren: DistributorRouteChildren = {
   DistributorTasksRoute: DistributorTasksRoute,
   DistributorUsersRoute: DistributorUsersRoute,
   DistributorWithdrawRoute: DistributorWithdrawRoute,
+  DistributorWithdrawalsRoute: DistributorWithdrawalsRoute,
   DistributorIndexRoute: DistributorIndexRoute,
   DistributorTaskPackagePackageIdRoute: DistributorTaskPackagePackageIdRoute,
 }
