@@ -32,7 +32,6 @@ import { Route as DistributorSupportRouteImport } from './routes/distributor.sup
 import { Route as DistributorProfileRouteImport } from './routes/distributor.profile'
 import { Route as DistributorLeadsRouteImport } from './routes/distributor.leads'
 import { Route as DistributorEarningsRouteImport } from './routes/distributor.earnings'
-import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTasksRouteImport } from './routes/admin.tasks'
 import { Route as AdminSupportRouteImport } from './routes/admin.support'
@@ -57,6 +56,7 @@ import { Route as AuthenticatedPackagesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCommunityRouteImport } from './routes/_authenticated/community'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
+import { Route as AdminWithdrawalsIndexRouteImport } from './routes/admin.withdrawals.index'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin.users.index'
 import { Route as AdminTasksIndexRouteImport } from './routes/admin.tasks.index'
 import { Route as AdminDistributorsIndexRouteImport } from './routes/admin.distributors.index'
@@ -184,11 +184,6 @@ const DistributorEarningsRoute = DistributorEarningsRouteImport.update({
   path: '/earnings',
   getParentRoute: () => DistributorRoute,
 } as any)
-const AdminWithdrawalsRoute = AdminWithdrawalsRouteImport.update({
-  id: '/withdrawals',
-  path: '/withdrawals',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -309,6 +304,11 @@ const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AdminWithdrawalsIndexRoute = AdminWithdrawalsIndexRouteImport.update({
+  id: '/withdrawals/',
+  path: '/withdrawals/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -412,7 +412,6 @@ export interface FileRoutesByFullPath {
   '/admin/support': typeof AdminSupportRoute
   '/admin/tasks': typeof AdminTasksRouteWithChildren
   '/admin/users': typeof AdminUsersRouteWithChildren
-  '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/distributor/earnings': typeof DistributorEarningsRoute
   '/distributor/leads': typeof DistributorLeadsRoute
   '/distributor/profile': typeof DistributorProfileRoute
@@ -433,6 +432,7 @@ export interface FileRoutesByFullPath {
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
   '/admin/tasks/': typeof AdminTasksIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/admin/withdrawals/': typeof AdminWithdrawalsIndexRoute
   '/api/public/hooks/daily-backup': typeof ApiPublicHooksDailyBackupRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
@@ -468,7 +468,6 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/support': typeof AdminSupportRoute
-  '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/distributor/earnings': typeof DistributorEarningsRoute
   '/distributor/leads': typeof DistributorLeadsRoute
   '/distributor/profile': typeof DistributorProfileRoute
@@ -489,6 +488,7 @@ export interface FileRoutesByTo {
   '/admin/distributors': typeof AdminDistributorsIndexRoute
   '/admin/tasks': typeof AdminTasksIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
+  '/admin/withdrawals': typeof AdminWithdrawalsIndexRoute
   '/api/public/hooks/daily-backup': typeof ApiPublicHooksDailyBackupRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
@@ -531,7 +531,6 @@ export interface FileRoutesById {
   '/admin/support': typeof AdminSupportRoute
   '/admin/tasks': typeof AdminTasksRouteWithChildren
   '/admin/users': typeof AdminUsersRouteWithChildren
-  '/admin/withdrawals': typeof AdminWithdrawalsRoute
   '/distributor/earnings': typeof DistributorEarningsRoute
   '/distributor/leads': typeof DistributorLeadsRoute
   '/distributor/profile': typeof DistributorProfileRoute
@@ -552,6 +551,7 @@ export interface FileRoutesById {
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
   '/admin/tasks/': typeof AdminTasksIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/admin/withdrawals/': typeof AdminWithdrawalsIndexRoute
   '/api/public/hooks/daily-backup': typeof ApiPublicHooksDailyBackupRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
@@ -594,7 +594,6 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/admin/tasks'
     | '/admin/users'
-    | '/admin/withdrawals'
     | '/distributor/earnings'
     | '/distributor/leads'
     | '/distributor/profile'
@@ -615,6 +614,7 @@ export interface FileRouteTypes {
     | '/admin/distributors/'
     | '/admin/tasks/'
     | '/admin/users/'
+    | '/admin/withdrawals/'
     | '/api/public/hooks/daily-backup'
     | '/api/public/telegram/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -650,7 +650,6 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/support'
-    | '/admin/withdrawals'
     | '/distributor/earnings'
     | '/distributor/leads'
     | '/distributor/profile'
@@ -671,6 +670,7 @@ export interface FileRouteTypes {
     | '/admin/distributors'
     | '/admin/tasks'
     | '/admin/users'
+    | '/admin/withdrawals'
     | '/api/public/hooks/daily-backup'
     | '/api/public/telegram/webhook'
   id:
@@ -712,7 +712,6 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/admin/tasks'
     | '/admin/users'
-    | '/admin/withdrawals'
     | '/distributor/earnings'
     | '/distributor/leads'
     | '/distributor/profile'
@@ -733,6 +732,7 @@ export interface FileRouteTypes {
     | '/admin/distributors/'
     | '/admin/tasks/'
     | '/admin/users/'
+    | '/admin/withdrawals/'
     | '/api/public/hooks/daily-backup'
     | '/api/public/telegram/webhook'
   fileRoutesById: FileRoutesById
@@ -918,13 +918,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DistributorEarningsRouteImport
       parentRoute: typeof DistributorRoute
     }
-    '/admin/withdrawals': {
-      id: '/admin/withdrawals'
-      path: '/withdrawals'
-      fullPath: '/admin/withdrawals'
-      preLoaderRoute: typeof AdminWithdrawalsRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/users': {
       id: '/admin/users'
       path: '/users'
@@ -1092,6 +1085,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/checkout'
       preLoaderRoute: typeof AuthenticatedCheckoutRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/admin/withdrawals/': {
+      id: '/admin/withdrawals/'
+      path: '/withdrawals'
+      fullPath: '/admin/withdrawals/'
+      preLoaderRoute: typeof AdminWithdrawalsIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/admin/users/': {
       id: '/admin/users/'
@@ -1279,9 +1279,9 @@ interface AdminRouteChildren {
   AdminSupportRoute: typeof AdminSupportRoute
   AdminTasksRoute: typeof AdminTasksRouteWithChildren
   AdminUsersRoute: typeof AdminUsersRouteWithChildren
-  AdminWithdrawalsRoute: typeof AdminWithdrawalsRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminTaskPackagePackageIdRoute: typeof AdminTaskPackagePackageIdRoute
+  AdminWithdrawalsIndexRoute: typeof AdminWithdrawalsIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -1300,9 +1300,9 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminSupportRoute: AdminSupportRoute,
   AdminTasksRoute: AdminTasksRouteWithChildren,
   AdminUsersRoute: AdminUsersRouteWithChildren,
-  AdminWithdrawalsRoute: AdminWithdrawalsRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminTaskPackagePackageIdRoute: AdminTaskPackagePackageIdRoute,
+  AdminWithdrawalsIndexRoute: AdminWithdrawalsIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)

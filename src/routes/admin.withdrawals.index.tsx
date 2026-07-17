@@ -16,7 +16,7 @@ import { useSearchHighlight } from "@/hooks/use-search-highlight";
 
 type WithdrawSearch = { q?: string; highlight?: string; filter?: string };
 
-export const Route = createFileRoute("/admin/withdrawals")({
+export const Route = createFileRoute("/admin/withdrawals/")({
   validateSearch: (s: Record<string, unknown>): WithdrawSearch => ({
     q: typeof s.q === "string" ? s.q : undefined,
     highlight: typeof s.highlight === "string" ? s.highlight : undefined,
