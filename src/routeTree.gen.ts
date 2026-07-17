@@ -62,6 +62,7 @@ import { Route as AdminUsersIndexRouteImport } from './routes/admin.users.index'
 import { Route as AdminTasksIndexRouteImport } from './routes/admin.tasks.index'
 import { Route as AdminDistributorsIndexRouteImport } from './routes/admin.distributors.index'
 import { Route as DistributorTaskPackagePackageIdRouteImport } from './routes/distributor.task-package.$packageId'
+import { Route as AdminWithdrawalsDistributorApprovalsRouteImport } from './routes/admin.withdrawals.distributor-approvals'
 import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
 import { Route as AdminTasksDistributorActivityRouteImport } from './routes/admin.tasks.distributor-activity'
 import { Route as AdminTasksDailyReportRouteImport } from './routes/admin.tasks.daily-report'
@@ -336,6 +337,12 @@ const DistributorTaskPackagePackageIdRoute =
     path: '/task-package/$packageId',
     getParentRoute: () => DistributorRoute,
   } as any)
+const AdminWithdrawalsDistributorApprovalsRoute =
+  AdminWithdrawalsDistributorApprovalsRouteImport.update({
+    id: '/distributor-approvals',
+    path: '/distributor-approvals',
+    getParentRoute: () => AdminWithdrawalsRoute,
+  } as any)
 const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -435,6 +442,7 @@ export interface FileRoutesByFullPath {
   '/admin/tasks/daily-report': typeof AdminTasksDailyReportRoute
   '/admin/tasks/distributor-activity': typeof AdminTasksDistributorActivityRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
+  '/admin/withdrawals/distributor-approvals': typeof AdminWithdrawalsDistributorApprovalsRoute
   '/distributor/task-package/$packageId': typeof DistributorTaskPackagePackageIdRoute
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
   '/admin/tasks/': typeof AdminTasksIndexRoute
@@ -491,6 +499,7 @@ export interface FileRoutesByTo {
   '/admin/tasks/daily-report': typeof AdminTasksDailyReportRoute
   '/admin/tasks/distributor-activity': typeof AdminTasksDistributorActivityRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
+  '/admin/withdrawals/distributor-approvals': typeof AdminWithdrawalsDistributorApprovalsRoute
   '/distributor/task-package/$packageId': typeof DistributorTaskPackagePackageIdRoute
   '/admin/distributors': typeof AdminDistributorsIndexRoute
   '/admin/tasks': typeof AdminTasksIndexRoute
@@ -555,6 +564,7 @@ export interface FileRoutesById {
   '/admin/tasks/daily-report': typeof AdminTasksDailyReportRoute
   '/admin/tasks/distributor-activity': typeof AdminTasksDistributorActivityRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
+  '/admin/withdrawals/distributor-approvals': typeof AdminWithdrawalsDistributorApprovalsRoute
   '/distributor/task-package/$packageId': typeof DistributorTaskPackagePackageIdRoute
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
   '/admin/tasks/': typeof AdminTasksIndexRoute
@@ -619,6 +629,7 @@ export interface FileRouteTypes {
     | '/admin/tasks/daily-report'
     | '/admin/tasks/distributor-activity'
     | '/admin/users/$id'
+    | '/admin/withdrawals/distributor-approvals'
     | '/distributor/task-package/$packageId'
     | '/admin/distributors/'
     | '/admin/tasks/'
@@ -675,6 +686,7 @@ export interface FileRouteTypes {
     | '/admin/tasks/daily-report'
     | '/admin/tasks/distributor-activity'
     | '/admin/users/$id'
+    | '/admin/withdrawals/distributor-approvals'
     | '/distributor/task-package/$packageId'
     | '/admin/distributors'
     | '/admin/tasks'
@@ -738,6 +750,7 @@ export interface FileRouteTypes {
     | '/admin/tasks/daily-report'
     | '/admin/tasks/distributor-activity'
     | '/admin/users/$id'
+    | '/admin/withdrawals/distributor-approvals'
     | '/distributor/task-package/$packageId'
     | '/admin/distributors/'
     | '/admin/tasks/'
@@ -1138,6 +1151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DistributorTaskPackagePackageIdRouteImport
       parentRoute: typeof DistributorRoute
     }
+    '/admin/withdrawals/distributor-approvals': {
+      id: '/admin/withdrawals/distributor-approvals'
+      path: '/distributor-approvals'
+      fullPath: '/admin/withdrawals/distributor-approvals'
+      preLoaderRoute: typeof AdminWithdrawalsDistributorApprovalsRouteImport
+      parentRoute: typeof AdminWithdrawalsRoute
+    }
     '/admin/users/$id': {
       id: '/admin/users/$id'
       path: '/$id'
@@ -1281,10 +1301,13 @@ const AdminUsersRouteWithChildren = AdminUsersRoute._addFileChildren(
 )
 
 interface AdminWithdrawalsRouteChildren {
+  AdminWithdrawalsDistributorApprovalsRoute: typeof AdminWithdrawalsDistributorApprovalsRoute
   AdminWithdrawalsIndexRoute: typeof AdminWithdrawalsIndexRoute
 }
 
 const AdminWithdrawalsRouteChildren: AdminWithdrawalsRouteChildren = {
+  AdminWithdrawalsDistributorApprovalsRoute:
+    AdminWithdrawalsDistributorApprovalsRoute,
   AdminWithdrawalsIndexRoute: AdminWithdrawalsIndexRoute,
 }
 
