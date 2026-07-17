@@ -15,6 +15,7 @@ type DistributorRow = {
   district: string | null; thana: string | null; address: string | null;
   commission_rate: number; status: string; notes: string | null;
   balance?: number | null;
+  locked_balance?: number | null;
   can_manage_withdrawals?: boolean | null;
 };
 
