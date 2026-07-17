@@ -82,7 +82,7 @@ export function DistributorLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-1.5 shrink-0">
             <Link to="/distributor/support" aria-label="সাপোর্ট"
               className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-600 text-white shadow-lg">
-              <HeadphonesIcon className="h-4 w-4" />
+              <Headphones className="h-4 w-4" />
             </Link>
             <DistributorNotificationBell canManageWithdrawals={canManageWithdrawals} />
             <button onClick={() => setDrawer(true)} aria-label="মেনু"
@@ -122,7 +122,7 @@ export function DistributorLayout({ children }: { children: ReactNode }) {
               <div className="flex items-center justify-end gap-2">
                 <Link to="/distributor/support" aria-label="সাপোর্ট"
                   className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-600 text-white shadow-lg transition hover:scale-[1.05]">
-                  <HeadphonesIcon className="h-4 w-4" />
+                  <Headphones className="h-4 w-4" />
                 </Link>
                 <DistributorNotificationBell canManageWithdrawals={canManageWithdrawals} />
                 <Link to="/distributor/profile" aria-label="প্রোফাইল"
