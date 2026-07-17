@@ -35,6 +35,7 @@ type Row = {
   account_number: string | null; status: "pending"|"approved"|"rejected"|"paid";
   note: string | null; rejection_reason?: string | null;
   created_at: string; reviewed_at: string | null;
+  kind: "user" | "distributor";
   profiles?: { full_name: string | null; phone: string | null; user_code?: string | null } | null;
 };
 
