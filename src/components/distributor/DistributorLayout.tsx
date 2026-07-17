@@ -15,15 +15,15 @@ import { DistributorLiveSearch } from "@/components/distributor/DistributorLiveS
 type NavItem = { to: string; label: string; Icon: typeof LayoutDashboard; accent: AccentKey; requiresWithdrawAccess?: boolean };
 
 const NAV_BASE: NavItem[] = [
-  { to: "/distributor",             label: "ড্যাশবোর্ড",     Icon: LayoutDashboard, accent: "indigo" },
-  { to: "/distributor/tasks",       label: "Task Management", Icon: ListChecks,      accent: "fuchsia" },
-  { to: "/distributor/leads",       label: "লিড / CRM",       Icon: Users2,          accent: "sky" },
-  { to: "/distributor/users",       label: "আমার ইউজার",     Icon: Users,           accent: "sky" },
-  { to: "/distributor/earnings",    label: "কমিশন ও আয়",     Icon: Wallet,          accent: "emerald" },
-  { to: "/distributor/withdrawals", label: "উইথড্র ম্যানেজ",   Icon: ArrowDownToLine, accent: "emerald", requiresWithdrawAccess: true },
-  { to: "/distributor/withdraw",    label: "নিজের উইথড্র",   Icon: ArrowDownToLine, accent: "rose" },
-  { to: "/distributor/support",     label: "সাপোর্ট চ্যাট",   Icon: MessagesSquare,  accent: "fuchsia" },
-  { to: "/distributor/profile",     label: "প্রোফাইল",       Icon: UserIcon,        accent: "purple" },
+  { to: "/distributor",             label: "ড্যাশবোর্ড",       Icon: LayoutDashboard, accent: "indigo" },
+  { to: "/distributor/withdrawals", label: "উইথড্র রিকোয়েস্ট", Icon: ArrowDownToLine, accent: "emerald", requiresWithdrawAccess: true },
+  { to: "/distributor/tasks",       label: "Task Management",  Icon: ListChecks,      accent: "fuchsia" },
+  { to: "/distributor/leads",       label: "লিড / CRM",         Icon: Users2,          accent: "sky" },
+  { to: "/distributor/users",       label: "আমার ইউজার",       Icon: Users,           accent: "sky" },
+  { to: "/distributor/earnings",    label: "কমিশন ও আয়",       Icon: Wallet,          accent: "emerald" },
+  { to: "/distributor/withdraw",    label: "নিজের উইথড্র",     Icon: ArrowDownToLine, accent: "rose" },
+  { to: "/distributor/support",     label: "সাপোর্ট চ্যাট",     Icon: MessagesSquare,  accent: "fuchsia" },
+  { to: "/distributor/profile",     label: "প্রোফাইল",         Icon: UserIcon,        accent: "purple" },
 ];
 
 const BOTTOM_NAV: { to: string; short: string; Icon: typeof LayoutDashboard; accent: AccentKey }[] = [
