@@ -170,7 +170,7 @@ function DistWithdrawalsPage() {
           </div>
         )}
         {filtered && filtered.length === 0 && (
-          <EmptyState Icon={ArrowDownToLine} title="কোনো রিকোয়েস্ট নেই" description="বর্তমান ফিল্টারে কিছু পাওয়া যায়নি।" />
+          <EmptyState Icon={ArrowDownToLine} title="কোনো রিকোয়েস্ট নেই" hint="বর্তমান ফিল্টারে কিছু পাওয়া যায়নি।" />
         )}
         {filtered && filtered.length > 0 && (
           <ul className="space-y-2">
