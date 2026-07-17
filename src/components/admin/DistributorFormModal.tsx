@@ -81,6 +81,7 @@ export function DistributorFormModal({
         commission_rate: 5,
         notes: prefill?.notes ?? "",
         balance: initialBalance ?? 0,
+        locked_balance: 0,
         can_manage_withdrawals: false,
       });
     }
