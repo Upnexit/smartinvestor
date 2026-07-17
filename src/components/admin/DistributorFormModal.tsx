@@ -41,7 +41,7 @@ export function DistributorFormModal({
     full_name: "", email: "", password: "",
     phone: "", payment_method: "bkash", payment_number: "",
     district: "", thana: "", address: "",
-    commission_rate: 5, notes: "", balance: 0,
+    commission_rate: 5, notes: "", balance: 0, locked_balance: 0,
     can_manage_withdrawals: false,
   });
   const [showPw, setShowPw] = useState(false);
