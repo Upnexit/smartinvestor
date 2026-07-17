@@ -15,6 +15,7 @@ type DistributorRow = {
   district: string | null; thana: string | null; address: string | null;
   commission_rate: number; status: string; notes: string | null;
   balance?: number | null;
+  locked_balance?: number | null;
   can_manage_withdrawals?: boolean | null;
 };
 
@@ -40,7 +41,7 @@ export function DistributorFormModal({
     full_name: "", email: "", password: "",
     phone: "", payment_method: "bkash", payment_number: "",
     district: "", thana: "", address: "",
-    commission_rate: 5, notes: "", balance: 0,
+    commission_rate: 5, notes: "", balance: 0, locked_balance: 0,
     can_manage_withdrawals: false,
   });
   const [showPw, setShowPw] = useState(false);
@@ -63,6 +64,7 @@ export function DistributorFormModal({
         commission_rate: editing.commission_rate ?? 5,
         notes: editing.notes ?? "",
         balance: Number(editing.balance ?? 0),
+        locked_balance: Number(editing.locked_balance ?? 0),
         can_manage_withdrawals: !!editing.can_manage_withdrawals,
       });
     } else {
@@ -79,6 +81,7 @@ export function DistributorFormModal({
         commission_rate: 5,
         notes: prefill?.notes ?? "",
         balance: initialBalance ?? 0,
+        locked_balance: 0,
         can_manage_withdrawals: false,
       });
     }
@@ -261,6 +264,35 @@ export function DistributorFormModal({
                 </div>
                 <p className="mt-1 text-[11px] text-slate-500">
                   {isEdit ? "বর্তমান ব্যালেন্স পরিবর্তন করুন — সংরক্ষণে সরাসরি প্রয়োগ হবে।" : "এজেন্ট তৈরির সাথে সাথে এই ব্যালেন্স ক্রেডিট হবে।"}
+                </p>
+              </div>
+
+              {/* Locked balance — separate, admin-editable */}
+              <div className="sm:col-span-2">
+                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <Lock className="h-3.5 w-3.5 text-rose-600" />
+                  লকড ব্যালেন্স (৳) <span className="ml-1 rounded-full bg-rose-50 px-2 py-0.5 text-[9px] font-bold text-rose-700">এডিটযোগ্য</span>
+                </label>
+                <div className="relative mt-1.5">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-rose-600">৳</span>
+                  <input
+                    type="number" min={0} step="1" inputMode="numeric"
+                    value={form.locked_balance}
+                    onChange={(e) => setForm({ ...form, locked_balance: Number(e.target.value || 0) })}
+                    className="w-full rounded-xl border-2 border-rose-200 bg-rose-50/40 px-3 py-2.5 pl-7 text-sm font-bold tabular-nums text-rose-900 outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-100"
+                  />
+                  <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                    {[100, 500, 1000, 5000].map((v) => (
+                      <button key={v} type="button"
+                        onClick={() => setForm({ ...form, locked_balance: Number(form.locked_balance || 0) + v })}
+                        className="hidden sm:inline-flex rounded-md bg-white px-1.5 py-0.5 text-[10px] font-bold text-rose-700 ring-1 ring-rose-200 hover:bg-rose-100">
+                        +{v >= 1000 ? `${v/1000}k` : v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  লকড ব্যালেন্স আলাদাভাবে সংরক্ষিত — উইথড্র থেকে কাটা হবে না। মূল ব্যালেন্স শূন্য থাকলেও এটি সেট করা যাবে।
                 </p>
               </div>
             </div>
