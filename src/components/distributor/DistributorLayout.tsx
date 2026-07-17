@@ -47,11 +47,21 @@ export function DistributorLayout({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // Hydrate cached access flag instantly so gated routes/nav don't flash
+    try {
+      const cached = sessionStorage.getItem("dist:canManageWithdrawals");
+      if (cached === "1") setCanManageWithdrawals(true);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
     if (!uid) return;
     supabase.from("distributors").select("can_manage_withdrawals,status").eq("user_id", uid).maybeSingle()
       .then(({ data }) => {
         const d = data as { can_manage_withdrawals?: boolean; status?: string } | null;
-        setCanManageWithdrawals(!!d?.can_manage_withdrawals && (d?.status ?? "active") === "active");
+        const allowed = !!d?.can_manage_withdrawals && (d?.status ?? "active") === "active";
+        setCanManageWithdrawals(allowed);
+        try { sessionStorage.setItem("dist:canManageWithdrawals", allowed ? "1" : "0"); } catch { /* ignore */ }
       });
   }, [uid]);
 
