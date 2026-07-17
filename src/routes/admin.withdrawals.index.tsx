@@ -164,9 +164,10 @@ function WithdrawalsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adminReady]);
 
-  // Load detail data when a row is opened
+  // Load detail data when a row is opened (only for user withdrawals)
   useEffect(() => {
     if (!detail || !adminReady) { setDetailData(null); return; }
+    if (detail.kind === "distributor") { setDetailData(null); return; }
     let cancelled = false;
     (async () => {
       setDetailData(null);
@@ -199,11 +200,24 @@ function WithdrawalsPage() {
 
   const { setRowRef } = useSearchHighlight(highlight, adminReady && !!rows);
 
+  async function reviewDistributorWithdrawal(id: string, action: "approve" | "reject", reasonText?: string) {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) throw new Error("লগইন প্রয়োজন");
+    const { error } = await (supabase.rpc as unknown as (n: string, a: Record<string, unknown>) => Promise<{ error: Error | null }>)(
+      "admin_review_distributor_withdrawal",
+      { _actor: u.user.id, _id: id, _action: action, _reason: reasonText ?? null },
+    );
+    if (error) throw error;
+  }
 
-  const handleApprove = async (id: string) => {
-    setBusy(id);
+  const handleApprove = async (row: Row) => {
+    setBusy(row.id);
     try {
-      await reviewWithdrawal(id, "approve");
+      if (row.kind === "distributor") {
+        await reviewDistributorWithdrawal(row.id, "approve");
+      } else {
+        await reviewWithdrawal(row.id, "approve");
+      }
       toast.success("অ্যাপ্রুভ হয়েছে — ব্যালেন্স ডেবিট");
       refresh();
       setDetail(null);
@@ -216,7 +230,11 @@ function WithdrawalsPage() {
     if (reason.trim().length < 3) { toast.error("কারণ নির্বাচন বা লিখুন (৩+ অক্ষর)"); return; }
     setBusy(reject.id);
     try {
-      await reviewWithdrawal(reject.id, "reject", reason.trim());
+      if (reject.kind === "distributor") {
+        await reviewDistributorWithdrawal(reject.id, "reject", reason.trim());
+      } else {
+        await reviewWithdrawal(reject.id, "reject", reason.trim());
+      }
       toast.success("রিজেক্ট হয়েছে");
       setReject(null); setReason(""); refresh();
       setDetail(null);
