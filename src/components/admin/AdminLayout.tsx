@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, ArrowDownToLine, Package, ShieldCheck, CreditCard,
   ListChecks, MessagesSquare, BarChart3, Activity, Settings, User as UserIcon,
   LogOut, Menu, X, Search, ChevronRight, ChevronDown, Sparkles, Users2, Loader2, Smartphone, Megaphone,
-  CalendarDays, DatabaseBackup,
+  CalendarDays, DatabaseBackup, ClipboardCheck,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -19,7 +19,11 @@ export const ADMIN_NAV: NavItem[] = [
   { to: "/admin",              label: "ড্যাশবোর্ড",         Icon: LayoutDashboard, accent: "amber" },
   { to: "/admin/users",        label: "ইউজার ম্যানেজমেন্ট",   Icon: Users,           accent: "sky" },
   { to: "/admin/distributors", label: "ডিস্ট্রিবিউটর",        Icon: Users2,          accent: "indigo" },
-  { to: "/admin/withdrawals",  label: "উইথড্র রিকোয়েস্ট",     Icon: ArrowDownToLine, accent: "emerald" },
+  { to: "/admin/withdrawals",  label: "উইথড্র রিকোয়েস্ট",     Icon: ArrowDownToLine, accent: "emerald",
+    children: [
+      { to: "/admin/withdrawals", label: "উইথড্র রিকোয়েস্ট", Icon: ArrowDownToLine },
+      { to: "/admin/withdrawals/distributor-approvals", label: "ডিস্ট্রিবিউটর অ্যাপ্রুভাল রিপোর্ট", Icon: ClipboardCheck },
+    ] },
   { to: "/admin/packages",     label: "প্যাকেজ",            Icon: Package,         accent: "fuchsia" },
   { to: "/admin/approvals",    label: "পেমেন্ট অ্যাপ্রুভাল",   Icon: ShieldCheck,     accent: "orange" },
   { to: "/admin/payments",     label: "পেমেন্ট গেটওয়ে",      Icon: CreditCard,      accent: "pink" },
