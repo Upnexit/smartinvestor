@@ -29,29 +29,15 @@ type Row = {
 
 function DistWithdrawalsPage() {
   const navigate = useNavigate();
-  const [ready, setReady] = useState<"checking" | "ok" | "denied">("checking");
+  const cachedAllowed = (() => {
+    try { return sessionStorage.getItem("dist:canManageWithdrawals") === "1"; } catch { return false; }
+  })();
+  const [ready, setReady] = useState<"checking" | "ok" | "denied">(cachedAllowed ? "ok" : "checking");
   const [rows, setRows] = useState<Row[] | null>(null);
   const [filter, setFilter] = useState<Filter>("pending");
   const [reject, setReject] = useState<Row | null>(null);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
-
-  // Gate: only distributors with can_manage_withdrawals=true
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) { if (!cancelled) setReady("denied"); return; }
-      const { data } = await supabase.from("distributors")
-        .select("can_manage_withdrawals,status")
-        .eq("user_id", u.user.id).maybeSingle();
-      if (cancelled) return;
-      const allowed = !!data && (data as { can_manage_withdrawals?: boolean; status?: string }).can_manage_withdrawals
-        && ((data as { status?: string }).status ?? "active") === "active";
-      setReady(allowed ? "ok" : "denied");
-    })();
-    return () => { cancelled = true; };
-  }, []);
 
   const refresh = () => {
     supabase.from("withdrawals")
@@ -63,14 +49,34 @@ function DistWithdrawalsPage() {
       });
   };
 
+  // Verify access in background; if cache said yes, we already render optimistically.
   useEffect(() => {
-    if (ready !== "ok") return;
+    let cancelled = false;
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) { if (!cancelled) setReady("denied"); return; }
+      const { data } = await supabase.from("distributors")
+        .select("can_manage_withdrawals,status")
+        .eq("user_id", u.user.id).maybeSingle();
+      if (cancelled) return;
+      const allowed = !!data && (data as { can_manage_withdrawals?: boolean; status?: string }).can_manage_withdrawals
+        && ((data as { status?: string }).status ?? "active") === "active";
+      try { sessionStorage.setItem("dist:canManageWithdrawals", allowed ? "1" : "0"); } catch { /* ignore */ }
+      setReady(allowed ? "ok" : "denied");
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Start loading rows immediately if cache says access is granted — no waiting.
+  useEffect(() => {
+    if (!cachedAllowed) return;
     refresh();
     const ch = supabase.channel("dist-wd")
       .on("postgres_changes", { event: "*", schema: "public", table: "withdrawals" }, refresh)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [ready]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const counts = useMemo(() => ({
     pending: rows?.filter((r) => r.status === "pending").length ?? 0,
