@@ -30,19 +30,29 @@ type Task = {
 
 type ActivePackage = { package_id: string; packages?: { name?: string | null; daily_tasks?: number | null } | null };
 
-function quotaForPackage(pkg: ActivePackage) {
-  // Admin-এর সেট করা daily_tasks কে সর্বোচ্চ priority দাও — যাতে admin ১০টা দিলে ১০টাই যায়।
-  const dbLimit = Number(pkg.packages?.daily_tasks);
-  if (Number.isFinite(dbLimit) && dbLimit > 0) return Math.floor(dbLimit);
-  // Fallback (পুরনো প্যাকেজ যেখানে daily_tasks সেট নেই)
-  return (pkg.packages?.name ?? "").toLowerCase().includes("crazy") ? 5 : 10;
-}
-
 type Submission = {
   task_id: string;
   status: "pending" | "approved" | "rejected";
   created_at: string;
+  reward: number;
 };
+
+type RawSubmission = Omit<Submission, "reward"> & {
+  reward?: number | null;
+  link_tasks?: { reward?: number | null } | Array<{ reward?: number | null }> | null;
+};
+
+function normalizeSubmissions(rows: RawSubmission[] | null | undefined): Submission[] {
+  return (rows ?? []).map((row) => {
+    const linked = Array.isArray(row.link_tasks) ? row.link_tasks[0] : row.link_tasks;
+    return {
+      task_id: row.task_id,
+      status: row.status,
+      created_at: row.created_at,
+      reward: Number(row.reward ?? linked?.reward ?? 0),
+    };
+  });
+}
 
 const ACTION_META: Record<string, { icon: typeof ThumbsUp; label: string; from: string; to: string }> = {
   like:    { icon: ThumbsUp,     label: "Like",    from: "from-sky-400",     to: "to-blue-500" },
@@ -68,13 +78,15 @@ function TasksPage() {
       if (!u.user) return;
       setUserId(u.user.id);
       const [{ data: s }, { data: up }, { data: prof }] = await Promise.all([
-        supabase.from("task_submissions").select("task_id,status,created_at").eq("user_id", u.user.id)
+        supabase.from("task_submissions").select("task_id,status,created_at,link_tasks(reward)").eq("user_id", u.user.id)
           .gte("created_at", startOfTodayBDISO()),
         supabase.from("user_packages").select("package_id, packages(name,daily_tasks)").eq("user_id", u.user.id).eq("status", "active"),
         supabase.from("profiles").select("email_verified").eq("id", u.user.id).maybeSingle(),
       ]);
       const activePackages = (up ?? []) as ActivePackage[];
       const activePkgIds = activePackages.map((r) => r.package_id);
+      const activePkgIdSet = new Set(activePkgIds);
+      const todaySubs = normalizeSubmissions(s as RawSubmission[] | null);
       setHasActivePkg(activePkgIds.length > 0);
       // Fetch tasks: শুধু আজকের scheduled_date (BD) — পুরনো দিনের active task দেখালে
       // user সেগুলো submit করতে গিয়ে UNIQUE(user_id, task_id) constraint hit করত।
@@ -90,24 +102,20 @@ function TasksPage() {
         tq = tq.is("required_package_id", null);
       }
       const { data: t } = await tq;
-      const submittedTaskIds = new Set(((s ?? []) as Submission[])
+      const submittedTaskIds = new Set(todaySubs
         .filter((sub) => sub.status !== "rejected")
         .map((sub) => sub.task_id));
       const allTasks = ((t ?? []) as Task[])
         .filter((task) => !task.is_draft)
         // Extra safety: exclude any task the user already has a non-rejected submission for
         .filter((task) => !submittedTaskIds.has(task.id));
-      const preferredPackage = activePackages
-        .slice()
-        .sort((a, b) => quotaForPackage(b) - quotaForPackage(a))[0];
-      const quota = preferredPackage ? quotaForPackage(preferredPackage) : 0;
-      const packageSpecific = preferredPackage
-        ? allTasks.filter((task) => task.required_package_id === preferredPackage.package_id)
-        : [];
+      // Admin panel থেকে আজ যে package task active করা হয়েছে, user panel-এ সেটাই দেখাও।
+      // hardcoded Crazy=5 বা package daily_tasks দিয়ে list কেটে দিলে 10 task → 5 task bug হয়।
+      const packageSpecific = allTasks.filter((task) => task.required_package_id && activePkgIdSet.has(task.required_package_id));
       const globalTasks = allTasks.filter((task) => task.required_package_id === null);
-      const todaysTasks = [...packageSpecific, ...globalTasks].slice(0, quota || undefined);
+      const todaysTasks = [...packageSpecific, ...globalTasks];
       setTasks(todaysTasks);
-      setSubs((s ?? []) as Submission[]);
+      setSubs(todaySubs);
       setEmailVerified(!!prof?.email_verified);
     })();
   }, []);
@@ -120,10 +128,7 @@ function TasksPage() {
 
   const completedCount = subs.filter((s) => s.status !== "rejected").length;
   const totalEarnedToday = subs.filter((s) => s.status === "approved")
-    .reduce((acc, s) => {
-      const t = tasks?.find((x) => x.id === s.task_id);
-      return acc + (t ? Number(t.reward) : 0);
-    }, 0);
+    .reduce((acc, s) => acc + Number(s.reward || 0), 0);
 
   const filtered = (tasks ?? []).filter((t) => {
     // যেকোনো task যা আজ অলরেডি submit করা হয়েছে (approved বা pending) — list থেকে সরিয়ে দাও।
@@ -166,10 +171,11 @@ function TasksPage() {
       });
       if (error) throw error;
       toast.success(`৳${Number(activeTask.reward).toFixed(0)} আপনার ব্যালেন্সে যোগ হয়েছে 🎉`, { id: tId });
-      const { data: s } = await supabase.from("task_submissions").select("task_id,status,created_at")
+      const { data: s } = await supabase.from("task_submissions").select("task_id,status,created_at,link_tasks(reward)")
         .eq("user_id", userId)
         .gte("created_at", startOfTodayBDISO());
-      setSubs((s ?? []) as Submission[]);
+      setSubs(normalizeSubmissions(s as RawSubmission[] | null));
+      setTasks((current) => current?.filter((task) => task.id !== activeTask.id) ?? current);
       setActiveTask(null);
       setLinkOpened(false);
     } catch (e) {
