@@ -385,7 +385,6 @@ function TaskDetailModal({
     if (!linkOpened) {
       setSecondsLeft(WAIT_SECONDS);
       setReturned(false);
-      setAwayEnough(false);
       setTapGuard(false);
       hiddenAtRef.current = null;
     }
