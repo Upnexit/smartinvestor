@@ -345,7 +345,14 @@ function WithdrawalsPage() {
           <div className="w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white shadow-2xl animate-admin-pop">
             <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-slate-100 bg-white/95 backdrop-blur px-5 py-3">
               <div className="min-w-0">
-                <h3 className="bn-display text-lg text-slate-900 truncate">উইথড্র বিস্তারিত</h3>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="bn-display text-lg text-slate-900 truncate">উইথড্র বিস্তারিত</h3>
+                  {detail.kind === "distributor" && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+                      ডিস্ট্রিবিউটর
+                    </span>
+                  )}
+                </div>
                 <p className="text-[11px] text-slate-500 font-mono truncate">ID: {detail.id.slice(0,8)}…</p>
               </div>
               <button onClick={() => setDetail(null)} className="grid h-9 w-9 place-items-center rounded-full bg-slate-100 hover:bg-slate-200"><X className="h-4 w-4" /></button>
