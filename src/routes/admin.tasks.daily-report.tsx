@@ -420,9 +420,7 @@ function DailyReportPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <MiniStat label="✓" value={u.approved} tone="emerald" />
-                        <MiniStat label="⏳" value={u.pending} tone="amber" />
-                        <MiniStat label="✗" value={u.rejected} tone="rose" />
-                        <MiniStat label="৳" value={u.total_reward.toFixed(0)} tone="fuchsia" />
+                        <MiniStat label="৳" value={u.total_reward.toFixed(2)} tone="fuchsia" />
                         <ChevronRight className={cn("h-4 w-4 text-slate-400 transition-transform", isOpen && "rotate-90")} />
                       </div>
                     </div>
@@ -453,7 +451,7 @@ function DailyReportPage() {
                                 {fmtTime(s.created_at)} • {new Date(s.created_at).toLocaleDateString("bn-BD")}
                               </p>
                             </div>
-                            <span className="text-xs font-bold text-fuchsia-700">৳{Number(s.reward_credited ?? s.task_reward).toFixed(2)}</span>
+                            <span className="text-xs font-bold text-fuchsia-700">৳{(Number(s.reward_credited) > 0 ? Number(s.reward_credited) : Number(s.task_reward)).toFixed(2)}</span>
                           </div>
                         ))}
                       </div>
