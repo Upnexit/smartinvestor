@@ -94,13 +94,13 @@ function DailyReportPage() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      setLoading(true);
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const load = async (showSpinner: boolean) => {
+      if (showSpinner) setLoading(true);
       const dayStartISO = new Date(`${dateStr}T00:00:00+06:00`).toISOString();
       const dayEndISO = new Date(`${dateStr}T23:59:59.999+06:00`).toISOString();
 
-      // "Active on that BD date" = any user_package that was activated on/before day-end
-      // and had not expired before day-start. This is correct for both today and past dates.
       const [
         { data: pkgRows },
         { data: subs, error: subsErr },
@@ -190,7 +190,6 @@ function DailyReportPage() {
         else if (s.status === "rejected") { row.rejected += 1; tRejected += 1; }
       });
 
-      // Sort submissions per user by time
       map.forEach((u) => u.submissions.sort((a, b) => a.created_at.localeCompare(b.created_at)));
 
       const completedList = Array.from(map.values()).sort((a, b) =>
@@ -220,8 +219,29 @@ function DailyReportPage() {
         setNotCompleted(notCompletedList);
         setLoading(false);
       }
-    })();
-    return () => { cancelled = true; };
+    };
+
+    load(true);
+
+    // Realtime: only subscribe for today's report — past dates are static.
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    if (dateStr === todayBD()) {
+      const scheduleReload = () => {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => { if (!cancelled) load(false); }, 400);
+      };
+      channel = supabase
+        .channel(`daily-report-${dateStr}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "task_submissions" }, scheduleReload)
+        .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, scheduleReload)
+        .subscribe();
+    }
+
+    return () => {
+      cancelled = true;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      if (channel) supabase.removeChannel(channel);
+    };
   }, [dateStr]);
 
   const filteredCompleted = useMemo(() => {
