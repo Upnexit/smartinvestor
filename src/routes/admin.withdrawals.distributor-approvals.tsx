@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDownToLine, Search, Users2, Wallet, TrendingUp, CheckCircle2,
-  ChevronDown, ChevronRight, Phone, Loader2,
+  ChevronDown, ChevronRight, Phone, Loader2, LayoutGrid, ListFilter,
 } from "lucide-react";
 import { AdminPageHeader, AdminCard, StatTile, Shimmer, EmptyState } from "@/components/admin/AdminUI";
 import { supabase } from "@/integrations/supabase/client";
