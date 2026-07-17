@@ -31,6 +31,10 @@ type Task = {
 type ActivePackage = { package_id: string; packages?: { name?: string | null; daily_tasks?: number | null } | null };
 
 function quotaForPackage(pkg: ActivePackage) {
+  // Admin-এর সেট করা daily_tasks কে সর্বোচ্চ priority দাও — যাতে admin ১০টা দিলে ১০টাই যায়।
+  const dbLimit = Number(pkg.packages?.daily_tasks);
+  if (Number.isFinite(dbLimit) && dbLimit > 0) return Math.floor(dbLimit);
+  // Fallback (পুরনো প্যাকেজ যেখানে daily_tasks সেট নেই)
   return (pkg.packages?.name ?? "").toLowerCase().includes("crazy") ? 5 : 10;
 }
 
