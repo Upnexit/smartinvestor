@@ -166,7 +166,7 @@ function DistributorApprovalsPage() {
           <EmptyState Icon={ArrowDownToLine} title="কোনো ডেটা নেই" hint="এখনও কোনো ডিস্ট্রিবিউটর উইথড্র অ্যাপ্রুভ করেনি।" />
         )}
 
-        {!loading && grouped.length > 0 && (
+        {!loading && view === "grouped" && grouped.length > 0 && (
           <ul className="space-y-2">
             {grouped.map((g) => {
               const isOpen = expanded === g.distributor.user_id;
