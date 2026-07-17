@@ -282,11 +282,18 @@ function WithdrawalsPage() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((r) => (
             <div key={r.id} ref={setRowRef(r.id)}>
-            <AdminCard accent="emerald" interactive className="p-4 flex flex-col">
+            <AdminCard accent={r.kind === "distributor" ? "indigo" : "emerald"} interactive className={cn("p-4 flex flex-col", r.kind === "distributor" && "ring-2 ring-indigo-200")}>
 
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="bn-display text-base text-slate-900 truncate">{r.profiles?.full_name ?? "—"}</p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="bn-display text-base text-slate-900 truncate">{r.profiles?.full_name ?? "—"}</p>
+                    {r.kind === "distributor" && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+                        ডিস্ট্রিবিউটর
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[11px] font-mono text-slate-500 truncate">
                     {r.profiles?.user_code ? `${r.profiles.user_code} · ` : ""}{r.profiles?.phone ?? ""}
                   </p>
