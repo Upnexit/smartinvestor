@@ -1213,6 +1213,10 @@ export type Database = {
         Args: { _actor: string; _user_id: string }
         Returns: Json
       }
+      admin_review_distributor_withdrawal: {
+        Args: { _action: string; _actor: string; _id: string; _reason?: string }
+        Returns: Json
+      }
       admin_review_user_package: {
         Args: {
           _action: string

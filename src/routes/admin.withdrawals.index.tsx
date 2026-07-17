@@ -35,6 +35,7 @@ type Row = {
   account_number: string | null; status: "pending"|"approved"|"rejected"|"paid";
   note: string | null; rejection_reason?: string | null;
   created_at: string; reviewed_at: string | null;
+  kind: "user" | "distributor";
   profiles?: { full_name: string | null; phone: string | null; user_code?: string | null } | null;
 };
 
@@ -88,14 +89,68 @@ function WithdrawalsPage() {
   const [detailData, setDetailData] = useState<DetailData | null>(null);
 
 
-  const refresh = () => {
-    supabase.from("withdrawals")
-      .select("id,user_id,amount,gross_amount,fee,balance_at_request,method,account_number,status,note,rejection_reason,created_at,reviewed_at,profiles!withdrawals_user_id_profiles_fkey(full_name,phone,user_code)")
-      .order("created_at", { ascending: false }).limit(200)
-      .then(({ data, error }) => {
-        if (error) { setRows([]); toast.error(error.message); return; }
-        setRows((data ?? []) as unknown as Row[]);
-      }, (e: unknown) => { setRows([]); toast.error(e instanceof Error ? e.message : "লোড ব্যর্থ"); });
+  const refresh = async () => {
+    try {
+      const [userRes, distRes] = await Promise.all([
+        supabase.from("withdrawals")
+          .select("id,user_id,amount,gross_amount,fee,balance_at_request,method,account_number,status,note,rejection_reason,created_at,reviewed_at,profiles!withdrawals_user_id_profiles_fkey(full_name,phone,user_code)")
+          .order("created_at", { ascending: false }).limit(200),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase as any).from("distributor_withdrawals")
+          .select("id,distributor_id,amount,method,account_number,status,rejection_reason,note,created_at,reviewed_at,distributors!distributor_withdrawals_distributor_id_fkey(full_name,phone,email)")
+          .order("created_at", { ascending: false }).limit(200),
+      ]);
+      if (userRes.error) throw userRes.error;
+      const userRows = ((userRes.data ?? []) as unknown as Row[]).map((r) => ({ ...r, kind: "user" as const }));
+      // Distributor rows may fail if FK label isn't matched — fall back to plain select
+      let distRaw = distRes.data as Array<Record<string, unknown>> | null;
+      if (distRes.error) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const fb = await (supabase as any).from("distributor_withdrawals")
+          .select("id,distributor_id,amount,method,account_number,status,rejection_reason,note,created_at,reviewed_at")
+          .order("created_at", { ascending: false }).limit(200);
+        distRaw = fb.data ?? [];
+        // Manually enrich with distributor names
+        const ids = Array.from(new Set((distRaw ?? []).map((r) => r.distributor_id as string).filter(Boolean)));
+        if (ids.length) {
+          const { data: dists } = await supabase.from("distributors").select("user_id,full_name,phone,email").in("user_id", ids);
+          const map = new Map<string, { full_name: string | null; phone: string | null; email: string | null }>();
+          ((dists ?? []) as Array<{ user_id: string; full_name: string | null; phone: string | null; email: string | null }>).forEach((d) => map.set(d.user_id, d));
+          distRaw = (distRaw ?? []).map((r) => ({ ...r, distributors: map.get(r.distributor_id as string) ?? null }));
+        }
+      }
+      const distRows: Row[] = ((distRaw ?? []) as Array<{
+        id: string; distributor_id: string; amount: number; method: Method | null; account_number: string | null;
+        status: Row["status"]; rejection_reason: string | null; note: string | null;
+        created_at: string; reviewed_at: string | null;
+        distributors?: { full_name: string | null; phone: string | null; email: string | null } | null;
+      }>).map((r) => ({
+        id: r.id,
+        user_id: r.distributor_id,
+        amount: Number(r.amount) || 0,
+        gross_amount: Number(r.amount) || 0,
+        fee: 0,
+        balance_at_request: null,
+        method: r.method,
+        account_number: r.account_number,
+        status: r.status,
+        note: r.note,
+        rejection_reason: r.rejection_reason,
+        created_at: r.created_at,
+        reviewed_at: r.reviewed_at,
+        kind: "distributor" as const,
+        profiles: r.distributors ? {
+          full_name: r.distributors.full_name,
+          phone: r.distributors.phone,
+          user_code: r.distributors.email ?? null,
+        } : null,
+      }));
+      const merged = [...userRows, ...distRows].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+      setRows(merged);
+    } catch (e) {
+      setRows([]);
+      toast.error(e instanceof Error ? e.message : "লোড ব্যর্থ");
+    }
   };
   const adminReady = useAdminAutoRefresh(refresh);
 
@@ -103,14 +158,16 @@ function WithdrawalsPage() {
     if (!adminReady) return;
     const ch = supabase.channel("admin-wd")
       .on("postgres_changes", { event: "*", schema: "public", table: "withdrawals" }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "distributor_withdrawals" }, refresh)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adminReady]);
 
-  // Load detail data when a row is opened
+  // Load detail data when a row is opened (only for user withdrawals)
   useEffect(() => {
     if (!detail || !adminReady) { setDetailData(null); return; }
+    if (detail.kind === "distributor") { setDetailData(null); return; }
     let cancelled = false;
     (async () => {
       setDetailData(null);
@@ -143,11 +200,24 @@ function WithdrawalsPage() {
 
   const { setRowRef } = useSearchHighlight(highlight, adminReady && !!rows);
 
+  async function reviewDistributorWithdrawal(id: string, action: "approve" | "reject", reasonText?: string) {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) throw new Error("লগইন প্রয়োজন");
+    const { error } = await (supabase.rpc as unknown as (n: string, a: Record<string, unknown>) => Promise<{ error: Error | null }>)(
+      "admin_review_distributor_withdrawal",
+      { _actor: u.user.id, _id: id, _action: action, _reason: reasonText ?? null },
+    );
+    if (error) throw error;
+  }
 
-  const handleApprove = async (id: string) => {
-    setBusy(id);
+  const handleApprove = async (row: Row) => {
+    setBusy(row.id);
     try {
-      await reviewWithdrawal(id, "approve");
+      if (row.kind === "distributor") {
+        await reviewDistributorWithdrawal(row.id, "approve");
+      } else {
+        await reviewWithdrawal(row.id, "approve");
+      }
       toast.success("অ্যাপ্রুভ হয়েছে — ব্যালেন্স ডেবিট");
       refresh();
       setDetail(null);
@@ -160,7 +230,11 @@ function WithdrawalsPage() {
     if (reason.trim().length < 3) { toast.error("কারণ নির্বাচন বা লিখুন (৩+ অক্ষর)"); return; }
     setBusy(reject.id);
     try {
-      await reviewWithdrawal(reject.id, "reject", reason.trim());
+      if (reject.kind === "distributor") {
+        await reviewDistributorWithdrawal(reject.id, "reject", reason.trim());
+      } else {
+        await reviewWithdrawal(reject.id, "reject", reason.trim());
+      }
       toast.success("রিজেক্ট হয়েছে");
       setReject(null); setReason(""); refresh();
       setDetail(null);
@@ -208,11 +282,18 @@ function WithdrawalsPage() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((r) => (
             <div key={r.id} ref={setRowRef(r.id)}>
-            <AdminCard accent="emerald" interactive className="p-4 flex flex-col">
+            <AdminCard accent={r.kind === "distributor" ? "indigo" : "emerald"} interactive className={cn("p-4 flex flex-col", r.kind === "distributor" && "ring-2 ring-indigo-200")}>
 
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="bn-display text-base text-slate-900 truncate">{r.profiles?.full_name ?? "—"}</p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="bn-display text-base text-slate-900 truncate">{r.profiles?.full_name ?? "—"}</p>
+                    {r.kind === "distributor" && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+                        ডিস্ট্রিবিউটর
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[11px] font-mono text-slate-500 truncate">
                     {r.profiles?.user_code ? `${r.profiles.user_code} · ` : ""}{r.profiles?.phone ?? ""}
                   </p>
@@ -242,7 +323,7 @@ function WithdrawalsPage() {
                 </SoftButton>
                 {r.status === "pending" && (
                   <>
-                    <GradientButton accent="emerald" className="flex-1" busy={busy === r.id} onClick={() => handleApprove(r.id)}>
+                    <GradientButton accent="emerald" className="flex-1" busy={busy === r.id} onClick={() => handleApprove(r)}>
                       <Check className="h-4 w-4" /> অ্যাপ্রুভ
                     </GradientButton>
                     <GradientButton accent="rose" className="flex-1" onClick={() => { setReject(r); setReason(""); }}>
@@ -264,7 +345,14 @@ function WithdrawalsPage() {
           <div className="w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white shadow-2xl animate-admin-pop">
             <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-slate-100 bg-white/95 backdrop-blur px-5 py-3">
               <div className="min-w-0">
-                <h3 className="bn-display text-lg text-slate-900 truncate">উইথড্র বিস্তারিত</h3>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="bn-display text-lg text-slate-900 truncate">উইথড্র বিস্তারিত</h3>
+                  {detail.kind === "distributor" && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">
+                      ডিস্ট্রিবিউটর
+                    </span>
+                  )}
+                </div>
                 <p className="text-[11px] text-slate-500 font-mono truncate">ID: {detail.id.slice(0,8)}…</p>
               </div>
               <button onClick={() => setDetail(null)} className="grid h-9 w-9 place-items-center rounded-full bg-slate-100 hover:bg-slate-200"><X className="h-4 w-4" /></button>
@@ -301,7 +389,15 @@ function WithdrawalsPage() {
               </div>
 
               {/* User info */}
-              {!detailData ? <Shimmer className="h-24" /> : detailData.profile && (
+              {detail.kind === "distributor" ? (
+                <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-900">
+                  <p className="font-bold">ডিস্ট্রিবিউটর উইথড্র রিকোয়েস্ট</p>
+                  <p className="mt-1 text-xs text-indigo-700">এটি একজন ডিস্ট্রিবিউটরের নিজস্ব কমিশন উইথড্র — অ্যাপ্রুভ করলে সরাসরি তার ডিস্ট্রিবিউটর ব্যালেন্স থেকে ডেবিট হবে।</p>
+                  {detail.profiles?.full_name && (
+                    <p className="mt-2 text-xs font-mono">নাম: {detail.profiles.full_name} · ফোন: {detail.profiles.phone ?? "—"}</p>
+                  )}
+                </div>
+              ) : !detailData ? <Shimmer className="h-24" /> : detailData.profile && (
                 <>
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <div className="flex items-center gap-3">
@@ -382,7 +478,7 @@ function WithdrawalsPage() {
 
               {detail.status === "pending" && (
                 <div className="flex gap-2 pt-1">
-                  <GradientButton accent="emerald" className="flex-1" busy={busy === detail.id} onClick={() => handleApprove(detail.id)}>
+                  <GradientButton accent="emerald" className="flex-1" busy={busy === detail.id} onClick={() => handleApprove(detail)}>
                     <Check className="h-4 w-4" /> অ্যাপ্রুভ
                   </GradientButton>
                   <GradientButton accent="rose" className="flex-1" onClick={() => { setReject(detail); setReason(""); }}>
