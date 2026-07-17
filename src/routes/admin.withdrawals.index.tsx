@@ -316,7 +316,7 @@ function WithdrawalsPage() {
                 </SoftButton>
                 {r.status === "pending" && (
                   <>
-                    <GradientButton accent="emerald" className="flex-1" busy={busy === r.id} onClick={() => handleApprove(r.id)}>
+                    <GradientButton accent="emerald" className="flex-1" busy={busy === r.id} onClick={() => handleApprove(r)}>
                       <Check className="h-4 w-4" /> অ্যাপ্রুভ
                     </GradientButton>
                     <GradientButton accent="rose" className="flex-1" onClick={() => { setReject(r); setReason(""); }}>
@@ -456,7 +456,7 @@ function WithdrawalsPage() {
 
               {detail.status === "pending" && (
                 <div className="flex gap-2 pt-1">
-                  <GradientButton accent="emerald" className="flex-1" busy={busy === detail.id} onClick={() => handleApprove(detail.id)}>
+                  <GradientButton accent="emerald" className="flex-1" busy={busy === detail.id} onClick={() => handleApprove(detail)}>
                     <Check className="h-4 w-4" /> অ্যাপ্রুভ
                   </GradientButton>
                   <GradientButton accent="rose" className="flex-1" onClick={() => { setReject(detail); setReason(""); }}>
