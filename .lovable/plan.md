@@ -1,159 +1,65 @@
+## Distributor Panel Upgrade — Header, Notifications, Withdrawal Access
 
-# ডিস্ট্রিবিউটর — Revised Detailed Plan
+### 1. New Distributor Top Header (matches Admin UX)
 
-আপনার সিদ্ধান্ত অনুযায়ী তিনটি মূল feature বাস্তবায়ন হবে:
+Add a sticky top header inside `DistributorLayout` (`src/components/distributor/DistributorLayout.tsx`) for both mobile and desktop, containing:
 
-1. **Distributor Task Management** (AI দিয়ে task generate — admin-এর মতো panel + customization)
-2. **Lead CRM** (Phase 2-এর দ্বিতীয় অংশ)
-3. **Withdrawal Tax Commission** (তার under user withdraw দিলে ২% tax auto distributor-এর balance-এ)
+- **Live Search** — a `DistributorLiveSearch` component that searches only the distributor's own users (`profiles` where `distributor_id = me`), own leads, and own withdrawals. Same UX as `AdminLiveSearch` (debounced input, dropdown results, keyboard nav).
+- **Support button** — quick link to `/distributor/support` with icon.
+- **Notification bell** — new `DistributorNotificationBell` component (scoped to distributor).
+- **Profile shortcut** — link to `/distributor/profile`.
 
----
+Header will render:
+- Desktop: on the sticky top bar (currently unused in the layout).
+- Mobile: inline in the existing mobile header (replacing the plain menu button row).
 
-## ১. Distributor Task Management System
+### 2. Distributor Notification Bell
 
-### কী কী থাকবে
+New component `src/components/distributor/DistributorNotificationBell.tsx` — visually identical (indigo/violet gradient) to admin bell, but scoped:
 
-ডিস্ট্রিবিউটরের নিজস্ব task panel (admin-এর task page-এর mirror + customization):
+- New users assigned to the distributor (`profiles.distributor_id = me`)
+- Withdrawal requests from their users — via a new server fn `distributorListNotifications` (RLS-safe)
+- New leads (`distributor_leads` where `distributor_id = me`)
+- Own commission/earnings events (`distributor_earnings` new rows)
+- If withdrawal-access is enabled (see #3), also show admin-wide pending withdrawals
 
-- **Task Generator (AI)**
-  - Lovable AI (Gemini) দিয়ে Facebook page-based link task generate হবে
-  - Distributor "Generate" button-এ click করলে একসাথে N টা task তৈরি হবে (N = তার daily limit)
-  - প্রতিটি task-এ: FB page link, action type (like/comment/follow/share), reward amount, instruction
-  
-- **Daily Task Limit Customization**
-  - Distributor নিজে select করবে সে প্রতিদিন কতগুলো task তার referred user-দের দেবে (৩ / ৫ / ১০ / ১৫)
-  - এটি তার settings-এ save হবে
+Realtime via Supabase channel filtered to relevant tables.
 
-- **Manual Verification & Auto-Regenerate**
-  - Distributor প্রতিটি generated task-এর FB page manual verify করবে (link খুলে দেখবে page live আছে কিনা)
-  - যদি page বন্ধ/deleted থাকে → "Delete & Regenerate" button; AI নতুন task generate করে replace করবে
-  - Verified tasks-ই তার referred user-দের daily task pool-এ যাবে
+### 3. Withdrawal Request Management for Distributors
 
-- **Instruction Manual Button**
-  - Distributor panel-এ prominent "📖 Manual/Instruction" button
-  - Click করলে detailed guide (কীভাবে task generate, verify, publish করবে — Bangla-তে)
+**Database (migration):**
+- Add column `distributors.can_manage_withdrawals boolean NOT NULL DEFAULT false`.
+- Add SECURITY DEFINER function `public.distributor_can_manage_withdrawals(_uid uuid) returns boolean` — used by RLS.
+- Update `withdrawals` RLS to allow SELECT/UPDATE by distributors where `can_manage_withdrawals = true` (mirroring admin abilities). Admin path unchanged.
+- Optional: a helper RPC `distributor_review_withdrawal(_id, _decision, _note)` that verifies the flag and performs the same balance/status logic as `admin_review_withdrawal`. Reuses existing admin logic where possible.
 
-- **Active Users View**
-  - তার referred user-দের মধ্যে যারা active package holder — শুধু তাদের ID/user_code দেখাবে (privacy: full details না)
-  - সে বুঝবে কতজনের জন্য task publish করতে হবে
+**Server functions** — new `src/lib/distributor-withdrawals.functions.ts`:
+- `distributorListWithdrawals({ filter, q })` — gated by `can_manage_withdrawals` flag, returns same shape as admin.
+- `distributorReviewWithdrawal({ id, decision, note })` — approve/reject/paid, gated by flag.
+- `distributorGetWithdrawalDetail({ id })` — user profile + history + stats (same as admin).
 
-### Task Flow
+**New route** `src/routes/distributor.withdrawals.tsx` (new file — replaces the current placeholder or coexists as the management view; current `/distributor/withdraw` is the distributor's own withdrawal request page, so this becomes `/distributor/withdrawals` — the management page). Copy the admin withdrawals UI (`admin.withdrawals.tsx`) as-is, wire to the new distributor server fns. Route guard: redirect to `/distributor` if `can_manage_withdrawals` is false.
 
-```text
-Distributor → [Generate 10 tasks (AI)] → Verify each FB page manually
-   ↓                                          ↓
-Delete broken → Auto regenerate           Publish to referred users' daily pool
-```
+**Sidebar entry** — add "উইথড্র রিকোয়েস্ট (ম্যানেজ)" to `DistributorLayout` NAV, but only rendered client-side when the current distributor's `can_manage_withdrawals = true` (fetched via `distributorGetMe`).
 
-### Database
+**Admin toggle** — in `src/routes/admin.distributors.$id.tsx` and `DistributorFormModal`, add a checkbox "উইথড্র রিকোয়েস্ট ম্যানেজ করার অনুমতি" that writes `can_manage_withdrawals` via existing `admin_upsert_distributor` RPC (patch field). The RPC already accepts arbitrary `_patch jsonb` so no RPC change needed — just include the field in the patch object.
 
-**New table:** `distributor_tasks`
-- id, distributor_id, title, fb_page_url, action_type, reward, instruction
-- status: `draft` | `verified` | `published` | `rejected`
-- created_at, verified_at, published_at
+### Technical Notes
 
-**New column on `link_tasks`:** `created_by_distributor uuid null` — যাতে distributor-generated task track হয় ও তার referred user-দের কাছে scope করা যায়।
+- All new server fns use `.middleware([requireSupabaseAuth])` + `assertDistributor` helper; withdrawal-review fns additionally check `can_manage_withdrawals`.
+- `withdrawals` RLS: add a policy `distributor_manage_withdrawals` FOR SELECT/UPDATE USING `public.distributor_can_manage_withdrawals(auth.uid())`.
+- No changes to admin flow — admin retains full control.
+- Notification bell reuses styling; scoped queries only.
 
-**New column on `distributors`:** `daily_task_limit int default 5`
+### Files Touched
 
-### Server Functions (`src/lib/distributor-tasks.functions.ts`)
+- Migration (new column + RLS + optional RPC)
+- `src/components/distributor/DistributorLayout.tsx` (header + conditional nav)
+- `src/components/distributor/DistributorNotificationBell.tsx` (new)
+- `src/components/distributor/DistributorLiveSearch.tsx` (new)
+- `src/lib/distributor-withdrawals.functions.ts` (new)
+- `src/routes/distributor.withdrawals.tsx` (new)
+- `src/components/admin/DistributorFormModal.tsx` + `src/routes/admin.distributors.$id.tsx` (toggle checkbox)
+- `src/hooks/use-distributor-me.ts` (small hook to cache `distributorGetMe` for gating UI)
 
-- `generateTasks({ count })` — AI call → returns draft tasks (কিন্তু save হবে distributor_tasks table-এ)
-- `verifyTask({ id })` — mark verified
-- `deleteAndRegenerate({ id })` — delete + generate 1 new
-- `publishTask({ id })` — distributor_tasks → link_tasks (with `created_by_distributor` + audience filter)
-
----
-
-## ২. Lead CRM
-
-Distributor-এর জন্য mini-CRM যেখানে potential lead track করবে।
-
-### Database
-
-**New table:** `distributor_leads`
-- id, distributor_id, name, phone, source (FB/friend/etc.), status (`new`|`contacted`|`interested`|`converted`|`dropped`)
-- next_followup_at, notes, converted_user_id (nullable — reference to profiles when they sign up)
-- created_at, updated_at
-
-### Pages/Server Functions
-
-- `/distributor/leads` — list + add + edit + status change + follow-up reminder
-- Server fns: `leadCreate`, `leadUpdate`, `leadDelete`, `leadList`
-
-### UI
-
-Simple table: Name | Phone | Source | Status badge | Next follow-up | Actions
-
----
-
-## ৩. Withdrawal Tax Commission (২%)
-
-### কীভাবে কাজ করবে
-
-বর্তমান system-এ user withdraw request দিলে ২% withdrawal tax কাটা হয় (existing `withdrawals` table-এ `tax_amount` বা similar থাকে)। এখন থেকে:
-
-- User withdrawal **approved** হলে → যদি user-এর একজন distributor থাকে (`profiles.distributor_id`), তাহলে সেই ২% tax amount **automatic** distributor-এর balance-এ যোগ হবে
-- আলাদা track: একটি নতুন earning source (`withdrawal_tax`)
-
-### Database
-
-**New table:** `distributor_earnings`
-- id, distributor_id, source (`withdrawal_tax` | `weekly_target` | `manual`)
-- amount, related_user_id, related_withdrawal_id
-- created_at
-
-**Trigger update:** `admin_review_withdrawal` function-এ approve শাখায় একটি extra block:
-
-```sql
--- inside approve branch, after debiting user balance
-SELECT distributor_id INTO v_dist FROM profiles WHERE id = v_row.user_id;
-IF v_dist IS NOT NULL AND COALESCE(v_row.tax_amount, 0) > 0 THEN
-  INSERT INTO distributor_earnings(distributor_id, source, amount, related_user_id, related_withdrawal_id)
-  VALUES (v_dist, 'withdrawal_tax', v_row.tax_amount, v_row.user_id, v_row.id);
-  UPDATE distributors SET balance = balance + v_row.tax_amount,
-                          total_earned = total_earned + v_row.tax_amount
-  WHERE user_id = v_dist;
-END IF;
-```
-
-### UI
-
-- Distributor panel dashboard-এ নতুন card: **"Withdrawal Tax Commission — ৳X"**
-- আলাদা tab: withdrawal tax history (কার withdraw থেকে কত পেলাম)
-- Existing distributor earnings card থেকে আলাদা করে show হবে
-
----
-
-## ৪. Weekly Target +২% Extra Commission (Bonus Phase)
-
-আপনি +২% approve করেছেন — এটি Phase 2 hisebe implement হবে (Task + CRM + Withdrawal Tax deploy হওয়ার পর):
-- Weekly window: প্রতি Sunday reset
-- Target: ৫ নতুন referral + ২ conversion
-- Achieve করলে সেই week-এর সব referral-এ extra 2% (5% → 7%)
-
----
-
-## Implementation Order (এই turn-এ)
-
-1. **Migration** — নতুন ৩টি table + `distributors.daily_task_limit` column + trigger update on `admin_review_withdrawal`
-2. **Server functions:**
-   - `distributor-tasks.functions.ts` (generate/verify/regenerate/publish)
-   - `distributor-leads.functions.ts` (CRUD)
-   - `distributor-earnings.functions.ts` (list + summary)
-3. **UI pages:**
-   - `/distributor/tasks` — task generator + verification panel + manual modal
-   - `/distributor/leads` — CRM
-   - `/distributor/earnings` — updated to show withdrawal tax breakdown
-4. **DistributorLayout sidebar** — নতুন menu items add
-
----
-
-## প্রশ্ন (implementation শুরুর আগে)
-
-1. **AI দিয়ে task generation** — Facebook page link কি AI নিজে generate করবে (random real-looking pages), নাকি distributor একটি seed keyword দেবে (যেমন "Bangladesh food pages") এবং AI সেই topic-এর pages suggest করবে?
-   - **আমার সুপারিশ:** Keyword-based — AI real page URL guarantee করতে পারে না, তাই distributor manual verify করবে ও broken গুলো regenerate হবে (আপনার described flow অনুযায়ী)।
-
-2. **Withdrawal tax percent** — এখন কি withdraw amount-এর ২% tax কাটা হচ্ছে? আমি existing `withdrawals.tax_amount` (বা equivalent) column ব্যবহার করব — যদি না থাকে migration-এ যোগ করব।
-
-উত্তর দিলে code implementation শুরু করব।
+Shall I proceed?
