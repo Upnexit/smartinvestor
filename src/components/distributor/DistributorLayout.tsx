@@ -2,25 +2,28 @@ import { useState, useEffect, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, Wallet, User as UserIcon, MessagesSquare,
-  LogOut, Menu, X, ChevronRight, Sparkles, ArrowDownToLine, ListChecks, Users2,
+  LogOut, Menu, X, ChevronRight, Sparkles, ArrowDownToLine, ListChecks, Users2, HeadphonesIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { ACCENTS, type AccentKey } from "@/lib/admin-accents";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { usePresenceBroadcast } from "@/hooks/use-presence-broadcast";
+import { DistributorNotificationBell } from "@/components/distributor/DistributorNotificationBell";
+import { DistributorLiveSearch } from "@/components/distributor/DistributorLiveSearch";
 
-type NavItem = { to: string; label: string; Icon: typeof LayoutDashboard; accent: AccentKey };
+type NavItem = { to: string; label: string; Icon: typeof LayoutDashboard; accent: AccentKey; requiresWithdrawAccess?: boolean };
 
-const NAV: NavItem[] = [
-  { to: "/distributor",          label: "ড্যাশবোর্ড",     Icon: LayoutDashboard, accent: "indigo" },
-  { to: "/distributor/tasks",    label: "Task Management", Icon: ListChecks,      accent: "fuchsia" },
-  { to: "/distributor/leads",    label: "লিড / CRM",       Icon: Users2,          accent: "sky" },
-  { to: "/distributor/users",    label: "আমার ইউজার",     Icon: Users,           accent: "sky" },
-  { to: "/distributor/earnings", label: "কমিশন ও আয়",     Icon: Wallet,          accent: "emerald" },
-  { to: "/distributor/withdraw", label: "উইথড্র",         Icon: ArrowDownToLine, accent: "rose" },
-  { to: "/distributor/support",  label: "সাপোর্ট চ্যাট",   Icon: MessagesSquare,  accent: "fuchsia" },
-  { to: "/distributor/profile",  label: "প্রোফাইল",       Icon: UserIcon,        accent: "purple" },
+const NAV_BASE: NavItem[] = [
+  { to: "/distributor",             label: "ড্যাশবোর্ড",     Icon: LayoutDashboard, accent: "indigo" },
+  { to: "/distributor/tasks",       label: "Task Management", Icon: ListChecks,      accent: "fuchsia" },
+  { to: "/distributor/leads",       label: "লিড / CRM",       Icon: Users2,          accent: "sky" },
+  { to: "/distributor/users",       label: "আমার ইউজার",     Icon: Users,           accent: "sky" },
+  { to: "/distributor/earnings",    label: "কমিশন ও আয়",     Icon: Wallet,          accent: "emerald" },
+  { to: "/distributor/withdrawals", label: "উইথড্র ম্যানেজ",   Icon: ArrowDownToLine, accent: "emerald", requiresWithdrawAccess: true },
+  { to: "/distributor/withdraw",    label: "নিজের উইথড্র",   Icon: ArrowDownToLine, accent: "rose" },
+  { to: "/distributor/support",     label: "সাপোর্ট চ্যাট",   Icon: MessagesSquare,  accent: "fuchsia" },
+  { to: "/distributor/profile",     label: "প্রোফাইল",       Icon: UserIcon,        accent: "purple" },
 ];
 
 const BOTTOM_NAV: { to: string; short: string; Icon: typeof LayoutDashboard; accent: AccentKey }[] = [
@@ -37,11 +40,25 @@ export function DistributorLayout({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const site = useSiteSettings();
   const [uid, setUid] = useState<string | null>(null);
-  useEffect(() => { supabase.auth.getUser().then(({ data }) => setUid(data.user?.id ?? null)); }, []);
-  usePresenceBroadcast(uid);
+  const [canManageWithdrawals, setCanManageWithdrawals] = useState(false);
 
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUid(data.user?.id ?? null));
+  }, []);
+
+  useEffect(() => {
+    if (!uid) return;
+    supabase.from("distributors").select("can_manage_withdrawals,status").eq("user_id", uid).maybeSingle()
+      .then(({ data }) => {
+        const d = data as { can_manage_withdrawals?: boolean; status?: string } | null;
+        setCanManageWithdrawals(!!d?.can_manage_withdrawals && (d?.status ?? "active") === "active");
+      });
+  }, [uid]);
+
+  usePresenceBroadcast(uid);
   useEffect(() => { setDrawer(false); }, [pathname]);
 
+  const NAV = NAV_BASE.filter((n) => !n.requiresWithdrawAccess || canManageWithdrawals);
 
   async function logout() {
     await supabase.auth.signOut();
@@ -50,24 +67,38 @@ export function DistributorLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/40">
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-indigo-200/70 bg-white/90 backdrop-blur px-3 py-2.5 lg:hidden">
-        <Link to="/distributor" className="flex items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/40 overflow-hidden">
-            {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-5 w-5" />}
+      {/* Mobile top bar */}
+      <header className="sticky top-0 z-30 border-b border-indigo-200/70 bg-white/90 backdrop-blur px-3 py-2 lg:hidden">
+        <div className="flex items-center justify-between gap-2">
+          <Link to="/distributor" className="flex items-center gap-2 min-w-0">
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/40 overflow-hidden">
+              {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-5 w-5" />}
+            </div>
+            <div className="min-w-0">
+              <p className="bn-display text-sm leading-none truncate">{site.site_name}</p>
+              <p className="text-[9px] font-bold tracking-widest text-indigo-600 mt-0.5">DISTRIBUTOR</p>
+            </div>
+          </Link>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Link to="/distributor/support" aria-label="সাপোর্ট"
+              className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-600 text-white shadow-lg">
+              <HeadphonesIcon className="h-4 w-4" />
+            </Link>
+            <DistributorNotificationBell canManageWithdrawals={canManageWithdrawals} />
+            <button onClick={() => setDrawer(true)} aria-label="মেনু"
+              className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-lg">
+              <Menu className="h-5 w-5" />
+            </button>
           </div>
-          <div>
-            <p className="bn-display text-sm leading-none">{site.site_name}</p>
-            <p className="text-[9px] font-bold tracking-widest text-indigo-600 mt-0.5">DISTRIBUTOR</p>
-          </div>
-        </Link>
-        <button onClick={() => setDrawer(true)} className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-700 text-white shadow-lg">
-          <Menu className="h-5 w-5" />
-        </button>
+        </div>
+        <div className="mt-2">
+          <DistributorLiveSearch />
+        </div>
       </header>
 
       <div className="lg:flex">
         <aside className="sticky top-0 hidden h-screen w-72 shrink-0 border-r border-indigo-200/70 bg-white/95 backdrop-blur lg:block">
-          <SidebarBody pathname={pathname} onNav={() => {}} onLogout={logout} />
+          <SidebarBody nav={NAV} pathname={pathname} onNav={() => {}} onLogout={logout} />
         </aside>
 
         {drawer && (
@@ -77,12 +108,31 @@ export function DistributorLayout({ children }: { children: ReactNode }) {
               <div className="flex justify-end p-2">
                 <button onClick={() => setDrawer(false)} className="grid h-9 w-9 place-items-center rounded-xl text-slate-600 hover:bg-slate-100"><X className="h-5 w-5" /></button>
               </div>
-              <SidebarBody pathname={pathname} onNav={() => setDrawer(false)} onLogout={logout} />
+              <SidebarBody nav={NAV} pathname={pathname} onNav={() => setDrawer(false)} onLogout={logout} />
             </aside>
           </div>
         )}
 
         <main className="min-w-0 flex-1 pb-24 lg:pb-6">
+          {/* Desktop top bar */}
+          <div className="sticky top-0 z-20 hidden lg:block border-b border-indigo-200/70 bg-white/85 backdrop-blur">
+            <div className="mx-auto grid h-[60px] max-w-6xl grid-cols-[1fr_minmax(0,560px)_1fr] items-center gap-3 px-6">
+              <div />
+              <div className="flex justify-center"><DistributorLiveSearch /></div>
+              <div className="flex items-center justify-end gap-2">
+                <Link to="/distributor/support" aria-label="সাপোর্ট"
+                  className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-600 text-white shadow-lg transition hover:scale-[1.05]">
+                  <HeadphonesIcon className="h-4 w-4" />
+                </Link>
+                <DistributorNotificationBell canManageWithdrawals={canManageWithdrawals} />
+                <Link to="/distributor/profile" aria-label="প্রোফাইল"
+                  className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-lg transition hover:scale-[1.05]">
+                  <UserIcon className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          </div>
+
           <div className="mx-auto w-full max-w-6xl px-3 py-4 sm:px-6 sm:py-6 space-y-4">
             {children}
           </div>
@@ -117,7 +167,7 @@ export function DistributorLayout({ children }: { children: ReactNode }) {
   );
 }
 
-function SidebarBody({ pathname, onNav, onLogout }: { pathname: string; onNav: () => void; onLogout: () => void }) {
+function SidebarBody({ nav, pathname, onNav, onLogout }: { nav: NavItem[]; pathname: string; onNav: () => void; onLogout: () => void }) {
   const site = useSiteSettings();
   return (
     <div className="flex h-full flex-col p-3">
@@ -139,7 +189,7 @@ function SidebarBody({ pathname, onNav, onLogout }: { pathname: string; onNav: (
 
       <p className="px-2 pt-4 pb-1 text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">MENU</p>
       <nav className="flex-1 space-y-1 overflow-y-auto pr-1">
-        {NAV.map((item) => {
+        {nav.map((item) => {
           const active = item.to === "/distributor" ? pathname === "/distributor" : pathname.startsWith(item.to);
           const a = ACCENTS[item.accent];
           return (
