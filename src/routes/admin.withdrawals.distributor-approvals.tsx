@@ -131,11 +131,29 @@ function DistributorApprovalsPage() {
       </div>
 
       <AdminCard>
-        <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input type="search" value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="ডিস্ট্রিবিউটর নাম, ফোন বা ইমেল দিয়ে সার্চ..."
-            className="w-full rounded-xl border-2 border-slate-200 bg-white pl-10 pr-3 py-2.5 text-sm outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100" />
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[220px]">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input type="search" value={search} onChange={(e) => setSearch(e.target.value)}
+              placeholder={view === "grouped" ? "ডিস্ট্রিবিউটর নাম, ফোন বা ইমেল..." : "ইউজার/ডিস্ট্রিবিউটর নাম, ফোন, ইউজার কোড..."}
+              className="w-full rounded-xl border-2 border-slate-200 bg-white pl-10 pr-3 py-2.5 text-sm outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100" />
+          </div>
+          <div className="inline-flex rounded-xl bg-slate-100 p-1 shadow-inner">
+            <button type="button" onClick={() => setView("grouped")}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition",
+                view === "grouped" ? "bg-white text-emerald-700 shadow" : "text-slate-500 hover:text-slate-700",
+              )}>
+              <LayoutGrid className="h-3.5 w-3.5" /> ডিস্ট্রিবিউটর অনুযায়ী
+            </button>
+            <button type="button" onClick={() => setView("flat")}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition",
+                view === "flat" ? "bg-white text-emerald-700 shadow" : "text-slate-500 hover:text-slate-700",
+              )}>
+              <ListFilter className="h-3.5 w-3.5" /> সব একসাথে
+            </button>
+          </div>
         </div>
 
         {loading && (
@@ -144,7 +162,7 @@ function DistributorApprovalsPage() {
           </div>
         )}
 
-        {!loading && grouped.length === 0 && (
+        {!loading && view === "grouped" && grouped.length === 0 && (
           <EmptyState Icon={ArrowDownToLine} title="কোনো ডেটা নেই" hint="এখনও কোনো ডিস্ট্রিবিউটর উইথড্র অ্যাপ্রুভ করেনি।" />
         )}
 
