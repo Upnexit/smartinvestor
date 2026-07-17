@@ -414,14 +414,12 @@ function TaskDetailModal({
         hiddenAtRef.current = Date.now();
       } else {
         stopFlash();
-        const awayMs = hiddenAtRef.current ? Date.now() - hiddenAtRef.current : 0;
-        if (awayMs >= MIN_AWAY_MS) {
-          setAwayEnough(true);
-          setReturned(true);
-          setSecondsLeft(WAIT_SECONDS); // ফিরে এসে fresh countdown
-          setTapGuard(true);
-          setTimeout(() => setTapGuard(false), TAP_GUARD_MS);
-        }
+        // ban/unavailable account থেকে দ্রুত ফিরে আসলেও Submit unlock হবে —
+        // ১০ সেকেন্ড countdown-ই যাচাইয়ের জন্য যথেষ্ট।
+        setReturned(true);
+        setSecondsLeft(WAIT_SECONDS);
+        setTapGuard(true);
+        setTimeout(() => setTapGuard(false), TAP_GUARD_MS);
       }
     };
     document.addEventListener("visibilitychange", onVis);
@@ -429,7 +427,7 @@ function TaskDetailModal({
     return () => { document.removeEventListener("visibilitychange", onVis); stopFlash(); };
   }, [linkOpened]);
 
-  const canSubmit = linkOpened && returned && awayEnough && secondsLeft <= 0 && !tapGuard;
+  const canSubmit = linkOpened && returned && secondsLeft <= 0 && !tapGuard;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm p-0 sm:p-4">
