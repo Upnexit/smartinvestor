@@ -89,14 +89,68 @@ function WithdrawalsPage() {
   const [detailData, setDetailData] = useState<DetailData | null>(null);
 
 
-  const refresh = () => {
-    supabase.from("withdrawals")
-      .select("id,user_id,amount,gross_amount,fee,balance_at_request,method,account_number,status,note,rejection_reason,created_at,reviewed_at,profiles!withdrawals_user_id_profiles_fkey(full_name,phone,user_code)")
-      .order("created_at", { ascending: false }).limit(200)
-      .then(({ data, error }) => {
-        if (error) { setRows([]); toast.error(error.message); return; }
-        setRows((data ?? []) as unknown as Row[]);
-      }, (e: unknown) => { setRows([]); toast.error(e instanceof Error ? e.message : "লোড ব্যর্থ"); });
+  const refresh = async () => {
+    try {
+      const [userRes, distRes] = await Promise.all([
+        supabase.from("withdrawals")
+          .select("id,user_id,amount,gross_amount,fee,balance_at_request,method,account_number,status,note,rejection_reason,created_at,reviewed_at,profiles!withdrawals_user_id_profiles_fkey(full_name,phone,user_code)")
+          .order("created_at", { ascending: false }).limit(200),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase as any).from("distributor_withdrawals")
+          .select("id,distributor_id,amount,method,account_number,status,rejection_reason,note,created_at,reviewed_at,distributors!distributor_withdrawals_distributor_id_fkey(full_name,phone,email)")
+          .order("created_at", { ascending: false }).limit(200),
+      ]);
+      if (userRes.error) throw userRes.error;
+      const userRows = ((userRes.data ?? []) as unknown as Row[]).map((r) => ({ ...r, kind: "user" as const }));
+      // Distributor rows may fail if FK label isn't matched — fall back to plain select
+      let distRaw = distRes.data as Array<Record<string, unknown>> | null;
+      if (distRes.error) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const fb = await (supabase as any).from("distributor_withdrawals")
+          .select("id,distributor_id,amount,method,account_number,status,rejection_reason,note,created_at,reviewed_at")
+          .order("created_at", { ascending: false }).limit(200);
+        distRaw = fb.data ?? [];
+        // Manually enrich with distributor names
+        const ids = Array.from(new Set((distRaw ?? []).map((r) => r.distributor_id as string).filter(Boolean)));
+        if (ids.length) {
+          const { data: dists } = await supabase.from("distributors").select("user_id,full_name,phone,email").in("user_id", ids);
+          const map = new Map<string, { full_name: string | null; phone: string | null; email: string | null }>();
+          ((dists ?? []) as Array<{ user_id: string; full_name: string | null; phone: string | null; email: string | null }>).forEach((d) => map.set(d.user_id, d));
+          distRaw = (distRaw ?? []).map((r) => ({ ...r, distributors: map.get(r.distributor_id as string) ?? null }));
+        }
+      }
+      const distRows: Row[] = ((distRaw ?? []) as Array<{
+        id: string; distributor_id: string; amount: number; method: Method | null; account_number: string | null;
+        status: Row["status"]; rejection_reason: string | null; note: string | null;
+        created_at: string; reviewed_at: string | null;
+        distributors?: { full_name: string | null; phone: string | null; email: string | null } | null;
+      }>).map((r) => ({
+        id: r.id,
+        user_id: r.distributor_id,
+        amount: Number(r.amount) || 0,
+        gross_amount: Number(r.amount) || 0,
+        fee: 0,
+        balance_at_request: null,
+        method: r.method,
+        account_number: r.account_number,
+        status: r.status,
+        note: r.note,
+        rejection_reason: r.rejection_reason,
+        created_at: r.created_at,
+        reviewed_at: r.reviewed_at,
+        kind: "distributor" as const,
+        profiles: r.distributors ? {
+          full_name: r.distributors.full_name,
+          phone: r.distributors.phone,
+          user_code: r.distributors.email ?? null,
+        } : null,
+      }));
+      const merged = [...userRows, ...distRows].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+      setRows(merged);
+    } catch (e) {
+      setRows([]);
+      toast.error(e instanceof Error ? e.message : "লোড ব্যর্থ");
+    }
   };
   const adminReady = useAdminAutoRefresh(refresh);
 
@@ -104,6 +158,7 @@ function WithdrawalsPage() {
     if (!adminReady) return;
     const ch = supabase.channel("admin-wd")
       .on("postgres_changes", { event: "*", schema: "public", table: "withdrawals" }, refresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "distributor_withdrawals" }, refresh)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
