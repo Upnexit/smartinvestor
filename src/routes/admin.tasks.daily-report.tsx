@@ -174,6 +174,9 @@ function DailyReportPage() {
           };
           map.set(uid, row);
         }
+        const perReward = Number(s.reward_credited) > 0
+          ? Number(s.reward_credited)
+          : Number(s.link_tasks?.reward ?? 0);
         row.submissions.push({
           id: s.id, task_id: s.task_id, status: s.status, created_at: s.created_at,
           reward_credited: s.reward_credited,
@@ -182,10 +185,13 @@ function DailyReportPage() {
         });
         if (s.created_at < row.first_at) row.first_at = s.created_at;
         if (s.created_at > row.last_at) row.last_at = s.created_at;
+        // Count total reward across non-rejected submissions so the row total matches the timeline sum.
+        if (s.status !== "rejected") {
+          row.total_reward += perReward;
+        }
         if (s.status === "approved") {
           row.approved += 1; tApproved += 1;
-          const r = Number(s.reward_credited ?? s.link_tasks?.reward ?? 0);
-          row.total_reward += r; tReward += r;
+          tReward += perReward;
         } else if (s.status === "pending") { row.pending += 1; tPending += 1; }
         else if (s.status === "rejected") { row.rejected += 1; tRejected += 1; }
       });
