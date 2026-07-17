@@ -389,7 +389,15 @@ function WithdrawalsPage() {
               </div>
 
               {/* User info */}
-              {!detailData ? <Shimmer className="h-24" /> : detailData.profile && (
+              {detail.kind === "distributor" ? (
+                <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-900">
+                  <p className="font-bold">ডিস্ট্রিবিউটর উইথড্র রিকোয়েস্ট</p>
+                  <p className="mt-1 text-xs text-indigo-700">এটি একজন ডিস্ট্রিবিউটরের নিজস্ব কমিশন উইথড্র — অ্যাপ্রুভ করলে সরাসরি তার ডিস্ট্রিবিউটর ব্যালেন্স থেকে ডেবিট হবে।</p>
+                  {detail.profiles?.full_name && (
+                    <p className="mt-2 text-xs font-mono">নাম: {detail.profiles.full_name} · ফোন: {detail.profiles.phone ?? "—"}</p>
+                  )}
+                </div>
+              ) : !detailData ? <Shimmer className="h-24" /> : detailData.profile && (
                 <>
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <div className="flex items-center gap-3">
