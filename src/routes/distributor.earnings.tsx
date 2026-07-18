@@ -14,10 +14,12 @@ type Earning = { id: string; source: string; amount: number; created_at: string;
 
 const SOURCE_BN: Record<string, string> = {
   withdrawal_tax: "উইথড্র ট্যাক্স (২%)",
+  withdrawal_payout: "উইথড্র পেআউট (ইউজারকে পাঠানো)",
   package_commission: "প্যাকেজ কমিশন (৭%)",
   weekly_target: "সাপ্তাহিক টার্গেট",
   manual: "ম্যানুয়াল",
 };
+
 
 function EarningsPage() {
   const [data, setData] = useState<{ profile: { commission_rate?: number; payment_method?: string; payment_number?: string } | null; stats: { balance?: number; total_earned?: number; total_deposit?: number } | null } | null>(null);
