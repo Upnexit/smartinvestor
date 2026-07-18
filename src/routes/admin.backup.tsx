@@ -50,11 +50,22 @@ function BackupPage() {
   const triggerFn = useServerFn(adminTriggerBackup);
   const listFn = useServerFn(adminListBackups);
   const downloadFn = useServerFn(adminDownloadBackup);
+  const restoreFn = useServerFn(adminRestoreBackup);
+  const restoreDriveFn = useServerFn(adminRestoreFromDrive);
 
   const [files, setFiles] = useState<BackupFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [restoring, setRestoring] = useState(false);
+  const [restoreMode, setRestoreMode] = useState<"merge" | "replace">("merge");
+  const [lastResult, setLastResult] = useState<null | {
+    mode: string;
+    total_rows: number;
+    inserted: Record<string, number>;
+    errors: Record<string, string>;
+  }>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function refresh() {
     setLoading(true);
