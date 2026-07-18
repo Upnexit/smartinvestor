@@ -224,6 +224,130 @@ function BackupPage() {
         </div>
       </div>
 
+      {/* Restore section */}
+      <div className="rounded-3xl bg-white p-5 shadow-pop ring-1 ring-rose-100">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-600 text-white shadow-lg shadow-rose-500/40">
+              <Undo2 className="h-6 w-6" />
+            </div>
+            <div>
+              <h2 className="bn-display text-xl text-slate-900">ডেটা রিস্টোর</h2>
+              <p className="text-sm text-slate-500">
+                Backup JSON আপলোড করে সরাসরি database-এ import করুন
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Mode selector */}
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          <label className={`cursor-pointer rounded-2xl p-3 ring-2 transition ${
+            restoreMode === "merge"
+              ? "bg-emerald-50 ring-emerald-400"
+              : "bg-slate-50 ring-transparent hover:ring-slate-200"
+          }`}>
+            <input
+              type="radio"
+              className="sr-only"
+              checked={restoreMode === "merge"}
+              onChange={() => setRestoreMode("merge")}
+            />
+            <div className="flex items-center gap-2 font-semibold text-emerald-800">
+              <CheckCircle2 className="h-4 w-4" /> Merge (নিরাপদ)
+            </div>
+            <p className="mt-1 text-xs text-slate-600">
+              Existing rows update হবে (id ম্যাচ করলে), নতুন rows insert হবে। কিছু delete হবে না।
+            </p>
+          </label>
+          <label className={`cursor-pointer rounded-2xl p-3 ring-2 transition ${
+            restoreMode === "replace"
+              ? "bg-rose-50 ring-rose-400"
+              : "bg-slate-50 ring-transparent hover:ring-slate-200"
+          }`}>
+            <input
+              type="radio"
+              className="sr-only"
+              checked={restoreMode === "replace"}
+              onChange={() => setRestoreMode("replace")}
+            />
+            <div className="flex items-center gap-2 font-semibold text-rose-800">
+              <ShieldAlert className="h-4 w-4" /> Replace (বিপজ্জনক)
+            </div>
+            <p className="mt-1 text-xs text-slate-600">
+              সব existing data delete করে backup থেকে fresh insert হবে। System crash-এর পরে ব্যবহার করুন।
+            </p>
+          </label>
+        </div>
+
+        {/* Upload */}
+        <div className="mt-4 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-4">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={handleUploadRestore}
+            disabled={restoring}
+          />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-rose-100 to-orange-100 text-rose-700">
+                <Upload className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-800">Backup JSON ফাইল আপলোড করুন</p>
+                <p className="text-xs text-slate-500">
+                  Google Drive থেকে download করা <code className="rounded bg-white px-1">.json</code> ফাইল সিলেক্ট করুন
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={restoring}
+              className="flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-rose-500 to-orange-600 px-4 py-2 text-sm font-bold text-white shadow-md shadow-rose-500/30 hover:from-rose-600 hover:to-orange-700 disabled:opacity-60"
+            >
+              {restoring ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              ফাইল বেছে নিন
+            </button>
+          </div>
+        </div>
+
+        {/* Result */}
+        {lastResult && (
+          <div className="mt-4 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              <span className="text-sm font-semibold text-slate-800">
+                Restore Result — {lastResult.mode.toUpperCase()} mode • {lastResult.total_rows} rows প্রসেসড
+              </span>
+            </div>
+            <div className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3 max-h-64 overflow-auto">
+              {Object.entries(lastResult.inserted).map(([tbl, n]) => (
+                <div key={tbl} className="flex items-center justify-between rounded-lg bg-white px-2 py-1 text-xs ring-1 ring-slate-100">
+                  <span className="font-mono text-slate-600">{tbl}</span>
+                  <span className="font-bold text-emerald-700">{n}</span>
+                </div>
+              ))}
+            </div>
+            {Object.keys(lastResult.errors).length > 0 && (
+              <details className="mt-3">
+                <summary className="cursor-pointer text-xs font-semibold text-rose-700">
+                  ⚠️ {Object.keys(lastResult.errors).length} টি error দেখুন
+                </summary>
+                <div className="mt-2 space-y-1 max-h-40 overflow-auto">
+                  {Object.entries(lastResult.errors).map(([k, v]) => (
+                    <div key={k} className="rounded bg-rose-50 px-2 py-1 text-xs text-rose-800">
+                      <span className="font-mono font-semibold">{k}:</span> {v}
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Instructions */}
       <div className="rounded-3xl bg-white p-5 shadow-soft ring-1 ring-slate-100">
         <div className="flex items-start gap-3">
@@ -233,10 +357,10 @@ function BackupPage() {
           <div className="text-sm text-slate-600 space-y-1">
             <p className="font-semibold text-slate-800">রিস্টোর করার নিয়ম:</p>
             <ol className="list-decimal pl-5 space-y-0.5">
-              <li>যে ব্যাকআপ ফাইল লাগবে সেটি নিচের তালিকা থেকে <b>Download</b> করুন</li>
-              <li>নতুন Supabase প্রজেক্টে <code className="rounded bg-slate-100 px-1">complete-database-setup.sql</code> চালিয়ে schema তৈরি করুন</li>
-              <li>ডাউনলোড করা JSON থেকে টেবিলগুলোতে row insert করুন (SQL Editor বা import script দিয়ে)</li>
-              <li>নতুন Supabase URL ও keys দিয়ে <code className="rounded bg-slate-100 px-1">.env</code> আপডেট করুন</li>
+              <li>System crash হলে প্রথমে schema ঠিক আছে কিনা নিশ্চিত করুন (নতুন Supabase হলে <code className="rounded bg-slate-100 px-1">complete-database-setup.sql</code> চালান)</li>
+              <li>নিচের তালিকা থেকে সবচেয়ে সাম্প্রতিক backup <b>Restore</b> করুন, অথবা download করে upload করুন</li>
+              <li><b>Merge</b> — শুধু নতুন data যোগ / update। <b>Replace</b> — বর্তমান data মুছে ফেলবে</li>
+              <li>Restore-এর আগে সবসময় নতুন backup নিন (safety net)</li>
             </ol>
           </div>
         </div>
