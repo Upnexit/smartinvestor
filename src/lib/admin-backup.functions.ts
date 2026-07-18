@@ -43,7 +43,7 @@ export const adminRestoreBackup = createServerFn({ method: "POST" })
   .inputValidator((d: { content: string; mode?: "merge" | "replace"; onlyTables?: string[] }) => {
     if (!d?.content || typeof d.content !== "string") throw new Error("invalid content");
     if (d.content.length > 200 * 1024 * 1024) throw new Error("file too large (>200MB)");
-    const mode = d.mode === "replace" ? "replace" : "merge";
+    const mode: "merge" | "replace" = d.mode === "replace" ? "replace" : "merge";
     return { content: d.content, mode, onlyTables: d.onlyTables };
   })
   .handler(async ({ data, context }) => {
