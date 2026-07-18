@@ -31,10 +31,16 @@ export const TABLES_TO_BACKUP = [
 function driveKeys() {
   const lovableKey = process.env.LOVABLE_API_KEY;
   const driveKey = process.env.GOOGLE_DRIVE_API_KEY;
-  if (!lovableKey || !driveKey) {
-    throw new Error("Google Drive connector is not configured");
+  const missing: string[] = [];
+  if (!lovableKey) missing.push("LOVABLE_API_KEY");
+  if (!driveKey) missing.push("GOOGLE_DRIVE_API_KEY");
+  if (missing.length > 0) {
+    throw new Error(
+      `Google Drive connector is not configured — missing: ${missing.join(", ")}. ` +
+      `Workspace Settings → Connectors থেকে Google Drive reconnect করুন এবং preview redeploy করুন।`
+    );
   }
-  return { lovableKey, driveKey };
+  return { lovableKey: lovableKey!, driveKey: driveKey! };
 }
 
 async function driveFetch(path: string, init: RequestInit) {
