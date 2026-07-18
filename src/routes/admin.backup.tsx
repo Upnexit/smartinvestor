@@ -443,6 +443,19 @@ function BackupPage() {
                     )}
                     Download
                   </button>
+                  <button
+                    onClick={() => handleDriveRestore(file)}
+                    disabled={restoring}
+                    title={`${restoreMode.toUpperCase()} mode-এ এই ব্যাকআপ থেকে restore করুন`}
+                    className="flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-rose-500 to-orange-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm shadow-rose-500/30 hover:from-rose-600 hover:to-orange-700 disabled:opacity-60"
+                  >
+                    {restoring ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Undo2 className="h-3.5 w-3.5" />
+                    )}
+                    Restore
+                  </button>
                 </div>
               </div>
             ))}
