@@ -586,7 +586,7 @@ function NoticeFormModal({
                     value={userQuery}
                     onChange={(e) => setUserQuery(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); runUserSearch(); } }}
-                    placeholder="যেমন: SI-12345, 017xxxxxxxx, নাম বা email"
+                    placeholder="ইউজার/ডিস্ট্রিবিউটর — SI-12345, 017xxxxxxxx, নাম বা email"
                     className="flex-1 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm"
                   />
                   <button type="button" onClick={runUserSearch} disabled={userSearching || !userQuery.trim()}
