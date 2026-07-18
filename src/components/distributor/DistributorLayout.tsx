@@ -175,9 +175,11 @@ export function DistributorLayout({ children }: { children: ReactNode }) {
           })}
         </ul>
       </nav>
+      <NoticeModal />
     </div>
   );
 }
+
 
 function SidebarBody({ nav, pathname, onNav, onLogout }: { nav: NavItem[]; pathname: string; onNav: () => void; onLogout: () => void }) {
   const site = useSiteSettings();
