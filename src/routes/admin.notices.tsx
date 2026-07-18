@@ -586,7 +586,7 @@ function NoticeFormModal({
                     value={userQuery}
                     onChange={(e) => setUserQuery(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); runUserSearch(); } }}
-                    placeholder="যেমন: SI-12345, 017xxxxxxxx, নাম বা email"
+                    placeholder="ইউজার/ডিস্ট্রিবিউটর — SI-12345, 017xxxxxxxx, নাম বা email"
                     className="flex-1 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm"
                   />
                   <button type="button" onClick={runUserSearch} disabled={userSearching || !userQuery.trim()}
@@ -606,7 +606,9 @@ function NoticeFormModal({
                             <span className="font-bold">{u.full_name || "নামহীন"}</span>{" "}
                             <span className="text-slate-500">· {u.user_code}</span>
                             {u.phone && <span className="text-slate-400"> · {u.phone}</span>}
+                            {u.is_distributor && <span className="ml-1 rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 px-1.5 py-0.5 text-[9px] font-bold text-white">ডিস্ট্রিবিউটর</span>}
                           </span>
+
                           <span className="shrink-0 text-[10px] font-bold">
                             {selected ? "✓ যোগ হয়েছে" : "+ যোগ"}
                           </span>

@@ -244,6 +244,7 @@ export type NoticeUserLookupRow = {
   full_name: string | null;
   phone: string | null;
   email: string | null;
+  is_distributor?: boolean;
 };
 
 export const lookupUsersForNotice = createServerFn({ method: "POST" })
@@ -273,8 +274,18 @@ export const lookupUsersForNotice = createServerFn({ method: "POST" })
       .or(orParts.join(","))
       .limit(20);
     if (error) throw new Error(error.message);
-    return { users: (rows ?? []) as NoticeUserLookupRow[] };
+    const users = (rows ?? []) as NoticeUserLookupRow[];
+
+    if (users.length > 0) {
+      const ids = users.map((u) => u.id);
+      const { data: dRows } = await context.supabase
+        .from("distributors").select("user_id").in("user_id", ids);
+      const distSet = new Set((dRows ?? []).map((r: { user_id: string }) => r.user_id));
+      users.forEach((u) => { u.is_distributor = distSet.has(u.id); });
+    }
+    return { users };
   });
+
 
 /* ------------------------ AUTO-DELETION LOG ------------------------ */
 

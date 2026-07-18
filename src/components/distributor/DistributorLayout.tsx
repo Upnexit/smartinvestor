@@ -11,6 +11,8 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 import { usePresenceBroadcast } from "@/hooks/use-presence-broadcast";
 import { DistributorNotificationBell } from "@/components/distributor/DistributorNotificationBell";
 import { DistributorLiveSearch } from "@/components/distributor/DistributorLiveSearch";
+import { NoticeModal } from "@/components/panel/NoticeModal";
+
 
 type NavItem = { to: string; label: string; Icon: typeof LayoutDashboard; accent: AccentKey; requiresWithdrawAccess?: boolean };
 
@@ -173,9 +175,11 @@ export function DistributorLayout({ children }: { children: ReactNode }) {
           })}
         </ul>
       </nav>
+      <NoticeModal />
     </div>
   );
 }
+
 
 function SidebarBody({ nav, pathname, onNav, onLogout }: { nav: NavItem[]; pathname: string; onNav: () => void; onLogout: () => void }) {
   const site = useSiteSettings();
