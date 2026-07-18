@@ -37,3 +37,31 @@ export const adminDownloadBackup = createServerFn({ method: "POST" })
     const content = await downloadBackupFile(data.fileId);
     return { content };
   });
+
+export const adminRestoreBackup = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { content: string; mode?: "merge" | "replace"; onlyTables?: string[] }) => {
+    if (!d?.content || typeof d.content !== "string") throw new Error("invalid content");
+    if (d.content.length > 200 * 1024 * 1024) throw new Error("file too large (>200MB)");
+    const mode = d.mode === "replace" ? "replace" : "merge";
+    return { content: d.content, mode, onlyTables: d.onlyTables };
+  })
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { restoreFromBackup } = await import("./backup.server");
+    return await restoreFromBackup(data.content, data.mode, data.onlyTables);
+  });
+
+export const adminRestoreFromDrive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { fileId: string; mode?: "merge" | "replace" }) => {
+    if (!d?.fileId || typeof d.fileId !== "string") throw new Error("invalid fileId");
+    const mode = d.mode === "replace" ? "replace" : "merge";
+    return { fileId: d.fileId, mode };
+  })
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { downloadBackupFile, restoreFromBackup } = await import("./backup.server");
+    const content = await downloadBackupFile(data.fileId);
+    return await restoreFromBackup(content, data.mode);
+  });
