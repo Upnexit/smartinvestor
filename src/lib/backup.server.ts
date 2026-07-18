@@ -203,3 +203,131 @@ export async function runFullBackup(): Promise<{
     errors: Object.keys(errors).length > 0 ? errors : undefined,
   };
 }
+
+// ============================================================
+// RESTORE — import backup JSON back into the database
+// ============================================================
+
+// Order matters — parents before children to satisfy FKs.
+export const RESTORE_ORDER = [
+  "packages",
+  "profiles",
+  "user_roles",
+  "site_settings",
+  "communities",
+  "distributors",
+  "distributor_applications",
+  "user_packages",
+  "user_payment_methods",
+  "link_tasks",
+  "task_submissions",
+  "withdrawals",
+  "distributor_leads",
+  "distributor_tasks",
+  "distributor_earnings",
+  "distributor_withdrawals",
+  "referral_earnings",
+  "community_bans",
+  "community_messages",
+  "notices",
+  "notice_dismissals",
+  "activity_logs",
+  "support_messages",
+];
+
+export type RestoreMode = "merge" | "replace";
+
+export type RestoreResult = {
+  mode: RestoreMode;
+  total_rows: number;
+  inserted: Record<string, number>;
+  skipped: Record<string, number>;
+  errors: Record<string, string>;
+  started_at: string;
+  finished_at: string;
+};
+
+export async function restoreFromBackup(
+  jsonContent: string,
+  mode: RestoreMode,
+  onlyTables?: string[]
+): Promise<RestoreResult> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  let parsed: { tables?: Record<string, unknown[]> };
+  try {
+    parsed = JSON.parse(jsonContent);
+  } catch {
+    throw new Error("অবৈধ JSON ফাইল — backup file পড়া যায়নি");
+  }
+  const tables = parsed.tables;
+  if (!tables || typeof tables !== "object") {
+    throw new Error("Backup file-এ 'tables' key পাওয়া যায়নি");
+  }
+
+  const started_at = new Date().toISOString();
+  const inserted: Record<string, number> = {};
+  const skipped: Record<string, number> = {};
+  const errors: Record<string, string> = {};
+  let total_rows = 0;
+
+  const filter = onlyTables && onlyTables.length > 0 ? new Set(onlyTables) : null;
+
+  // If mode = replace, delete rows in REVERSE order (children first)
+  if (mode === "replace") {
+    for (const table of [...RESTORE_ORDER].reverse()) {
+      if (filter && !filter.has(table)) continue;
+      if (!(table in tables)) continue;
+      try {
+        // delete-all pattern that works with any PK
+        const { error } = await supabaseAdmin
+          .from(table as never)
+          .delete()
+          .not("id", "is", null);
+        if (error && !/column .* does not exist/i.test(error.message)) {
+          errors[`${table}:delete`] = error.message;
+        }
+      } catch (err) {
+        errors[`${table}:delete`] = err instanceof Error ? err.message : String(err);
+      }
+    }
+  }
+
+  // Insert / upsert in dependency order
+  for (const table of RESTORE_ORDER) {
+    if (filter && !filter.has(table)) continue;
+    const rows = tables[table];
+    if (!Array.isArray(rows) || rows.length === 0) {
+      inserted[table] = 0;
+      continue;
+    }
+    total_rows += rows.length;
+    inserted[table] = 0;
+    skipped[table] = 0;
+    const BATCH = 500;
+    for (let i = 0; i < rows.length; i += BATCH) {
+      const chunk = rows.slice(i, i + BATCH);
+      const query = supabaseAdmin.from(table as never);
+      const { error, count } =
+        mode === "replace"
+          ? await query.insert(chunk as never, { count: "exact" })
+          : await query.upsert(chunk as never, { onConflict: "id", count: "exact" });
+      if (error) {
+        errors[`${table}:${i}`] = error.message;
+        skipped[table] += chunk.length;
+      } else {
+        inserted[table] += count ?? chunk.length;
+      }
+    }
+  }
+
+  return {
+    mode,
+    total_rows,
+    inserted,
+    skipped,
+    errors,
+    started_at,
+    finished_at: new Date().toISOString(),
+  };
+}
