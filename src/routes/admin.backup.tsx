@@ -122,6 +122,58 @@ function BackupPage() {
     }
   }
 
+  async function runRestore(runner: () => Promise<{
+    mode: string; total_rows: number; inserted: Record<string, number>;
+    skipped: Record<string, number>; errors: Record<string, string>;
+  }>, label: string) {
+    if (restoring) return;
+    const confirmMsg =
+      restoreMode === "replace"
+        ? `⚠️ REPLACE mode: ${label} থেকে restore করলে বর্তমান সব data মুছে যাবে ও backup-এর data বসানো হবে। নিশ্চিত?`
+        : `MERGE mode: ${label} থেকে restore করলে existing rows update হবে ও নতুন rows যোগ হবে। চালিয়ে যাবেন?`;
+    if (!window.confirm(confirmMsg)) return;
+    setRestoring(true);
+    setLastResult(null);
+    const t = toast.loading("Restore চলছে… ডাটা import হচ্ছে");
+    try {
+      const res = await runner();
+      const errCount = Object.keys(res.errors ?? {}).length;
+      setLastResult(res);
+      if (errCount === 0) {
+        toast.success(`Restore সফল — ${res.total_rows} rows প্রসেস হয়েছে`, { id: t });
+      } else {
+        toast.warning(`Restore আংশিক সফল — ${errCount} টি error, details নিচে`, { id: t });
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Restore ব্যর্থ", { id: t });
+    } finally {
+      setRestoring(false);
+    }
+  }
+
+  async function handleUploadRestore(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.name.endsWith(".json")) {
+      toast.error("শুধুমাত্র .json backup ফাইল সাপোর্টেড");
+      e.target.value = "";
+      return;
+    }
+    const content = await file.text();
+    await runRestore(
+      () => restoreFn({ data: { content, mode: restoreMode } }),
+      `আপলোড করা ফাইল "${file.name}"`
+    );
+    e.target.value = "";
+  }
+
+  async function handleDriveRestore(file: BackupFile) {
+    await runRestore(
+      () => restoreDriveFn({ data: { fileId: file.id, mode: restoreMode } }),
+      `Drive ফাইল "${file.name}"`
+    );
+  }
+
   const totalSize = files.reduce((s, f) => s + (f.size ? Number(f.size) : 0), 0);
 
   return (
