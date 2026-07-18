@@ -606,7 +606,9 @@ function NoticeFormModal({
                             <span className="font-bold">{u.full_name || "নামহীন"}</span>{" "}
                             <span className="text-slate-500">· {u.user_code}</span>
                             {u.phone && <span className="text-slate-400"> · {u.phone}</span>}
+                            {u.is_distributor && <span className="ml-1 rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 px-1.5 py-0.5 text-[9px] font-bold text-white">ডিস্ট্রিবিউটর</span>}
                           </span>
+
                           <span className="shrink-0 text-[10px] font-bold">
                             {selected ? "✓ যোগ হয়েছে" : "+ যোগ"}
                           </span>
