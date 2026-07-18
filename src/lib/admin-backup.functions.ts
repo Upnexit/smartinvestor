@@ -56,7 +56,7 @@ export const adminRestoreFromDrive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { fileId: string; mode?: "merge" | "replace" }) => {
     if (!d?.fileId || typeof d.fileId !== "string") throw new Error("invalid fileId");
-    const mode = d.mode === "replace" ? "replace" : "merge";
+    const mode: "merge" | "replace" = d.mode === "replace" ? "replace" : "merge";
     return { fileId: d.fileId, mode };
   })
   .handler(async ({ data, context }) => {
