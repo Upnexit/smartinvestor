@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { ACCENTS, type AccentKey } from "@/lib/admin-accents";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { NotificationBell } from "@/components/admin/NotificationBell";
+import { SecurityAlertOverlay } from "@/components/admin/SecurityAlertOverlay";
 
 type NavChild = { to: string; label: string; Icon: typeof LayoutDashboard };
 type NavItem = { to: string; label: string; Icon: typeof LayoutDashboard; accent: AccentKey; children?: NavChild[] };
