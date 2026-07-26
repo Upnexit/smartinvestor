@@ -123,6 +123,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           </div>
         </main>
       </div>
+      <SecurityAlertOverlay />
     </div>
   );
 }
