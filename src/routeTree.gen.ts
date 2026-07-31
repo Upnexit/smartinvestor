@@ -52,6 +52,7 @@ import { Route as AdminAppInstallsRouteImport } from './routes/admin.app-install
 import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticated/withdraw'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
+import { Route as AuthenticatedShopRouteImport } from './routes/_authenticated/shop'
 import { Route as AuthenticatedReferralRouteImport } from './routes/_authenticated/referral'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPackagesRouteImport } from './routes/_authenticated/packages'
@@ -290,6 +291,11 @@ const AuthenticatedSupportRoute = AuthenticatedSupportRouteImport.update({
   path: '/support',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedShopRoute = AuthenticatedShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedReferralRoute = AuthenticatedReferralRouteImport.update({
   id: '/referral',
   path: '/referral',
@@ -431,6 +437,7 @@ export interface FileRoutesByFullPath {
   '/packages': typeof AuthenticatedPackagesRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/referral': typeof AuthenticatedReferralRoute
+  '/shop': typeof AuthenticatedShopRoute
   '/support': typeof AuthenticatedSupportRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
@@ -496,6 +503,7 @@ export interface FileRoutesByTo {
   '/packages': typeof AuthenticatedPackagesRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/referral': typeof AuthenticatedReferralRoute
+  '/shop': typeof AuthenticatedShopRoute
   '/support': typeof AuthenticatedSupportRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
@@ -560,6 +568,7 @@ export interface FileRoutesById {
   '/_authenticated/packages': typeof AuthenticatedPackagesRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/referral': typeof AuthenticatedReferralRoute
+  '/_authenticated/shop': typeof AuthenticatedShopRoute
   '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
@@ -629,6 +638,7 @@ export interface FileRouteTypes {
     | '/packages'
     | '/profile'
     | '/referral'
+    | '/shop'
     | '/support'
     | '/tasks'
     | '/withdraw'
@@ -694,6 +704,7 @@ export interface FileRouteTypes {
     | '/packages'
     | '/profile'
     | '/referral'
+    | '/shop'
     | '/support'
     | '/tasks'
     | '/withdraw'
@@ -757,6 +768,7 @@ export interface FileRouteTypes {
     | '/_authenticated/packages'
     | '/_authenticated/profile'
     | '/_authenticated/referral'
+    | '/_authenticated/shop'
     | '/_authenticated/support'
     | '/_authenticated/tasks'
     | '/_authenticated/withdraw'
@@ -1127,6 +1139,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSupportRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/shop': {
+      id: '/_authenticated/shop'
+      path: '/shop'
+      fullPath: '/shop'
+      preLoaderRoute: typeof AuthenticatedShopRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/referral': {
       id: '/_authenticated/referral'
       path: '/referral'
@@ -1311,6 +1330,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPackagesRoute: typeof AuthenticatedPackagesRouteWithChildren
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedReferralRoute: typeof AuthenticatedReferralRoute
+  AuthenticatedShopRoute: typeof AuthenticatedShopRoute
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedWithdrawRoute: typeof AuthenticatedWithdrawRoute
@@ -1323,6 +1343,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPackagesRoute: AuthenticatedPackagesRouteWithChildren,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedReferralRoute: AuthenticatedReferralRoute,
+  AuthenticatedShopRoute: AuthenticatedShopRoute,
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedWithdrawRoute: AuthenticatedWithdrawRoute,
