@@ -165,7 +165,40 @@ function ShopOrdersPage() {
                     </div>
                   </div>
 
+                  {/* Payment info */}
+                  <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-[11px] text-slate-600">
+                    <span className="inline-flex items-center gap-1 font-bold text-slate-800">
+                      <CreditCard className="h-3.5 w-3.5" /> {PAY_LABEL[o.payment_method ?? "cod"] ?? o.payment_method}
+                    </span>
+                    {o.sender_number && <span>প্রেরক: <b>{o.sender_number}</b></span>}
+                    {o.trx_id && <span>TrxID: <b>{o.trx_id}</b></span>}
+                    <span className={cn(
+                      "ml-auto rounded-full px-2 py-0.5 font-bold ring-1",
+                      o.payment_status === "paid"
+                        ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                        : "bg-amber-50 text-amber-700 ring-amber-200",
+                    )}>
+                      {o.payment_status === "paid" ? "পেমেন্ট ভেরিফাইড" : "পেমেন্ট বাকি"}
+                    </span>
+                  </div>
+
                   <div className="mt-3 flex flex-wrap gap-1.5">
+                    {o.status === "new" && (
+                      <>
+                        <SoftButton accent="emerald" onClick={() => setStatus(o, "confirmed")}>
+                          <CheckCircle2 className="h-3.5 w-3.5" /> অ্যাপ্রুভ
+                        </SoftButton>
+                        <SoftButton accent="rose" onClick={() => setStatus(o, "cancelled")}>
+                          <XCircle className="h-3.5 w-3.5" /> ডিক্লাইন
+                        </SoftButton>
+                      </>
+                    )}
+                    {(o.payment_method ?? "cod") !== "cod" && (
+                      <SoftButton accent={o.payment_status === "paid" ? "slate" : "emerald"}
+                        onClick={() => setPaid(o, o.payment_status !== "paid")}>
+                        {o.payment_status === "paid" ? "পেমেন্ট আনডু" : "পেমেন্ট ভেরিফাই"}
+                      </SoftButton>
+                    )}
                     {STATUSES.filter((s) => s.key !== o.status).map((s) => (
                       <SoftButton key={s.key} accent="slate" onClick={() => setStatus(o, s.key)}>{s.label}</SoftButton>
                     ))}
