@@ -3,10 +3,12 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, ListChecks, ArrowDownToLine, Package, MessageCircle,
   Users, User as UserIcon, ChevronRight, LogOut, Sparkles, Menu, X, Bell, Crown, Home, LifeBuoy,
+  ShoppingBag,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { useLaunchFlag } from "@/hooks/use-launch-flag";
 import { cn } from "@/lib/utils";
 import { NoticeModal } from "@/components/panel/NoticeModal";
 import { PushOptInBanner } from "@/components/panel/PushOptInBanner";
