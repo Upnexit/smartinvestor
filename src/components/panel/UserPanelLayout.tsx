@@ -35,12 +35,26 @@ const NAV: NavItem[] = [
   { to: "/profile",    label: "প্রোফাইল",    short: "প্রোফাইল", Icon: UserIcon,       from: "from-rose-400",    to_: "to-pink-500",    soft: "bg-rose-50",    dot: "bg-rose-500" },
 ];
 
-const BOTTOM_NAV = [NAV[0], NAV[1], NAV[2], NAV[3], NAV[4], NAV[6]];
+// Staged for the big re-launch — hidden until the launch switch is on.
+const SHOP_ITEM: NavItem = {
+  to: "/shop", label: "শপ", short: "শপ", Icon: ShoppingBag,
+  from: "from-purple-500", to_: "to-fuchsia-700", soft: "bg-purple-50", dot: "bg-purple-500",
+};
+
+const sideNav = (launched: boolean): NavItem[] =>
+  launched ? [NAV[0], NAV[1], SHOP_ITEM, ...NAV.slice(2)] : NAV;
+
+const bottomNav = (launched: boolean): NavItem[] =>
+  launched
+    ? [NAV[0], NAV[1], SHOP_ITEM, NAV[3], NAV[4], NAV[6]]
+    : [NAV[0], NAV[1], NAV[2], NAV[3], NAV[4], NAV[6]];
 
 export function UserPanelLayout({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const activeItem = NAV.find((n) => pathname.startsWith(n.to)) ?? NAV[0];
+  const { launched } = useLaunchFlag();
+  const BOTTOM_NAV = bottomNav(launched);
+  const activeItem = sideNav(launched).find((n) => pathname.startsWith(n.to)) ?? NAV[0];
   const navigate = useNavigate();
   const site = useSiteSettings();
   const { status: pushStatus, busy: pushBusy, subscribe: pushSubscribe } = usePushSubscribe();
