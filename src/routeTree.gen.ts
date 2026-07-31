@@ -36,6 +36,7 @@ import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTasksRouteImport } from './routes/admin.tasks'
 import { Route as AdminSupportRouteImport } from './routes/admin.support'
+import { Route as AdminShopRouteImport } from './routes/admin.shop'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminProfileRouteImport } from './routes/admin.profile'
@@ -60,6 +61,7 @@ import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticat
 import { Route as AdminWithdrawalsIndexRouteImport } from './routes/admin.withdrawals.index'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin.users.index'
 import { Route as AdminTasksIndexRouteImport } from './routes/admin.tasks.index'
+import { Route as AdminShopIndexRouteImport } from './routes/admin.shop.index'
 import { Route as AdminDistributorsIndexRouteImport } from './routes/admin.distributors.index'
 import { Route as DistributorTaskPackagePackageIdRouteImport } from './routes/distributor.task-package.$packageId'
 import { Route as AdminWithdrawalsDistributorApprovalsRouteImport } from './routes/admin.withdrawals.distributor-approvals'
@@ -67,6 +69,8 @@ import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
 import { Route as AdminTasksDistributorActivityRouteImport } from './routes/admin.tasks.distributor-activity'
 import { Route as AdminTasksDailyReportRouteImport } from './routes/admin.tasks.daily-report'
 import { Route as AdminTaskPackagePackageIdRouteImport } from './routes/admin.task-package.$packageId'
+import { Route as AdminShopProductsRouteImport } from './routes/admin.shop.products'
+import { Route as AdminShopOrdersRouteImport } from './routes/admin.shop.orders'
 import { Route as AdminDistributorsIdRouteImport } from './routes/admin.distributors.$id'
 import { Route as AuthenticatedPackagesIdRouteImport } from './routes/_authenticated/packages.$id'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram.webhook'
@@ -206,6 +210,11 @@ const AdminSupportRoute = AdminSupportRouteImport.update({
   path: '/support',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminShopRoute = AdminShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -326,6 +335,11 @@ const AdminTasksIndexRoute = AdminTasksIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminTasksRoute,
 } as any)
+const AdminShopIndexRoute = AdminShopIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminShopRoute,
+} as any)
 const AdminDistributorsIndexRoute = AdminDistributorsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -365,6 +379,16 @@ const AdminTaskPackagePackageIdRoute =
     path: '/task-package/$packageId',
     getParentRoute: () => AdminRoute,
   } as any)
+const AdminShopProductsRoute = AdminShopProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => AdminShopRoute,
+} as any)
+const AdminShopOrdersRoute = AdminShopOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AdminShopRoute,
+} as any)
 const AdminDistributorsIdRoute = AdminDistributorsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -422,6 +446,7 @@ export interface FileRoutesByFullPath {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/shop': typeof AdminShopRouteWithChildren
   '/admin/support': typeof AdminSupportRoute
   '/admin/tasks': typeof AdminTasksRouteWithChildren
   '/admin/users': typeof AdminUsersRouteWithChildren
@@ -438,6 +463,8 @@ export interface FileRoutesByFullPath {
   '/distributor/': typeof DistributorIndexRoute
   '/packages/$id': typeof AuthenticatedPackagesIdRoute
   '/admin/distributors/$id': typeof AdminDistributorsIdRoute
+  '/admin/shop/orders': typeof AdminShopOrdersRoute
+  '/admin/shop/products': typeof AdminShopProductsRoute
   '/admin/task-package/$packageId': typeof AdminTaskPackagePackageIdRoute
   '/admin/tasks/daily-report': typeof AdminTasksDailyReportRoute
   '/admin/tasks/distributor-activity': typeof AdminTasksDistributorActivityRoute
@@ -445,6 +472,7 @@ export interface FileRoutesByFullPath {
   '/admin/withdrawals/distributor-approvals': typeof AdminWithdrawalsDistributorApprovalsRoute
   '/distributor/task-package/$packageId': typeof DistributorTaskPackagePackageIdRoute
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
+  '/admin/shop/': typeof AdminShopIndexRoute
   '/admin/tasks/': typeof AdminTasksIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/admin/withdrawals/': typeof AdminWithdrawalsIndexRoute
@@ -495,6 +523,8 @@ export interface FileRoutesByTo {
   '/distributor': typeof DistributorIndexRoute
   '/packages/$id': typeof AuthenticatedPackagesIdRoute
   '/admin/distributors/$id': typeof AdminDistributorsIdRoute
+  '/admin/shop/orders': typeof AdminShopOrdersRoute
+  '/admin/shop/products': typeof AdminShopProductsRoute
   '/admin/task-package/$packageId': typeof AdminTaskPackagePackageIdRoute
   '/admin/tasks/daily-report': typeof AdminTasksDailyReportRoute
   '/admin/tasks/distributor-activity': typeof AdminTasksDistributorActivityRoute
@@ -502,6 +532,7 @@ export interface FileRoutesByTo {
   '/admin/withdrawals/distributor-approvals': typeof AdminWithdrawalsDistributorApprovalsRoute
   '/distributor/task-package/$packageId': typeof DistributorTaskPackagePackageIdRoute
   '/admin/distributors': typeof AdminDistributorsIndexRoute
+  '/admin/shop': typeof AdminShopIndexRoute
   '/admin/tasks': typeof AdminTasksIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
   '/admin/withdrawals': typeof AdminWithdrawalsIndexRoute
@@ -544,6 +575,7 @@ export interface FileRoutesById {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/shop': typeof AdminShopRouteWithChildren
   '/admin/support': typeof AdminSupportRoute
   '/admin/tasks': typeof AdminTasksRouteWithChildren
   '/admin/users': typeof AdminUsersRouteWithChildren
@@ -560,6 +592,8 @@ export interface FileRoutesById {
   '/distributor/': typeof DistributorIndexRoute
   '/_authenticated/packages/$id': typeof AuthenticatedPackagesIdRoute
   '/admin/distributors/$id': typeof AdminDistributorsIdRoute
+  '/admin/shop/orders': typeof AdminShopOrdersRoute
+  '/admin/shop/products': typeof AdminShopProductsRoute
   '/admin/task-package/$packageId': typeof AdminTaskPackagePackageIdRoute
   '/admin/tasks/daily-report': typeof AdminTasksDailyReportRoute
   '/admin/tasks/distributor-activity': typeof AdminTasksDistributorActivityRoute
@@ -567,6 +601,7 @@ export interface FileRoutesById {
   '/admin/withdrawals/distributor-approvals': typeof AdminWithdrawalsDistributorApprovalsRoute
   '/distributor/task-package/$packageId': typeof DistributorTaskPackagePackageIdRoute
   '/admin/distributors/': typeof AdminDistributorsIndexRoute
+  '/admin/shop/': typeof AdminShopIndexRoute
   '/admin/tasks/': typeof AdminTasksIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/admin/withdrawals/': typeof AdminWithdrawalsIndexRoute
@@ -609,6 +644,7 @@ export interface FileRouteTypes {
     | '/admin/profile'
     | '/admin/reports'
     | '/admin/settings'
+    | '/admin/shop'
     | '/admin/support'
     | '/admin/tasks'
     | '/admin/users'
@@ -625,6 +661,8 @@ export interface FileRouteTypes {
     | '/distributor/'
     | '/packages/$id'
     | '/admin/distributors/$id'
+    | '/admin/shop/orders'
+    | '/admin/shop/products'
     | '/admin/task-package/$packageId'
     | '/admin/tasks/daily-report'
     | '/admin/tasks/distributor-activity'
@@ -632,6 +670,7 @@ export interface FileRouteTypes {
     | '/admin/withdrawals/distributor-approvals'
     | '/distributor/task-package/$packageId'
     | '/admin/distributors/'
+    | '/admin/shop/'
     | '/admin/tasks/'
     | '/admin/users/'
     | '/admin/withdrawals/'
@@ -682,6 +721,8 @@ export interface FileRouteTypes {
     | '/distributor'
     | '/packages/$id'
     | '/admin/distributors/$id'
+    | '/admin/shop/orders'
+    | '/admin/shop/products'
     | '/admin/task-package/$packageId'
     | '/admin/tasks/daily-report'
     | '/admin/tasks/distributor-activity'
@@ -689,6 +730,7 @@ export interface FileRouteTypes {
     | '/admin/withdrawals/distributor-approvals'
     | '/distributor/task-package/$packageId'
     | '/admin/distributors'
+    | '/admin/shop'
     | '/admin/tasks'
     | '/admin/users'
     | '/admin/withdrawals'
@@ -730,6 +772,7 @@ export interface FileRouteTypes {
     | '/admin/profile'
     | '/admin/reports'
     | '/admin/settings'
+    | '/admin/shop'
     | '/admin/support'
     | '/admin/tasks'
     | '/admin/users'
@@ -746,6 +789,8 @@ export interface FileRouteTypes {
     | '/distributor/'
     | '/_authenticated/packages/$id'
     | '/admin/distributors/$id'
+    | '/admin/shop/orders'
+    | '/admin/shop/products'
     | '/admin/task-package/$packageId'
     | '/admin/tasks/daily-report'
     | '/admin/tasks/distributor-activity'
@@ -753,6 +798,7 @@ export interface FileRouteTypes {
     | '/admin/withdrawals/distributor-approvals'
     | '/distributor/task-package/$packageId'
     | '/admin/distributors/'
+    | '/admin/shop/'
     | '/admin/tasks/'
     | '/admin/users/'
     | '/admin/withdrawals/'
@@ -969,6 +1015,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSupportRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/shop': {
+      id: '/admin/shop'
+      path: '/shop'
+      fullPath: '/admin/shop'
+      preLoaderRoute: typeof AdminShopRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/settings': {
       id: '/admin/settings'
       path: '/settings'
@@ -1137,6 +1190,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTasksIndexRouteImport
       parentRoute: typeof AdminTasksRoute
     }
+    '/admin/shop/': {
+      id: '/admin/shop/'
+      path: '/'
+      fullPath: '/admin/shop/'
+      preLoaderRoute: typeof AdminShopIndexRouteImport
+      parentRoute: typeof AdminShopRoute
+    }
     '/admin/distributors/': {
       id: '/admin/distributors/'
       path: '/'
@@ -1185,6 +1245,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/task-package/$packageId'
       preLoaderRoute: typeof AdminTaskPackagePackageIdRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/admin/shop/products': {
+      id: '/admin/shop/products'
+      path: '/products'
+      fullPath: '/admin/shop/products'
+      preLoaderRoute: typeof AdminShopProductsRouteImport
+      parentRoute: typeof AdminShopRoute
+    }
+    '/admin/shop/orders': {
+      id: '/admin/shop/orders'
+      path: '/orders'
+      fullPath: '/admin/shop/orders'
+      preLoaderRoute: typeof AdminShopOrdersRouteImport
+      parentRoute: typeof AdminShopRoute
     }
     '/admin/distributors/$id': {
       id: '/admin/distributors/$id'
@@ -1270,6 +1344,22 @@ const AdminDistributorsRouteChildren: AdminDistributorsRouteChildren = {
 const AdminDistributorsRouteWithChildren =
   AdminDistributorsRoute._addFileChildren(AdminDistributorsRouteChildren)
 
+interface AdminShopRouteChildren {
+  AdminShopOrdersRoute: typeof AdminShopOrdersRoute
+  AdminShopProductsRoute: typeof AdminShopProductsRoute
+  AdminShopIndexRoute: typeof AdminShopIndexRoute
+}
+
+const AdminShopRouteChildren: AdminShopRouteChildren = {
+  AdminShopOrdersRoute: AdminShopOrdersRoute,
+  AdminShopProductsRoute: AdminShopProductsRoute,
+  AdminShopIndexRoute: AdminShopIndexRoute,
+}
+
+const AdminShopRouteWithChildren = AdminShopRoute._addFileChildren(
+  AdminShopRouteChildren,
+)
+
 interface AdminTasksRouteChildren {
   AdminTasksDailyReportRoute: typeof AdminTasksDailyReportRoute
   AdminTasksDistributorActivityRoute: typeof AdminTasksDistributorActivityRoute
@@ -1327,6 +1417,7 @@ interface AdminRouteChildren {
   AdminProfileRoute: typeof AdminProfileRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminShopRoute: typeof AdminShopRouteWithChildren
   AdminSupportRoute: typeof AdminSupportRoute
   AdminTasksRoute: typeof AdminTasksRouteWithChildren
   AdminUsersRoute: typeof AdminUsersRouteWithChildren
@@ -1348,6 +1439,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminProfileRoute: AdminProfileRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminShopRoute: AdminShopRouteWithChildren,
   AdminSupportRoute: AdminSupportRoute,
   AdminTasksRoute: AdminTasksRouteWithChildren,
   AdminUsersRoute: AdminUsersRouteWithChildren,
@@ -1408,13 +1500,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
