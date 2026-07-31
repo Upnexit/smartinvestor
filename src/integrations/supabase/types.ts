@@ -716,6 +716,7 @@ export type Database = {
           featured: boolean
           id: string
           image_url: string | null
+          is_legacy: boolean
           name: string
           price: number
           sort_order: number
@@ -731,6 +732,7 @@ export type Database = {
           featured?: boolean
           id?: string
           image_url?: string | null
+          is_legacy?: boolean
           name: string
           price: number
           sort_order?: number
@@ -746,6 +748,7 @@ export type Database = {
           featured?: boolean
           id?: string
           image_url?: string | null
+          is_legacy?: boolean
           name?: string
           price?: number
           sort_order?: number
@@ -1124,6 +1127,11 @@ export type Database = {
           reviewed_at: string | null
           screenshot_url: string | null
           sender_number: string | null
+          snapshot_daily_income: number | null
+          snapshot_daily_tasks: number | null
+          snapshot_duration_days: number | null
+          snapshot_package_name: string | null
+          snapshot_price: number | null
           status: Database["public"]["Enums"]["package_status"]
           submitted_at: string | null
           trx_id: string | null
@@ -1143,6 +1151,11 @@ export type Database = {
           reviewed_at?: string | null
           screenshot_url?: string | null
           sender_number?: string | null
+          snapshot_daily_income?: number | null
+          snapshot_daily_tasks?: number | null
+          snapshot_duration_days?: number | null
+          snapshot_package_name?: string | null
+          snapshot_price?: number | null
           status?: Database["public"]["Enums"]["package_status"]
           submitted_at?: string | null
           trx_id?: string | null
@@ -1162,6 +1175,11 @@ export type Database = {
           reviewed_at?: string | null
           screenshot_url?: string | null
           sender_number?: string | null
+          snapshot_daily_income?: number | null
+          snapshot_daily_tasks?: number | null
+          snapshot_duration_days?: number | null
+          snapshot_package_name?: string | null
+          snapshot_price?: number | null
           status?: Database["public"]["Enums"]["package_status"]
           submitted_at?: string | null
           trx_id?: string | null
@@ -1353,6 +1371,11 @@ export type Database = {
           reviewed_at: string | null
           screenshot_url: string | null
           sender_number: string | null
+          snapshot_daily_income: number | null
+          snapshot_daily_tasks: number | null
+          snapshot_duration_days: number | null
+          snapshot_package_name: string | null
+          snapshot_price: number | null
           status: Database["public"]["Enums"]["package_status"]
           submitted_at: string | null
           trx_id: string | null
@@ -1428,6 +1451,7 @@ export type Database = {
           featured: boolean
           id: string
           image_url: string | null
+          is_legacy: boolean
           name: string
           price: number
           sort_order: number
@@ -1540,6 +1564,7 @@ export type Database = {
           featured: boolean
           id: string
           image_url: string | null
+          is_legacy: boolean
           name: string
           price: number
           sort_order: number
