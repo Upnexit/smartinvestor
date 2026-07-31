@@ -482,24 +482,31 @@ function Earnings() {
 /* ---------------- 7. Products ---------------- */
 
 type Product = {
+  id: string;
   name: string;
-  price: string;
-  oldPrice: string;
-  img: string;
-  tag: { label: string; gradient: string };
+  price: number;
+  old_price: number | null;
+  image_url: string | null;
+  tag_label: string | null;
+  tag_gradient: string;
+  rating: number;
+  stock: number;
 };
 
+const bnNum = (n: number) => `৳ ${Number(n || 0).toLocaleString("en-BD")}`;
+
 function Products() {
-  const products: Product[] = [
-    { name: "Apple AirPods Pro 2",   price: "৳ ৩৮,৯০০", oldPrice: "৳ ৪৫,০০০", img: "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?auto=format&fit=crop&w=600&q=80", tag: { label: "BEST SELLER", gradient: "from-amber-500 to-orange-600" } },
-    { name: "Sony WH-1000XM5 হেডফোন", price: "৳ ৩৪,৫০০", oldPrice: "৳ ৩৯,৯০০", img: "https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=600&q=80", tag: { label: "PREMIUM",     gradient: "from-violet-500 to-purple-700" } },
-    { name: "Samsung Galaxy Buds2 Pro", price: "৳ ১৪,৯০০", oldPrice: "৳ ১৮,০০০", img: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80", tag: { label: "NEW",         gradient: "from-emerald-500 to-teal-600" } },
-    { name: "JBL Tune 760NC হেডফোন", price: "৳ ১২,৫০০", oldPrice: "৳ ১৫,০০০", img: "https://images.unsplash.com/photo-1545127398-14699f92334b?auto=format&fit=crop&w=600&q=80",  tag: { label: "SAVE 17%",    gradient: "from-rose-500 to-pink-600" } },
-    { name: "Xiaomi Mi Band 8 স্মার্টব্যান্ড", price: "৳ ৪,৯৯০", oldPrice: "৳ ৬,৫০০", img: "https://images.unsplash.com/photo-1575311373937-040b8e1fd5b6?auto=format&fit=crop&w=600&q=80", tag: { label: "HOT",         gradient: "from-orange-500 to-red-600" } },
-    { name: "Anker Soundcore Liberty 4", price: "৳ ১১,৯০০", oldPrice: "৳ ১৪,৫০০", img: "https://images.unsplash.com/photo-1606741965326-cb6ea1937d57?auto=format&fit=crop&w=600&q=80", tag: { label: "TRENDING",    gradient: "from-sky-500 to-blue-600" } },
-    { name: "Apple Watch SE",        price: "৳ ৩২,৯০০", oldPrice: "৳ ৩৮,০০০", img: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=600&q=80",  tag: { label: "EXCLUSIVE",   gradient: "from-slate-700 to-slate-900" } },
-    { name: "Realme Buds Air 5 Pro", price: "৳ ৬,৪৯০", oldPrice: "৳ ৮,৫০০", img: "https://images.unsplash.com/photo-1612444530582-fc66183b16f4?auto=format&fit=crop&w=600&q=80",  tag: { label: "DEAL",        gradient: "from-fuchsia-500 to-purple-600" } },
-  ];
+  const [products, setProducts] = useState<Product[] | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from("shop_products")
+      .select("id, name, price, old_price, image_url, tag_label, tag_gradient, rating, stock")
+      .eq("active", true)
+      .order("sort_order", { ascending: true })
+      .limit(8)
+      .then(({ data }) => setProducts((data ?? []) as Product[]));
+  }, []);
 
   const handleOrder = () => {
     toast("এই পণ্যটি শীঘ্রই অর্ডারের জন্য উন্মুক্ত হবে — Coming Soon!");
@@ -524,14 +531,25 @@ function Products() {
         ))}
       </div>
 
+      {!products ? (
+        <div className="mx-auto mt-10 grid max-w-7xl grid-cols-2 gap-4 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-80 animate-pulse rounded-2xl bg-white/70" />
+          ))}
+        </div>
+      ) : (
       <div className="mx-auto mt-10 grid max-w-7xl grid-cols-2 gap-4 lg:grid-cols-4">
         {products.map((p) => (
-          <article key={p.name} className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-soft transition-all hover:-translate-y-1 hover:shadow-pop">
+          <article key={p.id} className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-soft transition-all hover:-translate-y-1 hover:shadow-pop">
             <div className="relative aspect-square overflow-hidden bg-slate-50">
-              <img src={p.img} alt={p.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
-              <span className={`absolute left-2 top-2 rounded-full bg-gradient-to-r ${p.tag.gradient} px-2.5 py-0.5 text-[10px] font-bold text-white shadow-soft`}>
-                {p.tag.label}
-              </span>
+              {p.image_url && (
+                <img src={p.image_url} alt={p.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+              )}
+              {p.tag_label && (
+                <span className={`absolute left-2 top-2 rounded-full bg-gradient-to-r ${p.tag_gradient} px-2.5 py-0.5 text-[10px] font-bold text-white shadow-soft`}>
+                  {p.tag_label}
+                </span>
+              )}
               <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-md bg-slate-900/90 px-2 py-0.5 text-[10px] font-bold text-amber-300">
                 <Clock className="h-3 w-3" /> Coming Soon
               </span>
@@ -542,15 +560,17 @@ function Products() {
             <div className="flex flex-1 flex-col gap-2 p-4">
               <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold text-slate-900">{p.name}</h3>
               <div className="flex items-baseline gap-2">
-                <span className="bn-display text-lg text-rose-600">{p.price}</span>
-                <span className="text-xs text-slate-400 line-through">{p.oldPrice}</span>
+                <span className="bn-display text-lg text-rose-600">{bnNum(p.price)}</span>
+                {p.old_price ? <span className="text-xs text-slate-400 line-through">{bnNum(p.old_price)}</span> : null}
               </div>
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-0.5 text-amber-500">
                   {[...Array(5)].map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-current" />)}
-                  <span className="ml-1 text-slate-600">(4.9)</span>
+                  <span className="ml-1 text-slate-600">({p.rating})</span>
                 </div>
-                <span className="font-semibold text-emerald-600">ইন স্টক</span>
+                <span className={p.stock > 0 ? "font-semibold text-emerald-600" : "font-semibold text-rose-600"}>
+                  {p.stock > 0 ? "ইন স্টক" : "স্টক শেষ"}
+                </span>
               </div>
               <button onClick={handleOrder} className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 px-3 py-2 text-sm font-bold text-white shadow-soft transition-transform hover:scale-[1.02]">
                 <ShoppingCart className="h-4 w-4" /> অর্ডার করুন
@@ -559,6 +579,8 @@ function Products() {
           </article>
         ))}
       </div>
+      )}
+
       <p className="mx-auto mt-8 max-w-3xl text-center text-xs text-slate-500">
         * পণ্য অর্ডারের জন্য সাপোর্টে যোগাযোগ করুন। সকল পণ্য ৭ দিনের রিপ্লেসমেন্ট ওয়ারেন্টি সহ।
       </p>
