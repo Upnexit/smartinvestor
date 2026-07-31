@@ -3,10 +3,12 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, ListChecks, ArrowDownToLine, Package, MessageCircle,
   Users, User as UserIcon, ChevronRight, LogOut, Sparkles, Menu, X, Bell, Crown, Home, LifeBuoy,
+  ShoppingBag,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/use-site-settings";
+import { useLaunchFlag } from "@/hooks/use-launch-flag";
 import { cn } from "@/lib/utils";
 import { NoticeModal } from "@/components/panel/NoticeModal";
 import { PushOptInBanner } from "@/components/panel/PushOptInBanner";
@@ -33,12 +35,26 @@ const NAV: NavItem[] = [
   { to: "/profile",    label: "প্রোফাইল",    short: "প্রোফাইল", Icon: UserIcon,       from: "from-rose-400",    to_: "to-pink-500",    soft: "bg-rose-50",    dot: "bg-rose-500" },
 ];
 
-const BOTTOM_NAV = [NAV[0], NAV[1], NAV[2], NAV[3], NAV[4], NAV[6]];
+// Staged for the big re-launch — hidden until the launch switch is on.
+const SHOP_ITEM: NavItem = {
+  to: "/shop", label: "শপ", short: "শপ", Icon: ShoppingBag,
+  from: "from-purple-500", to_: "to-fuchsia-700", soft: "bg-purple-50", dot: "bg-purple-500",
+};
+
+const sideNav = (launched: boolean): NavItem[] =>
+  launched ? [NAV[0], NAV[1], SHOP_ITEM, ...NAV.slice(2)] : NAV;
+
+const bottomNav = (launched: boolean): NavItem[] =>
+  launched
+    ? [NAV[0], NAV[1], SHOP_ITEM, NAV[3], NAV[4], NAV[6]]
+    : [NAV[0], NAV[1], NAV[2], NAV[3], NAV[4], NAV[6]];
 
 export function UserPanelLayout({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const activeItem = NAV.find((n) => pathname.startsWith(n.to)) ?? NAV[0];
+  const { launched } = useLaunchFlag();
+  const BOTTOM_NAV = bottomNav(launched);
+  const activeItem = sideNav(launched).find((n) => pathname.startsWith(n.to)) ?? NAV[0];
   const navigate = useNavigate();
   const site = useSiteSettings();
   const { status: pushStatus, busy: pushBusy, subscribe: pushSubscribe } = usePushSubscribe();
@@ -187,6 +203,7 @@ function SidebarContent({
   onNavigate, onLogout, pathname,
 }: { onNavigate: () => void; onLogout: () => void; pathname: string }) {
   const site = useSiteSettings();
+  const { launched } = useLaunchFlag();
   return (
     <div className="flex h-full flex-col p-4">
       {/* Brand */}
@@ -202,7 +219,7 @@ function SidebarContent({
 
       {/* Nav — neutral row, gradient icon tile, professional hover */}
       <nav className="mt-5 flex-1 space-y-1.5 overflow-y-auto pr-1">
-        {NAV.map((item) => {
+        {sideNav(launched).map((item) => {
           const active = pathname.startsWith(item.to);
           return (
             <Link

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Package, Plus, Pencil, Trash2, X, Save, Search, Eye, EyeOff, Star } from "lucide-react";
+import { Package, Plus, Pencil, Trash2, X, Save, Search, Eye, EyeOff, Star, Upload } from "lucide-react";
 import {
   AdminPageHeader, AdminCard, GradientButton, SoftButton, EmptyState, ConfirmDeleteModal, Shimmer,
 } from "@/components/admin/AdminUI";
@@ -48,12 +48,49 @@ const GRADIENTS = [
 
 const bn = (n: number) => Number(n || 0).toLocaleString("en-BD");
 
+const TARGET = 1600;
+async function resizeImage(file: File): Promise<Blob> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(TARGET / bitmap.width, TARGET / bitmap.height, 1);
+  const w = Math.round(bitmap.width * scale);
+  const h = Math.round(bitmap.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  return await new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob((b) => b ? resolve(b) : reject(new Error("resize failed")), "image/webp", 0.95)!
+  );
+}
+
 function ShopProductsPage() {
   const [rows, setRows] = useState<Product[] | null>(null);
   const [q, setQ] = useState("");
   const [form, setForm] = useState<(Omit<Product, "id"> & { id?: string }) | null>(null);
   const [del, setDel] = useState<Product | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const uploadImage = async (file: File) => {
+    if (!file.type.startsWith("image/")) { toast.error("শুধু ছবি আপলোড করুন"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("সর্বোচ্চ ৫ MB"); return; }
+    setUploading(true);
+    try {
+      const blob = await resizeImage(file).catch(() => file);
+      const path = `shop-${Date.now()}.webp`;
+      const { error } = await supabase.storage.from("package-images")
+        .upload(path, blob, { upsert: true, contentType: "image/webp", cacheControl: "31536000" });
+      if (error) throw error;
+      const { data: signed } = await supabase.storage.from("package-images")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
+      setForm((f) => f ? { ...f, image_url: signed?.signedUrl ?? path } : f);
+      toast.success("ছবি আপলোড হয়েছে");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "আপলোড ব্যর্থ");
+    } finally { setUploading(false); }
+  };
 
   const refresh = async () => {
     const { data, error } = await supabase
@@ -220,8 +257,27 @@ function ShopProductsPage() {
                   <input type="number" className={inputCls} value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })} />
                 </Field>
               </div>
-              <Field label="ছবির লিংক (URL)">
-                <input className={inputCls} value={form.image_url ?? ""} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+              <Field label="পণ্যের ছবি">
+                <div className="flex items-center gap-3">
+                  <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200">
+                    {form.image_url
+                      ? <img src={form.image_url} alt="" className="h-full w-full object-cover" />
+                      : <div className="grid h-full w-full place-items-center text-slate-300"><Package className="h-7 w-7" /></div>}
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <label className={cn(
+                      "inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-slate-900 px-3 py-2 text-xs font-bold text-white",
+                      uploading && "pointer-events-none opacity-60",
+                    )}>
+                      <Upload className="h-3.5 w-3.5" />
+                      {uploading ? "আপলোড হচ্ছে..." : "ছবি আপলোড করুন"}
+                      <input type="file" accept="image/*" className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f); e.target.value = ""; }} />
+                    </label>
+                    <input className={inputCls} placeholder="অথবা ছবির লিংক (URL)"
+                      value={form.image_url ?? ""} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+                  </div>
+                </div>
               </Field>
               <Field label="ব্যাজ লেবেল (যেমন BEST SELLER)">
                 <input className={inputCls} value={form.tag_label ?? ""} onChange={(e) => setForm({ ...form, tag_label: e.target.value })} />
