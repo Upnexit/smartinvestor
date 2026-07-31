@@ -257,8 +257,27 @@ function ShopProductsPage() {
                   <input type="number" className={inputCls} value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })} />
                 </Field>
               </div>
-              <Field label="ছবির লিংক (URL)">
-                <input className={inputCls} value={form.image_url ?? ""} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+              <Field label="পণ্যের ছবি">
+                <div className="flex items-center gap-3">
+                  <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200">
+                    {form.image_url
+                      ? <img src={form.image_url} alt="" className="h-full w-full object-cover" />
+                      : <div className="grid h-full w-full place-items-center text-slate-300"><Package className="h-7 w-7" /></div>}
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <label className={cn(
+                      "inline-flex cursor-pointer items-center gap-1.5 rounded-xl bg-slate-900 px-3 py-2 text-xs font-bold text-white",
+                      uploading && "pointer-events-none opacity-60",
+                    )}>
+                      <Upload className="h-3.5 w-3.5" />
+                      {uploading ? "আপলোড হচ্ছে..." : "ছবি আপলোড করুন"}
+                      <input type="file" accept="image/*" className="hidden"
+                        onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f); e.target.value = ""; }} />
+                    </label>
+                    <input className={inputCls} placeholder="অথবা ছবির লিংক (URL)"
+                      value={form.image_url ?? ""} onChange={(e) => setForm({ ...form, image_url: e.target.value })} />
+                  </div>
+                </div>
               </Field>
               <Field label="ব্যাজ লেবেল (যেমন BEST SELLER)">
                 <input className={inputCls} value={form.tag_label ?? ""} onChange={(e) => setForm({ ...form, tag_label: e.target.value })} />
