@@ -58,7 +58,7 @@ function ShopPage() {
   const [q, setQ] = useState("");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
-  const [checkout, setCheckout] = useState(false);
+  const [orderLines, setOrderLines] = useState<OrderLine[] | null>(null);
 
   // Hidden until launch day
   useEffect(() => {
