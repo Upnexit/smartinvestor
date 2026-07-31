@@ -203,6 +203,7 @@ function SidebarContent({
   onNavigate, onLogout, pathname,
 }: { onNavigate: () => void; onLogout: () => void; pathname: string }) {
   const site = useSiteSettings();
+  const { launched } = useLaunchFlag();
   return (
     <div className="flex h-full flex-col p-4">
       {/* Brand */}
