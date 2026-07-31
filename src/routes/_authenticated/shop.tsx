@@ -3,10 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   ShoppingBag, ShoppingCart, Plus, Minus, X, Trash2, Star, Loader2,
-  Truck, CheckCircle2, Copy, PackageSearch, Search,
+  PackageSearch, Search, Zap,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLaunchFlag } from "@/hooks/use-launch-flag";
+import { OrderDrawer, type OrderLine } from "@/components/shop/OrderDrawer";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/shop")({
