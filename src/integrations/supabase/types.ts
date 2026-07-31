@@ -908,6 +908,122 @@ export type Database = {
         }
         Relationships: []
       }
+      shop_orders: {
+        Row: {
+          address: string | null
+          created_at: string
+          customer_name: string
+          id: string
+          note: string | null
+          phone: string
+          product_id: string | null
+          product_name: string
+          quantity: number
+          status: string
+          total_amount: number
+          unit_price: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          customer_name: string
+          id?: string
+          note?: string | null
+          phone: string
+          product_id?: string | null
+          product_name: string
+          quantity?: number
+          status?: string
+          total_amount?: number
+          unit_price?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          customer_name?: string
+          id?: string
+          note?: string | null
+          phone?: string
+          product_id?: string | null
+          product_name?: string
+          quantity?: number
+          status?: string
+          total_amount?: number
+          unit_price?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shop_products: {
+        Row: {
+          active: boolean
+          category: string | null
+          created_at: string
+          description: string | null
+          featured: boolean
+          id: string
+          image_url: string | null
+          name: string
+          old_price: number | null
+          price: number
+          rating: number
+          sort_order: number
+          stock: number
+          tag_gradient: string
+          tag_label: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          name: string
+          old_price?: number | null
+          price?: number
+          rating?: number
+          sort_order?: number
+          stock?: number
+          tag_gradient?: string
+          tag_label?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          featured?: boolean
+          id?: string
+          image_url?: string | null
+          name?: string
+          old_price?: number | null
+          price?: number
+          rating?: number
+          sort_order?: number
+          stock?: number
+          tag_gradient?: string
+          tag_label?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_settings: {
         Row: {
           key: string
