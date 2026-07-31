@@ -219,7 +219,7 @@ function SidebarContent({
 
       {/* Nav — neutral row, gradient icon tile, professional hover */}
       <nav className="mt-5 flex-1 space-y-1.5 overflow-y-auto pr-1">
-        {NAV.map((item) => {
+        {sideNav(launched).map((item) => {
           const active = pathname.startsWith(item.to);
           return (
             <Link
