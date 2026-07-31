@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Package, Plus, Pencil, Trash2, X, Save, Search, Eye, EyeOff, Star } from "lucide-react";
+import { Package, Plus, Pencil, Trash2, X, Save, Search, Eye, EyeOff, Star, Upload } from "lucide-react";
 import {
   AdminPageHeader, AdminCard, GradientButton, SoftButton, EmptyState, ConfirmDeleteModal, Shimmer,
 } from "@/components/admin/AdminUI";
