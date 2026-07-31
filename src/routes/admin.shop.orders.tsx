@@ -25,6 +25,10 @@ type Order = {
   status: string;
   note: string | null;
   created_at: string;
+  payment_method: string | null;
+  sender_number: string | null;
+  trx_id: string | null;
+  payment_status: string | null;
 };
 
 const STATUSES: { key: string; label: string; cls: string }[] = [
@@ -34,6 +38,10 @@ const STATUSES: { key: string; label: string; cls: string }[] = [
   { key: "completed", label: "সম্পন্ন", cls: "bg-emerald-50 text-emerald-700 ring-emerald-200" },
   { key: "cancelled", label: "বাতিল", cls: "bg-rose-50 text-rose-700 ring-rose-200" },
 ];
+
+const PAY_LABEL: Record<string, string> = {
+  cod: "ক্যাশ অন ডেলিভারি", bkash: "বিকাশ", nagad: "নগদ", rocket: "রকেট",
+};
 
 const bn = (n: number) => Number(n || 0).toLocaleString("en-BD");
 
