@@ -184,13 +184,22 @@ function ShopPage() {
                   <span className="bn-display text-xl text-rose-600">৳{bn(p.price)}</span>
                   {p.old_price ? <span className="text-xs text-slate-400 line-through">৳{bn(p.old_price)}</span> : null}
                 </div>
-                <button
-                  disabled={p.stock <= 0}
-                  onClick={() => addToCart(p)}
-                  className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-700 px-3 py-2.5 text-sm font-semibold text-white shadow-md transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <ShoppingCart className="h-4 w-4" /> কার্টে যোগ করুন
-                </button>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button
+                    disabled={p.stock <= 0}
+                    onClick={() => addToCart(p)}
+                    className="flex items-center justify-center gap-1.5 rounded-xl border border-fuchsia-200 bg-fuchsia-50 px-2 py-2.5 text-xs font-bold text-fuchsia-700 transition hover:bg-fuchsia-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <ShoppingCart className="h-4 w-4" /> কার্টে যোগ
+                  </button>
+                  <button
+                    disabled={p.stock <= 0}
+                    onClick={() => setOrderLines([{ product: p, qty: 1 }])}
+                    className="flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-700 px-2 py-2.5 text-xs font-bold text-white shadow-md transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Zap className="h-4 w-4" /> অর্ডার নাও
+                  </button>
+                </div>
               </div>
             </article>
           ))}
