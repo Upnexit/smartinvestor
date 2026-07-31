@@ -48,12 +48,49 @@ const GRADIENTS = [
 
 const bn = (n: number) => Number(n || 0).toLocaleString("en-BD");
 
+const TARGET = 1600;
+async function resizeImage(file: File): Promise<Blob> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(TARGET / bitmap.width, TARGET / bitmap.height, 1);
+  const w = Math.round(bitmap.width * scale);
+  const h = Math.round(bitmap.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  return await new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob((b) => b ? resolve(b) : reject(new Error("resize failed")), "image/webp", 0.95)!
+  );
+}
+
 function ShopProductsPage() {
   const [rows, setRows] = useState<Product[] | null>(null);
   const [q, setQ] = useState("");
   const [form, setForm] = useState<(Omit<Product, "id"> & { id?: string }) | null>(null);
   const [del, setDel] = useState<Product | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const uploadImage = async (file: File) => {
+    if (!file.type.startsWith("image/")) { toast.error("শুধু ছবি আপলোড করুন"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("সর্বোচ্চ ৫ MB"); return; }
+    setUploading(true);
+    try {
+      const blob = await resizeImage(file).catch(() => file);
+      const path = `shop-${Date.now()}.webp`;
+      const { error } = await supabase.storage.from("package-images")
+        .upload(path, blob, { upsert: true, contentType: "image/webp", cacheControl: "31536000" });
+      if (error) throw error;
+      const { data: signed } = await supabase.storage.from("package-images")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
+      setForm((f) => f ? { ...f, image_url: signed?.signedUrl ?? path } : f);
+      toast.success("ছবি আপলোড হয়েছে");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "আপলোড ব্যর্থ");
+    } finally { setUploading(false); }
+  };
 
   const refresh = async () => {
     const { data, error } = await supabase
