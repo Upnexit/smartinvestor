@@ -86,6 +86,14 @@ function ShopOrdersPage() {
     refresh();
   }
 
+  async function setPaid(o: Order, paid: boolean) {
+    const { error } = await supabase.from("shop_orders")
+      .update({ payment_status: paid ? "paid" : "unpaid" }).eq("id", o.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(paid ? "পেমেন্ট ভেরিফাইড" : "পেমেন্ট অপরিশোধিত করা হয়েছে");
+    refresh();
+  }
+
   async function confirmDelete() {
     if (!del) return;
     setBusy(true);
