@@ -207,7 +207,7 @@ function ShopPage() {
       )}
 
       {/* Floating cart bar */}
-      {totalQty > 0 && !cartOpen && !checkout && (
+      {totalQty > 0 && !cartOpen && !orderLines && (
         <button
           onClick={() => setCartOpen(true)}
           className="fixed inset-x-4 bottom-24 z-30 flex items-center justify-between gap-3 rounded-2xl bg-slate-900 px-4 py-3 text-white shadow-2xl lg:left-auto lg:right-8 lg:w-80 lg:bottom-8"
@@ -225,16 +225,15 @@ function ShopPage() {
           onClose={() => setCartOpen(false)}
           onQty={setQty}
           total={totalAmount}
-          onCheckout={() => { setCartOpen(false); setCheckout(true); }}
+          onCheckout={() => { setCartOpen(false); setOrderLines(cart); }}
         />
       )}
 
-      {checkout && (
-        <CheckoutModal
-          cart={cart}
-          total={totalAmount}
-          onClose={() => setCheckout(false)}
-          onDone={() => { setCart([]); setCheckout(false); }}
+      {orderLines && (
+        <OrderDrawer
+          lines={orderLines}
+          onClose={() => setOrderLines(null)}
+          onDone={() => { setCart([]); setOrderLines(null); }}
         />
       )}
     </div>
