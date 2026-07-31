@@ -918,12 +918,16 @@ export type Database = {
           customer_name: string
           id: string
           note: string | null
+          payment_method: string
+          payment_status: string
           phone: string
           product_id: string | null
           product_name: string
           quantity: number
+          sender_number: string | null
           status: string
           total_amount: number
+          trx_id: string | null
           unit_price: number
           updated_at: string
           user_id: string | null
@@ -934,12 +938,16 @@ export type Database = {
           customer_name: string
           id?: string
           note?: string | null
+          payment_method?: string
+          payment_status?: string
           phone: string
           product_id?: string | null
           product_name: string
           quantity?: number
+          sender_number?: string | null
           status?: string
           total_amount?: number
+          trx_id?: string | null
           unit_price?: number
           updated_at?: string
           user_id?: string | null
@@ -950,12 +958,16 @@ export type Database = {
           customer_name?: string
           id?: string
           note?: string | null
+          payment_method?: string
+          payment_status?: string
           phone?: string
           product_id?: string | null
           product_name?: string
           quantity?: number
+          sender_number?: string | null
           status?: string
           total_amount?: number
+          trx_id?: string | null
           unit_price?: number
           updated_at?: string
           user_id?: string | null
