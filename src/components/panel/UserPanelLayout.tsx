@@ -176,7 +176,7 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
       </div>
 
       {/* Mobile bottom nav — gradient background, always-colorful icons */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/40 bg-gradient-to-r from-amber-50 via-rose-50 to-cyan-50 backdrop-blur-xl px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_-12px_rgba(15,23,42,0.15)] lg:hidden">
+      <nav className="panel-navbar fixed inset-x-0 bottom-0 z-30 border-t backdrop-blur-xl px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_-12px_rgba(15,23,42,0.25)] lg:hidden">
         <ul className="grid grid-cols-6">
           {BOTTOM_NAV.map((item) => {
             const active = pathname.startsWith(item.to);
