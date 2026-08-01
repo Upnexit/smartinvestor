@@ -272,6 +272,113 @@ export type Database = {
         }
         Relationships: []
       }
+      distributor_package_orders: {
+        Row: {
+          created_at: string
+          distributor_id: string
+          id: string
+          package_id: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sender_number: string
+          snapshot_duration_label: string
+          snapshot_monthly_salary: number
+          snapshot_package_name: string
+          snapshot_price: number
+          status: string
+          submitted_at: string
+          trx_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          distributor_id: string
+          id?: string
+          package_id: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sender_number: string
+          snapshot_duration_label: string
+          snapshot_monthly_salary: number
+          snapshot_package_name: string
+          snapshot_price: number
+          status?: string
+          submitted_at?: string
+          trx_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          distributor_id?: string
+          id?: string
+          package_id?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sender_number?: string
+          snapshot_duration_label?: string
+          snapshot_monthly_salary?: number
+          snapshot_package_name?: string
+          snapshot_price?: number
+          status?: string
+          submitted_at?: string
+          trx_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "distributor_package_orders_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "distributor_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      distributor_packages: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          duration_label: string
+          id: string
+          monthly_salary: number
+          name: string
+          price: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          duration_label?: string
+          id?: string
+          monthly_salary?: number
+          name: string
+          price?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          duration_label?: string
+          id?: string
+          monthly_salary?: number
+          name?: string
+          price?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       distributor_tasks: {
         Row: {
           action_type: string
@@ -1358,6 +1465,39 @@ export type Database = {
       admin_distributor_bundle: {
         Args: { _actor: string; _user_id: string }
         Returns: Json
+      }
+      admin_review_distributor_package_order: {
+        Args: {
+          _action: string
+          _actor: string
+          _order_id: string
+          _reason?: string
+        }
+        Returns: {
+          created_at: string
+          distributor_id: string
+          id: string
+          package_id: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sender_number: string
+          snapshot_duration_label: string
+          snapshot_monthly_salary: number
+          snapshot_package_name: string
+          snapshot_price: number
+          status: string
+          submitted_at: string
+          trx_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "distributor_package_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       admin_review_distributor_withdrawal: {
         Args: { _action: string; _actor: string; _id: string; _reason?: string }

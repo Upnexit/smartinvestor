@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { CreditCard, Save, Sparkles } from "lucide-react";
+import { Check, CreditCard, Save, Sparkles, X } from "lucide-react";
 import { AdminPageHeader, AdminCard, GradientButton, Shimmer } from "@/components/admin/AdminUI";
 import { supabase } from "@/integrations/supabase/client";
 import { saveSetting } from "@/lib/admin-client";
 import { generatePaymentInstruction } from "@/lib/ai.functions";
 import { cn } from "@/lib/utils";
 import { useAuthReady } from "@/hooks/use-auth-ready";
+import { useServerFn } from "@tanstack/react-start";
+import { reviewDistributorPackageOrder } from "@/lib/distributor-package.functions";
 
 export const Route = createFileRoute("/admin/payments")({
   head: () => ({ meta: [{ title: "পেমেন্ট গেটওয়ে — Admin" }] }),
@@ -25,6 +27,8 @@ function PaymentsPage() {
   const [busy, setBusy] = useState<Method | null>(null);
   const [aiBusy, setAiBusy] = useState<Method | null>(null);
   const authReady = useAuthReady();
+  const reviewOrder = useServerFn(reviewDistributorPackageOrder);
+  const [partnerOrders, setPartnerOrders] = useState<Array<{ id: string; distributor_id: string; snapshot_package_name: string; snapshot_price: number; snapshot_monthly_salary: number; payment_method: string; sender_number: string; trx_id: string; submitted_at: string }>>([]);
 
   useEffect(() => { if (!authReady) return; void (async () => {
     const { data } = await supabase.from("site_settings").select("key,value").in("key", ["payment_bkash","payment_nagad","payment_rocket"]);
@@ -34,7 +38,19 @@ function PaymentsPage() {
       if (m in s && r.value) s[m] = { ...DEFAULT, ...(r.value as Cfg) };
     });
     setState(s);
+    const { data: orders } = await supabase.from("distributor_package_orders").select("id,distributor_id,snapshot_package_name,snapshot_price,snapshot_monthly_salary,payment_method,sender_number,trx_id,submitted_at").eq("status", "pending").order("submitted_at", { ascending: false });
+    setPartnerOrders((orders ?? []) as typeof partnerOrders);
   })(); }, [authReady]);
+
+  const decidePartner = async (id: string, action: "approve" | "reject") => {
+    const reason = action === "reject" ? window.prompt("বাতিলের কারণ লিখুন")?.trim() : "";
+    if (action === "reject" && !reason) return;
+    try {
+      await reviewOrder({ data: { orderId: id, action, reason } });
+      setPartnerOrders((rows) => rows.filter((row) => row.id !== id));
+      toast.success(action === "approve" ? "Elite Partner প্যাকেজ সক্রিয় হয়েছে" : "আবেদন বাতিল হয়েছে");
+    } catch (error) { toast.error(error instanceof Error ? error.message : "রিভিউ ব্যর্থ"); }
+  };
 
   const upd = (m: Method, p: Partial<Cfg>) => setState((s) => s ? { ...s, [m]: { ...s[m], ...p } } : s);
 
@@ -126,6 +142,21 @@ function PaymentsPage() {
           })}
         </div>
       )}
+
+      <div className="mt-5">
+        <AdminPageHeader accent="amber" Icon={CreditCard} title="Elite Partner আবেদন" subtitle="ডিস্ট্রিবিউটর প্যাকেজের pending payment যাচাই করুন" />
+        <div className="grid gap-3">
+          {partnerOrders.length === 0 ? <AdminCard accent="amber" className="p-5 text-center text-sm text-slate-500">কোনো pending Elite Partner আবেদন নেই</AdminCard> : partnerOrders.map((order) => (
+            <AdminCard key={order.id} accent="amber" className="p-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="min-w-0 flex-1"><p className="bn-display text-base text-slate-900">{order.snapshot_package_name}</p><p className="text-xs text-slate-500">মূল্য ৳{Number(order.snapshot_price).toLocaleString("bn-BD")} • বেতন ৳{Number(order.snapshot_monthly_salary).toLocaleString("bn-BD")}</p><p className="mt-1 text-xs font-mono text-slate-700">{order.payment_method.toUpperCase()} • {order.sender_number} • {order.trx_id}</p></div>
+                <GradientButton accent="emerald" onClick={() => decidePartner(order.id, "approve")}><Check className="h-4 w-4" /> অনুমোদন</GradientButton>
+                <GradientButton accent="rose" onClick={() => decidePartner(order.id, "reject")}><X className="h-4 w-4" /> বাতিল</GradientButton>
+              </div>
+            </AdminCard>
+          ))}
+        </div>
+      </div>
     </>
   );
 }

@@ -2,7 +2,7 @@ import { useState, useEffect, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, Wallet, User as UserIcon, MessagesSquare,
-  LogOut, Menu, X, ChevronRight, Sparkles, ArrowDownToLine, ListChecks, Users2, Headphones,
+  LogOut, Menu, X, ChevronRight, Sparkles, ArrowDownToLine, ListChecks, Users2, Headphones, Crown,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -18,6 +18,7 @@ type NavItem = { to: string; label: string; Icon: typeof LayoutDashboard; accent
 
 const NAV_BASE: NavItem[] = [
   { to: "/distributor",             label: "ড্যাশবোর্ড",       Icon: LayoutDashboard, accent: "indigo" },
+  { to: "/distributor/package",     label: "Elite Package",    Icon: Crown,           accent: "amber" },
   { to: "/distributor/withdrawals", label: "উইথড্র রিকোয়েস্ট", Icon: ArrowDownToLine, accent: "emerald", requiresWithdrawAccess: true },
   { to: "/distributor/tasks",       label: "Task Management",  Icon: ListChecks,      accent: "fuchsia" },
   { to: "/distributor/leads",       label: "লিড / CRM",         Icon: Users2,          accent: "sky" },

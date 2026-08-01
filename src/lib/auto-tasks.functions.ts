@@ -1,13 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
-
-async function assertStaff(db: SupabaseClient<Database>, userId: string) {
-  const { data, error } = await db.rpc("has_role", { _user_id: userId, _role: "admin" });
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("forbidden");
-}
 
 /** Admin manual trigger — cron যা রাতে করে, সেটাই এখনই চালায়। */
 export const adminRunAutoTasks = createServerFn({ method: "POST" })
@@ -17,7 +9,9 @@ export const adminRunAutoTasks = createServerFn({ method: "POST" })
       ? d.targetDate : undefined,
   }))
   .handler(async ({ data, context }) => {
-    await assertStaff(context.supabase, context.userId);
+    const { data: isAdmin, error } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (error) throw new Error(error.message);
+    if (!isAdmin) throw new Error("forbidden");
     const { runAutoTaskGeneration } = await import("./auto-tasks.server");
     return await runAutoTaskGeneration({ targetDate: data.targetDate });
   });
@@ -26,7 +20,9 @@ export const adminRunAutoTasks = createServerFn({ method: "POST" })
 export const adminAutoTaskStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertStaff(context.supabase, context.userId);
+    const { data: isAdmin, error } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (error) throw new Error(error.message);
+    if (!isAdmin) throw new Error("forbidden");
     const { getAutoTaskStatus } = await import("./auto-tasks.server");
     return await getAutoTaskStatus();
   });
@@ -35,7 +31,9 @@ export const adminAutoTaskStatus = createServerFn({ method: "GET" })
 export const adminDeploymentCheck = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertStaff(context.supabase, context.userId);
+    const { data: isAdmin, error } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" });
+    if (error) throw new Error(error.message);
+    if (!isAdmin) throw new Error("forbidden");
     const { checkDeployments } = await import("./deploy-check.server");
     return await checkDeployments();
   });
