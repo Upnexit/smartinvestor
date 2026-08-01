@@ -75,7 +75,7 @@ function TasksPage() {
   const refresh = async () => {
     const [{ data, error }, { data: pkgs }, { data: counts }] = await Promise.all([
       supabase.from("link_tasks").select("*").order("created_at", { ascending: false }),
-      supabase.from("packages").select("id,name,price,active").eq("active", true).order("price"),
+      supabase.from("packages").select("id,name,price,active,is_legacy").order("price"),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (supabase as any).rpc("packages_active_user_counts"),
     ]);
