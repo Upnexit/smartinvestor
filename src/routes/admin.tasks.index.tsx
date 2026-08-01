@@ -22,7 +22,7 @@ type Task = {
   required_package_id: string | null;
   is_draft?: boolean; scheduled_date?: string | null;
 };
-type Pkg = { id: string; name: string; price: number; active: boolean };
+type Pkg = { id: string; name: string; price: number; active: boolean; is_legacy?: boolean };
 
 const EMPTY: Task = {
   id: "", title: "", link_url: "", reward: 5, category: "facebook", action_type: "like",
