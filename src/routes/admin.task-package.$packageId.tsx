@@ -50,7 +50,7 @@ function PackageTasksPage() {
   const [batchBusy, setBatchBusy] = useState(false);
   const [count, setCount] = useState(10);
   const [totalAmount, setTotalAmount] = useState<number>(0);
-  const [selectedActions, setSelectedActions] = useState<GeneratedTask["action_type"][]>(["like", "follow", "share"]);
+  const [selectedActions, setSelectedActions] = useState<GeneratedTask["action_type"][]>(["like", "follow"]);
   const [edit, setEdit] = useState<Task | null>(null);
   const [visited, setVisited] = useState<Set<string>>(new Set());
   const genFn = useServerFn(generateFbLinkTasks);

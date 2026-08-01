@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Link2, Plus, Pencil, Trash2, X, Save, Sparkles, Loader2, Wand2, Mic, MicOff, Search, Package as PackageIcon, ChevronRight, Users } from "lucide-react";
 import { AdminPageHeader, AdminCard, GradientButton, SoftButton, EmptyState, ConfirmDeleteModal, StatTile, Shimmer } from "@/components/admin/AdminUI";
+import { AutoTaskPanel } from "@/components/admin/AutoTaskPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { saveTask, deleteTask, subscribeTable } from "@/lib/admin-client";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
