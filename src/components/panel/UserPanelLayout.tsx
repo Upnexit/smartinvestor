@@ -1,9 +1,9 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, ListChecks, ArrowDownToLine, Package, MessageCircle,
   Users, User as UserIcon, ChevronRight, LogOut, Sparkles, Menu, X, Bell, Crown, Home, LifeBuoy,
-  ShoppingBag,
+  ShoppingBag, Palette,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { NoticeModal } from "@/components/panel/NoticeModal";
 import { PushOptInBanner } from "@/components/panel/PushOptInBanner";
 import { usePushSubscribe } from "@/hooks/use-push-subscribe";
+import { applyPanelTheme, getPanelTheme } from "@/lib/panel-theme";
 
 type NavItem = {
   to: string;
@@ -32,6 +33,7 @@ const NAV: NavItem[] = [
   { to: "/packages",   label: "প্যাকেজ",     short: "প্যাকেজ", Icon: Package,         from: "from-fuchsia-400", to_: "to-purple-600",  soft: "bg-fuchsia-50", dot: "bg-fuchsia-500" },
   { to: "/withdraw",   label: "উইথড্র",      short: "উইথড্র",  Icon: ArrowDownToLine, from: "from-emerald-400", to_: "to-green-600",   soft: "bg-emerald-50", dot: "bg-emerald-500" },
   { to: "/referral",   label: "রেফারেল",     short: "রেফার",  Icon: Users,           from: "from-violet-400",  to_: "to-fuchsia-500", soft: "bg-violet-50",  dot: "bg-violet-500" },
+  { to: "/theme",      label: "থিম কাস্টমাইজ", short: "থিম",  Icon: Palette,         from: "from-cyan-400",    to_: "to-sky-600",     soft: "bg-cyan-50",    dot: "bg-cyan-500" },
   { to: "/profile",    label: "প্রোফাইল",    short: "প্রোফাইল", Icon: UserIcon,       from: "from-rose-400",    to_: "to-pink-500",    soft: "bg-rose-50",    dot: "bg-rose-500" },
 ];
 
@@ -58,6 +60,9 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const site = useSiteSettings();
   const { status: pushStatus, busy: pushBusy, subscribe: pushSubscribe } = usePushSubscribe();
+
+  // ইউজারের সেভ করা থিম প্যানেলে অ্যাপ্লাই
+  useEffect(() => { applyPanelTheme(getPanelTheme()); }, []);
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -91,7 +96,7 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
   const showBellDot = pushStatus === "default";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50/30 to-rose-50/40">
+    <div className="panel-themed min-h-screen">
       {/* Mobile top bar */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/85 backdrop-blur px-4 py-3 lg:hidden">
         <Link to="/dashboard" className="flex items-center gap-2">
