@@ -196,7 +196,7 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
                   )}>
                     <item.Icon className="h-[18px] w-[18px]" />
                   </span>
-                  <span className={cn("transition-colors", active ? "text-slate-900" : "text-slate-600")}>{item.short}</span>
+                  <span className={cn("transition-colors", active ? "panel-chrome-fg" : "panel-chrome-muted")}>{item.short}</span>
                 </Link>
               </li>
             );
