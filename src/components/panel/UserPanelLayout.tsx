@@ -153,7 +153,7 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
         {drawerOpen && (
           <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} />
-            <aside className="absolute inset-y-0 left-0 flex w-[85%] max-w-xs flex-col bg-white shadow-2xl">
+            <aside className="panel-chrome absolute inset-y-0 left-0 flex w-[85%] max-w-xs flex-col shadow-2xl">
               <div className="flex shrink-0 items-center justify-end p-2">
                 <button onClick={() => setDrawerOpen(false)} aria-label="বন্ধ" className="grid h-9 w-9 place-items-center rounded-xl text-slate-600 hover:bg-slate-100">
                   <X className="h-5 w-5" />
