@@ -125,7 +125,23 @@ function TasksPage() {
     });
   }, [rows, search, filter, today]);
 
-  const pkgTaskCounts = useMemo(() => {
+  const currentPackages = useMemo(
+    () => packages.filter((p) => p.active && !p.is_legacy),
+    [packages],
+  );
+  const oldPackages = useMemo(
+    () =>
+      packages
+        .filter((p) => !p.active || p.is_legacy)
+        .map((p) => ({ ...p, users: pkgActiveUsers.get(p.id) ?? 0 }))
+        .sort((a, b) => b.users - a.users),
+    [packages, pkgActiveUsers],
+  );
+
+  const pkgLabel = (id: string | null) =>
+    !id ? "সব প্যাকেজ" : (packages.find((p) => p.id === id)?.name ?? "প্যাকেজ");
+
+
     const m = new Map<string, { total: number; todayActive: number }>();
     (rows ?? []).forEach((r) => {
       const key = r.required_package_id ?? "";
