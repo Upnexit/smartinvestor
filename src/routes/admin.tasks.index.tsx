@@ -244,7 +244,7 @@ function TasksPage() {
       </div>
 
       {/* Package management buttons — click to manage that package's task pool */}
-      {packages.length > 0 && (
+      {currentPackages.length > 0 && (
         <AdminCard accent="indigo" className="p-3">
           <div className="mb-2 flex items-center gap-2">
             <PackageIcon className="h-4 w-4 text-indigo-600" />
@@ -252,30 +252,29 @@ function TasksPage() {
             <span className="text-[11px] text-slate-500">— বাটনে ক্লিক করে AI দিয়ে random FB link generate করুন</span>
           </div>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {packages.map((p) => {
-              const c = pkgTaskCounts.get(p.id) ?? { total: 0, todayActive: 0 };
-              return (
-                <Link key={p.id} to="/admin/task-package/$packageId" params={{ packageId: p.id }}
-                  className="group relative flex items-center gap-3 rounded-2xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-rose-500 p-[1.5px] hover:scale-[1.02] transition">
-                  <div className="flex w-full items-center gap-3 rounded-[14px] bg-white px-3 py-2.5">
-                    <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-100 to-fuchsia-100 text-indigo-700">
-                      <PackageIcon className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="bn-display text-sm text-slate-900 truncate">{p.name}</p>
-                      <p className="text-[11px] text-slate-500">৳{p.price} • মোট {c.total} • আজ active {c.todayActive}</p>
-                      <p className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 ring-1 ring-emerald-200">
-                        <Users className="h-3 w-3" /> {pkgActiveUsers.get(p.id) ?? 0} active user
-                      </p>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-indigo-600" />
-                  </div>
-                </Link>
-              );
-            })}
+            {currentPackages.map((p) => (
+              <PkgTile key={p.id} p={p} counts={pkgTaskCounts.get(p.id)} users={pkgActiveUsers.get(p.id) ?? 0} />
+            ))}
           </div>
         </AdminCard>
       )}
+
+      {/* OLD / legacy packages — still have running users */}
+      {oldPackages.length > 0 && (
+        <AdminCard accent="amber" className="p-3">
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <PackageIcon className="h-4 w-4 text-amber-600" />
+            <span className="bn-display text-sm text-slate-800">পুরাতন প্যাকেজ (Old / Legacy)</span>
+            <span className="text-[11px] text-slate-500">— এসব প্যাকেজে এখনো active user আছে, এখান থেকে তাদের task দিন</span>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {oldPackages.map((p) => (
+              <PkgTile key={p.id} p={p} counts={pkgTaskCounts.get(p.id)} users={p.users} old />
+            ))}
+          </div>
+        </AdminCard>
+      )}
+
 
       {/* Search + filter chips */}
       <div className="grid gap-2 sm:grid-cols-2">
