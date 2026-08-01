@@ -192,38 +192,100 @@
     var(--panel-bg-3, oklch(0.97 0.02 20)) 100%);
 }
 
+/* Chrome (top bar + sidebar) — clearly tinted so theme change is obvious */
+@utility panel-chrome {
+  background-image: linear-gradient(115deg,
+    var(--panel-chrome-1, #ffffff) 0%,
+    var(--panel-chrome-2, #fff7ed) 100%);
+  border-color: var(--panel-chrome-border, rgba(15, 23, 42, 0.10));
+  color: var(--panel-chrome-fg, #0f172a);
+  transition: background-image .35s ease, border-color .35s ease, color .35s ease;
+}
+
+/* Bottom navigation bar — strong themed gradient */
+@utility panel-navbar {
+  background-image: linear-gradient(90deg,
+    var(--panel-nav-1, #fef3c7) 0%,
+    var(--panel-nav-2, #ffe4e6) 50%,
+    var(--panel-nav-3, #cffafe) 100%);
+  border-color: var(--panel-chrome-border, rgba(15, 23, 42, 0.10));
+  color: var(--panel-chrome-fg, #0f172a);
+  transition: background-image .35s ease;
+}
+
+/* Brand tile / accent buttons */
+@utility panel-brand {
+  background-image: linear-gradient(135deg,
+    var(--panel-brand-1, #fbbf24) 0%,
+    var(--panel-brand-2, #f97316) 100%);
+  color: #fff;
+}
+
+@utility panel-chrome-fg { color: var(--panel-chrome-fg, #0f172a); }
+@utility panel-chrome-muted { color: var(--panel-chrome-muted, #64748b); }
+
 [data-panel-theme="sunrise"] {
-  --panel-bg-1: #f8fafc; --panel-bg-2: #fef3c7; --panel-bg-3: #ffe4e6;
+  --panel-bg-1: #fff7ed; --panel-bg-2: #fde68a; --panel-bg-3: #fecdd3;
+  --panel-chrome-1: #fffbeb; --panel-chrome-2: #fed7aa;
+  --panel-chrome-border: rgba(234, 88, 12, 0.28);
+  --panel-chrome-fg: #431407; --panel-chrome-muted: #9a3412;
+  --panel-nav-1: #fde68a; --panel-nav-2: #fdba74; --panel-nav-3: #fecdd3;
+  --panel-brand-1: #fbbf24; --panel-brand-2: #f97316;
   --primary: oklch(0.72 0.17 70);
   --ring: oklch(0.72 0.17 70);
   --accent: oklch(0.7 0.18 155);
 }
 [data-panel-theme="ocean"] {
-  --panel-bg-1: #f0f9ff; --panel-bg-2: #e0f2fe; --panel-bg-3: #ede9fe;
+  --panel-bg-1: #eff6ff; --panel-bg-2: #bfdbfe; --panel-bg-3: #ddd6fe;
+  --panel-chrome-1: #eff6ff; --panel-chrome-2: #bfdbfe;
+  --panel-chrome-border: rgba(37, 99, 235, 0.28);
+  --panel-chrome-fg: #0c1e4a; --panel-chrome-muted: #1d4ed8;
+  --panel-nav-1: #bfdbfe; --panel-nav-2: #a5b4fc; --panel-nav-3: #99f6e4;
+  --panel-brand-1: #3b82f6; --panel-brand-2: #4f46e5;
   --primary: oklch(0.6 0.15 240);
   --ring: oklch(0.6 0.15 240);
   --accent: oklch(0.65 0.13 220);
 }
 [data-panel-theme="emerald"] {
-  --panel-bg-1: #f0fdf4; --panel-bg-2: #dcfce7; --panel-bg-3: #ecfeff;
+  --panel-bg-1: #ecfdf5; --panel-bg-2: #bbf7d0; --panel-bg-3: #cffafe;
+  --panel-chrome-1: #ecfdf5; --panel-chrome-2: #a7f3d0;
+  --panel-chrome-border: rgba(5, 150, 105, 0.30);
+  --panel-chrome-fg: #052e21; --panel-chrome-muted: #047857;
+  --panel-nav-1: #a7f3d0; --panel-nav-2: #99f6e4; --panel-nav-3: #bae6fd;
+  --panel-brand-1: #10b981; --panel-brand-2: #0d9488;
   --primary: oklch(0.65 0.15 160);
   --ring: oklch(0.65 0.15 160);
   --accent: oklch(0.7 0.14 180);
 }
 [data-panel-theme="royal"] {
-  --panel-bg-1: #faf5ff; --panel-bg-2: #ede9fe; --panel-bg-3: #fae8ff;
+  --panel-bg-1: #f5f3ff; --panel-bg-2: #ddd6fe; --panel-bg-3: #fae8ff;
+  --panel-chrome-1: #f5f3ff; --panel-chrome-2: #ddd6fe;
+  --panel-chrome-border: rgba(124, 58, 237, 0.30);
+  --panel-chrome-fg: #2e1065; --panel-chrome-muted: #7c3aed;
+  --panel-nav-1: #ddd6fe; --panel-nav-2: #f5d0fe; --panel-nav-3: #fbcfe8;
+  --panel-brand-1: #8b5cf6; --panel-brand-2: #d946ef;
   --primary: oklch(0.55 0.2 300);
   --ring: oklch(0.55 0.2 300);
   --accent: oklch(0.62 0.19 330);
 }
 [data-panel-theme="rose"] {
-  --panel-bg-1: #fff1f2; --panel-bg-2: #ffe4e6; --panel-bg-3: #fff7ed;
+  --panel-bg-1: #fff1f2; --panel-bg-2: #fecdd3; --panel-bg-3: #ffedd5;
+  --panel-chrome-1: #fff1f2; --panel-chrome-2: #fecdd3;
+  --panel-chrome-border: rgba(225, 29, 72, 0.28);
+  --panel-chrome-fg: #4c0519; --panel-chrome-muted: #be123c;
+  --panel-nav-1: #fecdd3; --panel-nav-2: #fbcfe8; --panel-nav-3: #fed7aa;
+  --panel-brand-1: #f43f5e; --panel-brand-2: #fb7185;
   --primary: oklch(0.62 0.2 15);
   --ring: oklch(0.62 0.2 15);
   --accent: oklch(0.68 0.16 40);
 }
 [data-panel-theme="midnight"] {
   --panel-bg-1: #0f172a; --panel-bg-2: #1e293b; --panel-bg-3: #172554;
+  --panel-chrome-1: #111c33; --panel-chrome-2: #1e293b;
+  --panel-chrome-border: rgba(148, 197, 253, 0.25);
+  --panel-chrome-fg: #e2e8f0; --panel-chrome-muted: #94a3b8;
+  --panel-nav-1: #0f172a; --panel-nav-2: #1e293b; --panel-nav-3: #164e63;
+  --panel-brand-1: #3b82f6; --panel-brand-2: #22d3ee;
   --background: oklch(0.21 0.03 265);
   --foreground: oklch(0.97 0.01 250);
   --card: oklch(0.27 0.03 265);
@@ -239,14 +301,25 @@
   --accent: oklch(0.7 0.15 190);
 }
 [data-panel-theme="sand"] {
-  --panel-bg-1: #fefce8; --panel-bg-2: #fef9c3; --panel-bg-3: #fff7ed;
+  --panel-bg-1: #fefce8; --panel-bg-2: #fef08a; --panel-bg-3: #ffedd5;
+  --panel-chrome-1: #fefce8; --panel-chrome-2: #fde68a;
+  --panel-chrome-border: rgba(202, 138, 4, 0.30);
+  --panel-chrome-fg: #422006; --panel-chrome-muted: #a16207;
+  --panel-nav-1: #fef08a; --panel-nav-2: #fde68a; --panel-nav-3: #fed7aa;
+  --panel-brand-1: #eab308; --panel-brand-2: #f59e0b;
   --primary: oklch(0.68 0.14 85);
   --ring: oklch(0.68 0.14 85);
   --accent: oklch(0.7 0.12 60);
 }
 [data-panel-theme="graphite"] {
-  --panel-bg-1: #f8fafc; --panel-bg-2: #f1f5f9; --panel-bg-3: #e2e8f0;
+  --panel-bg-1: #f8fafc; --panel-bg-2: #e2e8f0; --panel-bg-3: #cbd5e1;
+  --panel-chrome-1: #f1f5f9; --panel-chrome-2: #cbd5e1;
+  --panel-chrome-border: rgba(51, 65, 85, 0.28);
+  --panel-chrome-fg: #0f172a; --panel-chrome-muted: #475569;
+  --panel-nav-1: #e2e8f0; --panel-nav-2: #cbd5e1; --panel-nav-3: #e2e8f0;
+  --panel-brand-1: #64748b; --panel-brand-2: #334155;
   --primary: oklch(0.45 0.03 260);
   --ring: oklch(0.45 0.03 260);
   --accent: oklch(0.6 0.05 250);
 }
+
