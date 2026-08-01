@@ -241,7 +241,7 @@ function SidebarContent({
                 "group relative flex items-center gap-3 overflow-hidden rounded-2xl px-3 py-2.5 text-sm font-semibold transition-all duration-300",
                 active
                   ? "panel-chrome-fg bg-black/5 ring-1 ring-black/10 shadow-soft"
-                  : "panel-chrome-fg/90 hover:bg-black/5 hover:-translate-y-0.5",
+                  : "panel-chrome-muted hover:bg-black/5 hover:-translate-y-0.5",
               )}
 
             >
