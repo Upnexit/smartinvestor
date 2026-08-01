@@ -111,7 +111,7 @@ function PackageDetailPage() {
             <span className="mb-1.5 text-xs text-white/90">এককালীন</span>
           </div>
           <span className="mt-3 self-start inline-flex items-center gap-1 rounded-full bg-white/25 px-3 py-1 text-xs font-bold backdrop-blur ring-1 ring-white/30">
-            <Sparkles className="h-3 w-3" /> {roi}% ROI ৪৫ দিনে
+            <Sparkles className="h-3 w-3" /> {roi}% ROI ৬০ দিনে
           </span>
         </div>
       </header>
@@ -127,7 +127,7 @@ function PackageDetailPage() {
         <h2 className="bn-display text-lg text-slate-900">কিভাবে কাজ করে?</h2>
         <ol className="space-y-2 text-sm text-slate-700">
           <li className="flex gap-2"><Bullet n={1}/> প্যাকেজ কিনতে bKash / Nagad / Rocket এ পেমেন্ট করে TrxID সাবমিট করুন।</li>
-          <li className="flex gap-2"><Bullet n={2}/> Admin approve করলে প্যাকেজ active হবে — ৪৫ দিনের জন্য।</li>
+          <li className="flex gap-2"><Bullet n={2}/> Admin approve করলে প্যাকেজ active হবে — ৬০ দিনের জন্য।</li>
           <li className="flex gap-2"><Bullet n={3}/> প্রতিদিন {bn(p.daily_tasks)}টি Like/Comment/Share টাস্ক করুন।</li>
           <li className="flex gap-2"><Bullet n={4}/> সম্পূর্ণ task এ দৈনিক ৳{bn(p.daily_income)} balance এ যোগ হবে।</li>
           <li className="flex gap-2"><Bullet n={5}/> Withdraw — bKash/Nagad/Rocket এ যেকোনো সময়।</li>

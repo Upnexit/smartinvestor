@@ -237,7 +237,7 @@ function DashboardPage() {
               <p className="mt-0.5 text-xs text-white/75">
                 {canUpgrade
                   ? "উপরের প্যাকেজে দৈনিক আয় ও টাস্ক লিমিট অনেক বেশি"
-                  : "৪৫ দিনে ১১০% পর্যন্ত রিটার্ন · ইনকাম শুরু করুন"}
+                  : "৬০ দিনে ১১০% পর্যন্ত রিটার্ন · ইনকাম শুরু করুন"}
               </p>
             </div>
             <span className="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-white text-amber-700 px-3 py-2 text-xs font-bold shadow-md transition group-hover:translate-x-1">
@@ -377,7 +377,7 @@ function DashboardPage() {
       {hasActivePackage === false ? (
         <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-rose-50 to-emerald-50 p-4 text-sm text-amber-900 flex items-center gap-3">
           <Sparkles className="h-5 w-5 shrink-0 text-amber-600" />
-          <span>প্যাকেজ ক্রয় করে দৈনিক টাস্ক শুরু করুন এবং ৪৫ দিনে ১১০% পর্যন্ত রিটার্ন অর্জন করুন।</span>
+          <span>প্যাকেজ ক্রয় করে দৈনিক টাস্ক শুরু করুন এবং ৬০ দিনে ১১০% পর্যন্ত রিটার্ন অর্জন করুন।</span>
         </div>
       ) : canUpgrade ? (
         <div className="rounded-2xl border border-fuchsia-200 bg-gradient-to-br from-fuchsia-50 via-amber-50 to-emerald-50 p-4 text-sm text-fuchsia-900 flex items-center gap-3">
