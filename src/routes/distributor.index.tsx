@@ -117,6 +117,7 @@ function DistDashboard() {
   ];
 
   const quick = [
+    { to: "/distributor/package",  Icon: Crown,          label: "Elite Package", desc: "৳১৫,০০০",      from: "from-amber-400",   to_: "to-orange-600" },
     { to: "/distributor/users",    Icon: Users,          label: "আমার ইউজার",  desc: "সব ইউজার",     from: "from-sky-400",     to_: "to-blue-600" },
     { to: "/distributor/earnings", Icon: Wallet,         label: "কমিশন",       desc: "আয় বিস্তারিত", from: "from-emerald-400", to_: "to-green-600" },
     { to: "/distributor/support",  Icon: MessagesSquare, label: "সাপোর্ট",     desc: "অ্যাডমিন চ্যাট", from: "from-fuchsia-400", to_: "to-purple-600" },
