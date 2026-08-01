@@ -30,12 +30,14 @@ type Task = {
   description: string | null; required_package_id: string | null;
 };
 
-const ACTIONS: GeneratedTask["action_type"][] = ["like", "follow", "share", "comment"];
+const ACTIONS: GeneratedTask["action_type"][] = ["like", "follow"];
 
+/** প্রতিটি package-এর দৈনিক টাস্ক সংখ্যা — DB-র daily_tasks, না থাকলে default ১০। */
 function fixedQuota(pkg: Pkg | null) {
   if (!pkg) return 10;
-  return pkg.name.toLowerCase().includes("crazy") ? 5 : 10;
+  return Math.max(1, Math.min(50, Number(pkg.daily_tasks) || 10));
 }
+
 
 
 function PackageTasksPage() {
@@ -48,7 +50,7 @@ function PackageTasksPage() {
   const [batchBusy, setBatchBusy] = useState(false);
   const [count, setCount] = useState(10);
   const [totalAmount, setTotalAmount] = useState<number>(0);
-  const [selectedActions, setSelectedActions] = useState<GeneratedTask["action_type"][]>(["like", "follow", "share"]);
+  const [selectedActions, setSelectedActions] = useState<GeneratedTask["action_type"][]>(["like", "follow"]);
   const [edit, setEdit] = useState<Task | null>(null);
   const [visited, setVisited] = useState<Set<string>>(new Set());
   const genFn = useServerFn(generateFbLinkTasks);
