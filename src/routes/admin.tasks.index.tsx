@@ -243,6 +243,10 @@ function TasksPage() {
         <StatTile label="আজ পেমেন্ট ৳" value={stats?.paid ?? "—"} accent="fuchsia" Icon={Link2} />
       </div>
 
+      <AutoTaskPanel />
+
+
+
       {/* Package management buttons — click to manage that package's task pool */}
       {currentPackages.length > 0 && (
         <AdminCard accent="indigo" className="p-3">

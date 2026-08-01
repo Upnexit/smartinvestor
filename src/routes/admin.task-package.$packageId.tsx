@@ -30,12 +30,14 @@ type Task = {
   description: string | null; required_package_id: string | null;
 };
 
-const ACTIONS: GeneratedTask["action_type"][] = ["like", "follow", "share", "comment"];
+const ACTIONS: GeneratedTask["action_type"][] = ["like", "follow"];
 
+/** প্রতিটি package-এর দৈনিক টাস্ক সংখ্যা — DB-র daily_tasks, না থাকলে default ১০। */
 function fixedQuota(pkg: Pkg | null) {
   if (!pkg) return 10;
-  return pkg.name.toLowerCase().includes("crazy") ? 5 : 10;
+  return Math.max(1, Math.min(50, Number(pkg.daily_tasks) || 10));
 }
+
 
 
 function PackageTasksPage() {
