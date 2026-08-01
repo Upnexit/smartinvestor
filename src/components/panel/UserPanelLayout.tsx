@@ -1,9 +1,9 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, ListChecks, ArrowDownToLine, Package, MessageCircle,
   Users, User as UserIcon, ChevronRight, LogOut, Sparkles, Menu, X, Bell, Crown, Home, LifeBuoy,
-  ShoppingBag,
+  ShoppingBag, Palette,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { NoticeModal } from "@/components/panel/NoticeModal";
 import { PushOptInBanner } from "@/components/panel/PushOptInBanner";
 import { usePushSubscribe } from "@/hooks/use-push-subscribe";
+import { applyPanelTheme, getPanelTheme } from "@/lib/panel-theme";
 
 type NavItem = {
   to: string;
@@ -41,8 +42,13 @@ const SHOP_ITEM: NavItem = {
   from: "from-purple-500", to_: "to-fuchsia-700", soft: "bg-purple-50", dot: "bg-purple-500",
 };
 
+const THEME_ITEM: NavItem = {
+  to: "/theme", label: "থিম কাস্টমাইজ", short: "থিম", Icon: Palette,
+  from: "from-cyan-400", to_: "to-sky-600", soft: "bg-cyan-50", dot: "bg-cyan-500",
+};
+
 const sideNav = (launched: boolean): NavItem[] =>
-  launched ? [NAV[0], NAV[1], SHOP_ITEM, ...NAV.slice(2)] : NAV;
+  launched ? [NAV[0], NAV[1], SHOP_ITEM, ...NAV.slice(2), THEME_ITEM] : [...NAV, THEME_ITEM];
 
 const bottomNav = (launched: boolean): NavItem[] =>
   launched
@@ -58,6 +64,9 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const site = useSiteSettings();
   const { status: pushStatus, busy: pushBusy, subscribe: pushSubscribe } = usePushSubscribe();
+
+  // ইউজারের সেভ করা থিম প্যানেলে অ্যাপ্লাই
+  useEffect(() => { applyPanelTheme(getPanelTheme()); }, []);
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -91,7 +100,7 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
   const showBellDot = pushStatus === "default";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-amber-50/30 to-rose-50/40">
+    <div className="panel-themed min-h-screen">
       {/* Mobile top bar */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/85 backdrop-blur px-4 py-3 lg:hidden">
         <Link to="/dashboard" className="flex items-center gap-2">

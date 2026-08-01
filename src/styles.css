@@ -183,3 +183,70 @@
   border-radius: 1rem;
 }
 
+
+/* ---------------- User panel themes (user selectable) ---------------- */
+.panel-themed {
+  background-image: linear-gradient(135deg,
+    var(--panel-bg-1, oklch(0.985 0.005 250)) 0%,
+    var(--panel-bg-2, oklch(0.97 0.03 85)) 50%,
+    var(--panel-bg-3, oklch(0.97 0.02 20)) 100%);
+}
+
+[data-panel-theme="sunrise"] {
+  --panel-bg-1: #f8fafc; --panel-bg-2: #fef3c7; --panel-bg-3: #ffe4e6;
+  --primary: oklch(0.72 0.17 70);
+  --ring: oklch(0.72 0.17 70);
+  --accent: oklch(0.7 0.18 155);
+}
+[data-panel-theme="ocean"] {
+  --panel-bg-1: #f0f9ff; --panel-bg-2: #e0f2fe; --panel-bg-3: #ede9fe;
+  --primary: oklch(0.6 0.15 240);
+  --ring: oklch(0.6 0.15 240);
+  --accent: oklch(0.65 0.13 220);
+}
+[data-panel-theme="emerald"] {
+  --panel-bg-1: #f0fdf4; --panel-bg-2: #dcfce7; --panel-bg-3: #ecfeff;
+  --primary: oklch(0.65 0.15 160);
+  --ring: oklch(0.65 0.15 160);
+  --accent: oklch(0.7 0.14 180);
+}
+[data-panel-theme="royal"] {
+  --panel-bg-1: #faf5ff; --panel-bg-2: #ede9fe; --panel-bg-3: #fae8ff;
+  --primary: oklch(0.55 0.2 300);
+  --ring: oklch(0.55 0.2 300);
+  --accent: oklch(0.62 0.19 330);
+}
+[data-panel-theme="rose"] {
+  --panel-bg-1: #fff1f2; --panel-bg-2: #ffe4e6; --panel-bg-3: #fff7ed;
+  --primary: oklch(0.62 0.2 15);
+  --ring: oklch(0.62 0.2 15);
+  --accent: oklch(0.68 0.16 40);
+}
+[data-panel-theme="midnight"] {
+  --panel-bg-1: #0f172a; --panel-bg-2: #1e293b; --panel-bg-3: #172554;
+  --background: oklch(0.21 0.03 265);
+  --foreground: oklch(0.97 0.01 250);
+  --card: oklch(0.27 0.03 265);
+  --card-foreground: oklch(0.97 0.01 250);
+  --popover: oklch(0.27 0.03 265);
+  --popover-foreground: oklch(0.97 0.01 250);
+  --muted: oklch(0.32 0.03 265);
+  --muted-foreground: oklch(0.75 0.02 260);
+  --border: oklch(0.38 0.03 265);
+  --input: oklch(0.38 0.03 265);
+  --primary: oklch(0.72 0.15 250);
+  --ring: oklch(0.72 0.15 250);
+  --accent: oklch(0.7 0.15 190);
+}
+[data-panel-theme="sand"] {
+  --panel-bg-1: #fefce8; --panel-bg-2: #fef9c3; --panel-bg-3: #fff7ed;
+  --primary: oklch(0.68 0.14 85);
+  --ring: oklch(0.68 0.14 85);
+  --accent: oklch(0.7 0.12 60);
+}
+[data-panel-theme="graphite"] {
+  --panel-bg-1: #f8fafc; --panel-bg-2: #f1f5f9; --panel-bg-3: #e2e8f0;
+  --primary: oklch(0.45 0.03 260);
+  --ring: oklch(0.45 0.03 260);
+  --accent: oklch(0.6 0.05 250);
+}

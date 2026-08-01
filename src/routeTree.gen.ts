@@ -50,6 +50,7 @@ import { Route as AdminBackupRouteImport } from './routes/admin.backup'
 import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
 import { Route as AdminAppInstallsRouteImport } from './routes/admin.app-installs'
 import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticated/withdraw'
+import { Route as AuthenticatedThemeRouteImport } from './routes/_authenticated/theme'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
 import { Route as AuthenticatedShopRouteImport } from './routes/_authenticated/shop'
@@ -283,6 +284,11 @@ const AuthenticatedWithdrawRoute = AuthenticatedWithdrawRouteImport.update({
   path: '/withdraw',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedThemeRoute = AuthenticatedThemeRouteImport.update({
+  id: '/theme',
+  path: '/theme',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
@@ -452,6 +458,7 @@ export interface FileRoutesByFullPath {
   '/shop': typeof AuthenticatedShopRoute
   '/support': typeof AuthenticatedSupportRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/theme': typeof AuthenticatedThemeRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/app-installs': typeof AdminAppInstallsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
@@ -520,6 +527,7 @@ export interface FileRoutesByTo {
   '/shop': typeof AuthenticatedShopRoute
   '/support': typeof AuthenticatedSupportRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/theme': typeof AuthenticatedThemeRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/app-installs': typeof AdminAppInstallsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
@@ -587,6 +595,7 @@ export interface FileRoutesById {
   '/_authenticated/shop': typeof AuthenticatedShopRoute
   '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
+  '/_authenticated/theme': typeof AuthenticatedThemeRoute
   '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
   '/admin/app-installs': typeof AdminAppInstallsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
@@ -659,6 +668,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/support'
     | '/tasks'
+    | '/theme'
     | '/withdraw'
     | '/admin/app-installs'
     | '/admin/approvals'
@@ -727,6 +737,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/support'
     | '/tasks'
+    | '/theme'
     | '/withdraw'
     | '/admin/app-installs'
     | '/admin/approvals'
@@ -793,6 +804,7 @@ export interface FileRouteTypes {
     | '/_authenticated/shop'
     | '/_authenticated/support'
     | '/_authenticated/tasks'
+    | '/_authenticated/theme'
     | '/_authenticated/withdraw'
     | '/admin/app-installs'
     | '/admin/approvals'
@@ -1151,6 +1163,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWithdrawRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/theme': {
+      id: '/_authenticated/theme'
+      path: '/theme'
+      fullPath: '/theme'
+      preLoaderRoute: typeof AuthenticatedThemeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tasks': {
       id: '/_authenticated/tasks'
       path: '/tasks'
@@ -1373,6 +1392,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedShopRoute: typeof AuthenticatedShopRoute
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
+  AuthenticatedThemeRoute: typeof AuthenticatedThemeRoute
   AuthenticatedWithdrawRoute: typeof AuthenticatedWithdrawRoute
 }
 
@@ -1386,6 +1406,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedShopRoute: AuthenticatedShopRoute,
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
+  AuthenticatedThemeRoute: AuthenticatedThemeRoute,
   AuthenticatedWithdrawRoute: AuthenticatedWithdrawRoute,
 }
 
@@ -1563,13 +1584,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
