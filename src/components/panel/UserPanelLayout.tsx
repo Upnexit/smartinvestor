@@ -33,7 +33,6 @@ const NAV: NavItem[] = [
   { to: "/packages",   label: "প্যাকেজ",     short: "প্যাকেজ", Icon: Package,         from: "from-fuchsia-400", to_: "to-purple-600",  soft: "bg-fuchsia-50", dot: "bg-fuchsia-500" },
   { to: "/withdraw",   label: "উইথড্র",      short: "উইথড্র",  Icon: ArrowDownToLine, from: "from-emerald-400", to_: "to-green-600",   soft: "bg-emerald-50", dot: "bg-emerald-500" },
   { to: "/referral",   label: "রেফারেল",     short: "রেফার",  Icon: Users,           from: "from-violet-400",  to_: "to-fuchsia-500", soft: "bg-violet-50",  dot: "bg-violet-500" },
-  { to: "/theme",      label: "থিম কাস্টমাইজ", short: "থিম",  Icon: Palette,         from: "from-cyan-400",    to_: "to-sky-600",     soft: "bg-cyan-50",    dot: "bg-cyan-500" },
   { to: "/profile",    label: "প্রোফাইল",    short: "প্রোফাইল", Icon: UserIcon,       from: "from-rose-400",    to_: "to-pink-500",    soft: "bg-rose-50",    dot: "bg-rose-500" },
 ];
 
@@ -43,8 +42,13 @@ const SHOP_ITEM: NavItem = {
   from: "from-purple-500", to_: "to-fuchsia-700", soft: "bg-purple-50", dot: "bg-purple-500",
 };
 
+const THEME_ITEM: NavItem = {
+  to: "/theme", label: "থিম কাস্টমাইজ", short: "থিম", Icon: Palette,
+  from: "from-cyan-400", to_: "to-sky-600", soft: "bg-cyan-50", dot: "bg-cyan-500",
+};
+
 const sideNav = (launched: boolean): NavItem[] =>
-  launched ? [NAV[0], NAV[1], SHOP_ITEM, ...NAV.slice(2)] : NAV;
+  launched ? [NAV[0], NAV[1], SHOP_ITEM, ...NAV.slice(2), THEME_ITEM] : [...NAV, THEME_ITEM];
 
 const bottomNav = (launched: boolean): NavItem[] =>
   launched
