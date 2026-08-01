@@ -218,12 +218,13 @@ function SidebarContent({
     <div className="flex h-full flex-col p-4">
       {/* Brand */}
       <Link to="/dashboard" onClick={onNavigate} className="flex items-center gap-3 rounded-2xl px-2 py-2">
-        <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg overflow-hidden">
+        <div className="panel-brand grid h-11 w-11 place-items-center rounded-2xl shadow-lg overflow-hidden">
           {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-6 w-6" />}
         </div>
         <div>
-          <p className="bn-display text-lg leading-none">{site.site_name}</p>
-          <p className="text-[10px] font-semibold tracking-wider text-slate-500 mt-1">USER · PANEL</p>
+          <p className="bn-display panel-chrome-fg text-lg leading-none">{site.site_name}</p>
+          <p className="panel-chrome-muted text-[10px] font-semibold tracking-wider mt-1">USER · PANEL</p>
+
         </div>
       </Link>
 
