@@ -25,7 +25,7 @@ export function AutoTaskPanel() {
   const deployFn = useServerFn(adminDeploymentCheck);
 
   const load = async () => {
-    try { setStatus(await statusFn({})); } catch { /* ignore */ }
+    try { setStatus(await statusFn({})); } catch (e) { toast.error(e instanceof Error ? e.message : "অটো টাস্ক স্ট্যাটাস লোড হয়নি"); }
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
@@ -34,7 +34,7 @@ export function AutoTaskPanel() {
     const t = toast.loading("অটো টাস্ক ট্রিগার হচ্ছে…");
     try {
       const res = await runFn({ data: {} });
-      toast.success(`${res.total_created}টি টাস্ক তৈরি হয়েছে (${res.date})`, { id: t });
+      toast.success(res.total_created > 0 ? `${res.total_created}টি টাস্ক তৈরি হয়েছে (${res.date})` : `আজকের কোটা আগেই পূর্ণ আছে (${res.date})`, { id: t });
       load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "ব্যর্থ", { id: t });
