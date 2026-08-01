@@ -29,23 +29,34 @@ function PackagesPage() {
   const [activePkgId, setActivePkgId] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.from("packages").select("*").eq("active", true)
-      .order("sort_order", { ascending: true })
-      .then(({ data }) => setRows((data ?? []) as Pkg[]));
-
     (async () => {
+      const { data: list } = await supabase.from("packages").select("*").eq("active", true)
+        .order("sort_order", { ascending: true });
+      let all = (list ?? []) as Pkg[];
+
       const { data: auth } = await supabase.auth.getUser();
-      if (!auth.user) return;
-      const { data } = await supabase
-        .from("user_packages")
-        .select("package_id, activated_at")
-        .eq("user_id", auth.user.id)
-        .eq("status", "active")
-        .order("activated_at", { ascending: false })
-        .limit(1);
-      if (data && data[0]) setActivePkgId(data[0].package_id as string);
+      if (auth.user) {
+        const { data } = await supabase
+          .from("user_packages")
+          .select("package_id, activated_at")
+          .eq("user_id", auth.user.id)
+          .eq("status", "active")
+          .order("activated_at", { ascending: false })
+          .limit(1);
+        const ownedId = (data?.[0]?.package_id as string | undefined) ?? null;
+        if (ownedId) {
+          setActivePkgId(ownedId);
+          // Legacy/inactive package the user is still running — keep it visible
+          if (!all.some((p) => p.id === ownedId)) {
+            const { data: owned } = await supabase.from("packages").select("*").eq("id", ownedId).maybeSingle();
+            if (owned) all = [owned as Pkg, ...all];
+          }
+        }
+      }
+      setRows(all);
     })();
   }, []);
+
 
   return (
     <div className="space-y-6 pb-8">
