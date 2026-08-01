@@ -11,13 +11,18 @@ export const Route = createFileRoute("/api/public/hooks/auto-tasks")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const expected =
-          process.env["SUPABASE_PUBLISHABLE_KEY"] ||
-          process.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
-        const apikey = request.headers.get("apikey");
-        if (!expected || apikey !== expected) {
+        const allowed = [
+          process.env["SUPABASE_PUBLISHABLE_KEY"],
+          process.env["VITE_SUPABASE_PUBLISHABLE_KEY"],
+          process.env["SUPABASE_ANON_KEY"],
+          process.env["VITE_SUPABASE_ANON_KEY"],
+          process.env["BACKUP_CRON_SECRET"],
+        ].filter((v): v is string => Boolean(v));
+        const apikey = request.headers.get("apikey") ?? request.headers.get("x-cron-key");
+        if (!apikey || !allowed.includes(apikey)) {
           return Response.json({ error: "Unauthorized" }, { status: 401 });
         }
+
 
         let targetDate: string | undefined;
         try {
