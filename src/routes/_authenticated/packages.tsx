@@ -8,7 +8,7 @@ export const Route = createFileRoute("/_authenticated/packages")({
   head: () => ({
     meta: [
       { title: "ইনভেস্টমেন্ট প্যাকেজ — Smart Investor" },
-      { name: "description", content: "৪৫ দিনের প্যাকেজ — দৈনিক টাস্ক করে ৭০-১১০% পর্যন্ত রিটার্ন।" },
+      { name: "description", content: "৬০ দিনের প্যাকেজ — দৈনিক টাস্ক করে ৭০-১১০% পর্যন্ত রিটার্ন।" },
     ],
   }),
   component: PackagesPage,
@@ -65,7 +65,7 @@ function PackagesPage() {
           <Sparkles className="h-4 w-4" /> ইনভেস্টমেন্ট প্যাকেজ
         </div>
         <h1 className="bn-display mt-2 text-2xl sm:text-3xl text-slate-900">
-          ৪৫ দিনে <span className="bg-gradient-to-br from-amber-600 to-rose-600 bg-clip-text text-transparent">আয় শুরু করুন</span>
+          ৬০ দিনে <span className="bg-gradient-to-br from-amber-600 to-rose-600 bg-clip-text text-transparent">আয় শুরু করুন</span>
         </h1>
         <p className="mt-1 text-sm text-slate-600">প্রতিদিন টাস্ক complete করে দৈনিক আয় তুলে নিন — ৭০% থেকে ১১০% পর্যন্ত রিটার্ন।</p>
       </header>

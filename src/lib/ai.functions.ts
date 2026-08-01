@@ -171,7 +171,7 @@ function buildLocalSmartReply(messages: Msg[], degraded: boolean): string {
     return `উইথড্র করতে User Panel → Withdraw এ যান, bKash/Nagad/Rocket নির্বাচন করুন, 01 দিয়ে শুরু ১১ সংখ্যার নম্বর দিন এবং সর্বনিম্ন ৳২০০ রিকোয়েস্ট করুন।${note}`;
   }
   if (/package|প্যাকেজ|roi|income|আয়|ইনকাম|লাভ/.test(last)) {
-    return `প্যাকেজ কিনলে ৪৫ দিনের জন্য দৈনিক task ও earning limit সক্রিয় হয়। Checkout এ manual payment করে TrxID জমা দিন — অ্যাডমিন approve করলে subscription active হবে।${note}`;
+    return `প্যাকেজ কিনলে ৬০ দিনের জন্য দৈনিক task ও earning limit সক্রিয় হয়। Checkout এ manual payment করে TrxID জমা দিন — অ্যাডমিন approve করলে subscription active হবে।${note}`;
   }
   if (/task|টাস্ক|like|comment|লাইক|কমেন্ট/.test(last)) {
     return `Tasks পেজে দৈনিক লাইক/কমেন্ট কাজগুলো দেখা যাবে। নির্দেশনা মতে proof দিন; approval হলে reward balance এ যোগ হবে।${note}`;

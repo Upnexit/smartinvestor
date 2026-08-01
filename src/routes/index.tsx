@@ -439,7 +439,7 @@ function Earnings() {
               </div>
               <h3 className="bn-display mt-3 text-2xl">{p.name}</h3>
               <div className="bn-display mt-1 text-2xl">{p.price}</div>
-              <p className="text-xs text-white/90">৪৫ দিন মেয়াদ</p>
+              <p className="text-xs text-white/90">৬০ দিন মেয়াদ</p>
             </div>
             <div className="flex flex-1 flex-col gap-3 p-5">
               <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200">
