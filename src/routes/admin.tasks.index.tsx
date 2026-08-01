@@ -502,3 +502,41 @@ function Select({ label, value, onChange, options }: {
     </label>
   );
 }
+
+function PkgTile({ p, counts, users, old }: {
+  p: { id: string; name: string; price: number };
+  counts?: { total: number; todayActive: number };
+  users: number;
+  old?: boolean;
+}) {
+  const c = counts ?? { total: 0, todayActive: 0 };
+  return (
+    <Link to="/admin/task-package/$packageId" params={{ packageId: p.id }}
+      className={cn(
+        "group relative flex items-center gap-3 rounded-2xl p-[1.5px] transition hover:scale-[1.02]",
+        old
+          ? "bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500"
+          : "bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-rose-500",
+      )}>
+      <div className="flex w-full items-center gap-3 rounded-[14px] bg-white px-3 py-2.5">
+        <div className={cn("grid h-10 w-10 place-items-center rounded-xl",
+          old ? "bg-gradient-to-br from-amber-100 to-orange-100 text-orange-700"
+              : "bg-gradient-to-br from-indigo-100 to-fuchsia-100 text-indigo-700")}>
+          <PackageIcon className="h-5 w-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="bn-display text-sm text-slate-900 truncate">
+            {p.name}
+            {old && <span className="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold uppercase text-amber-700">OLD</span>}
+          </p>
+          <p className="text-[11px] text-slate-500">৳{p.price} • মোট {c.total} • আজ active {c.todayActive}</p>
+          <p className={cn("mt-0.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ring-1",
+            users > 0 ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : "bg-slate-50 text-slate-500 ring-slate-200")}>
+            <Users className="h-3 w-3" /> {users} active user
+          </p>
+        </div>
+        <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-indigo-600" />
+      </div>
+    </Link>
+  );
+}
