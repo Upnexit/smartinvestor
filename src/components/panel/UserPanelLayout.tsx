@@ -240,9 +240,10 @@ function SidebarContent({
               className={cn(
                 "group relative flex items-center gap-3 overflow-hidden rounded-2xl px-3 py-2.5 text-sm font-semibold transition-all duration-300",
                 active
-                  ? "bg-slate-900/[0.04] text-slate-900 ring-1 ring-slate-200 shadow-soft"
-                  : "text-slate-700 hover:bg-slate-50 hover:-translate-y-0.5",
+                  ? "panel-chrome-fg bg-black/5 ring-1 ring-black/10 shadow-soft"
+                  : "panel-chrome-fg/90 hover:bg-black/5 hover:-translate-y-0.5",
               )}
+
             >
               <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/0 via-white/60 to-white/0 -translate-x-full transition-transform duration-700 group-hover:translate-x-full" />
               <span className={cn(
