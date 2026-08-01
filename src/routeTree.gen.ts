@@ -30,6 +30,7 @@ import { Route as DistributorUsersRouteImport } from './routes/distributor.users
 import { Route as DistributorTasksRouteImport } from './routes/distributor.tasks'
 import { Route as DistributorSupportRouteImport } from './routes/distributor.support'
 import { Route as DistributorProfileRouteImport } from './routes/distributor.profile'
+import { Route as DistributorPackageRouteImport } from './routes/distributor.package'
 import { Route as DistributorLeadsRouteImport } from './routes/distributor.leads'
 import { Route as DistributorEarningsRouteImport } from './routes/distributor.earnings'
 import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
@@ -182,6 +183,11 @@ const DistributorSupportRoute = DistributorSupportRouteImport.update({
 const DistributorProfileRoute = DistributorProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => DistributorRoute,
+} as any)
+const DistributorPackageRoute = DistributorPackageRouteImport.update({
+  id: '/package',
+  path: '/package',
   getParentRoute: () => DistributorRoute,
 } as any)
 const DistributorLeadsRoute = DistributorLeadsRouteImport.update({
@@ -479,6 +485,7 @@ export interface FileRoutesByFullPath {
   '/admin/withdrawals': typeof AdminWithdrawalsRouteWithChildren
   '/distributor/earnings': typeof DistributorEarningsRoute
   '/distributor/leads': typeof DistributorLeadsRoute
+  '/distributor/package': typeof DistributorPackageRoute
   '/distributor/profile': typeof DistributorProfileRoute
   '/distributor/support': typeof DistributorSupportRoute
   '/distributor/tasks': typeof DistributorTasksRoute
@@ -543,6 +550,7 @@ export interface FileRoutesByTo {
   '/admin/support': typeof AdminSupportRoute
   '/distributor/earnings': typeof DistributorEarningsRoute
   '/distributor/leads': typeof DistributorLeadsRoute
+  '/distributor/package': typeof DistributorPackageRoute
   '/distributor/profile': typeof DistributorProfileRoute
   '/distributor/support': typeof DistributorSupportRoute
   '/distributor/tasks': typeof DistributorTasksRoute
@@ -616,6 +624,7 @@ export interface FileRoutesById {
   '/admin/withdrawals': typeof AdminWithdrawalsRouteWithChildren
   '/distributor/earnings': typeof DistributorEarningsRoute
   '/distributor/leads': typeof DistributorLeadsRoute
+  '/distributor/package': typeof DistributorPackageRoute
   '/distributor/profile': typeof DistributorProfileRoute
   '/distributor/support': typeof DistributorSupportRoute
   '/distributor/tasks': typeof DistributorTasksRoute
@@ -689,6 +698,7 @@ export interface FileRouteTypes {
     | '/admin/withdrawals'
     | '/distributor/earnings'
     | '/distributor/leads'
+    | '/distributor/package'
     | '/distributor/profile'
     | '/distributor/support'
     | '/distributor/tasks'
@@ -753,6 +763,7 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/distributor/earnings'
     | '/distributor/leads'
+    | '/distributor/package'
     | '/distributor/profile'
     | '/distributor/support'
     | '/distributor/tasks'
@@ -825,6 +836,7 @@ export interface FileRouteTypes {
     | '/admin/withdrawals'
     | '/distributor/earnings'
     | '/distributor/leads'
+    | '/distributor/package'
     | '/distributor/profile'
     | '/distributor/support'
     | '/distributor/tasks'
@@ -1021,6 +1033,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/distributor/profile'
       preLoaderRoute: typeof DistributorProfileRouteImport
+      parentRoute: typeof DistributorRoute
+    }
+    '/distributor/package': {
+      id: '/distributor/package'
+      path: '/package'
+      fullPath: '/distributor/package'
+      preLoaderRoute: typeof DistributorPackageRouteImport
       parentRoute: typeof DistributorRoute
     }
     '/distributor/leads': {
@@ -1535,6 +1554,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 interface DistributorRouteChildren {
   DistributorEarningsRoute: typeof DistributorEarningsRoute
   DistributorLeadsRoute: typeof DistributorLeadsRoute
+  DistributorPackageRoute: typeof DistributorPackageRoute
   DistributorProfileRoute: typeof DistributorProfileRoute
   DistributorSupportRoute: typeof DistributorSupportRoute
   DistributorTasksRoute: typeof DistributorTasksRoute
@@ -1548,6 +1568,7 @@ interface DistributorRouteChildren {
 const DistributorRouteChildren: DistributorRouteChildren = {
   DistributorEarningsRoute: DistributorEarningsRoute,
   DistributorLeadsRoute: DistributorLeadsRoute,
+  DistributorPackageRoute: DistributorPackageRoute,
   DistributorProfileRoute: DistributorProfileRoute,
   DistributorSupportRoute: DistributorSupportRoute,
   DistributorTasksRoute: DistributorTasksRoute,
@@ -1584,13 +1605,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

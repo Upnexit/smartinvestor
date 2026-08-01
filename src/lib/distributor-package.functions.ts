@@ -25,6 +25,14 @@ export const submitDistributorPackageOrder = createServerFn({ method: "POST" })
       .maybeSingle();
     if (distributorError || !distributor) throw new Error("শুধু সক্রিয় ডিস্ট্রিবিউটর প্যাকেজ কিনতে পারবেন");
 
+    const { data: selectedPackage, error: packageError } = await context.supabase
+      .from("distributor_packages")
+      .select("name,price,monthly_salary,duration_label")
+      .eq("id", data.packageId)
+      .eq("active", true)
+      .maybeSingle();
+    if (packageError || !selectedPackage) throw new Error("প্যাকেজটি এখন পাওয়া যাচ্ছে না");
+
     const { data: existing } = await context.supabase
       .from("distributor_package_orders")
       .select("id,status")
@@ -51,7 +59,15 @@ export const submitDistributorPackageOrder = createServerFn({ method: "POST" })
 
     const { data: created, error } = await context.supabase
       .from("distributor_package_orders")
-      .insert({ ...payment, distributor_id: context.userId, package_id: data.packageId })
+      .insert({
+        ...payment,
+        distributor_id: context.userId,
+        package_id: data.packageId,
+        snapshot_package_name: selectedPackage.name,
+        snapshot_price: selectedPackage.price,
+        snapshot_monthly_salary: selectedPackage.monthly_salary,
+        snapshot_duration_label: selectedPackage.duration_label,
+      })
       .select("id")
       .single();
     if (error || !created) throw new Error(error?.message ?? "অর্ডার তৈরি করা যায়নি");
