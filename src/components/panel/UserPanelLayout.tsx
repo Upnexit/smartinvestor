@@ -102,14 +102,14 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
   return (
     <div className="panel-themed min-h-screen">
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/85 backdrop-blur px-4 py-3 lg:hidden">
+      <header className="panel-chrome sticky top-0 z-30 flex items-center justify-between border-b backdrop-blur px-4 py-3 lg:hidden">
         <Link to="/dashboard" className="flex items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg overflow-hidden">
+          <div className="panel-brand grid h-9 w-9 place-items-center rounded-xl shadow-lg overflow-hidden">
             {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-5 w-5" />}
           </div>
           <div>
-            <p className="bn-display text-base leading-none">{site.site_name}</p>
-            <p className="text-[10px] text-slate-500 mt-0.5">USER · PANEL</p>
+            <p className="bn-display panel-chrome-fg text-base leading-none">{site.site_name}</p>
+            <p className="panel-chrome-muted text-[10px] mt-0.5">USER · PANEL</p>
           </div>
         </Link>
         <div className="flex items-center gap-1.5">
@@ -117,7 +117,7 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
             type="button"
             onClick={handleBellClick}
             disabled={pushBusy}
-            className="relative grid h-9 w-9 place-items-center rounded-xl text-slate-600 hover:bg-slate-100 disabled:opacity-60"
+            className="panel-chrome-fg relative grid h-9 w-9 place-items-center rounded-xl hover:bg-black/5 disabled:opacity-60"
             aria-label="নোটিফিকেশন চালু করুন"
           >
             <Bell className="h-5 w-5" />
@@ -128,7 +128,7 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
           <Link
             to="/support"
             aria-label="সাপোর্ট"
-            className="grid h-9 w-9 place-items-center rounded-xl text-white shadow-lg bg-gradient-to-br from-amber-500 to-orange-600 hover:scale-105 transition"
+            className="panel-brand grid h-9 w-9 place-items-center rounded-xl shadow-lg hover:scale-105 transition"
           >
             <LifeBuoy className="h-5 w-5" />
           </Link>
@@ -144,7 +144,8 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
 
       <div className="lg:flex">
         {/* Desktop sidebar */}
-        <aside className="sticky top-0 hidden h-screen w-72 shrink-0 border-r border-slate-200 bg-white/85 backdrop-blur lg:block">
+        <aside className="panel-chrome sticky top-0 hidden h-screen w-72 shrink-0 border-r backdrop-blur lg:block">
+
           <SidebarContent onNavigate={() => {}} onLogout={handleLogout} pathname={pathname} />
         </aside>
 
@@ -152,7 +153,7 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
         {drawerOpen && (
           <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} />
-            <aside className="absolute inset-y-0 left-0 flex w-[85%] max-w-xs flex-col bg-white shadow-2xl">
+            <aside className="panel-chrome absolute inset-y-0 left-0 flex w-[85%] max-w-xs flex-col shadow-2xl">
               <div className="flex shrink-0 items-center justify-end p-2">
                 <button onClick={() => setDrawerOpen(false)} aria-label="বন্ধ" className="grid h-9 w-9 place-items-center rounded-xl text-slate-600 hover:bg-slate-100">
                   <X className="h-5 w-5" />
@@ -175,7 +176,7 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
       </div>
 
       {/* Mobile bottom nav — gradient background, always-colorful icons */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/40 bg-gradient-to-r from-amber-50 via-rose-50 to-cyan-50 backdrop-blur-xl px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_-12px_rgba(15,23,42,0.15)] lg:hidden">
+      <nav className="panel-navbar fixed inset-x-0 bottom-0 z-30 border-t backdrop-blur-xl px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_-12px_rgba(15,23,42,0.25)] lg:hidden">
         <ul className="grid grid-cols-6">
           {BOTTOM_NAV.map((item) => {
             const active = pathname.startsWith(item.to);
@@ -195,7 +196,7 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
                   )}>
                     <item.Icon className="h-[18px] w-[18px]" />
                   </span>
-                  <span className={cn("transition-colors", active ? "text-slate-900" : "text-slate-600")}>{item.short}</span>
+                  <span className={cn("transition-colors", active ? "panel-chrome-fg" : "panel-chrome-muted")}>{item.short}</span>
                 </Link>
               </li>
             );
@@ -217,12 +218,13 @@ function SidebarContent({
     <div className="flex h-full flex-col p-4">
       {/* Brand */}
       <Link to="/dashboard" onClick={onNavigate} className="flex items-center gap-3 rounded-2xl px-2 py-2">
-        <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg overflow-hidden">
+        <div className="panel-brand grid h-11 w-11 place-items-center rounded-2xl shadow-lg overflow-hidden">
           {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-6 w-6" />}
         </div>
         <div>
-          <p className="bn-display text-lg leading-none">{site.site_name}</p>
-          <p className="text-[10px] font-semibold tracking-wider text-slate-500 mt-1">USER · PANEL</p>
+          <p className="bn-display panel-chrome-fg text-lg leading-none">{site.site_name}</p>
+          <p className="panel-chrome-muted text-[10px] font-semibold tracking-wider mt-1">USER · PANEL</p>
+
         </div>
       </Link>
 
@@ -238,9 +240,10 @@ function SidebarContent({
               className={cn(
                 "group relative flex items-center gap-3 overflow-hidden rounded-2xl px-3 py-2.5 text-sm font-semibold transition-all duration-300",
                 active
-                  ? "bg-slate-900/[0.04] text-slate-900 ring-1 ring-slate-200 shadow-soft"
-                  : "text-slate-700 hover:bg-slate-50 hover:-translate-y-0.5",
+                  ? "panel-chrome-fg bg-black/5 ring-1 ring-black/10 shadow-soft"
+                  : "panel-chrome-muted hover:bg-black/5 hover:-translate-y-0.5",
               )}
+
             >
               <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/0 via-white/60 to-white/0 -translate-x-full transition-transform duration-700 group-hover:translate-x-full" />
               <span className={cn(
