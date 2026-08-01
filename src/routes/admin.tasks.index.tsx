@@ -141,7 +141,7 @@ function TasksPage() {
   const pkgLabel = (id: string | null) =>
     !id ? "সব প্যাকেজ" : (packages.find((p) => p.id === id)?.name ?? "প্যাকেজ");
 
-
+  const pkgTaskCounts = useMemo(() => {
     const m = new Map<string, { total: number; todayActive: number }>();
     (rows ?? []).forEach((r) => {
       const key = r.required_package_id ?? "";
@@ -153,8 +153,7 @@ function TasksPage() {
     return m;
   }, [rows, today]);
 
-  const pkgLabel = (id: string | null) =>
-    !id ? "সব প্যাকেজ" : (packages.find((p) => p.id === id)?.name ?? "প্যাকেজ");
+
 
 
   const handleSave = async () => {
