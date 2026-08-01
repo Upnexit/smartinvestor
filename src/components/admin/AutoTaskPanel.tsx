@@ -105,7 +105,7 @@ export function AutoTaskPanel() {
           <ServerCog className="h-4 w-4 text-indigo-600" />
           <span className="bn-display text-sm text-slate-800">ডিপ্লয়মেন্ট চেক</span>
           <span className="text-[11px] text-slate-500">— Vercel / Lovable-এ ঠিকভাবে deploy হয়েছে কিনা</span>
-          <SoftButton accent="indigo" className="ml-auto" onClick={checkDeploy} disabled={depBusy}>
+          <SoftButton accent="indigo" className="ml-auto" onClick={checkDeploy}>
             {depBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} যাচাই করুন
           </SoftButton>
         </div>
