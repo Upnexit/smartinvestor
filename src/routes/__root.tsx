@@ -14,7 +14,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { MaintenanceScreen } from "@/components/MaintenanceScreen";
-import { PaymentDueScreen } from "@/components/PaymentDueScreen";
+
 import { MobileInstallPrompt } from "@/components/MobileInstallPrompt";
 import { registerPWA } from "../lib/pwa-register";
 import { initInstallPromptCapture } from "../lib/install-prompt";
@@ -28,10 +28,9 @@ import { installGlobalErrorMonitor, captureError } from "../lib/error-monitor-cl
 const MAINTENANCE_MODE = false;
 
 // ============================================================
-// PAYMENT LOCK (developer dues)
-// Set to `false` to fully restore site access.
+// PAYMENT LOCK (developer dues) — RESOLVED / DISABLED
 // ============================================================
-const PAYMENT_LOCK = true;
+const PAYMENT_LOCK = false;
 
 function NotFoundComponent() {
   return (
@@ -188,13 +187,6 @@ function RootComponent() {
   }, [router, queryClient]);
 
 
-  if (PAYMENT_LOCK) {
-    return (
-      <QueryClientProvider client={queryClient}>
-        <PaymentDueScreen />
-      </QueryClientProvider>
-    );
-  }
 
   return (
     <QueryClientProvider client={queryClient}>
