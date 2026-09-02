@@ -4,6 +4,7 @@ import { Loader2, ShieldAlert, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { GradientButton } from "@/components/admin/AdminUI";
+import { AgreementWelcomeDialog } from "@/components/admin/AgreementWelcomeDialog";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -78,5 +79,10 @@ function AdminShell() {
     );
   }
 
-  return <AdminLayout><Outlet /></AdminLayout>;
+  return (
+    <AdminLayout>
+      <AgreementWelcomeDialog />
+      <Outlet />
+    </AdminLayout>
+  );
 }
