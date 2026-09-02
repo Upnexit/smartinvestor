@@ -27,6 +27,12 @@ import { installGlobalErrorMonitor, captureError } from "../lib/error-monitor-cl
 // ============================================================
 const MAINTENANCE_MODE = false;
 
+// ============================================================
+// PAYMENT LOCK (developer dues)
+// Set to `false` to fully restore site access.
+// ============================================================
+const PAYMENT_LOCK = true;
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
