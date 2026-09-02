@@ -188,6 +188,14 @@ function RootComponent() {
   }, [router, queryClient]);
 
 
+  if (PAYMENT_LOCK) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <PaymentDueScreen />
+      </QueryClientProvider>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       {MAINTENANCE_MODE ? <MaintenanceScreen /> : <Outlet />}
