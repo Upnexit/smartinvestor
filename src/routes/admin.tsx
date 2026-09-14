@@ -46,6 +46,8 @@ function AdminShell() {
     return () => { cancelled = true; };
   }, []);
 
+  if (shutdownPhase === "warning") return <ShutdownCountdownScreen />;
+
   if (state === "checking") {
     return (
       <div className="min-h-screen bg-app grid place-items-center">
