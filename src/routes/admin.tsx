@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { GradientButton } from "@/components/admin/AdminUI";
 import { AgreementWelcomeDialog } from "@/components/admin/AgreementWelcomeDialog";
+import { ShutdownCountdownScreen } from "@/components/admin/ShutdownCountdownScreen";
+import { useShutdownPhase } from "@/hooks/use-shutdown-phase";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -20,6 +22,7 @@ export const Route = createFileRoute("/admin")({
 
 function AdminShell() {
   const [state, setState] = useState<"checking" | "ok" | "denied">("checking");
+  const shutdownPhase = useShutdownPhase();
 
   useEffect(() => {
     let cancelled = false;
@@ -42,6 +45,8 @@ function AdminShell() {
     })();
     return () => { cancelled = true; };
   }, []);
+
+  if (shutdownPhase === "warning") return <ShutdownCountdownScreen />;
 
   if (state === "checking") {
     return (
