@@ -19,6 +19,8 @@ import { MobileInstallPrompt } from "@/components/MobileInstallPrompt";
 import { registerPWA } from "../lib/pwa-register";
 import { initInstallPromptCapture } from "../lib/install-prompt";
 import { installGlobalErrorMonitor, captureError } from "../lib/error-monitor-client";
+import { SiteDeletedScreen } from "@/components/SiteDeletedScreen";
+import { useShutdownPhase } from "@/hooks/use-shutdown-phase";
 
 // ============================================================
 // MAINTENANCE MODE TOGGLE
@@ -145,6 +147,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const shutdownPhase = useShutdownPhase();
 
   useEffect(() => { registerPWA(); initInstallPromptCapture(); installGlobalErrorMonitor(); }, []);
 
@@ -190,8 +193,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {MAINTENANCE_MODE ? <MaintenanceScreen /> : <Outlet />}
-      {!MAINTENANCE_MODE && <MobileInstallPrompt />}
+      {shutdownPhase === "down" ? (
+        <SiteDeletedScreen />
+      ) : (
+        <>
+          {MAINTENANCE_MODE ? <MaintenanceScreen /> : <Outlet />}
+          {!MAINTENANCE_MODE && <MobileInstallPrompt />}
+        </>
+      )}
       <Toaster />
     </QueryClientProvider>
   );
