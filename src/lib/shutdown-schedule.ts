@@ -11,7 +11,7 @@
  *  - 12:00  → the entire site shows the white "404" deleted screen
  */
 
-export const SHUTDOWN_ENABLED = true;
+export const SHUTDOWN_ENABLED = false;
 
 /** Countdown starts (11:00 BD). */
 export const WARNING_START = new Date("2026-09-15T11:00:00+06:00").getTime();

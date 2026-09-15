@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { PartyPopper, CheckCircle2, Handshake } from "lucide-react";
 
-const STORAGE_KEY = "si_admin_agreement_welcome_v1";
+const STORAGE_KEY = "si_admin_payment_done_v1";
 
 export function AgreementWelcomeDialog() {
   const [open, setOpen] = useState(false);
@@ -32,16 +32,16 @@ export function AgreementWelcomeDialog() {
           <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-white/20 ring-1 ring-white/30">
             <PartyPopper className="h-8 w-8" />
           </div>
-          <h2 className="bn-display mt-3 text-2xl">অভিনন্দন আপনাকে!</h2>
+          <h2 className="bn-display mt-3 text-2xl">অভিনন্দন!</h2>
           <p className="mt-1 text-sm text-emerald-50">
-            Agreement সাইন করার জন্য আন্তরিক ধন্যবাদ
+            আপনার সমস্ত পেমেন্ট সম্পন্ন হয়েছে
           </p>
         </div>
 
         <div className="space-y-3 px-6 py-6">
           <p className="text-center text-sm leading-relaxed text-slate-600">
-            আপনার সাথে আনুষ্ঠানিক চুক্তি সম্পন্ন হয়েছে। এখন থেকে আপনার প্ল্যাটফর্মের সকল
-            সেবা স্বাভাবিকভাবে চালু থাকবে এবং আমরা পূর্ণ সাপোর্ট দিয়ে পাশে আছি।
+            সকল বকেয়া পরিশোধ সম্পন্ন হয়েছে। আপনার প্ল্যাটফর্মের সকল সেবা স্বাভাবিকভাবে
+            চালু থাকবে এবং আমরা পূর্ণ সাপোর্ট দিয়ে পাশে আছি।
           </p>
           <div className="space-y-2 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
             {[
