@@ -110,7 +110,7 @@ function UsersPage() {
     setBusy(del.id);
     try {
       await deleteUser(del.id);
-      toast.success("ইউজার ডিলিট হয়েছে");
+      toast.success("ইউজারের সকল ডাটা ও লগইন অ্যাকাউন্ট চিরতরে মুছে ফেলা হয়েছে");
       setDel(null);
       refresh();
     } catch (e) {
@@ -324,8 +324,12 @@ function UsersPage() {
 
       <ConfirmDeleteModal
         open={!!del} onClose={() => setDel(null)} busy={!!busy} onConfirm={handleDelete}
-        title="ইউজার ডিলিট করবেন?"
-        body={<>এই ইউজারের সকল ডাটা (প্যাকেজ, টাস্ক, উইথড্র, রেফারেল) মুছে যাবে। <b className="text-rose-600">এটা ফিরিয়ে আনা যাবে না।</b></>}
+        title="ইউজার চিরতরে ডিলিট করবেন?"
+        body={
+          <>
+            এই ইউজারের সকল ডাটা (প্যাকেজ, টাস্ক, উইথড্র, রেফারেল) এবং <b>লগইন অ্যাকাউন্ট (Supabase Auth)</b> সম্পূর্ণ মুছে যাবে। ইউজার আর এই ইমেইল ও পাসওয়ার্ড দিয়ে লগইন করতে পারবে না। <b className="text-rose-600 block mt-1">এটি কোনোভাবেই ফিরিয়ে আনা যাবে না।</b>
+          </>
+        }
       />
 
       {suspendTarget && (

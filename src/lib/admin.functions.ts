@@ -81,12 +81,24 @@ export const adminDeleteUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { userId: string }) => ({ userId: uuid(d.userId) }))
   .handler(async ({ data, context }) => {
-    const db = await assertAdmin(context.supabase, context.userId);
-    const { error } = await db.rpc("admin_delete_user_data", {
-      _actor: context.userId, _user_id: data.userId,
+    await assertAdmin(context.supabase, context.userId);
+    if (data.userId === context.userId) throw new Error("নিজের অ্যাকাউন্ট ডিলিট করা যাবে না");
+
+    const { error: rpcErr } = await context.supabase.rpc("admin_delete_user_data", {
+      _actor: context.userId,
+      _user_id: data.userId,
     });
-    if (error) throw new Error(error.message);
-    // also try to remove the auth user (best-effort)
+    if (rpcErr) throw new Error(rpcErr.message);
+
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { error: authErr } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
+      if (authErr && !/not.?found|user.?not.?found/i.test(authErr.message)) {
+        throw new Error(authErr.message);
+      }
+    } catch (authE) {
+      console.warn("[adminDeleteUser] auth.users delete skipped:", authE);
+    }
     return { ok: true };
   });
 
