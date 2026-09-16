@@ -241,8 +241,8 @@ export async function listDistributors(q: string) {
   const { data, error } = await req;
   if (error) throw new Error(error.message);
 
-  const rows = data ?? [];
-  const ids = rows.map((r) => r.user_id).filter(Boolean);
+  const rows = (data ?? []) as Record<string, any>[];
+  const ids = rows.map((r: Record<string, any>) => r.user_id).filter(Boolean);
   const counts: Record<string, number> = {};
   if (ids.length) {
     const { data: profiles, error: countError } = await supabase
@@ -250,13 +250,13 @@ export async function listDistributors(q: string) {
       .select("distributor_id")
       .in("distributor_id", ids);
     if (countError) throw new Error(countError.message);
-    for (const profile of profiles ?? []) {
+    for (const profile of (profiles ?? []) as { distributor_id: string | null }[]) {
       const id = profile.distributor_id;
       if (id) counts[id] = (counts[id] ?? 0) + 1;
     }
   }
 
-  return rows.map((row) => ({ ...row, users_count: counts[row.user_id] ?? 0 }));
+  return rows.map((row: Record<string, any>) => ({ ...row, users_count: counts[row.user_id] ?? 0 }));
 }
 
 export async function createDistributor(input: DistributorInput) {

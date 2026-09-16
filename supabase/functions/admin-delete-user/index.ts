@@ -2,6 +2,9 @@
 // Permanently deletes a user from ALL public database tables and from Supabase Auth (auth.users).
 // After deletion, the user cannot log in with their old email and password.
 
+// @ts-nocheck
+declare const Deno: any;
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 const corsHeaders = {
@@ -17,7 +20,7 @@ function json(body: unknown, status = 200) {
   });
 }
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method not allowed" }, 405);
 

@@ -1,6 +1,9 @@
 // Create a fully-confirmed user account without sending a confirmation email.
 // Uses the service role to bypass Supabase's public signup rate limit and
 // email delivery. All input is validated; only the fields we expect are used.
+// @ts-nocheck
+declare const Deno: any;
+
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
 const corsHeaders = {
@@ -12,7 +15,7 @@ const corsHeaders = {
 const PHONE = /^01[3-9]\d{8}$/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
     const body = await req.json();
