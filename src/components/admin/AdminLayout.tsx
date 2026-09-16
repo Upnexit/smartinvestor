@@ -242,36 +242,50 @@ function SidebarBody({
             </div>
           );
         })}
+        {/* Logout button — inside scrollable nav */}
+        <div className="pt-2 mt-2 border-t border-slate-100">
+          <button
+            onClick={onLogout}
+            className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 hover:translate-x-0.5"
+          >
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-md shadow-rose-500/40">
+              <LogOut className="h-[18px] w-[18px]" />
+            </span>
+            লগআউট
+          </button>
+        </div>
       </nav>
 
-      <button onClick={onLogout}
-        className="mt-3 flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 hover:translate-x-0.5">
-        <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-md shadow-rose-500/40">
-          <LogOut className="h-[18px] w-[18px]" />
-        </span>
-        লগআউট
-      </button>
-
-      {/* Version badge & Release Notes trigger */}
-      <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between px-2">
-        <div className="flex items-center gap-1.5">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+      {/* Version Section — Bold & Professional UI replacing old logout location */}
+      <div className="mt-3 rounded-2xl border border-amber-200/80 bg-gradient-to-br from-amber-50/90 via-white to-orange-50/70 p-3 shadow-sm ring-1 ring-amber-500/10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span className="text-xs font-black tracking-wider text-slate-900 uppercase">
+              ADMIN CONTROL
+            </span>
+          </div>
+          <span className="rounded-lg bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 text-[11px] font-extrabold text-emerald-700">
+            v{APP_VERSION}
           </span>
-          <span className="text-[11px] font-bold text-slate-700">v{APP_VERSION}</span>
-          <span className="rounded bg-emerald-50 border border-emerald-200/60 px-1 py-0.2 text-[9px] font-bold text-emerald-700">LIVE</span>
         </div>
-        {onShowReleaseNotes && (
-          <button
-            type="button"
-            onClick={onShowReleaseNotes}
-            className="text-[11px] font-semibold text-amber-600 hover:text-amber-700 hover:underline transition"
-            title="রিলিজ নোটস ও আপডেট হিস্ট্রি দেখুন"
-          >
-            কী নতুন?
-          </button>
-        )}
+        <div className="mt-2 flex items-center justify-between pt-2 border-t border-amber-200/50">
+          <span className="text-[11px] font-medium text-slate-500">
+            রিলিজ: লাইভ ও স্ট্যাবল
+          </span>
+          {onShowReleaseNotes && (
+            <button
+              type="button"
+              onClick={onShowReleaseNotes}
+              className="inline-flex items-center gap-1 rounded-md bg-amber-500/15 px-2 py-0.5 text-[11px] font-bold text-amber-800 hover:bg-amber-500/25 transition"
+            >
+              কী নতুন? ↗
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

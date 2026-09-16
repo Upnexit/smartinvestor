@@ -261,7 +261,7 @@ function SidebarContent({
           );
         })}
 
-        {/* Home — placed last, inside the scroll area so it scrolls with the rest */}
+        {/* Home — placed inside the scroll area so it scrolls with the rest */}
         <Link
           to="/"
           onClick={onNavigate}
@@ -273,36 +273,59 @@ function SidebarContent({
           <span className="relative flex-1">হোম পেজ</span>
           <ChevronRight className="relative h-4 w-4 text-slate-500 transition-transform duration-300 group-hover:translate-x-0.5" />
         </Link>
+
+        {/* Promo inside scrollable area */}
+        <div className="mt-3 rounded-2xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-rose-500 p-3.5 text-white shadow-pop">
+          <div className="flex items-center gap-2">
+            <Crown className="h-4 w-4" />
+            <p className="bn-display text-xs font-bold">প্রিমিয়াম আনলক</p>
+          </div>
+          <p className="mt-1 text-[11px] text-white/90">আপগ্রেড করে ৫× আয় বাড়ান</p>
+          <Link to="/packages" onClick={onNavigate} className="mt-2.5 inline-flex items-center gap-1.5 rounded-xl bg-white/20 backdrop-blur px-2.5 py-1 text-xs font-semibold hover:bg-white/30 transition">
+            এখনই আপগ্রেড <ChevronRight className="h-3 w-3" />
+          </Link>
+        </div>
+
+        {/* Logout — inside scroll area */}
+        <div className="pt-2 mt-2 border-t border-slate-100">
+          <button
+            type="button"
+            onClick={onLogout}
+            className="group relative flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-rose-200/70 bg-gradient-to-r from-rose-50/80 via-pink-50/40 to-red-50/60 px-3 py-2.5 text-sm font-bold text-rose-700 shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md hover:bg-rose-100/70"
+          >
+            <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-md shadow-rose-500/30 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110">
+              <LogOut className="h-[18px] w-[18px]" />
+            </span>
+            <span className="relative flex-1 text-left font-bold text-rose-700">লগআউট</span>
+            <ChevronRight className="relative h-4 w-4 text-rose-400 transition-transform duration-300 group-hover:translate-x-0.5" />
+          </button>
+        </div>
       </nav>
 
-      {/* Promo */}
-      <div className="mt-4 rounded-2xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-rose-500 p-4 text-white shadow-pop">
-        <div className="flex items-center gap-2">
-          <Crown className="h-5 w-5" />
-          <p className="bn-display text-sm">প্রিমিয়াম আনলক</p>
+      {/* Version Section — Bold & Professional UI replacing old logout location */}
+      <div className="mt-3 rounded-2xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50/90 via-white to-sky-50/70 p-3 shadow-sm ring-1 ring-indigo-500/10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span className="text-xs font-black tracking-wider text-slate-900 uppercase">
+              SMART INVESTOR
+            </span>
+          </div>
+          <span className="rounded-lg bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 text-[11px] font-extrabold text-emerald-700">
+            v{APP_VERSION}
+          </span>
         </div>
-        <p className="mt-1 text-xs text-white/90">আপগ্রেড করে ৫× আয় বাড়ান</p>
-        <Link to="/packages" onClick={onNavigate} className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-white/20 backdrop-blur px-3 py-1.5 text-xs font-semibold hover:bg-white/30">
-          এখনই আপগ্রেড <ChevronRight className="h-3.5 w-3.5" />
-        </Link>
-      </div>
-
-      {/* Logout */}
-      <button
-        onClick={onLogout}
-        className="mt-3 flex items-center gap-3 rounded-xl border border-rose-100 bg-rose-50 px-3 py-2.5 text-sm font-medium text-rose-700 hover:bg-gradient-to-r hover:from-rose-500 hover:to-pink-500 hover:text-white hover:border-transparent transition"
-      >
-        <LogOut className="h-4 w-4" />
-        লগআউট
-      </button>
-
-      {/* Version info */}
-      <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between px-1 text-[11px] text-slate-600">
-        <div className="flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-          <span className="font-semibold text-slate-700">v{APP_VERSION}</span>
+        <div className="mt-2 flex items-center justify-between pt-2 border-t border-indigo-100/70">
+          <span className="text-[11px] font-medium text-slate-600">
+            সিস্টেম: আপ-টু-ডেট
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+            অনলাইন ✓
+          </span>
         </div>
-        <span className="text-[10px] text-slate-500 font-medium">সিস্টেম আপ-টু-ডেট ✓</span>
       </div>
     </div>
   );
