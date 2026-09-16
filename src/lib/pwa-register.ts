@@ -39,11 +39,21 @@ export function registerPWA() {
 
   window.addEventListener("load", () => {
     navigator.serviceWorker
-      .register(SW_URL, { scope: "/" })
+      .register(SW_URL, { scope: "/", updateViaCache: "none" })
       .then((reg) => {
-        // Poll for a new version every hour so long-open installed apps
-        // pick up deploys without waiting for a full reopen.
-        try { setInterval(() => { reg.update().catch(() => {}); }, 60 * 60 * 1000); } catch { /* noop */ }
+        // Immediate check on initial load
+        reg.update().catch(() => {});
+
+        // Check for updates every 60 seconds (instead of 1 hour)
+        try { setInterval(() => { reg.update().catch(() => {}); }, 60 * 1000); } catch { /* noop */ }
+
+        // Check for updates when user returns to tab/app
+        window.addEventListener("focus", () => { reg.update().catch(() => {}); });
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") {
+            reg.update().catch(() => {});
+          }
+        });
       })
       .catch(() => { /* noop */ });
 
@@ -57,3 +67,26 @@ export function registerPWA() {
     });
   });
 }
+
+/**
+ * Forcefully clear caches and update service worker on version mismatch.
+ */
+export async function forceUpdateServiceWorker() {
+  if (typeof window === "undefined") return;
+  try {
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch {}
+
+  try {
+    if ("serviceWorker" in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const r of regs) {
+        await r.update().catch(() => {});
+      }
+    }
+  } catch {}
+}
+

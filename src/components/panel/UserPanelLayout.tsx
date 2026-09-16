@@ -14,6 +14,7 @@ import { NoticeModal } from "@/components/panel/NoticeModal";
 import { PushOptInBanner } from "@/components/panel/PushOptInBanner";
 import { usePushSubscribe } from "@/hooks/use-push-subscribe";
 import { applyPanelTheme, getPanelTheme } from "@/lib/panel-theme";
+import { APP_VERSION } from "@/config/version";
 
 type NavItem = {
   to: string;
@@ -294,6 +295,15 @@ function SidebarContent({
         <LogOut className="h-4 w-4" />
         লগআউট
       </button>
+
+      {/* Version info */}
+      <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between px-1 text-[11px] text-slate-600">
+        <div className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          <span className="font-semibold text-slate-700">v{APP_VERSION}</span>
+        </div>
+        <span className="text-[10px] text-slate-500 font-medium">সিস্টেম আপ-টু-ডেট ✓</span>
+      </div>
     </div>
   );
 }

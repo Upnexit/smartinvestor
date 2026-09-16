@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 import { ACCENTS, type AccentKey } from "@/lib/admin-accents";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { NotificationBell } from "@/components/admin/NotificationBell";
+import { APP_VERSION } from "@/config/version";
+import { AdminVersionWelcomeModal } from "@/components/admin/AdminVersionWelcomeModal";
 
 
 type NavChild = { to: string; label: string; Icon: typeof LayoutDashboard };
@@ -54,6 +56,7 @@ export const ADMIN_NAV: NavItem[] = [
 
 export function AdminLayout({ children }: { children: ReactNode }) {
   const [drawer, setDrawer] = useState(false);
+  const [showReleaseModal, setShowReleaseModal] = useState(false);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const site = useSiteSettings();
@@ -75,7 +78,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           </div>
           <div>
             <p className="bn-display text-sm leading-none">{site.site_name}</p>
-            <p className="text-[9px] font-bold tracking-widest text-orange-600 mt-0.5">ADMIN</p>
+            <p className="text-[9px] font-bold tracking-widest text-orange-600 mt-0.5">ADMIN · v{APP_VERSION}</p>
           </div>
         </Link>
         <div className="flex items-center gap-1.5">
@@ -87,9 +90,11 @@ export function AdminLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
+      <AdminVersionWelcomeModal forceOpen={showReleaseModal} onClose={() => setShowReleaseModal(false)} />
+
       <div className="lg:flex">
         <aside className="sticky top-0 hidden h-screen w-72 shrink-0 border-r border-amber-200/70 bg-white/95 backdrop-blur lg:block">
-          <SidebarBody pathname={pathname} onNav={() => {}} onLogout={handleLogout} />
+          <SidebarBody pathname={pathname} onNav={() => {}} onLogout={handleLogout} onShowReleaseNotes={() => setShowReleaseModal(true)} />
         </aside>
 
         {drawer && (
@@ -99,7 +104,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
               <div className="flex justify-end p-2">
                 <button onClick={() => setDrawer(false)} className="grid h-9 w-9 place-items-center rounded-xl text-slate-600 hover:bg-slate-100"><X className="h-5 w-5" /></button>
               </div>
-              <SidebarBody pathname={pathname} onNav={() => setDrawer(false)} onLogout={handleLogout} />
+              <SidebarBody pathname={pathname} onNav={() => setDrawer(false)} onLogout={handleLogout} onShowReleaseNotes={() => { setDrawer(false); setShowReleaseModal(true); }} />
             </aside>
           </div>
         )}
@@ -136,8 +141,8 @@ export function AdminLayout({ children }: { children: ReactNode }) {
 }
 
 function SidebarBody({
-  pathname, onNav, onLogout,
-}: { pathname: string; onNav: () => void; onLogout: () => void }) {
+  pathname, onNav, onLogout, onShowReleaseNotes,
+}: { pathname: string; onNav: () => void; onLogout: () => void; onShowReleaseNotes?: () => void }) {
   const site = useSiteSettings();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
@@ -246,6 +251,28 @@ function SidebarBody({
         </span>
         লগআউট
       </button>
+
+      {/* Version badge & Release Notes trigger */}
+      <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between px-2">
+        <div className="flex items-center gap-1.5">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span className="text-[11px] font-bold text-slate-700">v{APP_VERSION}</span>
+          <span className="rounded bg-emerald-50 border border-emerald-200/60 px-1 py-0.2 text-[9px] font-bold text-emerald-700">LIVE</span>
+        </div>
+        {onShowReleaseNotes && (
+          <button
+            type="button"
+            onClick={onShowReleaseNotes}
+            className="text-[11px] font-semibold text-amber-600 hover:text-amber-700 hover:underline transition"
+            title="রিলিজ নোটস ও আপডেট হিস্ট্রি দেখুন"
+          >
+            কী নতুন?
+          </button>
+        )}
+      </div>
     </div>
   );
 }

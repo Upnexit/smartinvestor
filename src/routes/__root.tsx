@@ -17,6 +17,7 @@ import { MaintenanceScreen } from "@/components/MaintenanceScreen";
 
 import { MobileInstallPrompt } from "@/components/MobileInstallPrompt";
 import { registerPWA } from "../lib/pwa-register";
+import { useAutoUpdate } from "../hooks/use-auto-update";
 import { initInstallPromptCapture } from "../lib/install-prompt";
 import { installGlobalErrorMonitor, captureError } from "../lib/error-monitor-client";
 import { SiteDeletedScreen } from "@/components/SiteDeletedScreen";
@@ -148,6 +149,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   const shutdownPhase = useShutdownPhase();
+  useAutoUpdate();
 
   useEffect(() => { registerPWA(); initInstallPromptCapture(); installGlobalErrorMonitor(); }, []);
 

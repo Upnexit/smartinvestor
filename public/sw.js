@@ -1,13 +1,27 @@
-// Smart Investor service worker.
-// Handles Web Push notifications and click-through navigation.
-// Kept minimal — no offline caching (managed by pwa-register kill-switch flow).
+// Smart Investor Service Worker - v2.5.1
+// Handles Web Push notifications, fast activation, and instant cache invalidation.
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    (async () => {
+      // Clean up all old CacheStorage caches to prevent stale bundles
+      try {
+        const cacheKeys = await caches.keys();
+        await Promise.all(cacheKeys.map((key) => caches.delete(key)));
+      } catch {}
+      await self.clients.claim();
+    })()
+  );
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 // -------------------- PUSH --------------------

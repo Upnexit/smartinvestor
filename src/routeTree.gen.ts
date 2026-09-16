@@ -9,126 +9,85 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as RegisterRouteImport } from './routes/register'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as OurPackagesRouteImport } from './routes/our-packages'
-import { Route as InstallRouteImport } from './routes/install'
-import { Route as HowItWorksRouteImport } from './routes/how-it-works'
-import { Route as DistributorInfoRouteImport } from './routes/distributor-info'
-import { Route as DistributorApplyRouteImport } from './routes/distributor-apply'
-import { Route as DistributorRouteImport } from './routes/distributor'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DistributorIndexRouteImport } from './routes/distributor.index'
-import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as DistributorWithdrawalsRouteImport } from './routes/distributor.withdrawals'
-import { Route as DistributorWithdrawRouteImport } from './routes/distributor.withdraw'
-import { Route as DistributorUsersRouteImport } from './routes/distributor.users'
-import { Route as DistributorTasksRouteImport } from './routes/distributor.tasks'
-import { Route as DistributorSupportRouteImport } from './routes/distributor.support'
-import { Route as DistributorProfileRouteImport } from './routes/distributor.profile'
-import { Route as DistributorPackageRouteImport } from './routes/distributor.package'
-import { Route as DistributorLeadsRouteImport } from './routes/distributor.leads'
-import { Route as DistributorEarningsRouteImport } from './routes/distributor.earnings'
-import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
-import { Route as AdminUsersRouteImport } from './routes/admin.users'
-import { Route as AdminTasksRouteImport } from './routes/admin.tasks'
-import { Route as AdminSupportRouteImport } from './routes/admin.support'
-import { Route as AdminShopRouteImport } from './routes/admin.shop'
-import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
-import { Route as AdminReportsRouteImport } from './routes/admin.reports'
-import { Route as AdminProfileRouteImport } from './routes/admin.profile'
-import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
-import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
-import { Route as AdminNoticesRouteImport } from './routes/admin.notices'
-import { Route as AdminMonitorRouteImport } from './routes/admin.monitor'
-import { Route as AdminDistributorsRouteImport } from './routes/admin.distributors'
-import { Route as AdminCommunityRouteImport } from './routes/admin.community'
-import { Route as AdminBackupRouteImport } from './routes/admin.backup'
-import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
-import { Route as AdminAppInstallsRouteImport } from './routes/admin.app-installs'
-import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticated/withdraw'
-import { Route as AuthenticatedThemeRouteImport } from './routes/_authenticated/theme'
-import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
-import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
-import { Route as AuthenticatedShopRouteImport } from './routes/_authenticated/shop'
-import { Route as AuthenticatedReferralRouteImport } from './routes/_authenticated/referral'
-import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedPackagesRouteImport } from './routes/_authenticated/packages'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedCommunityRouteImport } from './routes/_authenticated/community'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as DistributorRouteImport } from './routes/distributor'
+import { Route as DistributorApplyRouteImport } from './routes/distributor-apply'
+import { Route as DistributorInfoRouteImport } from './routes/distributor-info'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as InstallRouteImport } from './routes/install'
+import { Route as OurPackagesRouteImport } from './routes/our-packages'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated/checkout'
-import { Route as AdminWithdrawalsIndexRouteImport } from './routes/admin.withdrawals.index'
-import { Route as AdminUsersIndexRouteImport } from './routes/admin.users.index'
-import { Route as AdminTasksIndexRouteImport } from './routes/admin.tasks.index'
-import { Route as AdminShopIndexRouteImport } from './routes/admin.shop.index'
-import { Route as AdminDistributorsIndexRouteImport } from './routes/admin.distributors.index'
-import { Route as DistributorTaskPackagePackageIdRouteImport } from './routes/distributor.task-package.$packageId'
-import { Route as AdminWithdrawalsDistributorApprovalsRouteImport } from './routes/admin.withdrawals.distributor-approvals'
-import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
-import { Route as AdminTasksDistributorActivityRouteImport } from './routes/admin.tasks.distributor-activity'
-import { Route as AdminTasksDailyReportRouteImport } from './routes/admin.tasks.daily-report'
-import { Route as AdminTaskPackagePackageIdRouteImport } from './routes/admin.task-package.$packageId'
-import { Route as AdminShopProductsRouteImport } from './routes/admin.shop.products'
-import { Route as AdminShopOrdersRouteImport } from './routes/admin.shop.orders'
-import { Route as AdminDistributorsIdRouteImport } from './routes/admin.distributors.$id'
+import { Route as AuthenticatedCommunityRouteImport } from './routes/_authenticated/community'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedPackagesRouteImport } from './routes/_authenticated/packages'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedReferralRouteImport } from './routes/_authenticated/referral'
+import { Route as AuthenticatedShopRouteImport } from './routes/_authenticated/shop'
+import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
+import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
+import { Route as AuthenticatedThemeRouteImport } from './routes/_authenticated/theme'
+import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticated/withdraw'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAppInstallsRouteImport } from './routes/admin.app-installs'
+import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
+import { Route as AdminBackupRouteImport } from './routes/admin.backup'
+import { Route as AdminCommunityRouteImport } from './routes/admin.community'
+import { Route as AdminDistributorsRouteImport } from './routes/admin.distributors'
+import { Route as AdminMonitorRouteImport } from './routes/admin.monitor'
+import { Route as AdminNoticesRouteImport } from './routes/admin.notices'
+import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
+import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
+import { Route as AdminProfileRouteImport } from './routes/admin.profile'
+import { Route as AdminReportsRouteImport } from './routes/admin.reports'
+import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminShopRouteImport } from './routes/admin.shop'
+import { Route as AdminSupportRouteImport } from './routes/admin.support'
+import { Route as AdminTasksRouteImport } from './routes/admin.tasks'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminWithdrawalsRouteImport } from './routes/admin.withdrawals'
+import { Route as DistributorIndexRouteImport } from './routes/distributor.index'
+import { Route as DistributorEarningsRouteImport } from './routes/distributor.earnings'
+import { Route as DistributorLeadsRouteImport } from './routes/distributor.leads'
+import { Route as DistributorPackageRouteImport } from './routes/distributor.package'
+import { Route as DistributorProfileRouteImport } from './routes/distributor.profile'
+import { Route as DistributorSupportRouteImport } from './routes/distributor.support'
+import { Route as DistributorTasksRouteImport } from './routes/distributor.tasks'
+import { Route as DistributorUsersRouteImport } from './routes/distributor.users'
+import { Route as DistributorWithdrawRouteImport } from './routes/distributor.withdraw'
+import { Route as DistributorWithdrawalsRouteImport } from './routes/distributor.withdrawals'
 import { Route as AuthenticatedPackagesIdRouteImport } from './routes/_authenticated/packages.$id'
-import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram.webhook'
-import { Route as ApiPublicHooksHealthRouteImport } from './routes/api/public/hooks/health'
-import { Route as ApiPublicHooksDailyBackupRouteImport } from './routes/api/public/hooks/daily-backup'
+import { Route as AdminDistributorsIndexRouteImport } from './routes/admin.distributors.index'
+import { Route as AdminDistributorsIdRouteImport } from './routes/admin.distributors.$id'
+import { Route as AdminShopIndexRouteImport } from './routes/admin.shop.index'
+import { Route as AdminShopOrdersRouteImport } from './routes/admin.shop.orders'
+import { Route as AdminShopProductsRouteImport } from './routes/admin.shop.products'
+import { Route as AdminTaskPackagePackageIdRouteImport } from './routes/admin.task-package.$packageId'
+import { Route as AdminTasksIndexRouteImport } from './routes/admin.tasks.index'
+import { Route as AdminTasksDailyReportRouteImport } from './routes/admin.tasks.daily-report'
+import { Route as AdminTasksDistributorActivityRouteImport } from './routes/admin.tasks.distributor-activity'
+import { Route as AdminUsersIndexRouteImport } from './routes/admin.users.index'
+import { Route as AdminUsersIdRouteImport } from './routes/admin.users.$id'
+import { Route as AdminWithdrawalsIndexRouteImport } from './routes/admin.withdrawals.index'
+import { Route as AdminWithdrawalsDistributorApprovalsRouteImport } from './routes/admin.withdrawals.distributor-approvals'
+import { Route as DistributorTaskPackagePackageIdRouteImport } from './routes/distributor.task-package.$packageId'
 import { Route as ApiPublicHooksAutoTasksRouteImport } from './routes/api/public/hooks/auto-tasks'
+import { Route as ApiPublicHooksDailyBackupRouteImport } from './routes/api/public/hooks/daily-backup'
+import { Route as ApiPublicHooksHealthRouteImport } from './routes/api/public/hooks/health'
+import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram.webhook'
 
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OurPackagesRoute = OurPackagesRouteImport.update({
-  id: '/our-packages',
-  path: '/our-packages',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InstallRoute = InstallRouteImport.update({
-  id: '/install',
-  path: '/install',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HowItWorksRoute = HowItWorksRouteImport.update({
-  id: '/how-it-works',
-  path: '/how-it-works',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DistributorInfoRoute = DistributorInfoRouteImport.update({
-  id: '/distributor-info',
-  path: '/distributor-info',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DistributorApplyRoute = DistributorApplyRouteImport.update({
-  id: '/distributor-apply',
-  path: '/distributor-apply',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DistributorRoute = DistributorRouteImport.update({
-  id: '/distributor',
-  path: '/distributor',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -136,198 +95,59 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DistributorRoute = DistributorRouteImport.update({
+  id: '/distributor',
+  path: '/distributor',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DistributorIndexRoute = DistributorIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DistributorRoute,
+const DistributorApplyRoute = DistributorApplyRouteImport.update({
+  id: '/distributor-apply',
+  path: '/distributor-apply',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRoute,
+const DistributorInfoRoute = DistributorInfoRouteImport.update({
+  id: '/distributor-info',
+  path: '/distributor-info',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const DistributorWithdrawalsRoute = DistributorWithdrawalsRouteImport.update({
-  id: '/withdrawals',
-  path: '/withdrawals',
-  getParentRoute: () => DistributorRoute,
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const DistributorWithdrawRoute = DistributorWithdrawRouteImport.update({
-  id: '/withdraw',
-  path: '/withdraw',
-  getParentRoute: () => DistributorRoute,
+const InstallRoute = InstallRouteImport.update({
+  id: '/install',
+  path: '/install',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const DistributorUsersRoute = DistributorUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => DistributorRoute,
+const OurPackagesRoute = OurPackagesRouteImport.update({
+  id: '/our-packages',
+  path: '/our-packages',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const DistributorTasksRoute = DistributorTasksRouteImport.update({
-  id: '/tasks',
-  path: '/tasks',
-  getParentRoute: () => DistributorRoute,
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const DistributorSupportRoute = DistributorSupportRouteImport.update({
-  id: '/support',
-  path: '/support',
-  getParentRoute: () => DistributorRoute,
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const DistributorProfileRoute = DistributorProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => DistributorRoute,
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const DistributorPackageRoute = DistributorPackageRouteImport.update({
-  id: '/package',
-  path: '/package',
-  getParentRoute: () => DistributorRoute,
-} as any)
-const DistributorLeadsRoute = DistributorLeadsRouteImport.update({
-  id: '/leads',
-  path: '/leads',
-  getParentRoute: () => DistributorRoute,
-} as any)
-const DistributorEarningsRoute = DistributorEarningsRouteImport.update({
-  id: '/earnings',
-  path: '/earnings',
-  getParentRoute: () => DistributorRoute,
-} as any)
-const AdminWithdrawalsRoute = AdminWithdrawalsRouteImport.update({
-  id: '/withdrawals',
-  path: '/withdrawals',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminUsersRoute = AdminUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminTasksRoute = AdminTasksRouteImport.update({
-  id: '/tasks',
-  path: '/tasks',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminSupportRoute = AdminSupportRouteImport.update({
-  id: '/support',
-  path: '/support',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminShopRoute = AdminShopRouteImport.update({
-  id: '/shop',
-  path: '/shop',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminSettingsRoute = AdminSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminReportsRoute = AdminReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminProfileRoute = AdminProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
-  id: '/payments',
-  path: '/payments',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminPackagesRoute = AdminPackagesRouteImport.update({
-  id: '/packages',
-  path: '/packages',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminNoticesRoute = AdminNoticesRouteImport.update({
-  id: '/notices',
-  path: '/notices',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminMonitorRoute = AdminMonitorRouteImport.update({
-  id: '/monitor',
-  path: '/monitor',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminDistributorsRoute = AdminDistributorsRouteImport.update({
-  id: '/distributors',
-  path: '/distributors',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCommunityRoute = AdminCommunityRouteImport.update({
-  id: '/community',
-  path: '/community',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminBackupRoute = AdminBackupRouteImport.update({
-  id: '/backup',
-  path: '/backup',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminApprovalsRoute = AdminApprovalsRouteImport.update({
-  id: '/approvals',
-  path: '/approvals',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminAppInstallsRoute = AdminAppInstallsRouteImport.update({
-  id: '/app-installs',
-  path: '/app-installs',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AuthenticatedWithdrawRoute = AuthenticatedWithdrawRouteImport.update({
-  id: '/withdraw',
-  path: '/withdraw',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedThemeRoute = AuthenticatedThemeRouteImport.update({
-  id: '/theme',
-  path: '/theme',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
-  id: '/tasks',
-  path: '/tasks',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedSupportRoute = AuthenticatedSupportRouteImport.update({
-  id: '/support',
-  path: '/support',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedShopRoute = AuthenticatedShopRouteImport.update({
-  id: '/shop',
-  path: '/shop',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedReferralRoute = AuthenticatedReferralRouteImport.update({
-  id: '/referral',
-  path: '/referral',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPackagesRoute = AuthenticatedPackagesRouteImport.update({
-  id: '/packages',
-  path: '/packages',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCommunityRoute = AuthenticatedCommunityRouteImport.update({
@@ -335,73 +155,209 @@ const AuthenticatedCommunityRoute = AuthenticatedCommunityRouteImport.update({
   path: '/community',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
-  id: '/checkout',
-  path: '/checkout',
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AdminWithdrawalsIndexRoute = AdminWithdrawalsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminWithdrawalsRoute,
+const AuthenticatedPackagesRoute = AuthenticatedPackagesRouteImport.update({
+  id: '/packages',
+  path: '/packages',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminUsersRoute,
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AdminTasksIndexRoute = AdminTasksIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminTasksRoute,
+const AuthenticatedReferralRoute = AuthenticatedReferralRouteImport.update({
+  id: '/referral',
+  path: '/referral',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AdminShopIndexRoute = AdminShopIndexRouteImport.update({
+const AuthenticatedShopRoute = AuthenticatedShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSupportRoute = AuthenticatedSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedThemeRoute = AuthenticatedThemeRouteImport.update({
+  id: '/theme',
+  path: '/theme',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedWithdrawRoute = AuthenticatedWithdrawRouteImport.update({
+  id: '/withdraw',
+  path: '/withdraw',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AdminShopRoute,
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAppInstallsRoute = AdminAppInstallsRouteImport.update({
+  id: '/app-installs',
+  path: '/app-installs',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminApprovalsRoute = AdminApprovalsRouteImport.update({
+  id: '/approvals',
+  path: '/approvals',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminBackupRoute = AdminBackupRouteImport.update({
+  id: '/backup',
+  path: '/backup',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCommunityRoute = AdminCommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDistributorsRoute = AdminDistributorsRouteImport.update({
+  id: '/distributors',
+  path: '/distributors',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMonitorRoute = AdminMonitorRouteImport.update({
+  id: '/monitor',
+  path: '/monitor',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminNoticesRoute = AdminNoticesRouteImport.update({
+  id: '/notices',
+  path: '/notices',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPackagesRoute = AdminPackagesRouteImport.update({
+  id: '/packages',
+  path: '/packages',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminProfileRoute = AdminProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminShopRoute = AdminShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSupportRoute = AdminSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTasksRoute = AdminTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminWithdrawalsRoute = AdminWithdrawalsRouteImport.update({
+  id: '/withdrawals',
+  path: '/withdrawals',
+  getParentRoute: () => AdminRoute,
+} as any)
+const DistributorIndexRoute = DistributorIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DistributorRoute,
+} as any)
+const DistributorEarningsRoute = DistributorEarningsRouteImport.update({
+  id: '/earnings',
+  path: '/earnings',
+  getParentRoute: () => DistributorRoute,
+} as any)
+const DistributorLeadsRoute = DistributorLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => DistributorRoute,
+} as any)
+const DistributorPackageRoute = DistributorPackageRouteImport.update({
+  id: '/package',
+  path: '/package',
+  getParentRoute: () => DistributorRoute,
+} as any)
+const DistributorProfileRoute = DistributorProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => DistributorRoute,
+} as any)
+const DistributorSupportRoute = DistributorSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => DistributorRoute,
+} as any)
+const DistributorTasksRoute = DistributorTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => DistributorRoute,
+} as any)
+const DistributorUsersRoute = DistributorUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => DistributorRoute,
+} as any)
+const DistributorWithdrawRoute = DistributorWithdrawRouteImport.update({
+  id: '/withdraw',
+  path: '/withdraw',
+  getParentRoute: () => DistributorRoute,
+} as any)
+const DistributorWithdrawalsRoute = DistributorWithdrawalsRouteImport.update({
+  id: '/withdrawals',
+  path: '/withdrawals',
+  getParentRoute: () => DistributorRoute,
+} as any)
+const AuthenticatedPackagesIdRoute = AuthenticatedPackagesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthenticatedPackagesRoute,
 } as any)
 const AdminDistributorsIndexRoute = AdminDistributorsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminDistributorsRoute,
 } as any)
-const DistributorTaskPackagePackageIdRoute =
-  DistributorTaskPackagePackageIdRouteImport.update({
-    id: '/task-package/$packageId',
-    path: '/task-package/$packageId',
-    getParentRoute: () => DistributorRoute,
-  } as any)
-const AdminWithdrawalsDistributorApprovalsRoute =
-  AdminWithdrawalsDistributorApprovalsRouteImport.update({
-    id: '/distributor-approvals',
-    path: '/distributor-approvals',
-    getParentRoute: () => AdminWithdrawalsRoute,
-  } as any)
-const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
+const AdminDistributorsIdRoute = AdminDistributorsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
-  getParentRoute: () => AdminUsersRoute,
+  getParentRoute: () => AdminDistributorsRoute,
 } as any)
-const AdminTasksDistributorActivityRoute =
-  AdminTasksDistributorActivityRouteImport.update({
-    id: '/distributor-activity',
-    path: '/distributor-activity',
-    getParentRoute: () => AdminTasksRoute,
-  } as any)
-const AdminTasksDailyReportRoute = AdminTasksDailyReportRouteImport.update({
-  id: '/daily-report',
-  path: '/daily-report',
-  getParentRoute: () => AdminTasksRoute,
-} as any)
-const AdminTaskPackagePackageIdRoute =
-  AdminTaskPackagePackageIdRouteImport.update({
-    id: '/task-package/$packageId',
-    path: '/task-package/$packageId',
-    getParentRoute: () => AdminRoute,
-  } as any)
-const AdminShopProductsRoute = AdminShopProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
+const AdminShopIndexRoute = AdminShopIndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => AdminShopRoute,
 } as any)
 const AdminShopOrdersRoute = AdminShopOrdersRouteImport.update({
@@ -409,25 +365,63 @@ const AdminShopOrdersRoute = AdminShopOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AdminShopRoute,
 } as any)
-const AdminDistributorsIdRoute = AdminDistributorsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AdminDistributorsRoute,
+const AdminShopProductsRoute = AdminShopProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => AdminShopRoute,
 } as any)
-const AuthenticatedPackagesIdRoute = AuthenticatedPackagesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AuthenticatedPackagesRoute,
-} as any)
-const ApiPublicTelegramWebhookRoute =
-  ApiPublicTelegramWebhookRouteImport.update({
-    id: '/api/public/telegram/webhook',
-    path: '/api/public/telegram/webhook',
-    getParentRoute: () => rootRouteImport,
+const AdminTaskPackagePackageIdRoute =
+  AdminTaskPackagePackageIdRouteImport.update({
+    id: '/task-package/$packageId',
+    path: '/task-package/$packageId',
+    getParentRoute: () => AdminRoute,
   } as any)
-const ApiPublicHooksHealthRoute = ApiPublicHooksHealthRouteImport.update({
-  id: '/api/public/hooks/health',
-  path: '/api/public/hooks/health',
+const AdminTasksIndexRoute = AdminTasksIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminTasksRoute,
+} as any)
+const AdminTasksDailyReportRoute = AdminTasksDailyReportRouteImport.update({
+  id: '/daily-report',
+  path: '/daily-report',
+  getParentRoute: () => AdminTasksRoute,
+} as any)
+const AdminTasksDistributorActivityRoute =
+  AdminTasksDistributorActivityRouteImport.update({
+    id: '/distributor-activity',
+    path: '/distributor-activity',
+    getParentRoute: () => AdminTasksRoute,
+  } as any)
+const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminUsersRoute,
+} as any)
+const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AdminUsersRoute,
+} as any)
+const AdminWithdrawalsIndexRoute = AdminWithdrawalsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminWithdrawalsRoute,
+} as any)
+const AdminWithdrawalsDistributorApprovalsRoute =
+  AdminWithdrawalsDistributorApprovalsRouteImport.update({
+    id: '/distributor-approvals',
+    path: '/distributor-approvals',
+    getParentRoute: () => AdminWithdrawalsRoute,
+  } as any)
+const DistributorTaskPackagePackageIdRoute =
+  DistributorTaskPackagePackageIdRouteImport.update({
+    id: '/task-package/$packageId',
+    path: '/task-package/$packageId',
+    getParentRoute: () => DistributorRoute,
+  } as any)
+const ApiPublicHooksAutoTasksRoute = ApiPublicHooksAutoTasksRouteImport.update({
+  id: '/api/public/hooks/auto-tasks',
+  path: '/api/public/hooks/auto-tasks',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicHooksDailyBackupRoute =
@@ -436,11 +430,17 @@ const ApiPublicHooksDailyBackupRoute =
     path: '/api/public/hooks/daily-backup',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksAutoTasksRoute = ApiPublicHooksAutoTasksRouteImport.update({
-  id: '/api/public/hooks/auto-tasks',
-  path: '/api/public/hooks/auto-tasks',
+const ApiPublicHooksHealthRoute = ApiPublicHooksHealthRouteImport.update({
+  id: '/api/public/hooks/health',
+  path: '/api/public/hooks/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicTelegramWebhookRoute =
+  ApiPublicTelegramWebhookRouteImport.update({
+    id: '/api/public/telegram/webhook',
+    path: '/api/public/telegram/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -888,81 +888,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/our-packages': {
-      id: '/our-packages'
-      path: '/our-packages'
-      fullPath: '/our-packages'
-      preLoaderRoute: typeof OurPackagesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/install': {
-      id: '/install'
-      path: '/install'
-      fullPath: '/install'
-      preLoaderRoute: typeof InstallRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/how-it-works': {
-      id: '/how-it-works'
-      path: '/how-it-works'
-      fullPath: '/how-it-works'
-      preLoaderRoute: typeof HowItWorksRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/distributor-info': {
-      id: '/distributor-info'
-      path: '/distributor-info'
-      fullPath: '/distributor-info'
-      preLoaderRoute: typeof DistributorInfoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/distributor-apply': {
-      id: '/distributor-apply'
-      path: '/distributor-apply'
-      fullPath: '/distributor-apply'
-      preLoaderRoute: typeof DistributorApplyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/distributor': {
-      id: '/distributor'
-      path: '/distributor'
-      fullPath: '/distributor'
-      preLoaderRoute: typeof DistributorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -972,270 +902,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/distributor/': {
-      id: '/distributor/'
-      path: '/'
-      fullPath: '/distributor/'
-      preLoaderRoute: typeof DistributorIndexRouteImport
-      parentRoute: typeof DistributorRoute
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/': {
-      id: '/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
+    '/distributor': {
+      id: '/distributor'
+      path: '/distributor'
+      fullPath: '/distributor'
+      preLoaderRoute: typeof DistributorRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/distributor/withdrawals': {
-      id: '/distributor/withdrawals'
-      path: '/withdrawals'
-      fullPath: '/distributor/withdrawals'
-      preLoaderRoute: typeof DistributorWithdrawalsRouteImport
-      parentRoute: typeof DistributorRoute
+    '/distributor-apply': {
+      id: '/distributor-apply'
+      path: '/distributor-apply'
+      fullPath: '/distributor-apply'
+      preLoaderRoute: typeof DistributorApplyRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/distributor/withdraw': {
-      id: '/distributor/withdraw'
-      path: '/withdraw'
-      fullPath: '/distributor/withdraw'
-      preLoaderRoute: typeof DistributorWithdrawRouteImport
-      parentRoute: typeof DistributorRoute
+    '/distributor-info': {
+      id: '/distributor-info'
+      path: '/distributor-info'
+      fullPath: '/distributor-info'
+      preLoaderRoute: typeof DistributorInfoRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/distributor/users': {
-      id: '/distributor/users'
-      path: '/users'
-      fullPath: '/distributor/users'
-      preLoaderRoute: typeof DistributorUsersRouteImport
-      parentRoute: typeof DistributorRoute
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/distributor/tasks': {
-      id: '/distributor/tasks'
-      path: '/tasks'
-      fullPath: '/distributor/tasks'
-      preLoaderRoute: typeof DistributorTasksRouteImport
-      parentRoute: typeof DistributorRoute
+    '/install': {
+      id: '/install'
+      path: '/install'
+      fullPath: '/install'
+      preLoaderRoute: typeof InstallRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/distributor/support': {
-      id: '/distributor/support'
-      path: '/support'
-      fullPath: '/distributor/support'
-      preLoaderRoute: typeof DistributorSupportRouteImport
-      parentRoute: typeof DistributorRoute
+    '/our-packages': {
+      id: '/our-packages'
+      path: '/our-packages'
+      fullPath: '/our-packages'
+      preLoaderRoute: typeof OurPackagesRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/distributor/profile': {
-      id: '/distributor/profile'
-      path: '/profile'
-      fullPath: '/distributor/profile'
-      preLoaderRoute: typeof DistributorProfileRouteImport
-      parentRoute: typeof DistributorRoute
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/distributor/package': {
-      id: '/distributor/package'
-      path: '/package'
-      fullPath: '/distributor/package'
-      preLoaderRoute: typeof DistributorPackageRouteImport
-      parentRoute: typeof DistributorRoute
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/distributor/leads': {
-      id: '/distributor/leads'
-      path: '/leads'
-      fullPath: '/distributor/leads'
-      preLoaderRoute: typeof DistributorLeadsRouteImport
-      parentRoute: typeof DistributorRoute
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/distributor/earnings': {
-      id: '/distributor/earnings'
-      path: '/earnings'
-      fullPath: '/distributor/earnings'
-      preLoaderRoute: typeof DistributorEarningsRouteImport
-      parentRoute: typeof DistributorRoute
-    }
-    '/admin/withdrawals': {
-      id: '/admin/withdrawals'
-      path: '/withdrawals'
-      fullPath: '/admin/withdrawals'
-      preLoaderRoute: typeof AdminWithdrawalsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/users': {
-      id: '/admin/users'
-      path: '/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AdminUsersRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/tasks': {
-      id: '/admin/tasks'
-      path: '/tasks'
-      fullPath: '/admin/tasks'
-      preLoaderRoute: typeof AdminTasksRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/support': {
-      id: '/admin/support'
-      path: '/support'
-      fullPath: '/admin/support'
-      preLoaderRoute: typeof AdminSupportRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/shop': {
-      id: '/admin/shop'
-      path: '/shop'
-      fullPath: '/admin/shop'
-      preLoaderRoute: typeof AdminShopRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/settings': {
-      id: '/admin/settings'
-      path: '/settings'
-      fullPath: '/admin/settings'
-      preLoaderRoute: typeof AdminSettingsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/reports': {
-      id: '/admin/reports'
-      path: '/reports'
-      fullPath: '/admin/reports'
-      preLoaderRoute: typeof AdminReportsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/profile': {
-      id: '/admin/profile'
-      path: '/profile'
-      fullPath: '/admin/profile'
-      preLoaderRoute: typeof AdminProfileRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/payments': {
-      id: '/admin/payments'
-      path: '/payments'
-      fullPath: '/admin/payments'
-      preLoaderRoute: typeof AdminPaymentsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/packages': {
-      id: '/admin/packages'
-      path: '/packages'
-      fullPath: '/admin/packages'
-      preLoaderRoute: typeof AdminPackagesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/notices': {
-      id: '/admin/notices'
-      path: '/notices'
-      fullPath: '/admin/notices'
-      preLoaderRoute: typeof AdminNoticesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/monitor': {
-      id: '/admin/monitor'
-      path: '/monitor'
-      fullPath: '/admin/monitor'
-      preLoaderRoute: typeof AdminMonitorRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/distributors': {
-      id: '/admin/distributors'
-      path: '/distributors'
-      fullPath: '/admin/distributors'
-      preLoaderRoute: typeof AdminDistributorsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/community': {
-      id: '/admin/community'
-      path: '/community'
-      fullPath: '/admin/community'
-      preLoaderRoute: typeof AdminCommunityRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/backup': {
-      id: '/admin/backup'
-      path: '/backup'
-      fullPath: '/admin/backup'
-      preLoaderRoute: typeof AdminBackupRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/approvals': {
-      id: '/admin/approvals'
-      path: '/approvals'
-      fullPath: '/admin/approvals'
-      preLoaderRoute: typeof AdminApprovalsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/app-installs': {
-      id: '/admin/app-installs'
-      path: '/app-installs'
-      fullPath: '/admin/app-installs'
-      preLoaderRoute: typeof AdminAppInstallsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/_authenticated/withdraw': {
-      id: '/_authenticated/withdraw'
-      path: '/withdraw'
-      fullPath: '/withdraw'
-      preLoaderRoute: typeof AuthenticatedWithdrawRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/theme': {
-      id: '/_authenticated/theme'
-      path: '/theme'
-      fullPath: '/theme'
-      preLoaderRoute: typeof AuthenticatedThemeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/tasks': {
-      id: '/_authenticated/tasks'
-      path: '/tasks'
-      fullPath: '/tasks'
-      preLoaderRoute: typeof AuthenticatedTasksRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/support': {
-      id: '/_authenticated/support'
-      path: '/support'
-      fullPath: '/support'
-      preLoaderRoute: typeof AuthenticatedSupportRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/shop': {
-      id: '/_authenticated/shop'
-      path: '/shop'
-      fullPath: '/shop'
-      preLoaderRoute: typeof AuthenticatedShopRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/referral': {
-      id: '/_authenticated/referral'
-      path: '/referral'
-      fullPath: '/referral'
-      preLoaderRoute: typeof AuthenticatedReferralRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/profile': {
-      id: '/_authenticated/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof AuthenticatedProfileRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/packages': {
-      id: '/_authenticated/packages'
-      path: '/packages'
-      fullPath: '/packages'
-      preLoaderRoute: typeof AuthenticatedPackagesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+    '/_authenticated/checkout': {
+      id: '/_authenticated/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof AuthenticatedCheckoutRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/community': {
@@ -1245,40 +993,271 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommunityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/checkout': {
-      id: '/_authenticated/checkout'
-      path: '/checkout'
-      fullPath: '/checkout'
-      preLoaderRoute: typeof AuthenticatedCheckoutRouteImport
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/admin/withdrawals/': {
-      id: '/admin/withdrawals/'
-      path: '/'
-      fullPath: '/admin/withdrawals/'
-      preLoaderRoute: typeof AdminWithdrawalsIndexRouteImport
-      parentRoute: typeof AdminWithdrawalsRoute
+    '/_authenticated/packages': {
+      id: '/_authenticated/packages'
+      path: '/packages'
+      fullPath: '/packages'
+      preLoaderRoute: typeof AuthenticatedPackagesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/admin/users/': {
-      id: '/admin/users/'
-      path: '/'
-      fullPath: '/admin/users/'
-      preLoaderRoute: typeof AdminUsersIndexRouteImport
-      parentRoute: typeof AdminUsersRoute
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/admin/tasks/': {
-      id: '/admin/tasks/'
-      path: '/'
-      fullPath: '/admin/tasks/'
-      preLoaderRoute: typeof AdminTasksIndexRouteImport
-      parentRoute: typeof AdminTasksRoute
+    '/_authenticated/referral': {
+      id: '/_authenticated/referral'
+      path: '/referral'
+      fullPath: '/referral'
+      preLoaderRoute: typeof AuthenticatedReferralRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/admin/shop/': {
-      id: '/admin/shop/'
+    '/_authenticated/shop': {
+      id: '/_authenticated/shop'
+      path: '/shop'
+      fullPath: '/shop'
+      preLoaderRoute: typeof AuthenticatedShopRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/support': {
+      id: '/_authenticated/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof AuthenticatedSupportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tasks': {
+      id: '/_authenticated/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof AuthenticatedTasksRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/theme': {
+      id: '/_authenticated/theme'
+      path: '/theme'
+      fullPath: '/theme'
+      preLoaderRoute: typeof AuthenticatedThemeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/withdraw': {
+      id: '/_authenticated/withdraw'
+      path: '/withdraw'
+      fullPath: '/withdraw'
+      preLoaderRoute: typeof AuthenticatedWithdrawRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/admin/': {
+      id: '/admin/'
       path: '/'
-      fullPath: '/admin/shop/'
-      preLoaderRoute: typeof AdminShopIndexRouteImport
-      parentRoute: typeof AdminShopRoute
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/app-installs': {
+      id: '/admin/app-installs'
+      path: '/app-installs'
+      fullPath: '/admin/app-installs'
+      preLoaderRoute: typeof AdminAppInstallsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/approvals': {
+      id: '/admin/approvals'
+      path: '/approvals'
+      fullPath: '/admin/approvals'
+      preLoaderRoute: typeof AdminApprovalsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/backup': {
+      id: '/admin/backup'
+      path: '/backup'
+      fullPath: '/admin/backup'
+      preLoaderRoute: typeof AdminBackupRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/community': {
+      id: '/admin/community'
+      path: '/community'
+      fullPath: '/admin/community'
+      preLoaderRoute: typeof AdminCommunityRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/distributors': {
+      id: '/admin/distributors'
+      path: '/distributors'
+      fullPath: '/admin/distributors'
+      preLoaderRoute: typeof AdminDistributorsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/monitor': {
+      id: '/admin/monitor'
+      path: '/monitor'
+      fullPath: '/admin/monitor'
+      preLoaderRoute: typeof AdminMonitorRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/notices': {
+      id: '/admin/notices'
+      path: '/notices'
+      fullPath: '/admin/notices'
+      preLoaderRoute: typeof AdminNoticesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/packages': {
+      id: '/admin/packages'
+      path: '/packages'
+      fullPath: '/admin/packages'
+      preLoaderRoute: typeof AdminPackagesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/payments': {
+      id: '/admin/payments'
+      path: '/payments'
+      fullPath: '/admin/payments'
+      preLoaderRoute: typeof AdminPaymentsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/profile': {
+      id: '/admin/profile'
+      path: '/profile'
+      fullPath: '/admin/profile'
+      preLoaderRoute: typeof AdminProfileRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/shop': {
+      id: '/admin/shop'
+      path: '/shop'
+      fullPath: '/admin/shop'
+      preLoaderRoute: typeof AdminShopRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/support': {
+      id: '/admin/support'
+      path: '/support'
+      fullPath: '/admin/support'
+      preLoaderRoute: typeof AdminSupportRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/tasks': {
+      id: '/admin/tasks'
+      path: '/tasks'
+      fullPath: '/admin/tasks'
+      preLoaderRoute: typeof AdminTasksRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/withdrawals': {
+      id: '/admin/withdrawals'
+      path: '/withdrawals'
+      fullPath: '/admin/withdrawals'
+      preLoaderRoute: typeof AdminWithdrawalsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/distributor/': {
+      id: '/distributor/'
+      path: '/'
+      fullPath: '/distributor/'
+      preLoaderRoute: typeof DistributorIndexRouteImport
+      parentRoute: typeof DistributorRoute
+    }
+    '/distributor/earnings': {
+      id: '/distributor/earnings'
+      path: '/earnings'
+      fullPath: '/distributor/earnings'
+      preLoaderRoute: typeof DistributorEarningsRouteImport
+      parentRoute: typeof DistributorRoute
+    }
+    '/distributor/leads': {
+      id: '/distributor/leads'
+      path: '/leads'
+      fullPath: '/distributor/leads'
+      preLoaderRoute: typeof DistributorLeadsRouteImport
+      parentRoute: typeof DistributorRoute
+    }
+    '/distributor/package': {
+      id: '/distributor/package'
+      path: '/package'
+      fullPath: '/distributor/package'
+      preLoaderRoute: typeof DistributorPackageRouteImport
+      parentRoute: typeof DistributorRoute
+    }
+    '/distributor/profile': {
+      id: '/distributor/profile'
+      path: '/profile'
+      fullPath: '/distributor/profile'
+      preLoaderRoute: typeof DistributorProfileRouteImport
+      parentRoute: typeof DistributorRoute
+    }
+    '/distributor/support': {
+      id: '/distributor/support'
+      path: '/support'
+      fullPath: '/distributor/support'
+      preLoaderRoute: typeof DistributorSupportRouteImport
+      parentRoute: typeof DistributorRoute
+    }
+    '/distributor/tasks': {
+      id: '/distributor/tasks'
+      path: '/tasks'
+      fullPath: '/distributor/tasks'
+      preLoaderRoute: typeof DistributorTasksRouteImport
+      parentRoute: typeof DistributorRoute
+    }
+    '/distributor/users': {
+      id: '/distributor/users'
+      path: '/users'
+      fullPath: '/distributor/users'
+      preLoaderRoute: typeof DistributorUsersRouteImport
+      parentRoute: typeof DistributorRoute
+    }
+    '/distributor/withdraw': {
+      id: '/distributor/withdraw'
+      path: '/withdraw'
+      fullPath: '/distributor/withdraw'
+      preLoaderRoute: typeof DistributorWithdrawRouteImport
+      parentRoute: typeof DistributorRoute
+    }
+    '/distributor/withdrawals': {
+      id: '/distributor/withdrawals'
+      path: '/withdrawals'
+      fullPath: '/distributor/withdrawals'
+      preLoaderRoute: typeof DistributorWithdrawalsRouteImport
+      parentRoute: typeof DistributorRoute
+    }
+    '/_authenticated/packages/$id': {
+      id: '/_authenticated/packages/$id'
+      path: '/$id'
+      fullPath: '/packages/$id'
+      preLoaderRoute: typeof AuthenticatedPackagesIdRouteImport
+      parentRoute: typeof AuthenticatedPackagesRoute
     }
     '/admin/distributors/': {
       id: '/admin/distributors/'
@@ -1287,53 +1266,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDistributorsIndexRouteImport
       parentRoute: typeof AdminDistributorsRoute
     }
-    '/distributor/task-package/$packageId': {
-      id: '/distributor/task-package/$packageId'
-      path: '/task-package/$packageId'
-      fullPath: '/distributor/task-package/$packageId'
-      preLoaderRoute: typeof DistributorTaskPackagePackageIdRouteImport
-      parentRoute: typeof DistributorRoute
-    }
-    '/admin/withdrawals/distributor-approvals': {
-      id: '/admin/withdrawals/distributor-approvals'
-      path: '/distributor-approvals'
-      fullPath: '/admin/withdrawals/distributor-approvals'
-      preLoaderRoute: typeof AdminWithdrawalsDistributorApprovalsRouteImport
-      parentRoute: typeof AdminWithdrawalsRoute
-    }
-    '/admin/users/$id': {
-      id: '/admin/users/$id'
+    '/admin/distributors/$id': {
+      id: '/admin/distributors/$id'
       path: '/$id'
-      fullPath: '/admin/users/$id'
-      preLoaderRoute: typeof AdminUsersIdRouteImport
-      parentRoute: typeof AdminUsersRoute
+      fullPath: '/admin/distributors/$id'
+      preLoaderRoute: typeof AdminDistributorsIdRouteImport
+      parentRoute: typeof AdminDistributorsRoute
     }
-    '/admin/tasks/distributor-activity': {
-      id: '/admin/tasks/distributor-activity'
-      path: '/distributor-activity'
-      fullPath: '/admin/tasks/distributor-activity'
-      preLoaderRoute: typeof AdminTasksDistributorActivityRouteImport
-      parentRoute: typeof AdminTasksRoute
-    }
-    '/admin/tasks/daily-report': {
-      id: '/admin/tasks/daily-report'
-      path: '/daily-report'
-      fullPath: '/admin/tasks/daily-report'
-      preLoaderRoute: typeof AdminTasksDailyReportRouteImport
-      parentRoute: typeof AdminTasksRoute
-    }
-    '/admin/task-package/$packageId': {
-      id: '/admin/task-package/$packageId'
-      path: '/task-package/$packageId'
-      fullPath: '/admin/task-package/$packageId'
-      preLoaderRoute: typeof AdminTaskPackagePackageIdRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/shop/products': {
-      id: '/admin/shop/products'
-      path: '/products'
-      fullPath: '/admin/shop/products'
-      preLoaderRoute: typeof AdminShopProductsRouteImport
+    '/admin/shop/': {
+      id: '/admin/shop/'
+      path: '/'
+      fullPath: '/admin/shop/'
+      preLoaderRoute: typeof AdminShopIndexRouteImport
       parentRoute: typeof AdminShopRoute
     }
     '/admin/shop/orders': {
@@ -1343,32 +1287,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminShopOrdersRouteImport
       parentRoute: typeof AdminShopRoute
     }
-    '/admin/distributors/$id': {
-      id: '/admin/distributors/$id'
+    '/admin/shop/products': {
+      id: '/admin/shop/products'
+      path: '/products'
+      fullPath: '/admin/shop/products'
+      preLoaderRoute: typeof AdminShopProductsRouteImport
+      parentRoute: typeof AdminShopRoute
+    }
+    '/admin/task-package/$packageId': {
+      id: '/admin/task-package/$packageId'
+      path: '/task-package/$packageId'
+      fullPath: '/admin/task-package/$packageId'
+      preLoaderRoute: typeof AdminTaskPackagePackageIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/tasks/': {
+      id: '/admin/tasks/'
+      path: '/'
+      fullPath: '/admin/tasks/'
+      preLoaderRoute: typeof AdminTasksIndexRouteImport
+      parentRoute: typeof AdminTasksRoute
+    }
+    '/admin/tasks/daily-report': {
+      id: '/admin/tasks/daily-report'
+      path: '/daily-report'
+      fullPath: '/admin/tasks/daily-report'
+      preLoaderRoute: typeof AdminTasksDailyReportRouteImport
+      parentRoute: typeof AdminTasksRoute
+    }
+    '/admin/tasks/distributor-activity': {
+      id: '/admin/tasks/distributor-activity'
+      path: '/distributor-activity'
+      fullPath: '/admin/tasks/distributor-activity'
+      preLoaderRoute: typeof AdminTasksDistributorActivityRouteImport
+      parentRoute: typeof AdminTasksRoute
+    }
+    '/admin/users/': {
+      id: '/admin/users/'
+      path: '/'
+      fullPath: '/admin/users/'
+      preLoaderRoute: typeof AdminUsersIndexRouteImport
+      parentRoute: typeof AdminUsersRoute
+    }
+    '/admin/users/$id': {
+      id: '/admin/users/$id'
       path: '/$id'
-      fullPath: '/admin/distributors/$id'
-      preLoaderRoute: typeof AdminDistributorsIdRouteImport
-      parentRoute: typeof AdminDistributorsRoute
+      fullPath: '/admin/users/$id'
+      preLoaderRoute: typeof AdminUsersIdRouteImport
+      parentRoute: typeof AdminUsersRoute
     }
-    '/_authenticated/packages/$id': {
-      id: '/_authenticated/packages/$id'
-      path: '/$id'
-      fullPath: '/packages/$id'
-      preLoaderRoute: typeof AuthenticatedPackagesIdRouteImport
-      parentRoute: typeof AuthenticatedPackagesRoute
+    '/admin/withdrawals/': {
+      id: '/admin/withdrawals/'
+      path: '/'
+      fullPath: '/admin/withdrawals/'
+      preLoaderRoute: typeof AdminWithdrawalsIndexRouteImport
+      parentRoute: typeof AdminWithdrawalsRoute
     }
-    '/api/public/telegram/webhook': {
-      id: '/api/public/telegram/webhook'
-      path: '/api/public/telegram/webhook'
-      fullPath: '/api/public/telegram/webhook'
-      preLoaderRoute: typeof ApiPublicTelegramWebhookRouteImport
-      parentRoute: typeof rootRouteImport
+    '/admin/withdrawals/distributor-approvals': {
+      id: '/admin/withdrawals/distributor-approvals'
+      path: '/distributor-approvals'
+      fullPath: '/admin/withdrawals/distributor-approvals'
+      preLoaderRoute: typeof AdminWithdrawalsDistributorApprovalsRouteImport
+      parentRoute: typeof AdminWithdrawalsRoute
     }
-    '/api/public/hooks/health': {
-      id: '/api/public/hooks/health'
-      path: '/api/public/hooks/health'
-      fullPath: '/api/public/hooks/health'
-      preLoaderRoute: typeof ApiPublicHooksHealthRouteImport
+    '/distributor/task-package/$packageId': {
+      id: '/distributor/task-package/$packageId'
+      path: '/task-package/$packageId'
+      fullPath: '/distributor/task-package/$packageId'
+      preLoaderRoute: typeof DistributorTaskPackagePackageIdRouteImport
+      parentRoute: typeof DistributorRoute
+    }
+    '/api/public/hooks/auto-tasks': {
+      id: '/api/public/hooks/auto-tasks'
+      path: '/api/public/hooks/auto-tasks'
+      fullPath: '/api/public/hooks/auto-tasks'
+      preLoaderRoute: typeof ApiPublicHooksAutoTasksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/daily-backup': {
@@ -1378,11 +1371,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksDailyBackupRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/auto-tasks': {
-      id: '/api/public/hooks/auto-tasks'
-      path: '/api/public/hooks/auto-tasks'
-      fullPath: '/api/public/hooks/auto-tasks'
-      preLoaderRoute: typeof ApiPublicHooksAutoTasksRouteImport
+    '/api/public/hooks/health': {
+      id: '/api/public/hooks/health'
+      path: '/api/public/hooks/health'
+      fullPath: '/api/public/hooks/health'
+      preLoaderRoute: typeof ApiPublicHooksHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/telegram/webhook': {
+      id: '/api/public/telegram/webhook'
+      path: '/api/public/telegram/webhook'
+      fullPath: '/api/public/telegram/webhook'
+      preLoaderRoute: typeof ApiPublicTelegramWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
   }

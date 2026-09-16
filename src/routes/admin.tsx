@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { GradientButton } from "@/components/admin/AdminUI";
 import { AgreementWelcomeDialog } from "@/components/admin/AgreementWelcomeDialog";
+import { AdminVersionWelcomeModal } from "@/components/admin/AdminVersionWelcomeModal";
 import { ShutdownCountdownScreen } from "@/components/admin/ShutdownCountdownScreen";
 import { useShutdownPhase } from "@/hooks/use-shutdown-phase";
 
@@ -87,6 +88,7 @@ function AdminShell() {
   return (
     <AdminLayout>
       <AgreementWelcomeDialog />
+      <AdminVersionWelcomeModal />
       <Outlet />
     </AdminLayout>
   );
