@@ -295,12 +295,12 @@ function CheckoutPage() {
           payload.screenshot_url = screenshotUrl;
         }
         if (existing?.id) {
-          const { data: updated, error: updErr } = await supabase
-            .from("user_packages").update(payload).eq("id", existing.id).select("id").maybeSingle();
+          const { data: updated, error: updErr } = await (supabase
+            .from("user_packages") as any).update(payload).eq("id", existing.id).select("id").maybeSingle();
           if (!updErr && updated?.id) savedOrderId = updated.id;
         } else {
-          const { data: inserted, error: insErr } = await supabase
-            .from("user_packages")
+          const { data: inserted, error: insErr } = await (supabase
+            .from("user_packages") as any)
             .insert({ ...payload, user_id: userId, package_id: pkg.id })
             .select("id")
             .maybeSingle();
