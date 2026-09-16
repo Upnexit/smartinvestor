@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   X, ArrowLeft, Check, Copy, Loader2, Sparkles, Headphones, Phone, ShoppingCart, ShieldCheck,
+  Upload, Image as ImageIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePaymentBranding, type PaymentBranding } from "@/hooks/use-payment-branding";
@@ -37,6 +38,48 @@ type PayAccounts = {
   methodInstructions?: Partial<Record<Method, string>>;
 };
 
+async function compressImageFile(file: File, maxDimension = 1280, quality = 0.82): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = reject;
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (blob) resolve(blob);
+          else resolve(file);
+        },
+        "image/jpeg",
+        quality,
+      );
+    };
+    img.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 function CheckoutPage() {
   const { pkg: pkgId } = useSearch({ from: "/_authenticated/checkout" });
   const navigate = useNavigate();
@@ -48,6 +91,8 @@ function CheckoutPage() {
   const [method, setMethod] = useState<Method | null>(null);
   const [senderNumber, setSenderNumber] = useState("");
   const [trxId, setTrxId] = useState("");
+  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
+  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -197,6 +242,31 @@ function CheckoutPage() {
     const cleanTrx = trxNorm || `SUBMITTED${Date.now()}`;
     const cleanSender = phoneNorm || senderNumber.trim() || "not-provided";
 
+    // Upload screenshot if user attached one
+    let screenshotUrl: string | null = null;
+    if (screenshotFile) {
+      try {
+        const { data: auth } = await supabase.auth.getUser();
+        const userId = auth.user?.id || "guest";
+        const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+        const compressed = await compressImageFile(screenshotFile);
+        const { error: upErr } = await supabase.storage
+          .from("payment-screenshots")
+          .upload(path, compressed, { contentType: "image/jpeg", upsert: true });
+
+        if (!upErr) {
+          const { data: signed } = await supabase.storage
+            .from("payment-screenshots")
+            .createSignedUrl(path, 60 * 60 * 24 * 365);
+          screenshotUrl = signed?.signedUrl || path;
+        } else {
+          console.warn("[checkout] screenshot upload failed:", upErr.message);
+        }
+      } catch (shotErr) {
+        console.warn("[checkout] screenshot error:", shotErr);
+      }
+    }
+
     // Primary path: client-side insert using authenticated user's session (RLS passes).
     let savedOrderId: string | null = null;
     try {
@@ -212,7 +282,7 @@ function CheckoutPage() {
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
-        const payload = {
+        const payload: Record<string, unknown> = {
           trx_id: cleanTrx,
           payment_txn: cleanTrx,
           payment_method: method,
@@ -221,6 +291,9 @@ function CheckoutPage() {
           status: "pending" as const,
           rejection_reason: null,
         };
+        if (screenshotUrl) {
+          payload.screenshot_url = screenshotUrl;
+        }
         if (existing?.id) {
           const { data: updated, error: updErr } = await supabase
             .from("user_packages").update(payload).eq("id", existing.id).select("id").maybeSingle();
@@ -242,7 +315,15 @@ function CheckoutPage() {
     // Fallback: server function (in case direct RLS insert fails).
     if (!savedOrderId) {
       try {
-        const saved = await submitPayment({ data: { packageId: pkg.id, method, senderNumber: cleanSender, trxId: cleanTrx } });
+        const saved = await submitPayment({
+          data: {
+            packageId: pkg.id,
+            method,
+            senderNumber: cleanSender,
+            trxId: cleanTrx,
+            screenshotUrl,
+          },
+        });
         if (saved?.orderId) savedOrderId = saved.orderId;
       } catch (err) {
         console.warn("[checkout] server submit failed:", err);
@@ -271,6 +352,11 @@ function CheckoutPage() {
         // Ignore cleanup errors — user is abandoning the flow
       }
     }
+    if (screenshotPreview) {
+      URL.revokeObjectURL(screenshotPreview);
+    }
+    setScreenshotFile(null);
+    setScreenshotPreview(null);
     setOrderId(null);
     setSenderNumber("");
     setTrxId("");
@@ -317,6 +403,8 @@ function CheckoutPage() {
         {step === "trx" && method && (
           <StepTrx
             pkg={pkg} method={method} accounts={accounts} activeNumber={activeNumber} trxId={trxId} setTrxId={setTrxId}
+            screenshotFile={screenshotFile} setScreenshotFile={setScreenshotFile}
+            screenshotPreview={screenshotPreview} setScreenshotPreview={setScreenshotPreview}
             brandName={brandName} brandLogo={brandLogo}
             trxValid={trxValid} submitting={submitting} invoiceShort={invoiceShort}
             onCancel={handleCancel} onSubmit={handleSubmitTrx}
@@ -767,11 +855,15 @@ function highlightAmount(line: string, amount: number): React.ReactNode {
 
 /* ============ Step 4: Submit Transaction ID ============ */
 function StepTrx({
-  pkg, method, accounts, activeNumber, brandName, brandLogo, trxId, setTrxId, trxValid, submitting, invoiceShort, onCancel, onSubmit,
+  pkg, method, accounts, activeNumber, brandName, brandLogo, trxId, setTrxId,
+  screenshotFile, setScreenshotFile, screenshotPreview, setScreenshotPreview,
+  trxValid, submitting, invoiceShort, onCancel, onSubmit,
 }: {
   pkg: Pkg; method: Method; accounts: PayAccounts; activeNumber: string;
-  brandName: string; brandLogo: string; trxId: string; setTrxId: (v: string) => void; trxValid: boolean;
-  submitting: boolean; invoiceShort: string;
+  brandName: string; brandLogo: string; trxId: string; setTrxId: (v: string) => void;
+  screenshotFile: File | null; setScreenshotFile: (f: File | null) => void;
+  screenshotPreview: string | null; setScreenshotPreview: (url: string | null) => void;
+  trxValid: boolean; submitting: boolean; invoiceShort: string;
   onCancel: () => void; onSubmit: () => void;
 }) {
   const b = BRAND[method];
@@ -802,6 +894,77 @@ function StepTrx({
           autoFocus
           className="mt-4 w-full rounded-xl bg-white px-4 py-4 text-center font-mono text-2xl font-bold tracking-widest text-slate-900 outline-none focus:ring-4 focus:ring-white/40"
         />
+
+        {/* Screenshot upload section */}
+        <div className="mt-3.5">
+          <label className="block text-xs font-semibold text-white/95 mb-1.5 flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <ImageIcon className="h-3.5 w-3.5" /> পেমেন্ট স্ক্রিনশট (ঐচ্ছিক)
+            </span>
+            {screenshotFile && (
+              <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded text-white font-mono">
+                {(screenshotFile.size / 1024).toFixed(0)} KB
+              </span>
+            )}
+          </label>
+
+          {screenshotPreview ? (
+            <div className="relative rounded-2xl bg-black/25 p-2.5 ring-1 ring-white/30 flex items-center gap-3">
+              <img
+                src={screenshotPreview}
+                alt="Payment screenshot preview"
+                className="h-14 w-14 rounded-xl object-cover ring-1 ring-white/40 shadow-sm"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-white truncate">{screenshotFile?.name ?? "screenshot.jpg"}</p>
+                <p className="text-[11px] text-emerald-200 font-semibold flex items-center gap-1 mt-0.5">
+                  <Check className="h-3 w-3 text-emerald-300" /> স্ক্রিনশট যুক্ত হয়েছে
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (screenshotPreview) URL.revokeObjectURL(screenshotPreview);
+                  setScreenshotFile(null);
+                  setScreenshotPreview(null);
+                }}
+                className="grid h-8 w-8 place-items-center rounded-xl bg-white/20 hover:bg-rose-500/80 text-white transition shadow"
+                title="স্ক্রিনশট মুছুন"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-white/40 bg-white/10 px-4 py-3 text-center cursor-pointer hover:bg-white/15 transition group">
+              <div className="grid h-8 w-8 place-items-center rounded-full bg-white/20 text-white group-hover:scale-105 transition">
+                <Upload className="h-4 w-4" />
+              </div>
+              <p className="text-xs font-bold text-white leading-tight">
+                স্ক্রিনশট আপলোড করতে ট্যাপ করুন
+              </p>
+              <p className="text-[10px] text-white/80 leading-tight">
+                JPG, PNG বা WebP ছবি নির্বাচন করুন
+              </p>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    if (file.size > 15 * 1024 * 1024) {
+                      toast.error("ছবির সাইজ ১৫MB এর নিচে হতে হবে");
+                      return;
+                    }
+                    setScreenshotFile(file);
+                    const url = URL.createObjectURL(file);
+                    setScreenshotPreview(url);
+                  }
+                }}
+              />
+            </label>
+          )}
+        </div>
 
         <div className="mt-3 flex items-start gap-2 rounded-xl bg-black/20 p-2.5 text-[11px] text-white/95 ring-1 ring-white/20">
           <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />

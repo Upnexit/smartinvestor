@@ -74,12 +74,21 @@ export const createPendingCheckoutOrder = createServerFn({ method: "POST" })
 
 export const submitCheckoutPayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { packageId: string; method: Method; senderNumber: string; trxId: string }) => ({
-    packageId: validateUuid(data.packageId),
-    method: validateMethod(data.method),
-    senderNumber: validatePhone(data.senderNumber),
-    trxId: validateTrx(data.trxId),
-  }))
+  .inputValidator(
+    (data: {
+      packageId: string;
+      method: Method;
+      senderNumber: string;
+      trxId: string;
+      screenshotUrl?: string | null;
+    }) => ({
+      packageId: validateUuid(data.packageId),
+      method: validateMethod(data.method),
+      senderNumber: validatePhone(data.senderNumber),
+      trxId: validateTrx(data.trxId),
+      screenshotUrl: typeof data.screenshotUrl === "string" ? data.screenshotUrl.trim() : null,
+    }),
+  )
   .handler(async ({ data, context }) => {
     const userId = context.userId;
 
@@ -103,6 +112,7 @@ export const submitCheckoutPayment = createServerFn({ method: "POST" })
           package_id: data.packageId,
           payment_method: data.method,
           sender_number: data.senderNumber,
+          screenshot_url: data.screenshotUrl ?? null,
           status: "pending",
         })
         .select("id")
@@ -118,6 +128,7 @@ export const submitCheckoutPayment = createServerFn({ method: "POST" })
         payment_txn: data.trxId,
         payment_method: data.method,
         sender_number: data.senderNumber,
+        screenshot_url: data.screenshotUrl ?? null,
         submitted_at: new Date().toISOString(),
         status: "pending",
         rejection_reason: null,

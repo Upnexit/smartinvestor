@@ -151,10 +151,18 @@ function ApprovalsPage() {
                 )}
               </div>
               <p className="mt-1 text-[11px] text-slate-500">প্রেরক: <span className="font-mono">{r.sender_number ?? "—"}</span></p>
-              {r.screenshot_url && (
-                <button onClick={() => openShot(r.screenshot_url!)} className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-amber-700 hover:underline">
-                  <ImgIcon className="h-3.5 w-3.5" /> স্ক্রিনশট দেখুন
+              {r.screenshot_url ? (
+                <button
+                  type="button"
+                  onClick={() => openShot(r.screenshot_url!)}
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-100/80 hover:bg-amber-200/90 px-2.5 py-1 text-xs font-bold text-amber-900 ring-1 ring-amber-300/80 transition shadow-xs"
+                >
+                  <ImgIcon className="h-3.5 w-3.5 text-amber-700" /> পেমেন্ট স্ক্রিনশট দেখুন
                 </button>
+              ) : (
+                <span className="mt-2 inline-block text-[11px] text-slate-400 italic">
+                  স্ক্রিনশট দেওয়া হয়নি
+                </span>
               )}
               {r.rejection_reason && <p className="mt-1 text-[11px] text-rose-600">কারণ: {r.rejection_reason}</p>}
               <p className="mt-1 text-[10px] text-slate-400">{new Date(r.created_at).toLocaleString("bn-BD")}</p>
@@ -190,8 +198,41 @@ function ApprovalsPage() {
       )}
 
       {shot && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4" onClick={() => setShot(null)}>
-          <img src={shot} alt="screenshot" className="max-h-[90vh] max-w-full rounded-2xl shadow-2xl" />
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          onClick={() => setShot(null)}
+        >
+          <div
+            className="relative max-h-[92vh] max-w-2xl w-full overflow-hidden rounded-2xl bg-slate-900 p-3 shadow-2xl ring-1 ring-white/20"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-2.5 flex items-center justify-between px-1 text-white">
+              <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                <ImgIcon className="h-4 w-4" /> পেমেন্ট স্লিপ / স্ক্রিনশট প্রিভিউ
+              </span>
+              <div className="flex items-center gap-3">
+                <a
+                  href={shot}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-sky-400 hover:text-sky-300 hover:underline"
+                >
+                  নতুন ট্যাবে খুলুন ↗
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setShot(null)}
+                  className="rounded-lg bg-white/10 p-1 text-slate-300 hover:bg-white/20 hover:text-white transition"
+                  title="বন্ধ করুন"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <div className="flex items-center justify-center max-h-[80vh] overflow-auto rounded-xl bg-black/50 p-1">
+              <img src={shot} alt="screenshot" className="max-h-[78vh] w-auto rounded-lg object-contain shadow-lg" />
+            </div>
+          </div>
         </div>
       )}
     </>
