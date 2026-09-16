@@ -49,9 +49,21 @@ const schema = z.object({
 
 function mapSignupError(msg: string): string {
   const m = msg.toLowerCase();
-  if (m.includes("registered") || m.includes("already")) return "এই ইমেইল আগে থেকেই রেজিস্টার্ড — লগইন করুন";
-  if (m.includes("weak") || m.includes("pwned") || m.includes("password")) return "পাসওয়ার্ডটি অনেক সহজ";
-  if (m.includes("rate")) return "একটু পরে আবার চেষ্টা করুন";
+  if (m.includes("registered") || m.includes("already") || m.includes("exists") || m.includes("23505")) {
+    return "এই ইমেইল আগে থেকেই রেজিস্টার্ড — লগইন করুন";
+  }
+  if (m.includes("weak") || m.includes("pwned") || m.includes("password")) {
+    return "পাসওয়ার্ডটি অনেক সহজ, কমপক্ষে ৬ অক্ষরের শক্তিশালী পাসওয়ার্ড দিন";
+  }
+  if (m.includes("rate")) {
+    return "অতিরিক্ত অনুরোধ এসেছে, অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন";
+  }
+  if (m.includes("non-2xx") || m.includes("2xx") || m.includes("edge function")) {
+    return "রেজিস্ট্রেশন প্রক্রিয়া সম্পন্ন করা যায়নি। অনুগ্রহ করে তথ্যগুলো পুনরায় যাচাই করে চেষ্টা করুন";
+  }
+  if (m.includes("network") || m.includes("fetch") || m.includes("failed to fetch")) {
+    return "ইন্টারনেট সংযোগ চেক করে পুনরায় চেষ্টা করুন";
+  }
   return msg;
 }
 
@@ -84,42 +96,121 @@ function RegisterPage() {
     }
     setLoading(true);
     const email = form.email.toLowerCase();
-    // Create the account via edge function (uses service role, bypasses
-    // Supabase's public /auth/v1/signup email-confirmation rate limit).
-    const { data: created, error: fnError } = await supabase.functions.invoke("register-user", {
-      body: {
-        full_name: form.full_name,
-        email,
-        phone: form.phone,
-        payment_method: form.payment_method,
-        payment_number: form.payment_number,
-        password: form.password,
-        ref: search.ref ?? null,
-        dist: search.dist ?? null,
-      },
-    });
-    const serverMsg = (created as { error?: string } | null)?.error;
-    if (fnError || serverMsg) {
+    let accountCreated = false;
+    let registrationError: string | null = null;
+
+    // Strategy 1: Attempt via Edge Function "register-user"
+    try {
+      const { data: created, error: fnError } = await supabase.functions.invoke("register-user", {
+        body: {
+          full_name: form.full_name,
+          email,
+          phone: form.phone,
+          payment_method: form.payment_method,
+          payment_number: form.payment_number,
+          password: form.password,
+          ref: search.ref ?? null,
+          dist: search.dist ?? null,
+        },
+      });
+
+      if (!fnError && created && !created.error) {
+        accountCreated = true;
+      } else {
+        let serverError = created?.error;
+        if (!serverError && fnError) {
+          try {
+            if ((fnError as unknown as { context?: Response })?.context) {
+              const body = await (fnError as unknown as { context: Response }).context.json();
+              if (body?.error) serverError = body.error;
+            }
+          } catch {
+            /* ignore json parse failure */
+          }
+        }
+
+        // If it's already registered, no need to fallback
+        if (
+          serverError &&
+          (serverError.toLowerCase().includes("registered") ||
+            serverError.toLowerCase().includes("already") ||
+            serverError.includes("রেজিস্টার্ড"))
+        ) {
+          registrationError = serverError;
+        }
+      }
+    } catch {
+      // Edge function failed or not deployed; will fallback to native Supabase Auth below
+    }
+
+    // Strategy 2: If Edge Function was unavailable or errored out, fallback to native Supabase signUp
+    if (!accountCreated && !registrationError) {
+      try {
+        const { data: signupData, error: signupError } = await supabase.auth.signUp({
+          email,
+          password: form.password,
+          options: {
+            emailRedirectTo: typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined,
+            data: {
+              full_name: form.full_name,
+              phone: form.phone,
+              payment_method: form.payment_method,
+              payment_number: form.payment_number,
+              ref: search.ref ?? null,
+              dist: search.dist ?? null,
+            },
+          },
+        });
+
+        if (signupError) {
+          registrationError = signupError.message;
+        } else if (signupData?.user) {
+          accountCreated = true;
+        }
+      } catch (err) {
+        registrationError = err instanceof Error ? err.message : "রেজিস্ট্রেশন সম্পন্ন করা যায়নি";
+      }
+    }
+
+    if (registrationError || !accountCreated) {
       setLoading(false);
-      const raw = serverMsg || (fnError instanceof Error ? fnError.message : "রেজিস্ট্রেশন ব্যর্থ হয়েছে");
-      const msg = mapSignupError(raw);
+      const msg = mapSignupError(registrationError || "রেজিস্ট্রেশন সম্পন্ন করা যায়নি");
       setError(msg);
       toast.error(msg);
       return;
     }
+
     if (typeof window !== "undefined") localStorage.setItem("signup_bonus_pending", "1");
-    const { error: loginError } = await supabase.auth.signInWithPassword({
+
+    // Establish user session
+    const { data: signinData, error: loginError } = await supabase.auth.signInWithPassword({
       email,
       password: form.password,
     });
+
     if (loginError) {
       setLoading(false);
+      if (loginError.message.toLowerCase().includes("email not confirmed")) {
+        toast.info("রেজিস্ট্রেশন সফল হয়েছে! আপনার ইমেইল চেক করে কনফার্ম করুন বা লগইন করুন।");
+        navigate({ to: "/auth", search: { mode: "login" }, replace: true });
+        return;
+      }
       const msg = mapSignupError(loginError.message);
       setError(msg);
       toast.error(msg);
       return;
     }
-      toast.success("একাউন্ট সফলভাবে তৈরি হয়েছে! ৳৩০০ লকড বোনাস সংরক্ষিত হয়েছে");
+
+    // Attach distributor if provided
+    if (search.dist && signinData?.user?.id) {
+      try {
+        await supabase.from("profiles").update({ distributor_id: search.dist }).eq("id", signinData.user.id);
+      } catch {
+        /* non-fatal */
+      }
+    }
+
+    toast.success("একাউন্ট সফলভাবে তৈরি হয়েছে! ৳৩০০ লকড বোনাস সংরক্ষিত হয়েছে");
     setLoading(false);
     navigate({ to: safeRedirect(search.redirect) ?? "/dashboard", replace: true });
   }

@@ -49,10 +49,12 @@ Deno.serve(async (req) => {
       const m = error.message.toLowerCase();
       if (m.includes("already") || m.includes("registered") || m.includes("exists")) {
         return new Response(JSON.stringify({ error: "এই ইমেইল আগে থেকেই রেজিস্টার্ড — লগইন করুন" }), {
-          status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      throw error;
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Attach distributor if provided (verify distributor exists & is active)
@@ -75,7 +77,7 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "রেজিস্ট্রেশন ব্যর্থ হয়েছে" }), {
-      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
