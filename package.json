@@ -9,6 +9,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "bump": "node scripts/bump-version.js",
+    "supabase:check": "node scripts/test-supabase.js",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
