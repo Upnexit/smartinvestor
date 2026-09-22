@@ -29,6 +29,7 @@ import { Route as AuthenticatedPackagesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedReferralRouteImport } from './routes/_authenticated/referral'
 import { Route as AuthenticatedShopRouteImport } from './routes/_authenticated/shop'
+import { Route as AuthenticatedSpinRouteImport } from './routes/_authenticated/spin'
 import { Route as AuthenticatedSupportRouteImport } from './routes/_authenticated/support'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedThemeRouteImport } from './routes/_authenticated/theme'
@@ -47,6 +48,7 @@ import { Route as AdminProfileRouteImport } from './routes/admin.profile'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminShopRouteImport } from './routes/admin.shop'
+import { Route as AdminSpinRouteImport } from './routes/admin.spin'
 import { Route as AdminSupportRouteImport } from './routes/admin.support'
 import { Route as AdminTasksRouteImport } from './routes/admin.tasks'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
@@ -180,6 +182,11 @@ const AuthenticatedShopRoute = AuthenticatedShopRouteImport.update({
   path: '/shop',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSpinRoute = AuthenticatedSpinRouteImport.update({
+  id: '/spin',
+  path: '/spin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSupportRoute = AuthenticatedSupportRouteImport.update({
   id: '/support',
   path: '/support',
@@ -268,6 +275,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
 const AdminShopRoute = AdminShopRouteImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSpinRoute = AdminSpinRouteImport.update({
+  id: '/spin',
+  path: '/spin',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminSupportRoute = AdminSupportRouteImport.update({
@@ -462,6 +474,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/referral': typeof AuthenticatedReferralRoute
   '/shop': typeof AuthenticatedShopRoute
+  '/spin': typeof AuthenticatedSpinRoute
   '/support': typeof AuthenticatedSupportRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/theme': typeof AuthenticatedThemeRoute
@@ -479,6 +492,7 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shop': typeof AdminShopRouteWithChildren
+  '/admin/spin': typeof AdminSpinRoute
   '/admin/support': typeof AdminSupportRoute
   '/admin/tasks': typeof AdminTasksRouteWithChildren
   '/admin/users': typeof AdminUsersRouteWithChildren
@@ -532,6 +546,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/referral': typeof AuthenticatedReferralRoute
   '/shop': typeof AuthenticatedShopRoute
+  '/spin': typeof AuthenticatedSpinRoute
   '/support': typeof AuthenticatedSupportRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/theme': typeof AuthenticatedThemeRoute
@@ -547,6 +562,7 @@ export interface FileRoutesByTo {
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/spin': typeof AdminSpinRoute
   '/admin/support': typeof AdminSupportRoute
   '/distributor/earnings': typeof DistributorEarningsRoute
   '/distributor/leads': typeof DistributorLeadsRoute
@@ -601,6 +617,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/referral': typeof AuthenticatedReferralRoute
   '/_authenticated/shop': typeof AuthenticatedShopRoute
+  '/_authenticated/spin': typeof AuthenticatedSpinRoute
   '/_authenticated/support': typeof AuthenticatedSupportRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/theme': typeof AuthenticatedThemeRoute
@@ -618,6 +635,7 @@ export interface FileRoutesById {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shop': typeof AdminShopRouteWithChildren
+  '/admin/spin': typeof AdminSpinRoute
   '/admin/support': typeof AdminSupportRoute
   '/admin/tasks': typeof AdminTasksRouteWithChildren
   '/admin/users': typeof AdminUsersRouteWithChildren
@@ -675,6 +693,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/referral'
     | '/shop'
+    | '/spin'
     | '/support'
     | '/tasks'
     | '/theme'
@@ -692,6 +711,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/shop'
+    | '/admin/spin'
     | '/admin/support'
     | '/admin/tasks'
     | '/admin/users'
@@ -745,6 +765,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/referral'
     | '/shop'
+    | '/spin'
     | '/support'
     | '/tasks'
     | '/theme'
@@ -760,6 +781,7 @@ export interface FileRouteTypes {
     | '/admin/profile'
     | '/admin/reports'
     | '/admin/settings'
+    | '/admin/spin'
     | '/admin/support'
     | '/distributor/earnings'
     | '/distributor/leads'
@@ -813,6 +835,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/referral'
     | '/_authenticated/shop'
+    | '/_authenticated/spin'
     | '/_authenticated/support'
     | '/_authenticated/tasks'
     | '/_authenticated/theme'
@@ -830,6 +853,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/shop'
+    | '/admin/spin'
     | '/admin/support'
     | '/admin/tasks'
     | '/admin/users'
@@ -1028,6 +1052,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedShopRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/spin': {
+      id: '/_authenticated/spin'
+      path: '/spin'
+      fullPath: '/spin'
+      preLoaderRoute: typeof AuthenticatedSpinRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/support': {
       id: '/_authenticated/support'
       path: '/support'
@@ -1152,6 +1183,13 @@ declare module '@tanstack/react-router' {
       path: '/shop'
       fullPath: '/admin/shop'
       preLoaderRoute: typeof AdminShopRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/spin': {
+      id: '/admin/spin'
+      path: '/spin'
+      fullPath: '/admin/spin'
+      preLoaderRoute: typeof AdminSpinRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/support': {
@@ -1409,6 +1447,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedReferralRoute: typeof AuthenticatedReferralRoute
   AuthenticatedShopRoute: typeof AuthenticatedShopRoute
+  AuthenticatedSpinRoute: typeof AuthenticatedSpinRoute
   AuthenticatedSupportRoute: typeof AuthenticatedSupportRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedThemeRoute: typeof AuthenticatedThemeRoute
@@ -1423,6 +1462,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedReferralRoute: AuthenticatedReferralRoute,
   AuthenticatedShopRoute: AuthenticatedShopRoute,
+  AuthenticatedSpinRoute: AuthenticatedSpinRoute,
   AuthenticatedSupportRoute: AuthenticatedSupportRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedThemeRoute: AuthenticatedThemeRoute,
@@ -1519,6 +1559,7 @@ interface AdminRouteChildren {
   AdminReportsRoute: typeof AdminReportsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminShopRoute: typeof AdminShopRouteWithChildren
+  AdminSpinRoute: typeof AdminSpinRoute
   AdminSupportRoute: typeof AdminSupportRoute
   AdminTasksRoute: typeof AdminTasksRouteWithChildren
   AdminUsersRoute: typeof AdminUsersRouteWithChildren
@@ -1541,6 +1582,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminReportsRoute: AdminReportsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminShopRoute: AdminShopRouteWithChildren,
+  AdminSpinRoute: AdminSpinRoute,
   AdminSupportRoute: AdminSupportRoute,
   AdminTasksRoute: AdminTasksRouteWithChildren,
   AdminUsersRoute: AdminUsersRouteWithChildren,

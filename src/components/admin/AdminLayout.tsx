@@ -28,6 +28,7 @@ export const ADMIN_NAV: NavItem[] = [
       { to: "/admin/withdrawals/distributor-approvals", label: "ডিস্ট্রিবিউটর অ্যাপ্রুভাল রিপোর্ট", Icon: ClipboardCheck },
     ] },
   { to: "/admin/packages",     label: "প্যাকেজ",            Icon: Package,         accent: "fuchsia" },
+  { to: "/admin/spin",         label: "স্পিন ম্যানেজমেন্ট",   Icon: Sparkles,        accent: "rose" },
   { to: "/admin/approvals",    label: "পেমেন্ট অ্যাপ্রুভাল",   Icon: ShieldCheck,     accent: "orange" },
   { to: "/admin/payments",     label: "পেমেন্ট গেটওয়ে",      Icon: CreditCard,      accent: "pink" },
   { to: "/admin/tasks",        label: "টাস্ক লিংক",          Icon: ListChecks,      accent: "rose",

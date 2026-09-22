@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { bdDateString, startOfDayBD } from "@/lib/bd-time";
 import { ReferralShareCard } from "@/components/panel/ReferralShareCard";
+import { WelcomeSpinOfferModal } from "@/components/panel/WelcomeSpinOfferModal";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "ড্যাশবোর্ড — Smart Click BD" }] }),
@@ -158,6 +159,7 @@ function DashboardPage() {
   const canUpgrade = hasActivePackage === true && activePkgPrice != null && maxPkgPrice != null && activePkgPrice < maxPkgPrice;
 
   const quick = [
+    { to: "/spin",     Icon: Sparkles,        label: "লাকি স্পিন",   desc: "ফ্রি ক্যাশ",  from: "from-rose-500",    to_: "to-amber-500" },
     { to: "/tasks",    Icon: ListChecks,      label: "আজকের টাস্ক", desc: "ইনকাম শুরু",  from: "from-sky-400",     to_: "to-blue-600" },
     { to: "/withdraw", Icon: ArrowDownToLine, label: "উইথড্র",       desc: "টাকা তুলুন",  from: "from-emerald-400", to_: "to-green-600" },
     { to: "/packages", Icon: Package,         label: "প্যাকেজ",      desc: "আপগ্রেড",    from: "from-fuchsia-400", to_: "to-purple-600" },
@@ -166,6 +168,9 @@ function DashboardPage() {
 
   return (
     <div className="space-y-5">
+      {/* Registration Welcome Spin Offer Modal */}
+      <WelcomeSpinOfferModal />
+
       {showWelcome && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/50 backdrop-blur-sm px-4" role="dialog" aria-modal="true">
           <div className="w-full max-w-sm rounded-3xl bg-white p-6 text-center shadow-2xl">
@@ -212,6 +217,41 @@ function DashboardPage() {
         </h1>
         <p className="mt-1 text-sm text-slate-600">আজকে লাইক ও কমেন্ট করে আয় শুরু করুন।</p>
       </div>
+
+      {/* 24-Hour Lucky Spin Promo Banner */}
+      <Link
+        to="/spin"
+        className="group relative block overflow-hidden rounded-3xl p-[2px] bg-gradient-to-r from-rose-500 via-amber-500 to-indigo-600 shadow-xl shadow-rose-500/15 hover:shadow-2xl transition-all duration-300 active:scale-[0.99]"
+      >
+        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-[22px] bg-gradient-to-br from-white via-rose-50/50 to-amber-50/60 p-4 sm:p-5">
+          <div className="flex items-center gap-3.5">
+            <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center text-white text-2xl shadow-md group-hover:rotate-12 transition-transform">
+              🎡
+              <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-500"></span>
+              </span>
+            </div>
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-black uppercase tracking-wider mb-1">
+                <Sparkles className="w-3 h-3" /> কোনো প্যাকেজ লাগবে না
+              </div>
+              <h3 className="bn-display text-lg sm:text-xl text-slate-900 font-black">
+                ২৪ ঘণ্টার লাকি স্পিন — জিতে নিন নগদ ক্যাশ!
+              </h3>
+              <p className="text-xs text-slate-600 font-medium">
+                প্রতিদিন একবার চাকা ঘুরিয়ে সর্বোচ্চ ৳৫,০০০ পর্যন্ত ক্যাশ পুরস্কার জিতে নেওয়ার সুযোগ।
+              </p>
+            </div>
+          </div>
+          <div className="shrink-0 flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 text-white font-bold text-xs sm:text-sm shadow-md group-hover:scale-105 transition-transform">
+              <span>এখনই স্পিন করুন</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </span>
+          </div>
+        </div>
+      </Link>
 
       {/* Promotion — different copy for no-package vs. upgrade-available */}
       {(hasActivePackage === false || canUpgrade) && (
