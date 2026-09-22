@@ -295,9 +295,9 @@ export function LuckySpinPage() {
           </div>
 
           {/* Wheel Container with Pointer (Enlarged Wheel + Outward Text + Compact Button) */}
-          <div className="relative mx-auto w-[330px] h-[330px] sm:w-[380px] sm:h-[380px] md:w-[410px] md:h-[410px] flex items-center justify-center my-3">
+          <div className="relative mx-auto w-[295px] h-[295px] min-[370px]:w-[330px] min-[370px]:h-[330px] sm:w-[380px] sm:h-[380px] md:w-[410px] md:h-[410px] max-w-full flex items-center justify-center my-3">
             {/* Outer Decorative Ring & Shadow */}
-            <div className="absolute inset-0 rounded-full border-8 sm:border-[10px] border-amber-400 shadow-[0_12px_40px_rgba(234,88,12,0.3)] ring-4 ring-rose-200" />
+            <div className="absolute inset-0 rounded-full border-8 sm:border-[10px] border-amber-400 shadow-[0_12px_40px_rgba(234,88,12,0.3)] ring-4 ring-rose-200 pointer-events-none" />
 
             {/* Top Indicator / Pointer Arrow (Fixed at 12 o'clock pointing down) */}
             <div className="absolute -top-3 sm:-top-3.5 z-30 flex flex-col items-center">
@@ -308,7 +308,7 @@ export function LuckySpinPage() {
 
             {/* Rotating SVG Wheel */}
             <div
-              className="w-[310px] h-[310px] sm:w-[360px] sm:h-[360px] md:w-[390px] md:h-[390px] rounded-full overflow-hidden transition-transform ease-out"
+              className="w-[275px] h-[275px] min-[370px]:w-[310px] min-[370px]:h-[310px] sm:w-[360px] sm:h-[360px] md:w-[390px] md:h-[390px] rounded-full overflow-hidden transition-transform ease-out"
               style={{
                 transform: `rotate(${rotation}deg)`,
                 transitionDuration: isSpinning ? "6.5s" : "0s",

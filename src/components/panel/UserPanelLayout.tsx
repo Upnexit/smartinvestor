@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, ListChecks, ArrowDownToLine, Package, MessageCircle,
   Users, User as UserIcon, ChevronRight, LogOut, Sparkles, Menu, X, Bell, Crown, Home, LifeBuoy,
@@ -70,11 +70,26 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
   const BOTTOM_NAV = bottomNav(launched);
   const activeItem = sideNav(launched).find((n) => pathname.startsWith(n.to)) ?? NAV[0];
   const navigate = useNavigate();
+  const router = useRouter();
   const site = useSiteSettings();
   const { status: pushStatus, busy: pushBusy, subscribe: pushSubscribe } = usePushSubscribe();
 
   // ইউজারের সেভ করা থিম প্যানেলে অ্যাপ্লাই
   useEffect(() => { applyPanelTheme(getPanelTheme()); }, []);
+
+  // মোবাইল বটম নেভিগেশন পেজগুলি ব্যাকগ্রাউন্ডে প্রি-লোড করুন যাতে ক্লিক করার সাথে সাথে ইনস্ট্যান্ট পেজ চলে আসে
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      BOTTOM_NAV.forEach((item) => {
+        try {
+          router.preloadRoute({ to: item.to });
+        } catch {
+          // Ignore preload errors
+        }
+      });
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [BOTTOM_NAV, router]);
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -106,18 +121,26 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
   }
 
   const showBellDot = pushStatus === "default";
+  const brandLogoUrl = site.logo_url || "/logo.png";
+  const brandSiteName = site.site_name || "Smart Click BD";
 
   return (
     <div className="panel-themed min-h-screen">
       {/* Mobile top bar */}
       <header className="panel-chrome sticky top-0 z-30 flex items-center justify-between border-b backdrop-blur px-4 py-3 lg:hidden">
-        <Link to="/dashboard" preload="intent" className="flex items-center gap-2">
-          <div className="panel-brand grid h-9 w-9 place-items-center rounded-xl shadow-lg overflow-hidden bg-white p-0.5">
-            <img src="/logo.png" alt="Smart Click BD" className="h-full w-full object-contain" />
+        <Link to="/dashboard" preload="intent" className="flex items-center gap-2.5">
+          {/* Logo container: zero padding, slight zoom (scale-120), edge-to-edge fill with no gaps */}
+          <div className="panel-brand relative grid h-10 w-10 place-items-center rounded-2xl shadow-md overflow-hidden bg-white shrink-0 ring-1 ring-black/5">
+            <img
+              src={brandLogoUrl}
+              alt={brandSiteName}
+              className="h-full w-full object-cover scale-120 select-none pointer-events-none"
+              loading="eager"
+            />
           </div>
           <div>
-            <p className="bn-display panel-chrome-fg text-base leading-none">Smart Click BD</p>
-            <p className="panel-chrome-muted text-[10px] mt-0.5">USER · PANEL</p>
+            <p className="bn-display panel-chrome-fg text-base font-black leading-none">{brandSiteName}</p>
+            <p className="panel-chrome-muted text-[10px] font-bold tracking-wider mt-0.5">USER · PANEL</p>
           </div>
         </Link>
         <div className="flex items-center gap-1.5">
@@ -184,29 +207,36 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      {/* Mobile bottom nav — gradient background, always-colorful icons */}
-      <nav className="panel-navbar fixed inset-x-0 bottom-0 z-30 border-t backdrop-blur-xl px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_-12px_rgba(15,23,42,0.25)] lg:hidden">
-        <ul className="grid grid-cols-6">
+      {/* Mobile bottom nav — gradient background, always-colorful icons with eager preload & instant touch response */}
+      <nav className="panel-navbar fixed inset-x-0 bottom-0 z-30 border-t backdrop-blur-xl px-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_24px_-12px_rgba(15,23,42,0.25)] lg:hidden">
+        <ul className="grid grid-cols-6 gap-0.5">
           {BOTTOM_NAV.map((item) => {
             const active = pathname.startsWith(item.to);
             return (
               <li key={item.to}>
                 <Link
                   to={item.to}
-                  preload="intent"
-                  className="relative flex flex-col items-center gap-1 rounded-xl px-1 py-1 text-[10px] font-semibold"
+                  preload="viewport"
+                  onTouchStart={() => {
+                    try {
+                      router.preloadRoute({ to: item.to });
+                    } catch {}
+                  }}
+                  className="relative flex flex-col items-center gap-1 rounded-xl px-0.5 py-1 text-[10px] font-semibold active:scale-95 transition-transform"
                 >
                   {active && (
                     <span className={cn("absolute -top-1.5 h-1 w-7 rounded-full bg-gradient-to-r shadow-md", item.from, item.to_)} />
                   )}
                   <span className={cn(
-                    "grid h-10 w-10 place-items-center rounded-[14px] text-white bg-gradient-to-br shadow-md transition-all duration-300",
+                    "grid h-10 w-10 place-items-center rounded-[14px] text-white bg-gradient-to-br shadow-md transition-transform duration-150",
                     item.from, item.to_,
                     active ? "scale-110 ring-2 ring-white shadow-lg saturate-150 -translate-y-0.5" : "saturate-110 hover:scale-105",
                   )}>
                     <item.Icon className="h-[18px] w-[18px]" />
                   </span>
-                  <span className={cn("transition-colors", active ? "panel-chrome-fg" : "panel-chrome-muted")}>{item.short}</span>
+                  <span className={cn("transition-colors truncate max-w-full text-center", active ? "panel-chrome-fg font-bold" : "panel-chrome-muted")}>
+                    {item.short}
+                  </span>
                 </Link>
               </li>
             );
@@ -224,15 +254,23 @@ function SidebarContent({
 }: { onNavigate: () => void; onLogout: () => void; pathname: string }) {
   const site = useSiteSettings();
   const { launched } = useLaunchFlag();
+  const brandLogoUrl = site.logo_url || "/logo.png";
+  const brandSiteName = site.site_name || "Smart Click BD";
+
   return (
     <div className="flex h-full flex-col p-4">
       {/* Brand */}
       <Link to="/dashboard" preload="intent" onClick={onNavigate} className="flex items-center gap-3 rounded-2xl px-2 py-2">
-        <div className="panel-brand grid h-11 w-11 place-items-center rounded-2xl shadow-lg overflow-hidden bg-white p-1">
-          <img src="/logo.png" alt="Smart Click BD" className="h-full w-full object-contain" />
+        <div className="panel-brand relative grid h-11 w-11 place-items-center rounded-2xl shadow-lg overflow-hidden bg-white shrink-0 ring-1 ring-black/5">
+          <img
+            src={brandLogoUrl}
+            alt={brandSiteName}
+            className="h-full w-full object-cover scale-120 select-none pointer-events-none"
+            loading="eager"
+          />
         </div>
         <div>
-          <p className="bn-display panel-chrome-fg text-lg leading-none">Smart Click BD</p>
+          <p className="bn-display panel-chrome-fg text-lg font-black leading-none">{brandSiteName}</p>
           <p className="panel-chrome-muted text-[10px] font-semibold tracking-wider mt-1">USER · PANEL</p>
         </div>
       </Link>

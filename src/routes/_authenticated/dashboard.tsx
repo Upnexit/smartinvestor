@@ -22,15 +22,36 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
     if (!user) return;
     const email = user.email?.toLowerCase() ?? "";
     if (email === "smartclickbd@gmail.com") throw redirect({ to: "/admin" });
-    try {
-      const { data: roleRows } = await supabase
-        .from("user_roles").select("role").eq("user_id", user.id);
-      const roles = (roleRows ?? []).map((r) => r.role as string);
-      if (roles.includes("admin")) throw redirect({ to: "/admin" });
-      if (roles.includes("distributor")) throw redirect({ to: "/distributor" });
-    } catch (e) {
-      if (isRedirect(e)) throw e;
+
+    // Check cached role from sessionStorage to eliminate network latency on tab navigation
+    const cacheKey = `smartclick:roles:${user.id}`;
+    let roles: string[] = [];
+    if (typeof window !== "undefined") {
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          roles = JSON.parse(cached);
+        } catch {
+          // ignore parse error
+        }
+      }
     }
+
+    if (roles.length === 0) {
+      try {
+        const { data: roleRows } = await supabase
+          .from("user_roles").select("role").eq("user_id", user.id);
+        roles = (roleRows ?? []).map((r) => r.role as string);
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem(cacheKey, JSON.stringify(roles));
+        }
+      } catch (e) {
+        if (isRedirect(e)) throw e;
+      }
+    }
+
+    if (roles.includes("admin")) throw redirect({ to: "/admin" });
+    if (roles.includes("distributor")) throw redirect({ to: "/distributor" });
   },
   component: DashboardPage,
 });

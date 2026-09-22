@@ -119,7 +119,7 @@ function CheckoutPage() {
     if (isSpinMode) {
       setPkg({
         id: `spin-${spinId}`,
-        name: "লাকি স্পিন পুরস্কার আনলক — ৫০% ডিপোজিট",
+        name: "Smart Lucky পুরস্কার আনলক",
         price: spinAmount,
         duration_days: 0,
       });
@@ -444,8 +444,8 @@ function CheckoutPage() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22><path d=%22M40 4l32 18v36L40 76 8 58V22z%22 fill=%22none%22 stroke=%22%23dbeafe%22 stroke-width=%221%22/></svg>')] bg-slate-50">
-      <div className="relative min-h-full grid place-items-center px-4 py-6">
+    <div className="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22 viewBox=%220 0 80 80%22><path d=%22M40 4l32 18v36L40 76 8 58V22z%22 fill=%22none%22 stroke=%22%23dbeafe%22 stroke-width=%221%22/></svg>')] bg-slate-50">
+      <div className="relative min-h-full grid place-items-center px-2.5 sm:px-4 py-4 sm:py-6 overflow-x-hidden w-full">
         {step === "select" && (
           <StepSelect
             pkg={pkg} accounts={accounts} method={method} setMethod={setMethod} invoiceShort={invoiceShort}
@@ -558,9 +558,9 @@ function CopyPill({ value, className }: { value: string; className?: string }) {
 
 function BrandBadge({ logoUrl, brandName, className }: { logoUrl?: string; brandName: string; className?: string }) {
   return (
-    <div className={cn("grid place-items-center overflow-hidden rounded-full bg-amber-100/70", className)}>
+    <div className={cn("relative grid place-items-center overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 shrink-0", className)}>
       {logoUrl ? (
-        <img src={logoUrl} alt={`${brandName} logo`} className="h-full w-full object-cover" loading="eager" decoding="async" />
+        <img src={logoUrl} alt={`${brandName} logo`} className="h-full w-full object-cover scale-115" loading="eager" decoding="async" />
       ) : (
         <ShoppingCart className="h-5 w-5 text-amber-700" />
       )}
@@ -578,29 +578,36 @@ function StepSelect({
 }) {
   const [tab, setTab] = useState<"local" | "intl">("local");
   return (
-    <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl ring-1 ring-slate-200/70">
+    <div className="w-full max-w-lg rounded-3xl bg-white p-4 sm:p-6 shadow-2xl ring-1 ring-slate-200/70 overflow-hidden">
       {/* header icons */}
       <div className="flex items-center justify-between">
-        <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-xl text-slate-500 hover:bg-slate-100">
+        <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 transition">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-xl text-slate-500 hover:bg-slate-100">
+        <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-xl text-slate-500 hover:bg-slate-100 transition">
           <X className="h-5 w-5" />
         </button>
       </div>
 
       {/* Spin alert banner */}
       {isSpinMode && (
-        <div className="mt-3 rounded-2xl bg-gradient-to-r from-rose-500 via-amber-500 to-orange-500 p-3.5 text-white shadow-md flex items-center justify-between gap-3">
+        <div className="mt-3 rounded-2xl bg-gradient-to-r from-rose-500 via-amber-500 to-orange-500 p-3 sm:p-3.5 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <div className="min-w-0">
-            <span className="inline-block px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-black uppercase mb-1">
-              🎡 স্পিন পুরস্কার উইন: ৳{spinWon}
-            </span>
-            <p className="text-xs sm:text-sm font-bold truncate">৫০% ডিপোজিট ফি: ৳{pkg.price}</p>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="inline-block px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-black uppercase">
+                🎡 স্পিন পুরস্কার উইন: ৳{spinWon}
+              </span>
+              <span className="text-[11px] font-bold text-amber-100">
+                (৫০% ডিপোজিট ফি: ৳{pkg.price})
+              </span>
+            </div>
+            <p className="text-xs font-medium text-white/90 mt-1">
+              ডিপোজিট সম্পূর্ণ হলে আপনার অ্যাকাউন্টে পুরো ৳{spinWon} যুক্ত হবে
+            </p>
           </div>
           <button
             onClick={onClose}
-            className="shrink-0 text-xs font-bold bg-white/25 hover:bg-white/35 px-3 py-1.5 rounded-xl transition border border-white/30"
+            className="self-start sm:self-center shrink-0 text-xs font-bold bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-xl transition border border-white/30 active:scale-95"
           >
             ← স্পিন পেজে ফিরুন
           </button>
@@ -608,23 +615,44 @@ function StepSelect({
       )}
 
       {/* brand + invoice */}
-      <div className="mt-3 flex items-center gap-3">
-        {brandLogo
-          ? <img src={brandLogo} alt={`${brandName} logo`} className="h-14 w-14 rounded-full object-cover ring-1 ring-slate-200" />
-          : <div className="grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-amber-400 to-rose-500 text-white shadow"><Sparkles className="h-6 w-6" /></div>}
-        <div className="min-w-0">
-          <p className="bn-display text-lg text-slate-900 truncate">{brandName} — {pkg.name}</p>
-          <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-            <span>Invoice ID: <span className="font-mono">{invoiceShort}</span></span>
+      <div className="mt-3.5 flex items-center gap-3">
+        {brandLogo ? (
+          <div className="relative h-12 w-12 sm:h-14 sm:w-14 rounded-2xl overflow-hidden shrink-0 shadow-md ring-1 ring-slate-200 bg-white">
+            <img src={brandLogo} alt={`${brandName} logo`} className="h-full w-full object-cover scale-115" />
+          </div>
+        ) : (
+          <div className="grid h-12 w-12 sm:h-14 sm:w-14 place-items-center rounded-2xl bg-gradient-to-br from-amber-400 to-rose-500 text-white shadow shrink-0">
+            <Sparkles className="h-6 w-6" />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <h2 className="bn-display text-base sm:text-lg font-black text-slate-900 leading-tight">
+              {isSpinMode ? "Smart Lucky পুরস্কার আনলক" : `${brandName} — ${pkg.name}`}
+            </h2>
+            {isSpinMode && (
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 shrink-0">
+                ৫০% ফি
+              </span>
+            )}
+          </div>
+          <div className="mt-1 flex items-center gap-1.5 text-[11px] text-slate-500 flex-wrap">
+            <span>ইনভয়েস: <span className="font-mono font-semibold">{invoiceShort}</span></span>
             <button
-              onClick={async () => { try { await navigator.clipboard.writeText(invoiceShort); toast.success("কপি হয়েছে"); } catch {
-                // Ignore clipboard errors
-              } }}
-              className="text-slate-400 hover:text-slate-600"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(invoiceShort);
+                  toast.success("কপি হয়েছে");
+                } catch {}
+              }}
+              className="text-slate-400 hover:text-slate-600 inline-flex items-center"
               aria-label="Copy invoice"
             >
               <Copy className="h-3 w-3" />
             </button>
+            {isSpinMode && (
+              <span className="text-amber-600 font-bold">• পুরস্কার: ৳{spinWon}</span>
+            )}
           </div>
         </div>
       </div>
@@ -726,15 +754,26 @@ function StepAccount({
       </div>
 
       {/* product row */}
-      <div className="bg-white px-5 py-3 flex items-center gap-3 border-b border-slate-100">
-        <BrandBadge logoUrl={brandLogo || accounts.system_logo_url} brandName={brandName} className="h-11 w-11" />
+      <div className="bg-white px-4 sm:px-5 py-3 flex items-center gap-3 border-b border-slate-100">
+        <BrandBadge logoUrl={brandLogo || accounts.system_logo_url} brandName={brandName} className="h-10 w-10 sm:h-11 sm:w-11" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-slate-900 truncate">{brandName} — {pkg.name}</p>
-          <p className="text-[10px] text-slate-500 truncate">Inv No: {invoiceShort} <span style={{ color: b.primary }}>●</span></p>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+              {isSpinMode ? "Smart Lucky পুরস্কার আনলক" : `${brandName} — ${pkg.name}`}
+            </p>
+            {isSpinMode && (
+              <span className="text-[9px] font-extrabold px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-700 shrink-0">
+                ৫০% ফি
+              </span>
+            )}
+          </div>
+          <p className="text-[10px] text-slate-500 truncate mt-0.5">
+            {brandName} • Inv: {invoiceShort} <span style={{ color: b.primary }}>●</span>
+          </p>
         </div>
-        <div className="text-right">
-          <p className="bn-display text-xl text-slate-900">৳{pkg.price}</p>
-          {isSpinMode && <p className="text-[10px] font-bold text-rose-600">৫০% ডিপোজিট</p>}
+        <div className="text-right shrink-0">
+          <p className="bn-display text-lg sm:text-xl text-slate-900 leading-tight">৳{pkg.price}</p>
+          {isSpinMode && <p className="text-[9px] font-extrabold text-rose-600 leading-tight">৫০% ডিপোজিট</p>}
         </div>
       </div>
 
@@ -796,15 +835,26 @@ function StepWaiting({
   return (
     <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
       {/* product row (same as step 2) */}
-      <div className="bg-white px-5 py-3 flex items-center gap-3 border-b border-slate-100">
-        <BrandBadge logoUrl={brandLogo || accounts.system_logo_url} brandName={brandName} className="h-11 w-11" />
+      <div className="bg-white px-4 sm:px-5 py-3 flex items-center gap-3 border-b border-slate-100">
+        <BrandBadge logoUrl={brandLogo || accounts.system_logo_url} brandName={brandName} className="h-10 w-10 sm:h-11 sm:w-11" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-slate-900 truncate">{brandName} — {pkg.name}</p>
-          <p className="text-[10px] text-slate-500 truncate">Inv No: {invoiceShort} <span style={{ color: b.primary }}>●</span></p>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+              {isSpinMode ? "Smart Lucky পুরস্কার আনলক" : `${brandName} — ${pkg.name}`}
+            </p>
+            {isSpinMode && (
+              <span className="text-[9px] font-extrabold px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-700 shrink-0">
+                ৫০% ফি
+              </span>
+            )}
+          </div>
+          <p className="text-[10px] text-slate-500 truncate mt-0.5">
+            {brandName} • Inv: {invoiceShort} <span style={{ color: b.primary }}>●</span>
+          </p>
         </div>
-        <div className="text-right">
-          <p className="bn-display text-xl text-slate-900">৳{pkg.price}</p>
-          {isSpinMode && <p className="text-[10px] font-bold text-rose-600">৫০% ডিপোজিট</p>}
+        <div className="text-right shrink-0">
+          <p className="bn-display text-lg sm:text-xl text-slate-900 leading-tight">৳{pkg.price}</p>
+          {isSpinMode && <p className="text-[9px] font-extrabold text-rose-600 leading-tight">৫০% ডিপোজিট</p>}
         </div>
       </div>
 
@@ -967,15 +1017,26 @@ function StepTrx({
   return (
     <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
       {/* product row */}
-      <div className="bg-white px-5 py-3 flex items-center gap-3 border-b border-slate-100">
-        <BrandBadge logoUrl={brandLogo || accounts.system_logo_url} brandName={brandName} className="h-11 w-11" />
+      <div className="bg-white px-4 sm:px-5 py-3 flex items-center gap-3 border-b border-slate-100">
+        <BrandBadge logoUrl={brandLogo || accounts.system_logo_url} brandName={brandName} className="h-10 w-10 sm:h-11 sm:w-11" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-slate-900 truncate">{brandName} — {pkg.name}</p>
-          <p className="text-[10px] text-slate-500 truncate">Inv No: {invoiceShort} <span style={{ color: b.primary }}>●</span></p>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+              {isSpinMode ? "Smart Lucky পুরস্কার আনলক" : `${brandName} — ${pkg.name}`}
+            </p>
+            {isSpinMode && (
+              <span className="text-[9px] font-extrabold px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-700 shrink-0">
+                ৫০% ফি
+              </span>
+            )}
+          </div>
+          <p className="text-[10px] text-slate-500 truncate mt-0.5">
+            {brandName} • Inv: {invoiceShort} <span style={{ color: b.primary }}>●</span>
+          </p>
         </div>
-        <div className="text-right">
-          <p className="bn-display text-xl text-slate-900">৳{pkg.price}</p>
-          {isSpinMode && <p className="text-[10px] font-bold text-rose-600">৫০% ডিপোজিট</p>}
+        <div className="text-right shrink-0">
+          <p className="bn-display text-lg sm:text-xl text-slate-900 leading-tight">৳{pkg.price}</p>
+          {isSpinMode && <p className="text-[9px] font-extrabold text-rose-600 leading-tight">৫০% ডিপোজিট</p>}
         </div>
       </div>
 
@@ -1121,15 +1182,26 @@ function StepSuccess({
         </p>
       </div>
 
-      <div className="bg-white px-5 py-4 flex items-center gap-3 border-b border-slate-100">
-        <BrandBadge logoUrl={brandLogo || accounts.system_logo_url} brandName={brandName} className="h-11 w-11" />
+      <div className="bg-white px-4 sm:px-5 py-4 flex items-center gap-3 border-b border-slate-100">
+        <BrandBadge logoUrl={brandLogo || accounts.system_logo_url} brandName={brandName} className="h-10 w-10 sm:h-11 sm:w-11" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-slate-900 truncate">{brandName} — {pkg.name}</p>
-          <p className="text-[10px] text-slate-500 truncate">Inv No: {invoiceShort} <span style={{ color: b.primary }}>●</span></p>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+              {isSpinMode ? "Smart Lucky পুরস্কার আনলক" : `${brandName} — ${pkg.name}`}
+            </p>
+            {isSpinMode && (
+              <span className="text-[9px] font-extrabold px-1.5 py-0.2 rounded-full bg-rose-100 text-rose-700 shrink-0">
+                ৫০% ফি
+              </span>
+            )}
+          </div>
+          <p className="text-[10px] text-slate-500 truncate mt-0.5">
+            {brandName} • Inv: {invoiceShort} <span style={{ color: b.primary }}>●</span>
+          </p>
         </div>
-        <div className="text-right">
-          <p className="bn-display text-xl text-slate-900">৳{pkg.price}</p>
-          {isSpinMode && <p className="text-[10px] font-bold text-rose-600">৫০% ডিপোজিট</p>}
+        <div className="text-right shrink-0">
+          <p className="bn-display text-lg sm:text-xl text-slate-900 leading-tight">৳{pkg.price}</p>
+          {isSpinMode && <p className="text-[9px] font-extrabold text-rose-600 leading-tight">৫০% ডিপোজিট</p>}
         </div>
       </div>
 
