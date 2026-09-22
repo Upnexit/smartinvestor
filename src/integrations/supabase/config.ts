@@ -1,6 +1,6 @@
 const FALLBACK_SUPABASE_URL = "https://gpyarcrizvjyukaazndj.supabase.co";
 const FALLBACK_SUPABASE_PUBLISHABLE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdweWFyY3JpenZqeXVrYWF6bmRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3MjkzOCwiZXhwIjoyMDk4MzA1OTM4fQ.iI3hMWQxrwYVuAz-Lxkq257Be-Rn1GXCjF0hVPLzupw";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdweWFyY3JpenZqeXVrYWF6bmRqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI3Mjk5MzgsImV4cCI6MjA5ODMwNTkzOH0.iI3hMWQxrwYVuAz-Lxkq257Be-Rn1GXCjF0hVPLzupw";
 
 function readRuntimeEnv(name: string): string | undefined {
   if (typeof process === "undefined") return undefined;

@@ -199,10 +199,32 @@ export async function listDeletedUsersArchive(search = "") {
     .order("deleted_at", { ascending: false })
     .limit(100);
 
-  const s = search.trim();
-  if (s) {
-    const esc = s.replace(/[%,()]/g, "");
-    req = req.or(`phone.ilike.%${esc}%,full_name.ilike.%${esc}%,email.ilike.%${esc}%,user_code.ilike.%${esc}%`);
+  const raw = search.trim();
+  if (raw) {
+    const esc = raw.replace(/[%,()]/g, "");
+    const digits = esc.replace(/\D/g, "");
+    const conditions = new Set<string>([
+      `phone.ilike.%${esc}%`,
+      `full_name.ilike.%${esc}%`,
+      `email.ilike.%${esc}%`,
+      `user_code.ilike.%${esc}%`,
+      `referral_code.ilike.%${esc}%`,
+      `payment_number.ilike.%${esc}%`,
+    ]);
+
+    if (digits && digits.length >= 4) {
+      conditions.add(`phone.ilike.%${digits}%`);
+      conditions.add(`payment_number.ilike.%${digits}%`);
+      if (digits.startsWith("880") && digits.length > 10) {
+        conditions.add(`phone.ilike.%0${digits.slice(3)}%`);
+        conditions.add(`payment_number.ilike.%0${digits.slice(3)}%`);
+      } else if (digits.startsWith("0") && digits.length === 11) {
+        conditions.add(`phone.ilike.%${digits.slice(1)}%`);
+        conditions.add(`payment_number.ilike.%${digits.slice(1)}%`);
+      }
+    }
+
+    req = req.or(Array.from(conditions).join(","));
   }
 
   const { data, error } = await req;

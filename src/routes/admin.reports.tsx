@@ -107,14 +107,14 @@ function ReportsPage() {
   useEffect(() => {
     if (!authReady) return;
     void (async () => {
-      const since = new Date(Date.now() - days * 86400_000).toISOString();
+      const sinceTime = Date.now() - days * 86400_000;
+      const since = new Date(sinceTime).toISOString();
       setSnap(null); setSeries(null);
 
       const [
-        allProfiles, newProfiles, allUserPkgs, allWith, allTasks, allRef, allPkgs,
+        allProfiles, allUserPkgs, allWith, allTasks, allRef, allPkgs,
       ] = await Promise.all([
-        supabase.from("profiles").select("id,balance,locked_balance,total_earned,status,email_verified"),
-        supabase.from("profiles").select("created_at,referred_by").gte("created_at", since),
+        supabase.from("profiles").select("id,balance,locked_balance,total_earned,status,email_verified,email,created_at"),
         supabase.from("user_packages").select("created_at,status,payment_method,package_id,user_id,packages(name,price)"),
         supabase.from("withdrawals").select("created_at,status,amount,method,user_id"),
         supabase.from("task_submissions").select("created_at,status,reward_credited,user_id"),
@@ -122,32 +122,39 @@ function ReportsPage() {
         supabase.from("packages").select("id,name,price"),
       ]);
 
-      const profiles = allProfiles.data ?? [];
+      // Filter out admin system account from customer metrics
+      const profiles = (allProfiles.data ?? []).filter((p) => p.email !== "smartclickbd@gmail.com");
       const activeUserIds = new Set(profiles.map((p) => p.id));
-      // Strictly isolate calculations to active existing profiles so deleted users never distort live metrics
-      const userPkgs = (allUserPkgs.data ?? []).filter((u) => !u.user_id || activeUserIds.has(u.user_id));
-      const withs = (allWith.data ?? []).filter((w) => !w.user_id || activeUserIds.has(w.user_id));
-      const tasks = (allTasks.data ?? []).filter((t) => !t.user_id || activeUserIds.has(t.user_id));
-      const refs = (allRef.data ?? []).filter((r) => !r.referrer_id || activeUserIds.has(r.referrer_id));
+
+      // Strictly isolate calculations to active existing customer profiles so deleted users never distort live metrics
+      const userPkgs = (allUserPkgs.data ?? []).filter((u) => Boolean(u.user_id && activeUserIds.has(u.user_id)));
+      const withs = (allWith.data ?? []).filter((w) => Boolean(w.user_id && activeUserIds.has(w.user_id)));
+      const tasks = (allTasks.data ?? []).filter((t) => Boolean(t.user_id && activeUserIds.has(t.user_id)));
+      const refs = (allRef.data ?? []).filter((r) => Boolean(r.referrer_id && activeUserIds.has(r.referrer_id)));
       const pkgs = allPkgs.data ?? [];
 
-      // ---------- KPIs ----------
-      const totalRevenue = userPkgs
-        .filter((u) => u.status === "active" && new Date(u.created_at).toISOString() >= since)
+      // ---------- KPIs (Filtered by selected days period: 7, 30, 90, 365) ----------
+      const periodUserPkgs = userPkgs.filter((u) => new Date(u.created_at).getTime() >= sinceTime);
+      const periodWiths = withs.filter((w) => new Date(w.created_at).getTime() >= sinceTime);
+
+      const totalRevenue = periodUserPkgs
+        .filter((u) => u.status === "active")
         .reduce((s, u) => s + Number((u as { packages?: { price?: number } | null }).packages?.price ?? 0), 0);
-      const totalWithdraw = withs
-        .filter((w) => w.status === "approved" && new Date(w.created_at).toISOString() >= since)
+
+      const totalWithdraw = periodWiths
+        .filter((w) => w.status === "approved")
         .reduce((s, w) => s + Number(w.amount ?? 0), 0);
+
       const pendingWithdraw = withs.filter((w) => w.status === "pending").reduce((s, w) => s + Number(w.amount ?? 0), 0);
       const pendingDeposit = userPkgs.filter((u) => u.status === "pending").length;
       const rejectedWithdraw = withs.filter((w) => w.status === "rejected").length;
       const refCommission = refs
-        .filter((r) => new Date(r.created_at).toISOString() >= since)
+        .filter((r) => new Date(r.created_at).getTime() >= sinceTime)
         .reduce((s, r) => s + Number(r.amount ?? 0), 0);
 
-      // ---------- Package distribution ----------
+      // ---------- Package distribution (for selected period) ----------
       const distMap: Record<string, { name: string; value: number; revenue: number }> = {};
-      userPkgs.filter((u) => u.status === "active").forEach((u) => {
+      periodUserPkgs.filter((u) => u.status === "active").forEach((u) => {
         const p = (u as { packages?: { name?: string; price?: number } | null }).packages;
         const name = p?.name ?? "—";
         if (!distMap[name]) distMap[name] = { name, value: 0, revenue: 0 };
@@ -156,16 +163,16 @@ function ReportsPage() {
       });
       const pkgDistribution = Object.values(distMap).sort((a, b) => b.value - a.value).slice(0, 6);
 
-      // ---------- Payment methods ----------
+      // ---------- Payment methods (for selected period) ----------
       const methodMap: Record<string, { name: string; deposits: number; withdrawals: number }> = {};
       const ensure = (n: string) => (methodMap[n] ??= { name: n, deposits: 0, withdrawals: 0 });
-      userPkgs.filter((u) => u.status === "active").forEach((u) => { ensure(String(u.payment_method ?? "—")).deposits += 1; });
-      withs.filter((w) => w.status === "approved").forEach((w) => { ensure(String(w.method ?? "—")).withdrawals += 1; });
+      periodUserPkgs.filter((u) => u.status === "active").forEach((u) => { ensure(String(u.payment_method ?? "—")).deposits += 1; });
+      periodWiths.filter((w) => w.status === "approved").forEach((w) => { ensure(String(w.method ?? "—")).withdrawals += 1; });
       const payMethods = Object.values(methodMap);
 
       const snapshot: Snapshot = {
         totalUsers: profiles.length,
-        newUsers: newProfiles.data?.length ?? 0,
+        newUsers: profiles.filter((p) => new Date(p.created_at).getTime() >= sinceTime).length,
         activeInvestors: new Set(userPkgs.filter((u) => u.status === "active").map((u) => (u as { user_id?: string }).user_id)).size,
         suspendedUsers: profiles.filter((p) => p.status === "suspended").length,
         unverifiedUsers: profiles.filter((p) => !p.email_verified).length,
@@ -178,7 +185,7 @@ function ReportsPage() {
         lockedBalance: profiles.reduce((s, p) => s + Number(p.locked_balance ?? 0), 0),
         totalEarnedLifetime: profiles.reduce((s, p) => s + Number(p.total_earned ?? 0), 0),
         refCommission,
-        tasksApproved: tasks.filter((t) => t.status === "approved").length,
+        tasksApproved: tasks.filter((t) => t.status === "approved" && new Date(t.created_at).getTime() >= sinceTime).length,
         tasksPending: tasks.filter((t) => t.status === "pending").length,
         pkgDistribution,
         payMethods,
@@ -191,16 +198,24 @@ function ReportsPage() {
         const k = fmtKey(new Date(Date.now() - i * 86400_000).toISOString());
         buckets[k] = { d: k, signups: 0, revenue: 0, withdraw: 0, tasks: 0, netflow: 0 };
       }
-      (newProfiles.data ?? []).forEach((s) => { const k = fmtKey(s.created_at); if (buckets[k]) buckets[k].signups++; });
-      userPkgs.filter((u) => u.status === "active").forEach((u) => {
+      profiles.forEach((s) => {
+        if (new Date(s.created_at).getTime() >= sinceTime) {
+          const k = fmtKey(s.created_at);
+          if (buckets[k]) buckets[k].signups++;
+        }
+      });
+      userPkgs.filter((u) => u.status === "active" && new Date(u.created_at).getTime() >= sinceTime).forEach((u) => {
         const k = fmtKey(u.created_at);
         if (buckets[k]) buckets[k].revenue += Number((u as { packages?: { price?: number } | null }).packages?.price ?? 0);
       });
-      withs.filter((w) => w.status !== "rejected").forEach((w) => {
+      withs.filter((w) => w.status === "approved" && new Date(w.created_at).getTime() >= sinceTime).forEach((w) => {
         const k = fmtKey(w.created_at);
         if (buckets[k]) buckets[k].withdraw += Number(w.amount ?? 0);
       });
-      tasks.filter((t) => t.status === "approved").forEach((t) => { const k = fmtKey(t.created_at); if (buckets[k]) buckets[k].tasks++; });
+      tasks.filter((t) => t.status === "approved" && new Date(t.created_at).getTime() >= sinceTime).forEach((t) => {
+        const k = fmtKey(t.created_at);
+        if (buckets[k]) buckets[k].tasks++;
+      });
       Object.values(buckets).forEach((b) => { b.netflow = b.revenue - b.withdraw; });
       setSeries(Object.values(buckets));
 
@@ -212,7 +227,8 @@ function ReportsPage() {
   /* ---------- Leaderboards ---------- */
   useEffect(() => {
     if (!authReady) return;
-    void supabase.from("profiles").select("id,full_name,total_earned,balance")
+    void supabase.from("profiles").select("id,full_name,total_earned,balance,email")
+      .neq("email", "smartclickbd@gmail.com")
       .order("total_earned", { ascending: false }).limit(10)
       .then(({ data }) => setLeaders((data ?? []) as Leader[]));
 
