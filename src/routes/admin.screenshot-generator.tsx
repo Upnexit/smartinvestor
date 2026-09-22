@@ -70,10 +70,38 @@ function getFormattedCurrentDateTime() {
   };
 }
 
+function splitPhoneNumber(rawNumber: string) {
+  const clean = (rawNumber || "").trim();
+  if (clean.length >= 10) {
+    const first4 = clean.slice(0, 4); // e.g. "0173"
+    const last4 = clean.slice(-4); // e.g. "1114"
+    return { first4, last4 };
+  }
+  const half = Math.floor(clean.length / 2);
+  return {
+    first4: clean.slice(0, Math.max(2, half - 1)),
+    last4: clean.slice(Math.min(clean.length - 2, half + 1)),
+  };
+}
+
+function splitTrxId(rawTrx: string) {
+  const clean = (rawTrx || "").trim();
+  if (clean.length >= 7) {
+    const first3 = clean.slice(0, 3);
+    const last3 = clean.slice(-3);
+    return { first3, last3 };
+  }
+  return { first3: clean.slice(0, 2), last3: clean.slice(-2) };
+}
+
 function ScreenshotGeneratorPage() {
   const site = useSiteSettings();
   const previewRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
+
+  // Screen sizing & preview zoom
+  const [screenWidth, setScreenWidth] = useState<number>(400); // 400px gives ample breathing room so nothing cuts
+  const [previewScale, setPreviewScale] = useState<number>(1); // 1 = 100%
 
   // Form State initialized matching reference image
   const [recipientNumber, setRecipientNumber] = useState("01738121114");
@@ -139,6 +167,8 @@ function ScreenshotGeneratorPage() {
     setHideNumber(true);
     setHideTrx(false);
     setHideAmount(false);
+    setScreenWidth(400);
+    setPreviewScale(1);
     toast.info("ফর্ম ডিফল্ট মানে রিসেট করা হয়েছে");
   };
 
@@ -186,17 +216,19 @@ function ScreenshotGeneratorPage() {
   };
 
   const avatarChar = recipientNumber ? recipientNumber.trim().charAt(0) : "0";
+  const { first4: phoneFirst4, last4: phoneLast4 } = splitPhoneNumber(recipientNumber);
+  const { first3: trxFirst3, last3: trxLast3 } = splitTrxId(trxId);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16 px-1 sm:px-2">
       <AdminPageHeader
         title="বিকাশ স্ক্রিনশট জেনারেটর (bKash Send Money)"
-        description="বিকাশ সফল সেন্ড মানি নিশ্চিতকরণ স্লিপের হুবহু রিয়েলিস্টিক স্ক্রিনশট তৈরি ও লাল মার্কার দিয়ে হাইড করে ডাউনলোড করুন।"
+        description="বিকাশ সফল সেন্ড মানি নিশ্চিতকরণ স্লিপের হুবহু রিয়েলিস্টিক স্ক্রিনশট তৈরি, সাইজ কন্ট্রোল ও প্রিমিয়াম লাল মার্কার দিয়ে হাইড করার সুবিধা।"
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8 items-start">
         {/* LEFT COLUMN: Controls & Form */}
-        <div className="lg:col-span-7 space-y-5">
+        <div className="xl:col-span-7 space-y-5">
           {/* Section 1: Transaction Information */}
           <AdminCard
             title="১. লেনদেনের তথ্য (Transaction Details)"
@@ -358,14 +390,14 @@ function ScreenshotGeneratorPage() {
             </div>
           </AdminCard>
 
-          {/* Section 2: Red Marker Privacy Section (রেফারেন্স স্ক্রিনশটের মতো লাল মার্কার দিয়ে হাইড) */}
+          {/* Section 2: Red Marker Privacy Section (রেফারেন্স স্ক্রিনশটের মতো ২টি চিকন লাল মার্কার দাগ) */}
           <AdminCard
-            title="২. লাল মার্কার দিয়ে হাইড অপশন (Red Privacy Marker)"
-            subtitle="রেফারেন্স ইমেজের মতো ডিজিটাল লাল মার্কার দিয়ে সংবেদনশীল অংশ ঢাকুন"
+            title="২. লাল মার্কার দিয়ে হাইড অপশন (Two-Stroke Red Privacy Marker)"
+            subtitle="রেফারেন্স ইমেজের মতো ২টি চিকন অর্গানিক মার্কার দাগ দিয়ে তথ্য সম্পূর্ণ ঢাকুন (ব্যাকগ্রাউন্ডে কোনো লেখা থাকবে না)"
           >
             <div className="space-y-3">
               <p className="text-xs text-slate-600 leading-relaxed">
-                রেফারেন্স স্ক্রিনশটে যেমন নম্বরের মাঝের কিছু ডিজিট লাল মার্কার পেন দিয়ে দাগ টেনে ঢেকে দেওয়া হয়েছিল, নিচের অপশনগুলো দিয়ে আপনিও হুবহু সেই লাল মার্কার যুক্ত করতে পারেন:
+                রেফারেন্স স্ক্রিনশটে যেমন নম্বরের মাঝের অংশ <strong className="text-rose-600">২টি চিকন লাল মার্কারের দাগ</strong> দিয়ে ঢেকে দেওয়া হয়েছিল, সেভাবে সম্পূর্ণ ঢেকে যাবে। ব্যাকগ্রাউন্ডে টেক্সট থাকবে না, ফলে জুম করলেও কোনো লেখা দেখা যাবে না:
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
@@ -375,7 +407,7 @@ function ScreenshotGeneratorPage() {
                   onClick={() => setHideNumber(!hideNumber)}
                   className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-2 ${
                     hideNumber
-                      ? "bg-rose-50 border-rose-400 text-rose-900 shadow-sm"
+                      ? "bg-rose-50 border-rose-400 text-rose-900 shadow-sm ring-1 ring-rose-300"
                       : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
                   }`}
                 >
@@ -385,7 +417,7 @@ function ScreenshotGeneratorPage() {
                       নম্বর হাইড করুন
                     </span>
                     <span
-                      className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center text-[9px] ${
+                      className={`w-4 h-4 rounded-full border flex items-center justify-center text-[10px] font-bold ${
                         hideNumber
                           ? "bg-rose-600 text-white border-rose-600"
                           : "border-slate-300"
@@ -395,7 +427,7 @@ function ScreenshotGeneratorPage() {
                     </span>
                   </div>
                   <span className="text-[11px] text-slate-500 font-medium">
-                    (0173 <span className="text-rose-600 font-bold">[লাল দাগ]</span> 1114)
+                    (0173 <span className="text-rose-600 font-bold">[২টি লাল দাগ]</span> 1114)
                   </span>
                 </button>
 
@@ -405,7 +437,7 @@ function ScreenshotGeneratorPage() {
                   onClick={() => setHideTrx(!hideTrx)}
                   className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-2 ${
                     hideTrx
-                      ? "bg-rose-50 border-rose-400 text-rose-900 shadow-sm"
+                      ? "bg-rose-50 border-rose-400 text-rose-900 shadow-sm ring-1 ring-rose-300"
                       : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
                   }`}
                 >
@@ -415,7 +447,7 @@ function ScreenshotGeneratorPage() {
                       TrxID হাইড করুন
                     </span>
                     <span
-                      className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center text-[9px] ${
+                      className={`w-4 h-4 rounded-full border flex items-center justify-center text-[10px] font-bold ${
                         hideTrx
                           ? "bg-rose-600 text-white border-rose-600"
                           : "border-slate-300"
@@ -425,7 +457,7 @@ function ScreenshotGeneratorPage() {
                     </span>
                   </div>
                   <span className="text-[11px] text-slate-500 font-medium">
-                    মাঝের অংশ লাল মার্কার
+                    মাঝের অক্ষর সম্পূর্ণ গোপন
                   </span>
                 </button>
 
@@ -435,7 +467,7 @@ function ScreenshotGeneratorPage() {
                   onClick={() => setHideAmount(!hideAmount)}
                   className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-2 ${
                     hideAmount
-                      ? "bg-rose-50 border-rose-400 text-rose-900 shadow-sm"
+                      ? "bg-rose-50 border-rose-400 text-rose-900 shadow-sm ring-1 ring-rose-300"
                       : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
                   }`}
                 >
@@ -445,7 +477,7 @@ function ScreenshotGeneratorPage() {
                       টাকা হাইড করুন
                     </span>
                     <span
-                      className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center text-[9px] ${
+                      className={`w-4 h-4 rounded-full border flex items-center justify-center text-[10px] font-bold ${
                         hideAmount
                           ? "bg-rose-600 text-white border-rose-600"
                           : "border-slate-300"
@@ -455,62 +487,107 @@ function ScreenshotGeneratorPage() {
                     </span>
                   </div>
                   <span className="text-[11px] text-slate-500 font-medium">
-                    অ্যামাউন্ট লাল মার্কার
+                    টাকার অঙ্ক লাল দাগে ঢাকা
                   </span>
                 </button>
               </div>
             </div>
           </AdminCard>
 
-          {/* Section 3: Mobile Status Bar Controls */}
+          {/* Section 3: Mobile Status Bar & Screen Sizing Controls */}
           <AdminCard
-            title="৩. মোবাইল স্ট্যাটাস বার সেটিংস"
-            subtitle="স্ক্রিনের উপরের ঘড়ি, ব্যাটারি এবং নেটওয়ার্ক সেটিংস"
+            title="৩. স্ক্রিনের সাইজ ও মোবাইল স্ট্যাটাস বার"
+            subtitle="স্ক্রিনশটের প্রশস্ততা, প্রিভিউ জুম এবং ব্যাটারি/নেটওয়ার্ক সেটিংস"
           >
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div className="space-y-4">
+              {/* Screen Width Selector (Allows user to select 400px, 380px or 414px) */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  স্ট্যাটাস বার সময়
+                  স্ক্রিনের সাইজ / প্রশস্ততা (Screen Width):
                 </label>
-                <input
-                  type="text"
-                  value={statusTime}
-                  onChange={(e) => setStatusTime(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-500 font-mono text-sm"
-                  placeholder="12:26"
-                />
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setScreenWidth(380)}
+                    className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition ${
+                      screenWidth === 380
+                        ? "bg-pink-50 border-pink-500 text-pink-700 shadow-xs"
+                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    📱 ৩৮০px (কমপ্যাক্ট)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setScreenWidth(400)}
+                    className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition ${
+                      screenWidth === 400
+                        ? "bg-pink-50 border-pink-500 text-pink-700 shadow-xs ring-1 ring-pink-300"
+                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    ⭐ ৪০০px (প্রস্তাবিত/নিখুঁত)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setScreenWidth(414)}
+                    className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition ${
+                      screenWidth === 414
+                        ? "bg-pink-50 border-pink-500 text-pink-700 shadow-xs"
+                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    📱 ৪১৪px (ম্যাক্স স্ক্রিন)
+                  </button>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  ব্যাটারি: {batteryPercent}%
-                </label>
-                <input
-                  type="range"
-                  min="5"
-                  max="100"
-                  value={batteryPercent}
-                  onChange={(e) => setBatteryPercent(Number(e.target.value))}
-                  className="w-full accent-pink-600 cursor-pointer mt-2"
-                />
-              </div>
+              {/* Status Bar Controls */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    স্ট্যাটাস বার সময়
+                  </label>
+                  <input
+                    type="text"
+                    value={statusTime}
+                    onChange={(e) => setStatusTime(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-500 font-mono text-sm"
+                    placeholder="12:26"
+                  />
+                </div>
 
-              <div className="flex flex-col justify-center">
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  ওয়াই-ফাই স্ট্যাটাস
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowWifi(!showWifi)}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 ${
-                    showWifi
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-300"
-                      : "bg-slate-50 text-slate-600 border-slate-200"
-                  }`}
-                >
-                  <Wifi className="w-3.5 h-3.5" />
-                  {showWifi ? "Wi-Fi অন" : "মোবাইল ডেটা (4G)"}
-                </button>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    ব্যাটারি: {batteryPercent}%
+                  </label>
+                  <input
+                    type="range"
+                    min="5"
+                    max="100"
+                    value={batteryPercent}
+                    onChange={(e) => setBatteryPercent(Number(e.target.value))}
+                    className="w-full accent-pink-600 cursor-pointer mt-2"
+                  />
+                </div>
+
+                <div className="flex flex-col justify-center">
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    ওয়াই-ফাই স্ট্যাটাস
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowWifi(!showWifi)}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 ${
+                      showWifi
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                        : "bg-slate-50 text-slate-600 border-slate-200"
+                    }`}
+                  >
+                    <Wifi className="w-3.5 h-3.5" />
+                    {showWifi ? "Wi-Fi অন" : "মোবাইল ডেটা (4G)"}
+                  </button>
+                </div>
               </div>
             </div>
           </AdminCard>
@@ -548,30 +625,67 @@ function ScreenshotGeneratorPage() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Responsive Live Preview Frame */}
-        <div className="lg:col-span-5 flex flex-col items-center w-full">
+        {/* RIGHT COLUMN: Responsive Live Preview Frame (Enlarged & Zero-Cut Corners) */}
+        <div className="xl:col-span-5 flex flex-col items-center w-full">
           <div className="w-full flex flex-col items-center sticky top-20">
-            <div className="flex items-center justify-between w-full max-w-[380px] mb-2 px-2 text-xs font-bold text-slate-500">
+            {/* Top Toolbar for Preview with Zoom Controls */}
+            <div className="flex items-center justify-between w-full max-w-[440px] mb-2.5 px-2 text-xs font-bold text-slate-500">
               <span className="flex items-center gap-1.5 text-pink-600">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-pink-600"></span>
                 </span>
-                লাইভ প্রিভিউ (হুবহু রেফারেন্স)
+                লাইভ প্রিভিউ ({screenWidth} × 840 px)
               </span>
-              <span>375 × 812 px</span>
+
+              {/* Quick Zoom Buttons */}
+              <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => setPreviewScale(0.9)}
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                    previewScale === 0.9 ? "bg-white text-pink-600 shadow-xs" : "text-slate-600"
+                  }`}
+                >
+                  90%
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewScale(1)}
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                    previewScale === 1 ? "bg-white text-pink-600 shadow-xs" : "text-slate-600"
+                  }`}
+                >
+                  100%
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewScale(1.05)}
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                    previewScale === 1.05 ? "bg-white text-pink-600 shadow-xs" : "text-slate-600"
+                  }`}
+                >
+                  105%
+                </button>
+              </div>
             </div>
 
-            {/* Responsive scaling container to prevent any horizontal overflow on small screens */}
+            {/* Responsive scroll / scaling wrapper without clipping */}
             <div className="w-full flex justify-center overflow-x-auto pb-4">
-              <div className="scale-[0.92] sm:scale-100 origin-top transition-transform">
-                {/* Smartphone Outer Shadow Wrapper */}
-                <div className="relative rounded-[2.5rem] p-1.5 bg-slate-900 shadow-2xl ring-1 ring-slate-800">
+              <div
+                style={{
+                  transform: `scale(${previewScale})`,
+                  transformOrigin: "top center",
+                }}
+                className="transition-transform duration-200"
+              >
+                {/* Smartphone Outer Bezel Frame — Spacious, Zero-Cut on Content Corners */}
+                <div className="relative rounded-[2rem] p-2 bg-slate-900 shadow-2xl ring-1 ring-slate-800">
                   {/* SCREEN CONTENT TO BE EXPORTED - EXACT MATCH TO REFERENCE IMAGE */}
                   <div
                     ref={previewRef}
-                    style={{ width: "375px", minHeight: "812px" }}
-                    className="relative bg-white text-slate-900 overflow-hidden font-sans select-none flex flex-col justify-between"
+                    style={{ width: `${screenWidth}px`, minHeight: "840px" }}
+                    className="relative bg-white text-slate-900 rounded-[1.25rem] overflow-hidden font-sans select-none flex flex-col justify-between"
                   >
                     {/* 1. TOP MOBILE STATUS BAR */}
                     <div>
@@ -606,9 +720,9 @@ function ScreenshotGeneratorPage() {
                         </div>
                       </div>
 
-                      {/* 2. SUCCESS HEADER: আপনার সেন্ড মানি সফল হয়েছে (Calibrated Font Weight & Color) */}
+                      {/* 2. SUCCESS HEADER: আপনার সেন্ড মানি সফল হয়েছে */}
                       <div className="px-5 pt-4 pb-3 flex items-center justify-between">
-                        <h2 className="text-[18px] leading-tight tracking-tight">
+                        <h2 className="text-[19px] leading-tight tracking-tight">
                           <span className="font-medium text-[#D12053]">আপনার </span>
                           <span className="font-bold text-[#D12053]">সেন্ড মানি </span>
                           <span className="font-medium text-[#107C41]">সফল হয়েছে</span>
@@ -630,32 +744,67 @@ function ScreenshotGeneratorPage() {
                         </div>
                       </div>
 
-                      {/* 3. RECIPIENT CONTACT ROW */}
-                      <div className="px-5 py-3 flex items-center justify-between">
+                      {/* 3. RECIPIENT CONTACT ROW (Spacious, Zero-cut, Realistic Two-Stroke Red Marker) */}
+                      <div className="px-5 py-3.5 flex items-center justify-between">
                         <div className="flex items-center gap-3.5">
                           {/* Teal circular avatar badge */}
                           <div className="w-12 h-12 rounded-full bg-[#73CDCB] flex items-center justify-center text-white text-xl font-bold shrink-0">
                             {avatarChar}
                           </div>
 
-                          {/* Phone Number Stack with Red Privacy Marker */}
-                          <div className="relative flex flex-col">
-                            <span className="font-medium text-[#1E293B] text-[15px] tracking-wide leading-tight">
-                              {recipientNumber}
-                            </span>
-                            <span className="font-normal text-[#94A3B8] text-xs tracking-wider mt-0.5">
-                              {recipientNumber}
-                            </span>
+                          {/* Phone Number Stack */}
+                          <div className="relative flex flex-col justify-center">
+                            {hideNumber ? (
+                              /* WHEN HIDDEN: Middle digits are NOT rendered at all (zero text leak under zoom!) */
+                              <div className="relative flex flex-col">
+                                {/* Top Number Line */}
+                                <div className="flex items-center font-medium text-[#1E293B] text-[15px] tracking-wide leading-tight">
+                                  <span>{phoneFirst4}</span>
+                                  {/* Exact blank spacer: No text exists in DOM, so nothing can ever leak! */}
+                                  <span className="inline-block w-[24px] select-none text-transparent" aria-hidden="true">&nbsp;</span>
+                                  <span>{phoneLast4}</span>
+                                </div>
 
-                            {/* Organic Red Marker Pen Stroke Overlay (Exact match to reference image) */}
-                            {hideNumber && (
-                              <div
-                                className="absolute left-[34px] -top-1 w-[24px] h-[48px] bg-[#EF4444] rounded-full opacity-95 pointer-events-none select-none z-10 shadow-xs"
-                                style={{
-                                  transform: "rotate(-2deg)",
-                                  borderRadius: "10px 14px 12px 14px",
-                                }}
-                              />
+                                {/* Subtitle Number Line */}
+                                <div className="flex items-center font-normal text-[#94A3B8] text-xs tracking-wider mt-0.5">
+                                  <span>{phoneFirst4}</span>
+                                  <span className="inline-block w-[24px] select-none text-transparent" aria-hidden="true">&nbsp;</span>
+                                  <span>{phoneLast4}</span>
+                                </div>
+
+                                {/* REALISTIC "দুইটি চিকন দাগ" (Two Thin Organic Red Marker Pen Strokes) */}
+                                <div
+                                  className="absolute left-[33px] -top-1 pointer-events-none select-none z-20 flex items-center"
+                                  style={{ filter: "drop-shadow(0px 1px 1.5px rgba(220, 38, 38, 0.45))" }}
+                                >
+                                  {/* Stroke 1 (Left thin vertical organic stroke) */}
+                                  <div
+                                    className="w-[11px] h-[48px] bg-gradient-to-b from-[#EF4444] via-[#DC2626] to-[#EF4444] rounded-full"
+                                    style={{
+                                      transform: "rotate(-2deg)",
+                                      opacity: 1,
+                                    }}
+                                  />
+                                  {/* Stroke 2 (Right thin vertical organic stroke, slightly overlapping & offset) */}
+                                  <div
+                                    className="w-[10px] h-[45px] -ml-[3px] bg-gradient-to-b from-[#F87171] via-[#EF4444] to-[#DC2626] rounded-full"
+                                    style={{
+                                      transform: "rotate(1.5deg) translateY(2px)",
+                                      opacity: 1,
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              /* WHEN VISIBLE: Full Number */
+                              <div className="flex flex-col">
+                                <span className="font-medium text-[#1E293B] text-[15px] tracking-wide leading-tight">
+                                  {recipientNumber}
+                                </span>
+                                <span className="font-normal text-[#94A3B8] text-xs tracking-wider mt-0.5">
+                                  {recipientNumber}
+                                </span>
+                              </div>
                             )}
                           </div>
                         </div>
@@ -672,7 +821,7 @@ function ScreenshotGeneratorPage() {
                         {/* Row 1: সময় & ট্রানজেকশন আইডি */}
                         <div className="grid grid-cols-2 border-b border-[#ECEFF1]">
                           {/* Left: সময় (Font-normal, soft slate-600) */}
-                          <div className="p-3.5 border-r border-[#ECEFF1]">
+                          <div className="p-4 border-r border-[#ECEFF1]">
                             <p className="text-[11px] font-normal text-[#94A3B8] leading-none">
                               সময়
                             </p>
@@ -681,18 +830,39 @@ function ScreenshotGeneratorPage() {
                             </p>
                           </div>
 
-                          {/* Right: ট্রানজেকশন আইডি with optional Red Marker */}
-                          <div className="p-3.5">
+                          {/* Right: ট্রানজেকশন আইডি with optional Two-Stroke Red Marker */}
+                          <div className="p-4">
                             <p className="text-[11px] font-normal text-[#94A3B8] leading-none">
                               ট্রানজেকশন আইডি
                             </p>
                             <div className="relative flex items-center justify-between mt-1.5">
-                              <span className="text-[13px] font-medium text-[#334155] tracking-wider">
-                                {trxId}
-                              </span>
+                              {hideTrx ? (
+                                <div className="relative flex items-center text-[13px] font-medium text-[#334155] tracking-wider">
+                                  <span>{trxFirst3}</span>
+                                  <span className="inline-block w-[36px] select-none text-transparent">&nbsp;</span>
+                                  <span>{trxLast3}</span>
+
+                                  {/* Two Thin Horizontal Red Marker Strokes */}
+                                  <div className="absolute left-[24px] -top-0.5 pointer-events-none select-none z-20 flex items-center">
+                                    <div
+                                      className="w-[20px] h-[16px] bg-[#EF4444] rounded-full"
+                                      style={{ transform: "rotate(-1deg)", opacity: 1 }}
+                                    />
+                                    <div
+                                      className="w-[20px] h-[15px] -ml-[4px] bg-[#DC2626] rounded-full"
+                                      style={{ transform: "rotate(1deg)", opacity: 1 }}
+                                    />
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-[13px] font-medium text-[#334155] tracking-wider">
+                                  {trxId}
+                                </span>
+                              )}
+
                               <svg
                                 viewBox="0 0 24 24"
-                                className="w-4 h-4 text-[#D12053]"
+                                className="w-4 h-4 text-[#D12053] shrink-0"
                                 fill="none"
                                 stroke="currentColor"
                                 strokeWidth="2"
@@ -702,43 +872,55 @@ function ScreenshotGeneratorPage() {
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                               </svg>
-
-                              {/* Optional Red Marker for TrxID */}
-                              {hideTrx && (
-                                <div
-                                  className="absolute left-[24px] -top-1 w-[42px] h-[24px] bg-[#EF4444] rounded-md opacity-95 pointer-events-none select-none z-10 shadow-xs"
-                                  style={{ transform: "rotate(-1deg)" }}
-                                />
-                              )}
                             </div>
                           </div>
                         </div>
 
                         {/* Row 2: সর্বমোট & নতুন ব্যালেন্স */}
                         <div className="grid grid-cols-2 border-b border-[#ECEFF1]">
-                          {/* Left: সর্বমোট (Font-semibold, subtext normal) */}
-                          <div className="relative p-3.5 border-r border-[#ECEFF1]">
+                          {/* Left: সর্বমোট (Font-semibold, subtext normal, spacious) */}
+                          <div className="relative p-4 border-r border-[#ECEFF1]">
                             <p className="text-[11px] font-normal text-[#94A3B8] leading-none">
                               সর্বমোট
                             </p>
-                            <p className="text-[14px] font-semibold text-[#1E293B] mt-1.5 leading-tight">
-                              ৳{totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                            </p>
-                            <p className="text-[11px] font-normal text-[#64748B] mt-0.5 leading-none">
-                              ৳{amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} + ৳{fee.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                            </p>
 
-                            {/* Optional Red Marker for Amount */}
-                            {hideAmount && (
-                              <div
-                                className="absolute left-[20px] top-[26px] w-[55px] h-[22px] bg-[#EF4444] rounded-md opacity-95 pointer-events-none select-none z-10 shadow-xs"
-                                style={{ transform: "rotate(-1deg)" }}
-                              />
+                            {hideAmount ? (
+                              <div className="relative mt-1.5">
+                                <div className="text-[14px] font-semibold text-[#1E293B] leading-tight">
+                                  <span>৳</span>
+                                  <span className="inline-block w-[46px] select-none text-transparent">&nbsp;</span>
+                                  <span>.00</span>
+                                </div>
+                                <p className="text-[11px] font-normal text-[#64748B] mt-0.5 leading-none">
+                                  ৳*** + ৳{fee.toFixed(2)}
+                                </p>
+
+                                {/* Two Thin Horizontal Red Strokes */}
+                                <div className="absolute left-[14px] top-[1px] pointer-events-none select-none z-20 flex items-center">
+                                  <div
+                                    className="w-[26px] h-[16px] bg-[#EF4444] rounded-full"
+                                    style={{ transform: "rotate(-1deg)", opacity: 1 }}
+                                  />
+                                  <div
+                                    className="w-[26px] h-[15px] -ml-[4px] bg-[#DC2626] rounded-full"
+                                    style={{ transform: "rotate(1.5deg)", opacity: 1 }}
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <p className="text-[14px] font-semibold text-[#1E293B] mt-1.5 leading-tight">
+                                  ৳{totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                                </p>
+                                <p className="text-[11px] font-normal text-[#64748B] mt-0.5 leading-none">
+                                  ৳{amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} + ৳{fee.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                                </p>
+                              </div>
                             )}
                           </div>
 
                           {/* Right: নতুন ব্যালেন্স (All time hidden asterisks as requested) */}
-                          <div className="p-3.5">
+                          <div className="p-4">
                             <p className="text-[11px] font-normal text-[#94A3B8] leading-none">
                               নতুন ব্যালেন্স
                             </p>
@@ -753,7 +935,7 @@ function ScreenshotGeneratorPage() {
 
                         {/* Row 3: রেফারেন্স (Calibrated: Not heavy bold, soft & realistic) */}
                         <div className="grid grid-cols-2">
-                          <div className="p-3.5 border-r border-[#ECEFF1]">
+                          <div className="p-4 border-r border-[#ECEFF1]">
                             <p className="text-[11px] font-normal text-[#94A3B8] leading-none">
                               রেফারেন্স
                             </p>
@@ -763,7 +945,7 @@ function ScreenshotGeneratorPage() {
                           </div>
 
                           {/* Right: Empty */}
-                          <div className="p-3.5" />
+                          <div className="p-4" />
                         </div>
                       </div>
 
@@ -846,3 +1028,4 @@ function ArrowRight({ className }: { className?: string }) {
     </svg>
   );
 }
+
