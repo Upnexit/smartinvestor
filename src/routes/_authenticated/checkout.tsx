@@ -13,10 +13,16 @@ import { cn } from "@/lib/utils";
 import {
   submitCheckoutPayment,
 } from "@/lib/checkout.functions";
+import { submitSpinDeposit } from "@/lib/spin-client";
 
 export const Route = createFileRoute("/_authenticated/checkout")({
   head: () => ({ meta: [{ title: "চেকআউট — Smart Click BD" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({ pkg: typeof s.pkg === "string" ? s.pkg : "" }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    pkg: typeof s.pkg === "string" ? s.pkg : "",
+    spin: typeof s.spin === "string" ? s.spin : "",
+    amount: typeof s.amount === "number" ? s.amount : Number(s.amount) || 0,
+    won: typeof s.won === "number" ? s.won : Number(s.won) || 0,
+  }),
   component: CheckoutPage,
 });
 
@@ -81,7 +87,13 @@ async function compressImageFile(file: File, maxDimension = 1280, quality = 0.82
 }
 
 function CheckoutPage() {
-  const { pkg: pkgId } = useSearch({ from: "/_authenticated/checkout" });
+  const search = useSearch({ from: "/_authenticated/checkout" });
+  const pkgId = search.pkg;
+  const spinId = search.spin;
+  const spinAmount = search.amount;
+  const spinWon = search.won;
+  const isSpinMode = Boolean(spinId && spinAmount > 0);
+
   const navigate = useNavigate();
   const submitPayment = useServerFn(submitCheckoutPayment);
 
@@ -100,10 +112,44 @@ function CheckoutPage() {
   const [countdown, setCountdown] = useState(30);
   const paymentBranding = usePaymentBranding();
   const site = useSiteSettings();
-  const brandName = site.site_name || "Smart English Store";
+  const brandName = site.site_name || "Smart Click BD";
   const brandLogo = site.logo_url || accounts.system_logo_url || "";
 
   useEffect(() => {
+    if (isSpinMode) {
+      setPkg({
+        id: `spin-${spinId}`,
+        name: "লাকি স্পিন পুরস্কার আনলক — ৫০% ডিপোজিট",
+        price: spinAmount,
+        duration_days: 0,
+      });
+
+      (async () => {
+        const [{ data: s }, { data: perMethod }] = await Promise.all([
+          supabase.from("site_settings").select("value").eq("key", "payment_accounts").maybeSingle(),
+          supabase.from("site_settings").select("key,value").in("key", ["payment_bkash","payment_nagad","payment_rocket"]),
+        ]);
+        const base = (s?.value as PayAccounts) ?? {};
+        const logos: Partial<Record<Method, string>> = { ...(base.logos ?? {}) };
+        const merged: PayAccounts = { ...base };
+        (perMethod ?? []).forEach((r) => {
+          const m = (r.key as string).replace("payment_", "") as Method;
+          const v = r.value as { number?: string; agent_number?: string; instructions?: string; logo_url?: string; active?: boolean } | null;
+          if (!v || v.active === false) {
+            merged[m] = "";
+            delete logos[m];
+            return;
+          }
+          merged[m] = (v.number || v.agent_number || "").replace(/\D/g, "");
+          if (v.instructions) merged.methodInstructions = { ...(merged.methodInstructions ?? {}), [m]: v.instructions };
+          if (v.logo_url) logos[m] = v.logo_url;
+        });
+        merged.logos = logos;
+        setAccounts(applyPaymentBranding(merged, paymentBranding, site.logo_url));
+      })();
+      return;
+    }
+
     if (!pkgId) { navigate({ to: "/packages" }); return; }
     (async () => {
       const [{ data: p }, { data: s }, { data: perMethod }] = await Promise.all([
@@ -131,7 +177,7 @@ function CheckoutPage() {
       merged.logos = logos;
       setAccounts(applyPaymentBranding(merged, paymentBranding, site.logo_url));
     })();
-  }, [pkgId, navigate, paymentBranding, site.logo_url]);
+  }, [pkgId, isSpinMode, spinId, spinAmount, navigate, paymentBranding, site.logo_url]);
 
   useEffect(() => {
     setAccounts((prev) => applyPaymentBranding(prev, paymentBranding, site.logo_url));
@@ -267,6 +313,26 @@ function CheckoutPage() {
       }
     }
 
+    // If Spin Deposit Mode: submit directly to spin_history via submitSpinDeposit RPC
+    if (isSpinMode && spinId) {
+      try {
+        const spinRes = await submitSpinDeposit({
+          spinId,
+          method,
+          sender: cleanSender,
+          trx: cleanTrx,
+          screenshot: screenshotUrl,
+        });
+        if (!spinRes.success) {
+          console.warn("[checkout] submitSpinDeposit result:", spinRes.error);
+        }
+        setOrderId(`spin-${spinId}`);
+        return;
+      } catch (err) {
+        console.error("[checkout] spin deposit submit failed:", err);
+      }
+    }
+
     // Primary path: client-side insert using authenticated user's session (RLS passes).
     let savedOrderId: string | null = null;
     try {
@@ -333,9 +399,12 @@ function CheckoutPage() {
     if (savedOrderId) setOrderId(savedOrderId);
   };
 
-
   const handleSubmitTrx = async () => {
     if (!pkg || !method || submitting) return;
+    if (isSpinMode && !screenshotFile) {
+      toast.error("পেমেন্টের স্ক্রিনশট বা রসিদের ছবি আপলোড করা বাধ্যতামূলক!");
+      return;
+    }
     setSubmitting(true);
     const minimumWait = new Promise((resolve) => setTimeout(resolve, 2600));
     await Promise.allSettled([saveSubmittedPayment(), minimumWait]);
@@ -344,9 +413,11 @@ function CheckoutPage() {
     setStep("success");
   };
 
-
-
   const handleCancel = async () => {
+    if (isSpinMode) {
+      navigate({ to: "/spin" });
+      return;
+    }
     if (orderId) {
       try { await supabase.from("user_packages").delete().eq("id", orderId); } catch {
         // Ignore cleanup errors — user is abandoning the flow
@@ -380,8 +451,9 @@ function CheckoutPage() {
             pkg={pkg} accounts={accounts} method={method} setMethod={setMethod} invoiceShort={invoiceShort}
             brandName={brandName} brandLogo={brandLogo}
             availableMethods={availableMethods}
+            isSpinMode={isSpinMode} spinWon={spinWon}
             onNext={() => method && setStep("account")}
-            onClose={() => navigate({ to: "/packages" })}
+            onClose={() => navigate({ to: isSpinMode ? "/spin" : "/packages" })}
           />
         )}
         {step === "account" && method && (
@@ -389,6 +461,7 @@ function CheckoutPage() {
             pkg={pkg} method={method} accounts={accounts} senderNumber={senderNumber} setSenderNumber={setSenderNumber}
             brandName={brandName} brandLogo={brandLogo}
             phoneValid={phoneValid} invoiceShort={invoiceShort} creating={creating}
+            isSpinMode={isSpinMode} spinWon={spinWon}
             onCancel={handleCancel} onConfirm={handleConfirmNumber}
           />
         )}
@@ -397,6 +470,7 @@ function CheckoutPage() {
             pkg={pkg} method={method} accounts={accounts} countdown={countdown}
             brandName={brandName} brandLogo={brandLogo}
             activeNumber={activeNumber} invoiceShort={invoiceShort}
+            isSpinMode={isSpinMode} spinWon={spinWon}
             onCancel={handleCancel} onProceed={() => setStep("trx")}
           />
         )}
@@ -407,6 +481,7 @@ function CheckoutPage() {
             screenshotPreview={screenshotPreview} setScreenshotPreview={setScreenshotPreview}
             brandName={brandName} brandLogo={brandLogo}
             trxValid={trxValid} submitting={submitting} invoiceShort={invoiceShort}
+            isSpinMode={isSpinMode} spinWon={spinWon}
             onCancel={handleCancel} onSubmit={handleSubmitTrx}
           />
         )}
@@ -414,7 +489,8 @@ function CheckoutPage() {
           <StepSuccess
             pkg={pkg} method={method} accounts={accounts} activeNumber={activeNumber} senderNumber={phoneNorm || senderNumber}
             trxId={trxNorm || "Submitted"} brandName={brandName} brandLogo={brandLogo} invoiceShort={invoiceShort}
-            submittedAt={submittedAt} onDashboard={() => navigate({ to: "/dashboard", replace: true })}
+            isSpinMode={isSpinMode} spinWon={spinWon}
+            submittedAt={submittedAt} onDashboard={() => navigate({ to: isSpinMode ? "/spin" : "/dashboard", replace: true })}
           />
         )}
       </div>
@@ -494,11 +570,11 @@ function BrandBadge({ logoUrl, brandName, className }: { logoUrl?: string; brand
 
 /* ============ Step 1: Payment method selection (Zini-Pay style) ============ */
 function StepSelect({
-  pkg, accounts, method, setMethod, invoiceShort, brandName, brandLogo, availableMethods, onNext, onClose,
+  pkg, accounts, method, setMethod, invoiceShort, brandName, brandLogo, availableMethods, isSpinMode, spinWon, onNext, onClose,
 }: {
   pkg: Pkg; accounts: PayAccounts; method: Method | null;
   setMethod: (m: Method) => void; invoiceShort: string; brandName: string; brandLogo: string;
-  availableMethods: Method[]; onNext: () => void; onClose: () => void;
+  availableMethods: Method[]; isSpinMode?: boolean; spinWon?: number; onNext: () => void; onClose: () => void;
 }) {
   const [tab, setTab] = useState<"local" | "intl">("local");
   return (
@@ -512,6 +588,24 @@ function StepSelect({
           <X className="h-5 w-5" />
         </button>
       </div>
+
+      {/* Spin alert banner */}
+      {isSpinMode && (
+        <div className="mt-3 rounded-2xl bg-gradient-to-r from-rose-500 via-amber-500 to-orange-500 p-3.5 text-white shadow-md flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <span className="inline-block px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-black uppercase mb-1">
+              🎡 স্পিন পুরস্কার উইন: ৳{spinWon}
+            </span>
+            <p className="text-xs sm:text-sm font-bold truncate">৫০% ডিপোজিট ফি: ৳{pkg.price}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="shrink-0 text-xs font-bold bg-white/25 hover:bg-white/35 px-3 py-1.5 rounded-xl transition border border-white/30"
+          >
+            ← স্পিন পেজে ফিরুন
+          </button>
+        </div>
+      )}
 
       {/* brand + invoice */}
       <div className="mt-3 flex items-center gap-3">
@@ -606,7 +700,7 @@ function StepSelect({
             : "bg-blue-100 text-blue-500 cursor-not-allowed",
         )}
       >
-        Pay {pkg.price} BDT
+        {isSpinMode ? `পেমেন্ট করুন ৳${pkg.price} (৫০% ডিপোজিট)` : `Pay ${pkg.price} BDT`}
       </button>
     </div>
   );
@@ -614,12 +708,12 @@ function StepSelect({
 
 /* ============ Step 2: Enter sender number (bKash-style modal) ============ */
 function StepAccount({
-  pkg, method, accounts, senderNumber, setSenderNumber, phoneValid, invoiceShort, brandName, brandLogo, creating, onCancel, onConfirm,
+  pkg, method, accounts, senderNumber, setSenderNumber, phoneValid, invoiceShort, brandName, brandLogo, creating, isSpinMode, spinWon, onCancel, onConfirm,
 }: {
   pkg: Pkg; method: Method; accounts: PayAccounts;
   senderNumber: string; setSenderNumber: (v: string) => void;
   phoneValid: boolean; invoiceShort: string; brandName: string; brandLogo: string; creating: boolean;
-  onCancel: () => void; onConfirm: () => void;
+  isSpinMode?: boolean; spinWon?: number; onCancel: () => void; onConfirm: () => void;
 }) {
   const b = BRAND[method];
   return (
@@ -638,7 +732,10 @@ function StepAccount({
           <p className="text-sm font-bold text-slate-900 truncate">{brandName} — {pkg.name}</p>
           <p className="text-[10px] text-slate-500 truncate">Inv No: {invoiceShort} <span style={{ color: b.primary }}>●</span></p>
         </div>
-        <p className="bn-display text-xl text-slate-900">৳{pkg.price}</p>
+        <div className="text-right">
+          <p className="bn-display text-xl text-slate-900">৳{pkg.price}</p>
+          {isSpinMode && <p className="text-[10px] font-bold text-rose-600">৫০% ডিপোজিট</p>}
+        </div>
       </div>
 
       {/* colored body */}
@@ -689,11 +786,11 @@ function StepAccount({
 
 /* ============ Step 3: Merchant number + waiting ============ */
 function StepWaiting({
-  pkg, method, accounts, countdown, brandName, brandLogo, activeNumber, invoiceShort, onCancel, onProceed,
+  pkg, method, accounts, countdown, brandName, brandLogo, activeNumber, invoiceShort, isSpinMode, spinWon, onCancel, onProceed,
 }: {
   pkg: Pkg; method: Method; accounts: PayAccounts; countdown: number;
   brandName: string; brandLogo: string; activeNumber: string; invoiceShort: string;
-  onCancel: () => void; onProceed: () => void;
+  isSpinMode?: boolean; spinWon?: number; onCancel: () => void; onProceed: () => void;
 }) {
   const b = BRAND[method];
   return (
@@ -705,7 +802,10 @@ function StepWaiting({
           <p className="text-sm font-bold text-slate-900 truncate">{brandName} — {pkg.name}</p>
           <p className="text-[10px] text-slate-500 truncate">Inv No: {invoiceShort} <span style={{ color: b.primary }}>●</span></p>
         </div>
-        <p className="bn-display text-xl text-slate-900">৳{pkg.price}</p>
+        <div className="text-right">
+          <p className="bn-display text-xl text-slate-900">৳{pkg.price}</p>
+          {isSpinMode && <p className="text-[10px] font-bold text-rose-600">৫০% ডিপোজিট</p>}
+        </div>
       </div>
 
       {/* colored body */}
@@ -743,8 +843,6 @@ function StepWaiting({
             <CopyPill value={String(pkg.price)} className="!h-7 !w-7 !bg-white" />
           </div>
         </div>
-
-
 
         {/* instructions from database (step by step) */}
         <ol className="mt-4 space-y-2.5 text-sm">
@@ -852,19 +950,18 @@ function highlightAmount(line: string, amount: number): React.ReactNode {
   );
 }
 
-
 /* ============ Step 4: Submit Transaction ID ============ */
 function StepTrx({
   pkg, method, accounts, activeNumber, brandName, brandLogo, trxId, setTrxId,
   screenshotFile, setScreenshotFile, screenshotPreview, setScreenshotPreview,
-  trxValid, submitting, invoiceShort, onCancel, onSubmit,
+  trxValid, submitting, invoiceShort, isSpinMode, spinWon, onCancel, onSubmit,
 }: {
   pkg: Pkg; method: Method; accounts: PayAccounts; activeNumber: string;
   brandName: string; brandLogo: string; trxId: string; setTrxId: (v: string) => void;
   screenshotFile: File | null; setScreenshotFile: (f: File | null) => void;
   screenshotPreview: string | null; setScreenshotPreview: (url: string | null) => void;
   trxValid: boolean; submitting: boolean; invoiceShort: string;
-  onCancel: () => void; onSubmit: () => void;
+  isSpinMode?: boolean; spinWon?: number; onCancel: () => void; onSubmit: () => void;
 }) {
   const b = BRAND[method];
   return (
@@ -876,7 +973,10 @@ function StepTrx({
           <p className="text-sm font-bold text-slate-900 truncate">{brandName} — {pkg.name}</p>
           <p className="text-[10px] text-slate-500 truncate">Inv No: {invoiceShort} <span style={{ color: b.primary }}>●</span></p>
         </div>
-        <p className="bn-display text-xl text-slate-900">৳{pkg.price}</p>
+        <div className="text-right">
+          <p className="bn-display text-xl text-slate-900">৳{pkg.price}</p>
+          {isSpinMode && <p className="text-[10px] font-bold text-rose-600">৫০% ডিপোজিট</p>}
+        </div>
       </div>
 
       {/* colored body */}
@@ -899,7 +999,7 @@ function StepTrx({
         <div className="mt-3.5">
           <label className="block text-xs font-semibold text-white/95 mb-1.5 flex items-center justify-between">
             <span className="flex items-center gap-1.5">
-              <ImageIcon className="h-3.5 w-3.5" /> পেমেন্ট স্ক্রিনশট (ঐচ্ছিক)
+              <ImageIcon className="h-3.5 w-3.5" /> পেমেন্ট স্ক্রিনশট {isSpinMode ? <b className="text-yellow-300 font-black">(বাধ্যতামূলক)</b> : <span className="text-white/80">(ঐচ্ছিক)</span>}
             </span>
             {screenshotFile && (
               <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded text-white font-mono">
@@ -940,7 +1040,7 @@ function StepTrx({
                 <Upload className="h-4 w-4" />
               </div>
               <p className="text-xs font-bold text-white leading-tight">
-                স্ক্রিনশট আপলোড করতে ট্যাপ করুন
+                {isSpinMode ? "বাধ্যতামূলক: স্ক্রিনশট আপলোড করুন" : "স্ক্রিনশট আপলোড করতে ট্যাপ করুন"}
               </p>
               <p className="text-[10px] text-white/80 leading-tight">
                 JPG, PNG বা WebP ছবি নির্বাচন করুন
@@ -968,7 +1068,7 @@ function StepTrx({
 
         <div className="mt-3 flex items-start gap-2 rounded-xl bg-black/20 p-2.5 text-[11px] text-white/95 ring-1 ring-white/20">
           <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
-          <span>{b.name} থেকে SMS-এ প্রাপ্ত ৮-সংখ্যার Transaction ID লিখুন। অ্যাডমিন যাচাই শেষে প্যাকেজ active হবে।</span>
+          <span>{b.name} থেকে SMS-এ প্রাপ্ত ৮-সংখ্যার Transaction ID লিখুন। অ্যাডমিন যাচাই শেষে অনুমোদন দেওয়া হবে।</span>
         </div>
 
         {trxId.length > 0 && !trxValid && (
@@ -997,21 +1097,28 @@ function StepTrx({
 
 /* ============ Step 5: Professional submitted confirmation ============ */
 function StepSuccess({
-  pkg, method, accounts, activeNumber, senderNumber, trxId, brandName, brandLogo, invoiceShort, submittedAt, onDashboard,
+  pkg, method, accounts, activeNumber, senderNumber, trxId, brandName, brandLogo, invoiceShort, submittedAt, isSpinMode, spinWon, onDashboard,
 }: {
   pkg: Pkg; method: Method; accounts: PayAccounts; activeNumber: string; senderNumber: string; trxId: string;
-  brandName: string; brandLogo: string; invoiceShort: string; submittedAt: string | null; onDashboard: () => void;
+  brandName: string; brandLogo: string; invoiceShort: string; submittedAt: string | null; isSpinMode?: boolean; spinWon?: number; onDashboard: () => void;
 }) {
   const b = BRAND[method];
+  const navigate = useNavigate();
   return (
     <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
       <div className="px-6 py-8 text-center text-white" style={{ background: b.gradient }}>
         <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-white text-emerald-600 shadow-xl">
           <Check className="h-9 w-9" />
         </div>
-        <h1 className="mt-5 bn-display text-2xl text-white">Thank you</h1>
-        <p className="mt-2 text-sm font-semibold text-white/95">Your Transaction ID submit successfully.</p>
-        <p className="mt-1 text-xs text-white/80">পেমেন্ট অ্যাপ্রুভাল পেজে আপনার details পাঠানো হয়েছে।</p>
+        <h1 className="mt-5 bn-display text-2xl text-white">{isSpinMode ? "ডিপোজিট সাবমিট সম্পন্ন" : "Thank you"}</h1>
+        <p className="mt-2 text-sm font-semibold text-white/95">
+          {isSpinMode ? "আপনার ৫০% ডিপোজিট পেমেন্ট সফলভাবে জমা হয়েছে!" : "Your Transaction ID submit successfully."}
+        </p>
+        <p className="mt-1 text-xs text-white/80">
+          {isSpinMode
+            ? `অ্যাডমিন দ্রুত ভেরিফাই করে আপনার স্পিন পুরস্কারের সম্পূর্ণ ৳${spinWon} ব্যালেন্সে যুক্ত করে দিবে।`
+            : "পেমেন্ট অ্যাপ্রুভাল পেজে আপনার details পাঠানো হয়েছে।"}
+        </p>
       </div>
 
       <div className="bg-white px-5 py-4 flex items-center gap-3 border-b border-slate-100">
@@ -1020,7 +1127,10 @@ function StepSuccess({
           <p className="text-sm font-bold text-slate-900 truncate">{brandName} — {pkg.name}</p>
           <p className="text-[10px] text-slate-500 truncate">Inv No: {invoiceShort} <span style={{ color: b.primary }}>●</span></p>
         </div>
-        <p className="bn-display text-xl text-slate-900">৳{pkg.price}</p>
+        <div className="text-right">
+          <p className="bn-display text-xl text-slate-900">৳{pkg.price}</p>
+          {isSpinMode && <p className="text-[10px] font-bold text-rose-600">৫০% ডিপোজিট</p>}
+        </div>
       </div>
 
       <div className="space-y-2.5 p-5 text-sm">
@@ -1032,13 +1142,21 @@ function StepSuccess({
         {submittedAt && <SuccessRow label="Submitted" value={new Date(submittedAt).toLocaleString("bn-BD")} />}
       </div>
 
-      <div className="bg-white p-4 pt-0">
+      <div className="bg-white p-4 pt-0 flex gap-2">
+        {isSpinMode && (
+          <button
+            onClick={() => navigate({ to: "/spin", replace: true })}
+            className="flex-1 rounded-xl bg-slate-100 hover:bg-slate-200 py-3 text-xs sm:text-sm font-bold text-slate-700 transition"
+          >
+            ← স্পিন পেজে যান
+          </button>
+        )}
         <button
           onClick={onDashboard}
           style={{ background: b.gradient }}
-          className="w-full rounded-xl py-3 text-sm font-bold text-white shadow transition"
+          className="flex-1 rounded-xl py-3 text-xs sm:text-sm font-bold text-white shadow transition"
         >
-          Go to Dashboard
+          {isSpinMode ? "ড্যাশবোর্ডে যান" : "Go to Dashboard"}
         </button>
       </div>
     </div>

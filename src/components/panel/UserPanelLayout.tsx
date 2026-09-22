@@ -111,7 +111,7 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
     <div className="panel-themed min-h-screen">
       {/* Mobile top bar */}
       <header className="panel-chrome sticky top-0 z-30 flex items-center justify-between border-b backdrop-blur px-4 py-3 lg:hidden">
-        <Link to="/dashboard" className="flex items-center gap-2">
+        <Link to="/dashboard" preload="intent" className="flex items-center gap-2">
           <div className="panel-brand grid h-9 w-9 place-items-center rounded-xl shadow-lg overflow-hidden bg-white p-0.5">
             <img src="/logo.png" alt="Smart Click BD" className="h-full w-full object-contain" />
           </div>
@@ -135,6 +135,7 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
           </button>
           <Link
             to="/support"
+            preload="intent"
             aria-label="সাপোর্ট"
             className="panel-brand grid h-9 w-9 place-items-center rounded-xl shadow-lg hover:scale-105 transition"
           >
@@ -192,6 +193,7 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
               <li key={item.to}>
                 <Link
                   to={item.to}
+                  preload="intent"
                   className="relative flex flex-col items-center gap-1 rounded-xl px-1 py-1 text-[10px] font-semibold"
                 >
                   {active && (
@@ -225,7 +227,7 @@ function SidebarContent({
   return (
     <div className="flex h-full flex-col p-4">
       {/* Brand */}
-      <Link to="/dashboard" onClick={onNavigate} className="flex items-center gap-3 rounded-2xl px-2 py-2">
+      <Link to="/dashboard" preload="intent" onClick={onNavigate} className="flex items-center gap-3 rounded-2xl px-2 py-2">
         <div className="panel-brand grid h-11 w-11 place-items-center rounded-2xl shadow-lg overflow-hidden bg-white p-1">
           <img src="/logo.png" alt="Smart Click BD" className="h-full w-full object-contain" />
         </div>
@@ -243,6 +245,7 @@ function SidebarContent({
             <Link
               key={item.to}
               to={item.to}
+              preload="intent"
               onClick={onNavigate}
               className={cn(
                 "group relative flex items-center gap-3 overflow-hidden rounded-2xl px-3 py-2.5 text-sm font-semibold transition-all duration-300",
@@ -270,6 +273,7 @@ function SidebarContent({
         {/* Home — placed inside the scroll area so it scrolls with the rest */}
         <Link
           to="/"
+          preload="intent"
           onClick={onNavigate}
           className="group relative mt-2 flex items-center gap-3 overflow-hidden rounded-2xl border border-sky-200 bg-gradient-to-r from-sky-50 via-cyan-50 to-blue-50 px-3 py-2.5 text-sm font-semibold text-slate-800 shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
         >

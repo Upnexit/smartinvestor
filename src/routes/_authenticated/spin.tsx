@@ -1,11 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { fireConfetti } from "@/lib/confetti";
 import {
-  Sparkles, Wallet, Clock, AlertCircle, CheckCircle2, ChevronRight,
-  Copy, Check, Headphones, Upload, ShieldCheck, ArrowRight, X,
-  RotateCcw, Trophy, Award, Gift, RefreshCw, Loader2, HelpCircle
+  Sparkles, Clock, AlertCircle, CheckCircle2, ChevronRight,
+  Headphones, ArrowRight, X, RotateCcw, Trophy, RefreshCw, Loader2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -13,7 +12,6 @@ import {
   getActiveSpinSlices,
   getUserSpinEligibility,
   executeUserSpin,
-  submitSpinDeposit,
   getUserSpinHistory,
   type SpinSlice,
   type SpinHistoryItem,
@@ -26,14 +24,6 @@ export const Route = createFileRoute("/_authenticated/spin")({
   head: () => ({ meta: [{ title: "চাকা ঘুরিয়ে ইনকাম — Smart Click BD" }] }),
   component: LuckySpinPage,
 });
-
-type PaymentMethod = "bkash" | "nagad" | "rocket";
-
-const PAYMENT_BRANDS: Record<PaymentMethod, { name: string; color: string; bg: string; border: string }> = {
-  bkash:  { name: "bKash",  color: "#E2136E", bg: "bg-[#E2136E]/10", border: "border-[#E2136E]/40" },
-  nagad:  { name: "Nagad",  color: "#EC1C24", bg: "bg-[#EC1C24]/10", border: "border-[#EC1C24]/40" },
-  rocket: { name: "Rocket", color: "#8E2C8B", bg: "bg-[#8E2C8B]/10", border: "border-[#8E2C8B]/40" },
-};
 
 function formatCountdown(totalSec: number) {
   if (totalSec <= 0) return "00:00:00";
@@ -73,28 +63,6 @@ export function LuckySpinPage() {
     sliceLabel: string;
   } | null>(null);
 
-  // Deposit Modal state
-  const [depositModalOpen, setDepositModalOpen] = useState(false);
-  const [depositTarget, setDepositTarget] = useState<{
-    spinId: string;
-    wonAmount: number;
-    depositRequired: number;
-  } | null>(null);
-
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bkash");
-  const [senderNumber, setSenderNumber] = useState("");
-  const [trxId, setTrxId] = useState("");
-  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
-  const [isSubmittingDeposit, setIsSubmittingDeposit] = useState(false);
-  const [copiedNumber, setCopiedNumber] = useState(false);
-
-  // Payment numbers from site settings
-  const [accounts, setAccounts] = useState<Record<PaymentMethod, string>>({
-    bkash: "",
-    nagad: "",
-    rocket: "",
-  });
-
   // Countdown timer tick
   useEffect(() => {
     if (eligibility.remainingSeconds <= 0) return;
@@ -109,7 +77,7 @@ export function LuckySpinPage() {
     return () => clearInterval(interval);
   }, [eligibility.remainingSeconds]);
 
-  // Load user, slices, eligibility, history, and payment accounts
+  // Load user, slices, eligibility, history
   const loadData = async () => {
     try {
       const { data: authData } = await supabase.auth.getUser();
@@ -120,34 +88,15 @@ export function LuckySpinPage() {
       const uid = authData.user.id;
       setUserId(uid);
 
-      const [loadedSlices, elig, hist, accRes] = await Promise.all([
+      const [loadedSlices, elig, hist] = await Promise.all([
         getActiveSpinSlices(),
         getUserSpinEligibility(uid),
         getUserSpinHistory(uid),
-        supabase.from("site_settings").select("key,value").in("key", ["payment_accounts", "payment_bkash", "payment_nagad", "payment_rocket"]),
       ]);
 
       setSlices(loadedSlices);
       setEligibility(elig);
       setHistory(hist);
-
-      // Parse payment accounts
-      const accs: Record<PaymentMethod, string> = { bkash: "", nagad: "", rocket: "" };
-      (accRes.data || []).forEach((r) => {
-        if (r.key === "payment_accounts") {
-          const val = r.value as any;
-          if (val?.bkash) accs.bkash = String(val.bkash).replace(/\D/g, "");
-          if (val?.nagad) accs.nagad = String(val.nagad).replace(/\D/g, "");
-          if (val?.rocket) accs.rocket = String(val.rocket).replace(/\D/g, "");
-        } else {
-          const m = r.key.replace("payment_", "") as PaymentMethod;
-          const val = r.value as any;
-          if (val?.number || val?.agent_number) {
-            accs[m] = String(val.number || val.agent_number).replace(/\D/g, "");
-          }
-        }
-      });
-      setAccounts(accs);
     } catch (err) {
       console.error("Error loading spin page data:", err);
     } finally {
@@ -157,6 +106,24 @@ export function LuckySpinPage() {
 
   useEffect(() => {
     loadData();
+  }, []);
+
+  // Real-time synchronization for spin wheel slices
+  useEffect(() => {
+    const channel = supabase
+      .channel("realtime-spin-slices")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "spin_wheel_slices" },
+        () => {
+          getActiveSpinSlices().then(setSlices);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Handle Wheel Spin
@@ -197,7 +164,7 @@ export function LuckySpinPage() {
       const targetSliceCenter = (sliceIndex + 0.5) * sliceAngle;
       const targetAngle = 360 - targetSliceCenter;
 
-      // Add 6-8 full rotations (360 * 7) for dramatic effect
+      // Add 7 full rotations (360 * 7) for dramatic effect
       const extraSpins = 360 * 7;
       const currentNormalized = rotation % 360;
       const newRotation = rotation + (360 - currentNormalized) + extraSpins + targetAngle;
@@ -231,87 +198,17 @@ export function LuckySpinPage() {
     }
   };
 
-  // Open Deposit Flow for a specific spin claim
-  const handleOpenDeposit = (claim: { spinId: string; wonAmount: number; depositRequired: number }) => {
+  // Direct redirect to unified checkout for 50% deposit payment
+  const handleProceedToDeposit = (claim: { spinId: string; wonAmount: number; depositRequired: number }) => {
     setWinModalOpen(false);
-    setDepositTarget(claim);
-    setSenderNumber("");
-    setTrxId("");
-    setScreenshotFile(null);
-    setDepositModalOpen(true);
-  };
-
-  // Submit Deposit
-  const handleSubmitDeposit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!depositTarget) return;
-
-    const cleanSender = senderNumber.trim();
-    const cleanTrx = trxId.trim().toUpperCase();
-
-    if (!cleanSender || cleanSender.length < 11) {
-      toast.error("সঠিক প্রেরক মোবাইল নম্বর দিন (কমপক্ষে ১১ ডিজিট)");
-      return;
-    }
-    if (!cleanTrx || cleanTrx.length < 6) {
-      toast.error("সঠিক ট্রানজেকশন আইডি (TrxID) দিন");
-      return;
-    }
-
-    setIsSubmittingDeposit(true);
-
-    try {
-      let screenshotUrl: string | null = null;
-      if (screenshotFile && userId) {
-        const path = `spin-deposits/${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.jpg`;
-        const { error: upErr } = await supabase.storage
-          .from("payment-screenshots")
-          .upload(path, screenshotFile, { contentType: "image/jpeg", upsert: true });
-
-        if (!upErr) {
-          const { data: signed } = await supabase.storage
-            .from("payment-screenshots")
-            .createSignedUrl(path, 60 * 60 * 24 * 365);
-          screenshotUrl = signed?.signedUrl || path;
-        }
-      }
-
-      const res = await submitSpinDeposit({
-        spinId: depositTarget.spinId,
-        method: paymentMethod,
-        sender: cleanSender,
-        trx: cleanTrx,
-        screenshot: screenshotUrl,
-      });
-
-      if (!res.success) {
-        toast.error(res.error || "ডিপোজিট জমা দেওয়া সম্ভব হয়নি");
-        setIsSubmittingDeposit(false);
-        return;
-      }
-
-      toast.success("ডিপোজিট সফলভাবে জমা হয়েছে! অ্যাডমিন যাচাই করার পর সম্পূর্ণ টাকা আপনার একাউন্টে যোগ হবে।");
-      setDepositModalOpen(false);
-      setDepositTarget(null);
-
-      // Refresh history
-      if (userId) {
-        getUserSpinHistory(userId).then(setHistory);
-      }
-    } catch (err: any) {
-      console.error("Deposit submission error:", err);
-      toast.error(err.message || "ডিপোজিট সাবমিট করতে সমস্যা হয়েছে");
-    } finally {
-      setIsSubmittingDeposit(false);
-    }
-  };
-
-  const copyPaymentNumber = (num: string) => {
-    if (!num) return;
-    navigator.clipboard.writeText(num);
-    setCopiedNumber(true);
-    toast.success("নম্বর কপি করা হয়েছে!");
-    setTimeout(() => setCopiedNumber(false), 2000);
+    navigate({
+      to: "/checkout",
+      search: {
+        spin: claim.spinId,
+        amount: claim.depositRequired,
+        won: claim.wonAmount,
+      },
+    });
   };
 
   // Wheel slice angles
@@ -357,7 +254,7 @@ export function LuckySpinPage() {
       </div>
 
       {/* Main Wheel Card matching Reference Image */}
-      <div className="relative rounded-[36px] bg-white border-4 border-rose-400/80 shadow-2xl p-5 sm:p-7 text-center overflow-hidden">
+      <div className="relative rounded-[36px] bg-white border-4 border-rose-400/80 shadow-2xl p-4 sm:p-7 text-center overflow-hidden">
         {/* Soft background tint */}
         <div className="absolute inset-0 bg-gradient-to-b from-rose-50/40 via-white to-amber-50/30 pointer-events-none" />
 
@@ -370,12 +267,12 @@ export function LuckySpinPage() {
             </h1>
           </div>
 
-          <p className="text-xs sm:text-sm font-semibold text-slate-600 mb-4">
+          <p className="text-xs sm:text-sm font-semibold text-slate-600 mb-3 sm:mb-4">
             প্রতি ২৪ ঘণ্টায় একবার স্পিন করুন এবং জিতে নিন ক্যাশ!
           </p>
 
           {/* Countdown / Ready Badge */}
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-3 sm:mb-4">
             {eligibility.canSpin ? (
               <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-emerald-500 text-white font-extrabold text-sm shadow-md animate-pulse">
                 <CheckCircle2 className="w-4 h-4" />
@@ -390,28 +287,28 @@ export function LuckySpinPage() {
           </div>
 
           {/* Info Notice Box */}
-          <div className="mb-6 p-3 rounded-2xl bg-rose-50/90 border border-rose-200/80 text-left flex items-start gap-2.5 text-xs sm:text-[13px] text-slate-700 leading-relaxed shadow-sm">
+          <div className="mb-4 sm:mb-6 p-3 rounded-2xl bg-rose-50/90 border border-rose-200/80 text-left flex items-start gap-2.5 text-xs sm:text-[13px] text-slate-700 leading-relaxed shadow-sm">
             <span className="text-rose-500 font-bold text-base shrink-0 mt-0.5">ℹ️</span>
             <div>
               <strong className="text-slate-900">SPIN বাটনে চাপ দিন।</strong> চাকা থামলেই ফলাফল দেখতে পাবেন এবং পুরস্কার ক্লেইম করতে পারবেন!
             </div>
           </div>
 
-          {/* Wheel Container with Pointer */}
-          <div className="relative mx-auto w-[310px] h-[310px] sm:w-[350px] sm:h-[350px] flex items-center justify-center my-2">
+          {/* Wheel Container with Pointer (Enlarged Wheel + Outward Text + Compact Button) */}
+          <div className="relative mx-auto w-[330px] h-[330px] sm:w-[380px] sm:h-[380px] md:w-[410px] md:h-[410px] flex items-center justify-center my-3">
             {/* Outer Decorative Ring & Shadow */}
-            <div className="absolute inset-0 rounded-full border-8 border-amber-400/90 shadow-[0_10px_35px_rgba(234,88,12,0.25)] ring-4 ring-rose-200" />
+            <div className="absolute inset-0 rounded-full border-8 sm:border-[10px] border-amber-400 shadow-[0_12px_40px_rgba(234,88,12,0.3)] ring-4 ring-rose-200" />
 
             {/* Top Indicator / Pointer Arrow (Fixed at 12 o'clock pointing down) */}
-            <div className="absolute -top-2 z-30 flex flex-col items-center">
-              <div className="w-6 h-7 bg-rose-600 rounded-b-full shadow-lg flex items-center justify-center text-white text-[10px] font-black border-2 border-white">
+            <div className="absolute -top-3 sm:-top-3.5 z-30 flex flex-col items-center">
+              <div className="w-6 h-8 sm:w-7 sm:h-9 bg-rose-600 rounded-b-full shadow-lg flex items-center justify-center text-white text-[11px] font-black border-2 border-white">
                 ▼
               </div>
             </div>
 
             {/* Rotating SVG Wheel */}
             <div
-              className="w-[290px] h-[290px] sm:w-[330px] sm:h-[330px] rounded-full overflow-hidden transition-transform ease-out"
+              className="w-[310px] h-[310px] sm:w-[360px] sm:h-[360px] md:w-[390px] md:h-[390px] rounded-full overflow-hidden transition-transform ease-out"
               style={{
                 transform: `rotate(${rotation}deg)`,
                 transitionDuration: isSpinning ? "6.5s" : "0s",
@@ -445,19 +342,20 @@ export function LuckySpinPage() {
                           stroke="#FFFFFF"
                           strokeWidth="2.5"
                         />
-                        {/* Slice Label */}
+                        {/* Slice Label: Pushed outwards to y="-146" with bold enlarged typography */}
                         <g transform={`rotate(${midDeg})`}>
                           <text
                             x="0"
-                            y="-125"
+                            y="-146"
                             fill={s.text_color || "#FFFFFF"}
-                            fontSize={sliceCount > 10 ? "18" : "20"}
+                            fontSize={sliceCount > 10 ? "21" : "24"}
                             fontWeight="900"
                             textAnchor="middle"
                             dominantBaseline="central"
                             style={{
-                              filter: "drop-shadow(0px 1px 2px rgba(0,0,0,0.5))",
+                              filter: "drop-shadow(0px 2px 3px rgba(0,0,0,0.75))",
                               fontFamily: "var(--font-sans, sans-serif)",
+                              letterSpacing: "0.5px",
                             }}
                           >
                             {s.label}
@@ -470,29 +368,29 @@ export function LuckySpinPage() {
               </svg>
             </div>
 
-            {/* Center SPIN Button */}
+            {/* Center SPIN Button (Proportionately compact so it does not crowd slice text) */}
             <button
               onClick={handleSpinClick}
               disabled={isSpinning || !eligibility.canSpin}
               className={cn(
-                "absolute z-20 w-24 h-24 sm:w-28 sm:h-28 rounded-full flex flex-col items-center justify-center font-black transition-all",
+                "absolute z-20 w-20 h-20 sm:w-22 sm:h-22 rounded-full flex flex-col items-center justify-center font-black transition-all",
                 "bg-gradient-to-b from-white via-slate-100 to-slate-200 border-4 border-slate-300 shadow-xl",
                 eligibility.canSpin && !isSpinning
                   ? "hover:scale-105 active:scale-95 cursor-pointer shadow-rose-500/30 ring-4 ring-rose-400/50 animate-pulse"
                   : "cursor-not-allowed opacity-80"
               )}
             >
-              <span className="text-xl sm:text-2xl font-black text-slate-700 tracking-wider">
+              <span className="text-lg sm:text-xl font-black text-slate-700 tracking-wider">
                 {isSpinning ? "..." : "SPIN"}
               </span>
-              <span className="text-[10px] font-bold text-rose-600 -mt-1">
+              <span className="text-[9px] sm:text-[10px] font-bold text-rose-600 -mt-0.5">
                 {isSpinning ? "ঘুরছে" : "চাপ দিন"}
               </span>
             </button>
           </div>
 
           {/* Footer Warning & Notice */}
-          <div className="mt-4">
+          <div className="mt-3">
             <p className="text-sm font-extrabold text-rose-600">
               {eligibility.canSpin
                 ? "চাকা ঘুরিয়ে নিশ্চিত নগদ পুরস্কার জিতে নিন!"
@@ -602,11 +500,11 @@ export function LuckySpinPage() {
                       )}
                     </div>
 
-                    {/* Action button if deposit is still pending */}
+                    {/* Action button if deposit is still pending -> Redirects to /checkout */}
                     {item.status === "pending_deposit" && (
                       <button
                         onClick={() =>
-                          handleOpenDeposit({
+                          handleProceedToDeposit({
                             spinId: item.id,
                             wonAmount: won,
                             depositRequired: dep,
@@ -626,7 +524,7 @@ export function LuckySpinPage() {
       </div>
 
       {/* =========================================================
-       * DIALOG 1: Win Congratulations & 50% Deposit Notice Modal
+       * DIALOG: Win Congratulations & 50% Deposit Notice Modal
        * ========================================================= */}
       <Dialog open={winModalOpen} onOpenChange={setWinModalOpen}>
         <DialogContent className="max-w-md p-0 overflow-hidden border-0 rounded-3xl shadow-2xl bg-white text-slate-900">
@@ -692,7 +590,7 @@ export function LuckySpinPage() {
             {/* Buttons */}
             <div className="space-y-2.5">
               <button
-                onClick={() => activeWin && handleOpenDeposit(activeWin)}
+                onClick={() => activeWin && handleProceedToDeposit(activeWin)}
                 className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-rose-500 via-amber-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold text-base shadow-lg shadow-rose-500/25 active:scale-[0.98] transition flex items-center justify-center gap-2"
               >
                 <span>টাকা ডিপোজিট করুন (৳ {activeWin?.depositRequired.toFixed(2)})</span>
@@ -706,168 +604,6 @@ export function LuckySpinPage() {
                 পরে করব (হিস্ট্রিতে সংরক্ষিত থাকবে)
               </button>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* =========================================================
-       * DIALOG 2: Integrated Mobile Payment / Deposit Modal
-       * ========================================================= */}
-      <Dialog open={depositModalOpen} onOpenChange={setDepositModalOpen}>
-        <DialogContent className="max-w-md p-0 overflow-hidden border-0 rounded-3xl shadow-2xl bg-white text-slate-900">
-          <div className="relative p-5 sm:p-7">
-            {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-lg">
-                  💳
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-slate-900">স্পিন ডিপোজিট পেমেন্ট</h3>
-                  <p className="text-[11px] font-semibold text-slate-500">
-                    ৫০% সমপরিমাণ ডিপোজিট সম্পন্ন করুন
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setDepositModalOpen(false)}
-                className="p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmitDeposit} className="mt-4 space-y-4">
-              {/* Target Amount Badge */}
-              <div className="p-3 rounded-2xl bg-gradient-to-r from-amber-50 to-rose-50 border border-amber-200 flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-600 font-medium">ডিপোজিট পরিমাণ (স্বয়ংক্রিয় ৫০%)</p>
-                  <p className="text-xl font-black text-rose-600">
-                    ৳ {depositTarget?.depositRequired.toFixed(2)}
-                  </p>
-                </div>
-                <div className="text-right text-[11px] text-slate-500">
-                  <p>জেতা পুরস্কার: ৳{depositTarget?.wonAmount.toFixed(2)}</p>
-                  <span className="font-bold text-emerald-600">অনুমোদনে যোগ হবে: ৳{depositTarget?.wonAmount.toFixed(2)}</span>
-                </div>
-              </div>
-
-              {/* Payment Gateway Selector */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  পেমেন্ট মেথড বেছে নিন:
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {(["bkash", "nagad", "rocket"] as PaymentMethod[]).map((m) => {
-                    const brand = PAYMENT_BRANDS[m];
-                    const isSelected = paymentMethod === m;
-
-                    return (
-                      <button
-                        key={m}
-                        type="button"
-                        onClick={() => setPaymentMethod(m)}
-                        className={cn(
-                          "py-2.5 px-3 rounded-2xl border-2 font-black text-sm transition flex flex-col items-center justify-center gap-1",
-                          isSelected
-                            ? `${brand.border} ${brand.bg} text-slate-900 shadow-sm ring-2 ring-rose-400/20`
-                            : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                        )}
-                      >
-                        <span className="text-xs uppercase tracking-wider" style={{ color: brand.color }}>
-                          {brand.name}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Send Money Number & Copy */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-                <p className="text-xs font-bold text-slate-600 mb-1">
-                  আমাদের {PAYMENT_BRANDS[paymentMethod].name} পার্সোনাল/এজেন্ট নম্বর:
-                </p>
-                <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white border border-slate-200 shadow-sm">
-                  <span className="font-mono text-base font-black text-slate-900 tracking-wider">
-                    {accounts[paymentMethod] || "01700000000"}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => copyPaymentNumber(accounts[paymentMethod] || "01700000000")}
-                    className="py-1 px-2.5 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition flex items-center gap-1"
-                  >
-                    {copiedNumber ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedNumber ? "কপি হয়েছে" : "কপি"}</span>
-                  </button>
-                </div>
-                <p className="text-[10px] text-slate-500 mt-1.5 leading-tight">
-                  * ওপরের নম্বরে ঠিক <strong>৳{depositTarget?.depositRequired.toFixed(2)}</strong> Send Money অথবা Cash In করুন।
-                </p>
-              </div>
-
-              {/* Sender Phone Number */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  যে নম্বর থেকে টাকা পাঠিয়েছেন:
-                </label>
-                <input
-                  type="tel"
-                  placeholder="017XXXXXXXX"
-                  value={senderNumber}
-                  onChange={(e) => setSenderNumber(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-rose-500"
-                  required
-                />
-              </div>
-
-              {/* TrxID */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  ট্রানজেকশন আইডি (TrxID):
-                </label>
-                <input
-                  type="text"
-                  placeholder="যেমন: BJK89X72"
-                  value={trxId}
-                  onChange={(e) => setTrxId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono uppercase font-bold focus:outline-none focus:ring-2 focus:ring-rose-500"
-                  required
-                />
-              </div>
-
-              {/* Screenshot Upload (Optional) */}
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  পেমেন্ট স্ক্রিনশট (ঐচ্ছিক):
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setScreenshotFile(e.target.files?.[0] || null)}
-                  className="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer"
-                />
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isSubmittingDeposit}
-                className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold text-sm shadow-lg shadow-emerald-600/20 active:scale-[0.98] transition flex items-center justify-center gap-2"
-              >
-                {isSubmittingDeposit ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>যাচাই করা হচ্ছে…</span>
-                  </>
-                ) : (
-                  <>
-                    <ShieldCheck className="w-4 h-4" />
-                    <span>পেমেন্ট নিশ্চিত করুন</span>
-                  </>
-                )}
-              </button>
-            </form>
           </div>
         </DialogContent>
       </Dialog>

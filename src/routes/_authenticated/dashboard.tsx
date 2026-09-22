@@ -17,9 +17,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "ড্যাশবোর্ড — Smart Click BD" }] }),
   beforeLoad: async () => {
     // If the signed-in user is an admin or distributor, send them to their panel
-    // so returning-visit "tab reopen" always lands on the right dashboard.
-    const { data } = await supabase.auth.getUser();
-    const user = data.user;
+    const { data } = await supabase.auth.getSession();
+    const user = data.session?.user;
     if (!user) return;
     const email = user.email?.toLowerCase() ?? "";
     if (email === "smartclickbd@gmail.com") throw redirect({ to: "/admin" });
@@ -62,34 +61,59 @@ function DashboardPage() {
       sessionStorage.removeItem("smartinv:welcome");
     }
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      const uid = u.user.id;
+      const { data: s } = await supabase.auth.getSession();
+      const uid = s.session?.user?.id;
+      if (!uid) return;
 
-      const { data: p } = await supabase
-        .from("profiles")
-        .select("full_name, balance, locked_balance, total_earned, tasks_completed")
-        .eq("id", uid)
-        .maybeSingle();
-      if (p) setProfile(p as Profile);
+      const startOfToday = startOfDayBD();
+      const since = new Date(startOfToday.getTime() - 6 * 86400_000);
 
-      const { data: up } = await supabase
-        .from("user_packages")
-        .select("id, status, package_id, activated_at, packages(name, price)")
-        .eq("user_id", uid)
-        .eq("status", "active")
-        .order("activated_at", { ascending: false })
-        .limit(1);
-      const active = (up ?? [])[0] as { id: string; package_id: string; packages?: { name?: string; price?: number } | null } | undefined;
+      // Execute all dashboard queries in parallel to ensure instant response
+      const [pRes, upRes, pkgsRes, countRes, subsRes, refsRes] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("full_name, balance, locked_balance, total_earned, tasks_completed")
+          .eq("id", uid)
+          .maybeSingle(),
+        supabase
+          .from("user_packages")
+          .select("id, status, package_id, activated_at, packages(name, price)")
+          .eq("user_id", uid)
+          .eq("status", "active")
+          .order("activated_at", { ascending: false })
+          .limit(1),
+        supabase
+          .from("packages")
+          .select("price")
+          .eq("active", true)
+          .order("price", { ascending: false })
+          .limit(1),
+        supabase
+          .from("task_submissions")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", uid)
+          .eq("status", "approved"),
+        supabase
+          .from("task_submissions")
+          .select("created_at, status, link_tasks(reward)")
+          .eq("user_id", uid)
+          .eq("status", "approved")
+          .gte("created_at", since.toISOString()),
+        supabase
+          .from("referral_earnings")
+          .select("created_at, amount")
+          .eq("referrer_id", uid)
+          .gte("created_at", since.toISOString()),
+      ]);
+
+      if (pRes.data) setProfile(pRes.data as Profile);
+
+      const active = (upRes.data ?? [])[0] as { id: string; package_id: string; packages?: { name?: string; price?: number } | null } | undefined;
       setHasActivePackage(!!active);
       setActivePkgPrice(active?.packages?.price != null ? Number(active.packages.price) : null);
 
-      // Highest-priced active package available (to detect upgrade opportunity)
-      const { data: pkgs } = await supabase
-        .from("packages").select("price").eq("active", true).order("price", { ascending: false }).limit(1);
-      setMaxPkgPrice((pkgs?.[0]?.price != null) ? Number(pkgs[0].price) : null);
+      setMaxPkgPrice((pkgsRes.data?.[0]?.price != null) ? Number(pkgsRes.data[0].price) : null);
 
-      // Show congratulations once per activation
       if (active && typeof window !== "undefined") {
         const key = `smartinv:activated:${active.id}`;
         if (!localStorage.getItem(key)) {
@@ -99,22 +123,14 @@ function DashboardPage() {
         }
       }
 
-      // Approved task count — real-time from task_submissions
-      const { count: approvedCount } = await supabase
-        .from("task_submissions")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", uid)
-        .eq("status", "approved");
-      setTasksApproved(approvedCount ?? 0);
+      setTasksApproved(countRes.count ?? 0);
 
-      // 7-day chart data — real data from task_submissions (approved) + referral_earnings
+      // 7-day chart data calculation
       const days: { day: string; income: number; referral: number; tasks: number; key: string }[] = [];
       const labels = ["রবি","সোম","মঙ্গল","বুধ","বৃহ","শুক্র","শনি"];
-      const startOfToday = startOfDayBD();
       for (let i = 6; i >= 0; i--) {
         const d = new Date(startOfToday.getTime() - i * 86400_000);
         const key = bdDateString(d);
-        // getDay() in BD: shift by +6h then read UTC weekday
         const bdWeekday = new Date(d.getTime() + 6 * 3600_000).getUTCDay();
         days.push({ day: labels[bdWeekday], income: 0, referral: 0, tasks: 0, key });
       }
@@ -122,29 +138,17 @@ function DashboardPage() {
         const k = bdDateString(new Date(iso));
         return days.findIndex((x) => x.key === k);
       };
-      try {
-        const since = new Date(startOfToday.getTime() - 6 * 86400_000);
-        const [subsRes, refsRes] = await Promise.all([
-          supabase.from("task_submissions")
-            .select("created_at, status, link_tasks(reward)")
-            .eq("user_id", uid).eq("status", "approved")
-            .gte("created_at", since.toISOString()),
-          supabase.from("referral_earnings")
-            .select("created_at, amount")
-            .eq("referrer_id", uid)
-            .gte("created_at", since.toISOString()),
-        ]);
-        const subs = (subsRes.data ?? []) as Array<{ created_at: string; link_tasks: { reward: number | string | null } | null }>;
-        const refs = (refsRes.data ?? []) as Array<{ created_at: string; amount: number | string | null }>;
-        subs.forEach((t) => {
-          const i = dayIdx(t.created_at);
-          if (i >= 0) { days[i].income += Number(t.link_tasks?.reward ?? 0); days[i].tasks += 1; }
-        });
-        refs.forEach((r) => {
-          const i = dayIdx(r.created_at);
-          if (i >= 0) days[i].referral += Number(r.amount ?? 0);
-        });
-      } catch { /* keep zeros */ }
+
+      const subs = (subsRes.data ?? []) as Array<{ created_at: string; link_tasks: { reward: number | string | null } | null }>;
+      const refs = (refsRes.data ?? []) as Array<{ created_at: string; amount: number | string | null }>;
+      subs.forEach((t) => {
+        const i = dayIdx(t.created_at);
+        if (i >= 0) { days[i].income += Number(t.link_tasks?.reward ?? 0); days[i].tasks += 1; }
+      });
+      refs.forEach((r) => {
+        const i = dayIdx(r.created_at);
+        if (i >= 0) days[i].referral += Number(r.amount ?? 0);
+      });
       setChart(days);
     })();
   }, []);

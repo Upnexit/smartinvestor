@@ -6,6 +6,7 @@ import { AdminPageHeader, AdminCard, GradientButton, SoftButton, EmptyState, Shi
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminAutoRefresh } from "@/lib/admin-refresh";
 import { reviewOrder, signedUrl } from "@/lib/admin-client";
+import { approveSpinClaimAdmin, rejectSpinClaimAdmin } from "@/lib/spin-client";
 import { cn } from "@/lib/utils";
 import { useSearchHighlight } from "@/hooks/use-search-highlight";
 
@@ -21,19 +22,32 @@ export const Route = createFileRoute("/admin/approvals")({
   component: ApprovalsPage,
 });
 
-
 type Status = "pending" | "active" | "rejected" | "all";
+
 type Row = {
-  id: string; status: "pending"|"active"|"rejected"|"expired";
-  payment_method: "bkash"|"nagad"|"rocket"|null;
-  sender_number: string | null; trx_id: string | null; created_at: string;
-  rejection_reason: string | null; user_id: string; package_id: string;
+  id: string;
+  sourceType: "package" | "spin";
+  status: "pending" | "active" | "rejected" | "expired";
+  payment_method: "bkash" | "nagad" | "rocket" | null;
+  sender_number: string | null;
+  trx_id: string | null;
+  created_at: string;
+  rejection_reason: string | null;
+  user_id: string;
+  package_id?: string;
   screenshot_url: string | null;
   packages: { name: string; price: number } | null;
   profiles: { full_name: string | null; phone: string | null } | null;
+  // Spin Wheel fields:
+  won_amount?: number;
+  deposit_required?: number;
+  slice_label?: string | null;
 };
+
 const METHOD: Record<string, string> = {
-  bkash: "from-pink-500 to-rose-600", nagad: "from-orange-500 to-amber-600", rocket: "from-purple-500 to-violet-600",
+  bkash: "from-pink-500 to-rose-600",
+  nagad: "from-orange-500 to-amber-600",
+  rocket: "from-purple-500 to-violet-600",
 };
 
 function ApprovalsPage() {
@@ -46,26 +60,99 @@ function ApprovalsPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [shot, setShot] = useState<string | null>(null);
 
-  useEffect(() => { if (qFromUrl !== undefined) setQ(qFromUrl); }, [qFromUrl]);
+  useEffect(() => {
+    if (qFromUrl !== undefined) setQ(qFromUrl);
+  }, [qFromUrl]);
 
+  const refresh = async () => {
+    try {
+      const [pkgRes, spinRes] = await Promise.all([
+        supabase
+          .from("user_packages")
+          .select("id,status,payment_method,sender_number,trx_id,created_at,rejection_reason,user_id,package_id,screenshot_url,packages(name,price),profiles!user_packages_user_id_profiles_fkey(full_name,phone)")
+          .order("created_at", { ascending: false })
+          .limit(200),
+        supabase
+          .from("spin_history" as any)
+          .select("id,status,payment_method,sender_number,trx_id,created_at,submitted_at,admin_notes,user_id,won_amount,deposit_required,slice_label,screenshot_url,profiles:user_id(full_name,phone)")
+          .in("status", ["deposit_submitted", "approved", "rejected"])
+          .order("created_at", { ascending: false })
+          .limit(200),
+      ]);
 
+      const pkgRows: Row[] = ((pkgRes.data ?? []) as any[]).map((r) => ({
+        id: r.id,
+        sourceType: "package",
+        status: r.status,
+        payment_method: r.payment_method,
+        sender_number: r.sender_number,
+        trx_id: r.trx_id,
+        created_at: r.created_at,
+        rejection_reason: r.rejection_reason,
+        user_id: r.user_id,
+        package_id: r.package_id,
+        screenshot_url: r.screenshot_url,
+        packages: r.packages,
+        profiles: r.profiles,
+      }));
 
+      const spinRows: Row[] = ((spinRes.data ?? []) as any[]).map((s) => {
+        let mappedStatus: "pending" | "active" | "rejected" = "pending";
+        if (s.status === "approved") mappedStatus = "active";
+        else if (s.status === "rejected") mappedStatus = "rejected";
 
-  const refresh = () => supabase.from("user_packages")
-    .select("id,status,payment_method,sender_number,trx_id,created_at,rejection_reason,user_id,package_id,screenshot_url,packages(name,price),profiles!user_packages_user_id_profiles_fkey(full_name,phone)")
-    .order("created_at",{ascending:false}).limit(200)
-    .then(({data, error}) => {
-      if (error) { setRows([]); toast.error(error.message); return; }
-      setRows((data ?? []) as unknown as Row[]);
-    }, (e: unknown) => { setRows([]); toast.error(e instanceof Error ? e.message : "লোড ব্যর্থ"); });
+        return {
+          id: s.id,
+          sourceType: "spin",
+          status: mappedStatus,
+          payment_method: s.payment_method,
+          sender_number: s.sender_number,
+          trx_id: s.trx_id,
+          created_at: s.submitted_at || s.created_at,
+          rejection_reason: s.admin_notes,
+          user_id: s.user_id,
+          screenshot_url: s.screenshot_url,
+          packages: {
+            name: "🎡 স্পিন ডিপোজিট (Spanner)",
+            price: Number(s.deposit_required || 0),
+          },
+          won_amount: Number(s.won_amount || 0),
+          deposit_required: Number(s.deposit_required || 0),
+          slice_label: s.slice_label,
+          profiles: s.profiles,
+        };
+      });
+
+      const combined = [...pkgRows, ...spinRows].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      setRows(combined);
+    } catch (e: unknown) {
+      setRows([]);
+      toast.error(e instanceof Error ? e.message : "লোড ব্যর্থ");
+    }
+  };
+
   const adminReady = useAdminAutoRefresh(refresh);
+
   useEffect(() => {
     if (!adminReady) return;
-    const ch = supabase.channel("admin-up").on("postgres_changes",{event:"*",schema:"public",table:"user_packages"}, () => {
-      refresh(); toast.info("নতুন আপডেট");
-    }).subscribe();
-    return () => { supabase.removeChannel(ch); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const ch = supabase
+      .channel("admin-approvals-combined")
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_packages" }, () => {
+        refresh();
+        toast.info("নতুন প্যাকেজ পেমেন্ট আপডেট");
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "spin_history" }, () => {
+        refresh();
+        toast.info("নতুন স্পিন ডিপোজিট আপডেট");
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ch);
+    };
   }, [adminReady]);
 
   const filtered = useMemo(() => {
@@ -86,98 +173,253 @@ function ApprovalsPage() {
 
   const { setRowRef } = useSearchHighlight(highlight, adminReady && !!rows);
 
+  const onApprove = async (r: Row) => {
+    setBusy(r.id);
+    try {
+      if (r.sourceType === "spin") {
+        const { data: authData } = await supabase.auth.getUser();
+        const adminId = authData?.user?.id;
+        if (!adminId) throw new Error("অ্যাডমিন লগইন প্রয়োজন");
+        const res = await approveSpinClaimAdmin(r.id, adminId);
+        if (!res.success) throw new Error(res.error || "স্পিন ডিপোজিট অ্যাপ্রুভ ব্যর্থ");
+        toast.success("স্পিন ডিপোজিট অ্যাপ্রুভড! ইউজার ব্যালেন্সে সম্পূর্ণ পুরস্কার যোগ হয়েছে।");
+      } else {
+        await reviewOrder(r.id, "approve");
+        toast.success("প্যাকেজ পেমেন্ট অ্যাপ্রুভড");
+      }
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "ব্যর্থ");
+    } finally {
+      setBusy(null);
+    }
+  };
 
-  const onApprove = async (id: string) => {
-    setBusy(id);
-    try { await reviewOrder(id, "approve"); toast.success("অ্যাপ্রুভড"); refresh(); }
-    catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
-    finally { setBusy(null); }
-  };
   const onReject = async () => {
-    if (!reject || reason.trim().length < 3) { toast.error("কারণ লিখুন"); return; }
+    if (!reject || reason.trim().length < 3) {
+      toast.error("কারণ লিখুন");
+      return;
+    }
     setBusy(reject.id);
-    try { await reviewOrder(reject.id, "reject", reason.trim()); toast.success("রিজেক্টেড"); setReject(null); setReason(""); refresh(); }
-    catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
-    finally { setBusy(null); }
+    try {
+      if (reject.sourceType === "spin") {
+        const { data: authData } = await supabase.auth.getUser();
+        const adminId = authData?.user?.id;
+        if (!adminId) throw new Error("অ্যাডমিন লগইন প্রয়োজন");
+        const res = await rejectSpinClaimAdmin(reject.id, adminId, reason.trim());
+        if (!res.success) throw new Error(res.error || "স্পিন ডিপোজিট রিজেক্ট ব্যর্থ");
+        toast.success("স্পিন ডিপোজিট রিজেক্টেড");
+      } else {
+        await reviewOrder(reject.id, "reject", reason.trim());
+        toast.success("প্যাকেজ পেমেন্ট রিজেক্টেড");
+      }
+      setReject(null);
+      setReason("");
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "ব্যর্থ");
+    } finally {
+      setBusy(null);
+    }
   };
+
   const openShot = async (path: string) => {
-    if (path.startsWith("http")) { setShot(path); return; }
-    try { const url = await signedUrl("payment-screenshots", path); setShot(url); }
-    catch (e) { toast.error(e instanceof Error ? e.message : "ব্যর্থ"); }
+    if (path.startsWith("http")) {
+      setShot(path);
+      return;
+    }
+    try {
+      const url = await signedUrl("payment-screenshots", path);
+      setShot(url);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "ব্যর্থ");
+    }
   };
 
   return (
     <>
-      <AdminPageHeader accent="amber" Icon={ShieldCheck} title="পেমেন্ট অ্যাপ্রুভাল"
-        subtitle="ম্যানুয়াল TrxID যাচাই করে অ্যাপ্রুভ করুন" />
+      <AdminPageHeader
+        accent="amber"
+        Icon={ShieldCheck}
+        title="পেমেন্ট অ্যাপ্রুভাল"
+        subtitle="প্যাকেজ ও স্পিন হুইল পেমেন্ট যাচাই করে অ্যাপ্রুভ করুন"
+      />
+
       <div className="flex flex-wrap gap-2">
-        <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder="TrxID দিয়ে খুঁজুন"
-          className="flex-1 min-w-[180px] rounded-xl border border-amber-200 bg-white px-3 py-2 text-sm font-mono outline-none focus:border-amber-400" />
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="TrxID বা নম্বর দিয়ে খুঁজুন"
+          className="flex-1 min-w-[180px] rounded-xl border border-amber-200 bg-white px-3 py-2 text-sm font-mono outline-none focus:border-amber-400"
+        />
         <div className="flex gap-1.5 overflow-x-auto">
-          {(["pending","active","rejected","all"] as Status[]).map((f)=>{
-            const a = f==="pending"?"from-amber-500 to-orange-600":f==="active"?"from-emerald-500 to-teal-600":f==="rejected"?"from-rose-500 to-red-600":"from-slate-600 to-slate-800";
-            const lbl = f==="pending"?"পেন্ডিং":f==="active"?"অ্যাপ্রুভড":f==="rejected"?"রিজেক্টেড":"সকল";
+          {(["pending", "active", "rejected", "all"] as Status[]).map((f) => {
+            const a =
+              f === "pending"
+                ? "from-amber-500 to-orange-600"
+                : f === "active"
+                ? "from-emerald-500 to-teal-600"
+                : f === "rejected"
+                ? "from-rose-500 to-red-600"
+                : "from-slate-600 to-slate-800";
+            const lbl =
+              f === "pending"
+                ? "পেন্ডিং"
+                : f === "active"
+                ? "অ্যাপ্রুভড"
+                : f === "rejected"
+                ? "রিজেক্টেড"
+                : "সকল";
             return (
-              <button key={f} onClick={()=>setFilter(f)} className={cn(
-                "shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-all",
-                filter===f ? cn("bg-gradient-to-br text-white shadow-md scale-[1.03]", a) : "bg-white text-slate-600 ring-1 ring-slate-200",
-              )}>{lbl}</button>
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={cn(
+                  "shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-all",
+                  filter === f
+                    ? cn("bg-gradient-to-br text-white shadow-md scale-[1.03]", a)
+                    : "bg-white text-slate-600 ring-1 ring-slate-200"
+                )}
+              >
+                {lbl}
+              </button>
             );
           })}
         </div>
       </div>
 
-      {!adminReady || !filtered ? <Shimmer className="h-32" /> : filtered.length === 0 ? (
+      {!adminReady || !filtered ? (
+        <Shimmer className="h-32" />
+      ) : filtered.length === 0 ? (
         <EmptyState Icon={ShieldCheck} title="কোনো সাবমিশন নেই" accent="amber" />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {filtered.map((r) => (
             <div key={r.id} ref={setRowRef(r.id)}>
-            <AdminCard accent="amber" interactive className="p-4">
+              <AdminCard accent="amber" interactive className="p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="bn-display text-base text-slate-900 truncate">
+                        {r.profiles?.full_name ?? "—"}
+                      </p>
+                      {r.sourceType === "spin" && (
+                        <span className="shrink-0 rounded-md bg-gradient-to-r from-rose-500 via-amber-500 to-rose-600 px-2 py-0.5 text-[10px] font-black uppercase text-white shadow-xs">
+                          🎡 স্পিন হুইল / Spanner
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-500 font-mono">{r.profiles?.phone ?? ""}</p>
 
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="bn-display text-base text-slate-900 truncate">{r.profiles?.full_name ?? "—"}</p>
-                  <p className="text-xs text-slate-500 font-mono">{r.profiles?.phone ?? ""}</p>
-                  <p className="text-xs text-slate-700 mt-1">{r.packages?.name} • <span className="bn-display text-emerald-700">৳{r.packages?.price}</span></p>
+                    {r.sourceType === "spin" ? (
+                      <div className="mt-1 text-xs text-slate-700">
+                        <span className="font-extrabold text-rose-600">🎡 স্পিন ডিপোজিট (Spanner)</span> •{" "}
+                        ৫০% ডিপোজিট:{" "}
+                        <span className="bn-display text-rose-700 font-bold">
+                          ৳{r.deposit_required?.toFixed(2)}
+                        </span>{" "}
+                        <span className="text-[11px] text-slate-500 font-medium">
+                          (পুরস্কার: ৳{r.won_amount?.toFixed(2)})
+                        </span>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-700 mt-1">
+                        {r.packages?.name} •{" "}
+                        <span className="bn-display text-emerald-700 font-bold">
+                          ৳{r.packages?.price}
+                        </span>
+                      </p>
+                    )}
+                  </div>
+                  {r.payment_method && (
+                    <span
+                      className={cn(
+                        "rounded-md bg-gradient-to-br px-2 py-0.5 text-[10px] font-bold uppercase text-white shadow shrink-0",
+                        METHOD[r.payment_method]
+                      )}
+                    >
+                      {r.payment_method}
+                    </span>
+                  )}
                 </div>
-                {r.payment_method && <span className={cn("rounded-md bg-gradient-to-br px-2 py-0.5 text-[10px] font-bold uppercase text-white shadow", METHOD[r.payment_method])}>{r.payment_method}</span>}
-              </div>
-              <div className="mt-2 flex items-center gap-2">
-                <code className="flex-1 truncate rounded-lg bg-amber-50 px-2 py-1 text-xs font-mono text-amber-900 ring-1 ring-amber-200">{r.trx_id ?? "—"}</code>
-                {r.trx_id && (
-                  <button onClick={() => { navigator.clipboard.writeText(r.trx_id!); toast.success("কপি"); }}
-                    className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600"><Copy className="h-3.5 w-3.5" /></button>
+
+                <div className="mt-2 flex items-center gap-2">
+                  <code className="flex-1 truncate rounded-lg bg-amber-50 px-2 py-1 text-xs font-mono text-amber-900 ring-1 ring-amber-200">
+                    {r.trx_id ?? "—"}
+                  </code>
+                  {r.trx_id && (
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(r.trx_id!);
+                        toast.success("কপি");
+                      }}
+                      className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                <p className="mt-1 text-[11px] text-slate-500">
+                  প্রেরক: <span className="font-mono font-semibold text-slate-700">{r.sender_number ?? "—"}</span>
+                </p>
+
+                {r.screenshot_url ? (
+                  <button
+                    type="button"
+                    onClick={() => openShot(r.screenshot_url!)}
+                    className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-100/80 hover:bg-amber-200/90 px-2.5 py-1 text-xs font-bold text-amber-900 ring-1 ring-amber-300/80 transition shadow-xs"
+                  >
+                    <ImgIcon className="h-3.5 w-3.5 text-amber-700" /> পেমেন্ট স্ক্রিনশট দেখুন
+                  </button>
+                ) : (
+                  <span className="mt-2 inline-block text-[11px] text-slate-400 italic">
+                    স্ক্রিনশট দেওয়া হয়নি
+                  </span>
                 )}
-              </div>
-              <p className="mt-1 text-[11px] text-slate-500">প্রেরক: <span className="font-mono">{r.sender_number ?? "—"}</span></p>
-              {r.screenshot_url ? (
-                <button
-                  type="button"
-                  onClick={() => openShot(r.screenshot_url!)}
-                  className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-100/80 hover:bg-amber-200/90 px-2.5 py-1 text-xs font-bold text-amber-900 ring-1 ring-amber-300/80 transition shadow-xs"
-                >
-                  <ImgIcon className="h-3.5 w-3.5 text-amber-700" /> পেমেন্ট স্ক্রিনশট দেখুন
-                </button>
-              ) : (
-                <span className="mt-2 inline-block text-[11px] text-slate-400 italic">
-                  স্ক্রিনশট দেওয়া হয়নি
-                </span>
-              )}
-              {r.rejection_reason && <p className="mt-1 text-[11px] text-rose-600">কারণ: {r.rejection_reason}</p>}
-              <p className="mt-1 text-[10px] text-slate-400">{new Date(r.created_at).toLocaleString("bn-BD")}</p>
-              {r.status === "pending" && (
-                <div className="mt-3 flex gap-2">
-                  <GradientButton accent="emerald" className="flex-1" busy={busy===r.id} onClick={() => onApprove(r.id)}><Check className="h-4 w-4" /> অ্যাপ্রুভ</GradientButton>
-                  <GradientButton accent="rose" className="flex-1" onClick={() => { setReject(r); setReason(""); }}><X className="h-4 w-4" /> রিজেক্ট</GradientButton>
-                </div>
-              )}
-              <div className="mt-2 text-right">
-                <Link to="/admin/users/$id" params={{ id: r.user_id }} className="text-[11px] font-bold text-sky-700 hover:underline">ইউজার দেখুন →</Link>
-              </div>
-            </AdminCard>
-            </div>
 
+                {r.rejection_reason && (
+                  <p className="mt-1 text-[11px] text-rose-600">কারণ: {r.rejection_reason}</p>
+                )}
+
+                <p className="mt-1 text-[10px] text-slate-400">
+                  {new Date(r.created_at).toLocaleString("bn-BD")}
+                </p>
+
+                {r.status === "pending" && (
+                  <div className="mt-3 flex gap-2">
+                    <GradientButton
+                      accent="emerald"
+                      className="flex-1"
+                      busy={busy === r.id}
+                      onClick={() => onApprove(r)}
+                    >
+                      <Check className="h-4 w-4" /> অ্যাপ্রুভ
+                    </GradientButton>
+                    <GradientButton
+                      accent="rose"
+                      className="flex-1"
+                      onClick={() => {
+                        setReject(r);
+                        setReason("");
+                      }}
+                    >
+                      <X className="h-4 w-4" /> রিজেক্ট
+                    </GradientButton>
+                  </div>
+                )}
+
+                <div className="mt-2 text-right">
+                  <Link
+                    to="/admin/users/$id"
+                    params={{ id: r.user_id }}
+                    className="text-[11px] font-bold text-sky-700 hover:underline"
+                  >
+                    ইউজার দেখুন →
+                  </Link>
+                </div>
+              </AdminCard>
+            </div>
           ))}
         </div>
       )}
@@ -186,12 +428,26 @@ function ApprovalsPage() {
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/60 backdrop-blur-sm px-4">
           <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl animate-admin-pop">
             <h3 className="bn-display text-lg">রিজেক্ট কারণ</h3>
-            <textarea value={reason} onChange={(e)=>setReason(e.target.value)} rows={4} autoFocus
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={4}
+              autoFocus
               className="mt-3 w-full rounded-xl border-2 border-slate-200 p-3 text-sm outline-none focus:border-rose-400"
-              placeholder="ভুল TrxID / টাকা পাইনি / ..." />
+              placeholder="ভুল TrxID / টাকা পাইনি / ..."
+            />
             <div className="mt-3 flex gap-2">
-              <SoftButton className="flex-1" onClick={() => setReject(null)}>বাতিল</SoftButton>
-              <GradientButton accent="rose" className="flex-1" busy={busy===reject.id} onClick={onReject}>রিজেক্ট</GradientButton>
+              <SoftButton className="flex-1" onClick={() => setReject(null)}>
+                বাতিল
+              </SoftButton>
+              <GradientButton
+                accent="rose"
+                className="flex-1"
+                busy={busy === reject.id}
+                onClick={onReject}
+              >
+                রিজেক্ট
+              </GradientButton>
             </div>
           </div>
         </div>
@@ -230,7 +486,11 @@ function ApprovalsPage() {
               </div>
             </div>
             <div className="flex items-center justify-center max-h-[80vh] overflow-auto rounded-xl bg-black/50 p-1">
-              <img src={shot} alt="screenshot" className="max-h-[78vh] w-auto rounded-lg object-contain shadow-lg" />
+              <img
+                src={shot}
+                alt="screenshot"
+                className="max-h-[78vh] w-auto rounded-lg object-contain shadow-lg"
+              />
             </div>
           </div>
         </div>
