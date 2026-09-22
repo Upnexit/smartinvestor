@@ -9,6 +9,14 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 
+import {
+  FloatingHeroReactions,
+  FacebookIcon,
+  YouTubeIcon,
+  FbLikeReaction,
+  FbLoveReaction,
+} from "@/components/home/FloatingHeroReactions";
+
 type Search = { redirect?: string; mode?: string };
 
 function safeRedirect(target?: string | null): string | null {
@@ -140,10 +148,10 @@ function AuthPage() {
       <div className="grid min-h-screen lg:grid-cols-5">
         <aside
           className="relative hidden overflow-hidden lg:col-span-2 lg:flex lg:flex-col lg:justify-between p-10 text-white"
-          style={{ backgroundImage: "linear-gradient(160deg, oklch(0.72 0.18 70), oklch(0.65 0.2 45) 50%, oklch(0.6 0.22 25))" }}
+          style={{ backgroundImage: "linear-gradient(155deg, #0f172a 0%, #1e1b4b 35%, #4338ca 70%, #e11d48 100%)" }}
         >
-          <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-amber-200/40 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-24 -right-16 h-80 w-80 rounded-full bg-emerald-300/30 blur-3xl" />
+          <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full bg-indigo-500/25 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -right-16 h-80 w-80 rounded-full bg-rose-500/25 blur-3xl" />
 
           <div className="relative z-10">
             <Link to="/" aria-label="হোম পেজে ফিরুন" className="flex items-center gap-3 rounded-2xl outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70">
@@ -156,12 +164,25 @@ function AuthPage() {
               </div>
             </Link>
 
-            <h1 className="bn-display mt-16 text-4xl leading-tight">
+            <h1 className="bn-display mt-14 text-4xl leading-tight font-black">
               Like, Comment করে<br/>টাকা Income করুন
             </h1>
-            <p className="mt-4 max-w-md text-white/90 leading-relaxed">
-              ঘরে বসে মোবাইল দিয়ে আয় করার বাংলাদেশের #১ বিশ্বস্ত প্ল্যাটফর্ম।
+            <p className="mt-4 max-w-md text-white/90 leading-relaxed text-sm">
+              ঘরে বসে মোবাইল দিয়ে আয় করার বাংলাদেশের #১ বিশ্বস্ত ও BTCL অনুমোদিত প্ল্যাটফর্ম।
             </p>
+
+            <div className="mt-6 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-xs font-bold text-white shadow-sm ring-1 ring-white/25">
+                <FacebookIcon className="h-4 w-4" />
+                <FbLikeReaction className="h-4 w-4" />
+                ফেসবুক লাইক
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-xs font-bold text-white shadow-sm ring-1 ring-white/25">
+                <YouTubeIcon className="h-4 w-4" />
+                <FbLoveReaction className="h-4 w-4" />
+                ইউটিউব কমেন্ট
+              </span>
+            </div>
 
             <ul className="mt-8 space-y-4">
               {[
@@ -173,7 +194,7 @@ function AuthPage() {
                   <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/15 backdrop-blur-sm ring-1 ring-white/20">
                     <Icon className="h-5 w-5" />
                   </span>
-                  <span className="text-white/95">{t}</span>
+                  <span className="text-white/95 text-sm font-medium">{t}</span>
                 </li>
               ))}
             </ul>
@@ -186,14 +207,14 @@ function AuthPage() {
               { n: "৯৯%", l: "সফলতা" },
             ].map((s) => (
               <div key={s.l} className="rounded-2xl bg-white/10 backdrop-blur-sm p-4 text-center border border-white/15">
-                <p className="bn-display text-xl">{s.n}</p>
+                <p className="bn-display text-xl font-bold">{s.n}</p>
                 <p className="text-xs text-white/80 mt-1">{s.l}</p>
               </div>
             ))}
           </div>
         </aside>
 
-        <main className="relative flex items-start lg:items-center justify-center px-5 py-6 sm:px-10 lg:col-span-3 lg:py-10">
+        <main className="relative flex items-start lg:items-center justify-center px-5 py-6 sm:px-10 lg:col-span-3 lg:py-10 bg-slate-50/50">
           <div className="relative w-full max-w-md">
             {/* Mobile hero: realistic character sitting on the logo */}
             <div className="lg:hidden flex flex-col items-center text-center">
@@ -206,29 +227,29 @@ function AuthPage() {
                   <div className="grid h-16 w-16 place-items-center rounded-2xl bg-white text-white shadow-2xl ring-2 ring-white/70 overflow-hidden p-1">
                     <img src="/logo.png" alt="Smart Click BD" className="h-full w-full object-contain" />
                   </div>
-                  <span className="bn-display text-2xl text-slate-900 drop-shadow-sm">Smart Click BD</span>
+                  <span className="bn-display text-2xl text-slate-900 drop-shadow-sm font-extrabold">Smart Click BD</span>
                 </Link>
               </div>
-              <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur px-3 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-200 shadow-sm">
+              <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/90 backdrop-blur px-3 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-200 shadow-sm">
                 <Sparkles className="h-3.5 w-3.5" /> SMART CLICK BD
               </span>
-              <h1 className="bn-display mt-3 text-2xl text-slate-900">আপনার একাউন্টে লগইন</h1>
+              <h1 className="bn-display mt-3 text-2xl text-slate-900 font-bold">আপনার একাউন্টে লগইন</h1>
               <p className="mt-1.5 text-sm text-slate-700">আবার স্বাগতম! ড্যাশবোর্ডে প্রবেশ করুন।</p>
             </div>
 
             {/* Desktop brand header */}
             <div className="hidden lg:block">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-                <Sparkles className="h-3.5 w-3.5" /> SMART NETWORK BD
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 text-xs font-semibold text-amber-800 shadow-sm ring-1 ring-amber-200">
+                <Sparkles className="h-3.5 w-3.5 text-amber-600" /> SMART CLICK BD
               </span>
-              <h1 className="bn-display mt-4 text-3xl text-slate-900">আপনার একাউন্টে লগইন</h1>
+              <h1 className="bn-display mt-4 text-3xl text-slate-900 font-extrabold">আপনার একাউন্টে লগইন</h1>
               <p className="mt-2 text-sm text-slate-600">আবার স্বাগতম! আপনার ড্যাশবোর্ডে প্রবেশ করুন।</p>
             </div>
 
             {/* Form card — white glass on both mobile and desktop */}
             <div
-              className="mt-5 rounded-3xl bg-white/90 backdrop-blur-xl p-5 sm:p-6 shadow-2xl ring-1 ring-white/60 lg:mt-7 lg:p-7"
-              style={{ boxShadow: "0 25px 70px -25px rgba(244, 114, 182, 0.4), 0 15px 40px -20px rgba(59, 130, 246, 0.3)" }}
+              className="mt-5 rounded-3xl bg-white/95 backdrop-blur-xl p-5 sm:p-6 shadow-2xl ring-1 ring-slate-200/80 lg:mt-7 lg:p-7"
+              style={{ boxShadow: "0 20px 50px -15px rgba(99, 102, 241, 0.18), 0 10px 30px -10px rgba(225, 29, 72, 0.12)" }}
             >
               <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                 <Field

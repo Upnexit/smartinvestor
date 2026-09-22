@@ -22,6 +22,7 @@ import {
   FbHahaReaction,
   FbWowReaction,
 } from "@/components/home/FloatingHeroReactions";
+import { HomeFooter } from "@/components/home/HomeFooter";
 
 export const Route = createFileRoute("/")({
   component: SmartClickBdPage,
@@ -723,47 +724,7 @@ function CTA() {
 
 function Footer() {
   const { site_name } = useSiteSettings();
-  return (
-    <footer className="border-t border-slate-200 bg-white px-4 py-8 sm:px-6">
-      {/* Mobile layout: centered stacked */}
-      <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 text-center sm:hidden">
-        <div className="flex flex-col items-center gap-2.5">
-          <Logo size={44} />
-          <span className="bn-display text-xl text-slate-900">{site_name}</span>
-        </div>
-        <div className="flex flex-wrap items-center justify-center gap-2.5">
-          <Link to="/privacy" className="rounded-full bg-slate-100 px-4 py-2 text-sm text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-amber-50 hover:text-amber-700 hover:ring-amber-200">
-            প্রাইভেসি পলিসি
-          </Link>
-          <Link to="/terms" className="rounded-full bg-slate-100 px-4 py-2 text-sm text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-amber-50 hover:text-amber-700 hover:ring-amber-200">
-            শর্তাবলী
-          </Link>
-          <a href="#" className="rounded-full bg-slate-100 px-4 py-2 text-sm text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-amber-50 hover:text-amber-700 hover:ring-amber-200">
-            যোগাযোগ
-          </a>
-        </div>
-        <div className="w-full border-t border-slate-100 pt-4 text-xs text-slate-500">
-          © 2025 {site_name} — সকল অধিকার সংরক্ষিত।
-        </div>
-      </div>
-
-      {/* Desktop / tablet layout: original row */}
-      <div className="mx-auto hidden max-w-7xl flex-col items-start justify-between gap-4 sm:flex sm:flex-row sm:items-center">
-        <div className="flex items-center gap-2.5">
-          <Logo size={36} />
-          <span className="bn-display text-lg text-slate-900">{site_name}</span>
-        </div>
-        <div className="flex flex-col gap-3 text-sm text-slate-600 sm:flex-row sm:items-center sm:gap-6">
-          <span>© 2025 {site_name} — সকল অধিকার সংরক্ষিত।</span>
-          <div className="flex gap-4">
-            <Link to="/terms" className="hover:text-amber-600">শর্তাবলী</Link>
-            <Link to="/privacy" className="hover:text-amber-600">প্রাইভেসি</Link>
-            <a href="#" className="hover:text-amber-600">যোগাযোগ</a>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
+  return <HomeFooter siteName={site_name} />;
 }
 
 /* ---------------- Page ---------------- */
