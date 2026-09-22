@@ -1,4 +1,4 @@
-// Smart Investor Service Worker - v2.5.1
+// Smart Click BD Service Worker - v2.5.1
 // Handles Web Push notifications, fast activation, and instant cache invalidation.
 
 self.addEventListener("install", (event) => {
@@ -31,13 +31,13 @@ self.addEventListener("push", (event) => {
     payload = event.data ? event.data.json() : {};
   } catch {
     try {
-      payload = { title: "Smart Investor", body: event.data ? event.data.text() : "" };
+      payload = { title: "Smart Click BD", body: event.data ? event.data.text() : "" };
     } catch {
       payload = {};
     }
   }
 
-  const title = payload.title || "Smart Investor";
+  const title = payload.title || "Smart Click BD";
   const body = payload.body || "";
   const url = payload.url || "/dashboard";
   const tag = payload.tag || "si-notice";

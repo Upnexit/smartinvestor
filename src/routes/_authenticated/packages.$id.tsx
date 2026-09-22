@@ -6,7 +6,7 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/packages/$id")({
-  head: () => ({ meta: [{ title: "প্যাকেজ বিবরণ — Smart Investor" }] }),
+  head: () => ({ meta: [{ title: "প্যাকেজ বিবরণ — Smart Click BD" }] }),
   component: PackageDetailPage,
 });
 
@@ -47,7 +47,7 @@ function PackageDetailPage() {
 
   return (
     <div className="space-y-5 pb-8">
-      {/* Smart Investor brand header */}
+      {/* Smart Click BD brand header */}
       <div className="flex items-center justify-between rounded-2xl bg-white/80 ring-1 ring-amber-200 px-4 py-2.5 backdrop-blur">
         <div className="flex items-center gap-2.5">
           {site.logo_url ? (
@@ -58,7 +58,7 @@ function PackageDetailPage() {
             </div>
           )}
           <div className="leading-tight">
-            <p className="bn-display text-sm text-slate-900">{site.site_name || "Smart Investor"}</p>
+            <p className="bn-display text-sm text-slate-900">{site.site_name || "Smart Click BD"}</p>
             {site.tagline && <p className="text-[10px] text-slate-500">{site.tagline}</p>}
           </div>
         </div>

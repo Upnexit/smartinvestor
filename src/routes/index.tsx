@@ -14,7 +14,7 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
-  component: SmartInvestorPage,
+  component: SmartClickBdPage,
 });
 
 /** When the site is opened as an installed PWA (standalone display-mode) and
@@ -62,7 +62,7 @@ function Logo({ size = 40 }: { size?: number }) {
       style={{ width: size, height: size }}
       aria-hidden
     >
-      <span className="bn-display text-amber-600" style={{ fontSize: size * 0.45 }}>Si</span>
+      <span className="bn-display text-amber-600" style={{ fontSize: size * 0.45 }}>SC</span>
     </div>
   );
 }
@@ -332,7 +332,7 @@ function Features() {
   };
   return (
     <section id="features" className="bg-white px-4 py-20 sm:px-6">
-      <Heading eyebrow="ফিচার" eyebrowColor="amber" title="কেন Smart Investor সেরা?" />
+      <Heading eyebrow="ফিচার" eyebrowColor="amber" title="কেন Smart Click BD সেরা?" />
       <div className="mx-auto mt-12 grid max-w-6xl gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {feats.map((f) => {
           const t = tones[f.tone];
@@ -717,7 +717,7 @@ function Footer() {
 
 /* ---------------- Page ---------------- */
 
-function SmartInvestorPage() {
+function SmartClickBdPage() {
   useStandaloneAutoRedirect();
   return (
     <div className="bg-app min-h-screen">

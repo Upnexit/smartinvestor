@@ -1,4 +1,4 @@
-# Vercel Deployment Guide — Smart Investor
+# Vercel Deployment Guide — Smart Click BD
 
 এই project **TanStack Start + Nitro** stack-এ built। Nitro-এর built-in Vercel preset আছে, তাই কোন code পরিবর্তন ছাড়াই Vercel-এ deploy করা যাবে — শুধু নিচের settings ঠিকমতো configure করতে হবে।
 

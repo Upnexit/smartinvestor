@@ -4,7 +4,7 @@ import { createHash } from "crypto";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const GATEWAY = "https://connector-gateway.lovable.dev/google_mail/gmail/v1";
-const FROM_NAME = "Smart Investor";
+const FROM_NAME = "Smart Click BD";
 
 function hash(code: string, userId: string) {
   return createHash("sha256").update(`${userId}:${code}`).digest("hex");
@@ -16,22 +16,22 @@ function buildHtml(code: string, fullName: string) {
   <tr><td align="center">
     <table role="presentation" width="100%" style="max-width:520px;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 8px 28px rgba(15,23,42,.08)">
       <tr><td style="background:linear-gradient(135deg,#f43f5e 0%,#ec4899 50%,#a855f7 100%);padding:28px 32px;text-align:center;color:#fff">
-        <div style="font-size:13px;letter-spacing:3px;font-weight:700;opacity:.9">SMART INVESTOR</div>
+        <div style="font-size:13px;letter-spacing:3px;font-weight:700;opacity:.9">SMART CLICK BD</div>
         <div style="font-size:22px;font-weight:800;margin-top:6px">ইমেইল ভেরিফিকেশন</div>
       </td></tr>
       <tr><td style="padding:30px 32px 8px;color:#0f172a">
         <p style="margin:0 0 6px;font-size:15px">আসসালামু আলাইকুম${fullName ? `, <b>${fullName}</b>` : ""},</p>
-        <p style="margin:0;font-size:14px;line-height:1.6;color:#475569">আপনার Smart Investor একাউন্ট ভেরিফাই করতে নিচের ৬-সংখ্যার কোডটি ব্যবহার করুন। কোডটি <b>১০ মিনিট</b> পর্যন্ত বৈধ থাকবে।</p>
+        <p style="margin:0;font-size:14px;line-height:1.6;color:#475569">আপনার Smart Click BD একাউন্ট ভেরিফাই করতে নিচের ৬-সংখ্যার কোডটি ব্যবহার করুন। কোডটি <b>১০ মিনিট</b> পর্যন্ত বৈধ থাকবে।</p>
       </td></tr>
       <tr><td align="center" style="padding:18px 32px 8px">
         <div style="display:inline-block;padding:18px 28px;background:linear-gradient(135deg,#fff7ed,#fef3c7);border:2px dashed #f59e0b;border-radius:14px;font-family:'Courier New',monospace;font-size:34px;font-weight:800;letter-spacing:10px;color:#b45309">${code}</div>
       </td></tr>
       <tr><td style="padding:14px 32px 28px;color:#64748b;font-size:12.5px;line-height:1.6">
-        <p style="margin:0 0 8px">কোডটি কারো সাথে শেয়ার করবেন না — Smart Investor টিম কখনো আপনার কোড জানতে চাইবে না।</p>
+        <p style="margin:0 0 8px">কোডটি কারো সাথে শেয়ার করবেন না — Smart Click BD টিম কখনো আপনার কোড জানতে চাইবে না।</p>
         <p style="margin:0">যদি আপনি এই অনুরোধ না করে থাকেন, তবে এই ইমেইল উপেক্ষা করুন।</p>
       </td></tr>
       <tr><td style="background:#0f172a;color:#94a3b8;padding:16px 32px;font-size:11px;text-align:center">
-        © ${new Date().getFullYear()} Smart Investor · বাংলাদেশ
+        © ${new Date().getFullYear()} Smart Click BD · বাংলাদেশ
       </td></tr>
     </table>
   </td></tr>
@@ -69,7 +69,7 @@ async function getGmailAddress(): Promise<string> {
     throw new Error(`Gmail সংযোগ ব্যর্থ (${r.status})`);
   }
   const j = (await r.json()) as { emailAddress?: string };
-  return j.emailAddress ?? "no-reply@smartinvestor.app";
+  return j.emailAddress ?? "no-reply@smartclickbd.com";
 }
 
 export const sendEmailOtp = createServerFn({ method: "POST" })
@@ -114,7 +114,7 @@ export const sendEmailOtp = createServerFn({ method: "POST" })
 
     const fromEmail = await getGmailAddress();
     const html = buildHtml(code, prof.full_name ?? "");
-    const raw = buildRaw(prof.email, fromEmail, "Smart Investor — আপনার ভেরিফিকেশন কোড", html);
+    const raw = buildRaw(prof.email, fromEmail, "Smart Click BD — আপনার ভেরিফিকেশন কোড", html);
 
     const resp = await fetch(`${GATEWAY}/users/me/messages/send`, {
       method: "POST",

@@ -9,13 +9,13 @@ export type SiteSettings = {
 };
 
 const DEFAULTS: SiteSettings = {
-  site_name: "Smart Investor",
-  tagline: "স্মার্ট ইনভেস্টর",
-  logo_url: "",
-  favicon_url: "",
+  site_name: "Smart Click BD",
+  tagline: "স্মার্ট ক্লিক বিডি",
+  logo_url: "/logo.png",
+  favicon_url: "/app-icon-192.png",
 };
 
-const STORAGE_KEY = "si.site-settings.v1";
+const STORAGE_KEY = "scbd.site-settings.v2";
 
 function readCache(): SiteSettings {
   if (typeof window === "undefined") return DEFAULTS;

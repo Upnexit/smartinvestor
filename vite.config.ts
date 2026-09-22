@@ -22,8 +22,8 @@ export default defineConfig({
         devOptions: { enabled: false },
         includeAssets: ["favicon.ico", "apple-touch-icon.png"],
         manifest: {
-          name: "Smart Investor — লাইক কমেন্ট করে ইনকাম",
-          short_name: "Smart Investor",
+          name: "Smart Click BD — লাইক কমেন্ট করে ইনকাম",
+          short_name: "Smart Click BD",
           description: "ঘরে বসে লাইক ও কমেন্ট করে আয় করার বিশ্বস্ত বাংলাদেশী প্ল্যাটফর্ম।",
           theme_color: "#f59e0b",
           background_color: "#fffbeb",

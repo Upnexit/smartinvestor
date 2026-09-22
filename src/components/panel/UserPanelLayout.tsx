@@ -311,7 +311,7 @@ function SidebarContent({
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
             </span>
             <span className="text-xs font-black tracking-wider text-slate-900 uppercase">
-              SMART INVESTOR
+              SMART CLICK BD
             </span>
           </div>
           <span className="rounded-lg bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 text-[11px] font-extrabold text-emerald-700">

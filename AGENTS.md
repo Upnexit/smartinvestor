@@ -12,7 +12,7 @@
 <!-- SUPABASE_BINDING:BEGIN -->
 > [!IMPORTANT]
 > **Project Identity & Supabase Isolation Rule:**
-> - **Workspace / Project**: Smart Investor (`smartinvestor` / `BD Eran`)
+> - **Workspace / Project**: Smart Click BD (`smartinvestor` / `BD Eran`)
 > - **GitHub Repository (Primary)**: `smartclickbd/Smart-click-BD` (connected remote `origin`)
 > - **GitHub Repository (Lovable Sync)**: `Upnexit/smartinvestor` (connected remote `lovable`)
 > - **Supabase Project Ref / ID**: `gpyarcrizvjyukaazndj`

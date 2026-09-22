@@ -48,7 +48,7 @@ const newJson = {
   version: newVersion,
   buildTimestamp: nowTimestamp,
   releaseDate: new Date().toISOString().split("T")[0],
-  app: "smartinvestor",
+  app: "smartclickbd",
 };
 fs.writeFileSync(versionJsonPath, JSON.stringify(newJson, null, 2) + "\n", "utf-8");
 
@@ -56,8 +56,8 @@ fs.writeFileSync(versionJsonPath, JSON.stringify(newJson, null, 2) + "\n", "utf-
 if (fs.existsSync(swJsPath)) {
   let swContent = fs.readFileSync(swJsPath, "utf-8");
   swContent = swContent.replace(
-    /\/\/ Smart Investor Service Worker - v[^\n]+/,
-    `// Smart Investor Service Worker - v${newVersion}`
+    /\/\/ Smart Click BD Service Worker - v[^\n]+/,
+    `// Smart Click BD Service Worker - v${newVersion}`
   );
   fs.writeFileSync(swJsPath, swContent, "utf-8");
 }

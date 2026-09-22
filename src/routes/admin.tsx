@@ -11,7 +11,7 @@ import { useShutdownPhase } from "@/hooks/use-shutdown-phase";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Smart Investor — Admin Control Panel" }] }),
+  head: () => ({ meta: [{ title: "Smart Click BD — Admin Control Panel" }] }),
   beforeLoad: async () => {
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData.session) throw redirect({ to: "/auth" });

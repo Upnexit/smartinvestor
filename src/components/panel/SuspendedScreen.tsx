@@ -76,7 +76,7 @@ export function SuspendedScreen({ userId, reason }: { userId: string; reason: st
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              <a href="mailto:support@smartinvestor.bd" className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-amber-500/30 hover:scale-[1.02] transition">
+              <a href="mailto:support@smartclickbd.com" className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-amber-500/30 hover:scale-[1.02] transition">
                 <Mail className="h-4 w-4" /> অ্যাডমিন ইমেইল
               </a>
               <button onClick={logout} className="inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-sm font-bold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50 transition">

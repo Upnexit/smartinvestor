@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/packages")({
   head: () => ({
     meta: [
-      { title: "ইনভেস্টমেন্ট প্যাকেজ — Smart Investor" },
+      { title: "ইনভেস্টমেন্ট প্যাকেজ — Smart Click BD" },
       { name: "description", content: "৬০ দিনের প্যাকেজ — দৈনিক টাস্ক করে ৭০-১১০% পর্যন্ত রিটার্ন।" },
     ],
   }),

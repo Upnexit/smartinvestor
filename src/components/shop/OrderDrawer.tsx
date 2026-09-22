@@ -49,7 +49,7 @@ export function OrderDrawer({
 }) {
   const branding = usePaymentBranding();
   const site = useSiteSettings();
-  const brandName = site.site_name || "Smart Investor";
+  const brandName = site.site_name || "Smart Click BD";
 
   const [lines, setLines] = useState<OrderLine[]>(initialLines);
   const [step, setStep] = useState<Step>("details");

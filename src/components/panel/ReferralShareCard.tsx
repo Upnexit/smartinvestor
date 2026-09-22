@@ -44,7 +44,7 @@ export function ReferralShareCard({ compact = false }: Props) {
 
   function share(platform: Platform) {
     if (!link) return;
-    const text = `Smart Investor — ঘরে বসে লাইক/কমেন্ট করে আয় করুন! আমার রেফারেল লিংক: ${link}`;
+    const text = `Smart Click BD — ঘরে বসে লাইক/কমেন্ট করে আয় করুন! আমার রেফারেল লিংক: ${link}`;
     const msg = encodeURIComponent(text);
     const urls: Record<Platform, string> = {
       whatsapp: `https://wa.me/?text=${msg}`,

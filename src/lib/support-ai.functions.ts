@@ -8,7 +8,7 @@ async function assertAdmin(supabase: any, userId: string) {
   if (error || !data) throw new Error("forbidden");
 }
 
-const SYSTEM_REPLY = `You are the admin support assistant for "Smart Investor" (a Bangladesh online-earning platform).
+const SYSTEM_REPLY = `You are the admin support assistant for "Smart Click BD" (a Bangladesh online-earning platform).
 You are drafting a reply the human admin will review before sending to a user.
 
 STRICT RULES:

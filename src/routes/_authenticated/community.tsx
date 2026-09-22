@@ -11,7 +11,7 @@ import { askSmartAI } from "@/lib/ai.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/community")({
-  head: () => ({ meta: [{ title: "কমিউনিটি — Smart Investor" }] }),
+  head: () => ({ meta: [{ title: "কমিউনিটি — Smart Click BD" }] }),
   component: CommunityPage,
 });
 
@@ -31,7 +31,7 @@ type AIMsg = { id: string; role: "user" | "assistant"; content: string };
 const BUCKET = "community-voice";
 
 const AI_SUGGESTIONS = [
-  "Smart Investor কীভাবে কাজ করে?",
+  "Smart Click BD কীভাবে কাজ করে?",
   "প্যাকেজ কিনে কত আয় হবে?",
   "উইথড্র কীভাবে করবো?",
   "রেফার করে কত কমিশন পাবো?",
@@ -105,7 +105,7 @@ function CommunityPage() {
 function AIChatPanel() {
   const ask = useServerFn(askSmartAI);
   const [msgs, setMsgs] = useState<AIMsg[]>([
-    { id: "w", role: "assistant", content: "নমস্কার! আমি Smart AI 🤖 — Smart Investor সম্পর্কে যেকোনো প্রশ্ন করুন।" },
+    { id: "w", role: "assistant", content: "নমস্কার! আমি Smart AI 🤖 — Smart Click BD সম্পর্কে যেকোনো প্রশ্ন করুন।" },
   ]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);

@@ -23,7 +23,7 @@ export type ReleaseInfo = {
 
 export const CURRENT_RELEASE_INFO: ReleaseInfo = {
   version: APP_VERSION,
-  name: "স্মার্ট ইনভেস্টর v2.5.0 অটো-আপডেট ও সিকিউরিটি রিলিজ",
+  name: "স্মার্ট ক্লিক বিডি v2.5.0 অটো-আপডেট ও সিকিউরিটি রিলিজ",
   date: APP_BUILD_DATE,
   summary: "এই সংস্করণে কোনো প্রকার হার্ড-রিফ্রেশ ছাড়া অটো-আপডেট ইঞ্জিন, চেকআউট স্ক্রিনশট প্রিভিউ ও পার্মানেন্ট ইউজার ডিলিট সিস্টেম যুক্ত করা হয়েছে।",
   highlights: [

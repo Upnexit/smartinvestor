@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/shop")({
   head: () => ({
     meta: [
-      { title: "শপ — পণ্য কিনুন | Smart Investor" },
+      { title: "শপ — পণ্য কিনুন | Smart Click BD" },
       { name: "description", content: "প্রিমিয়াম পণ্য কালেকশন থেকে অর্ডার করুন — ক্যাশ অন ডেলিভারি, বিকাশ ও নগদ সাপোর্ট।" },
       { property: "og:title", content: "শপ — পণ্য কিনুন" },
       { property: "og:description", content: "প্রিমিয়াম পণ্য কালেকশন থেকে অর্ডার করুন — ক্যাশ অন ডেলিভারি, বিকাশ ও নগদ।" },

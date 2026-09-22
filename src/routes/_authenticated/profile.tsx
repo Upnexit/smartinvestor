@@ -14,7 +14,7 @@ import { EmailVerifyModal } from "@/components/panel/EmailVerifyModal";
 import { updateMyEmail } from "@/lib/emailOtp.functions";
 
 export const Route = createFileRoute("/_authenticated/profile")({
-  head: () => ({ meta: [{ title: "প্রোফাইল — Smart Investor" }] }),
+  head: () => ({ meta: [{ title: "প্রোফাইল — Smart Click BD" }] }),
   component: ProfilePage,
 });
 

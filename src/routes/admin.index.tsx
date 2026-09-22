@@ -19,7 +19,7 @@ import { bdDateStringOffset, formatBDDateLong } from "@/lib/bd-time";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/")({
-  head: () => ({ meta: [{ title: "ড্যাশবোর্ড — Smart Investor Admin" }] }),
+  head: () => ({ meta: [{ title: "ড্যাশবোর্ড — Smart Click BD Admin" }] }),
   component: DashboardPage,
 });
 

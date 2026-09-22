@@ -10,7 +10,7 @@ import { usePaymentBranding } from "@/hooks/use-payment-branding";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/withdraw")({
-  head: () => ({ meta: [{ title: "উইথড্র — Smart Investor" }] }),
+  head: () => ({ meta: [{ title: "উইথড্র — Smart Click BD" }] }),
   component: WithdrawPage,
 });
 

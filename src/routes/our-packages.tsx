@@ -9,8 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/our-packages")({
   head: () => ({
     meta: [
-      { title: "সকল প্যাকেজ — Smart Investor" },
-      { name: "description", content: "Smart Investor এর সকল ইনভেস্টমেন্ট প্যাকেজ — এক ক্লিকে ক্রয় করুন।" },
+      { title: "সকল প্যাকেজ — Smart Click BD" },
+      { name: "description", content: "Smart Click BD এর সকল ইনভেস্টমেন্ট প্যাকেজ — এক ক্লিকে ক্রয় করুন।" },
     ],
   }),
   component: PublicPackages,
@@ -71,7 +71,7 @@ function PublicPackages() {
             <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-400 to-rose-500 text-white shadow-md">
               <Sparkles className="h-5 w-5" />
             </div>
-            <span className="bn-display text-lg text-slate-900">Smart Investor</span>
+            <span className="bn-display text-lg text-slate-900">Smart Click BD</span>
           </Link>
           <div className="flex items-center gap-2">
             {authed ? (

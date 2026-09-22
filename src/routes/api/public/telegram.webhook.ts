@@ -55,7 +55,7 @@ async function sendAccountInfo(chatId: number, mode: "status" | "balance" | "pac
   const { findTelegramAccountByChat } = await import("@/lib/telegram.server");
   const data = await findTelegramAccountByChat(chatId);
   if (!data) {
-    await tgSend(chatId, "👋 Smart Investor Bot-এ স্বাগতম।\n\nআপনার account যুক্ত করতে Profile পেজ থেকে <b>Telegram Connect</b> চাপুন।", { reply_markup: MAIN_KEYBOARD });
+    await tgSend(chatId, "👋 Smart Click BD Bot-এ স্বাগতম।\n\nআপনার account যুক্ত করতে Profile পেজ থেকে <b>Telegram Connect</b> চাপুন।", { reply_markup: MAIN_KEYBOARD });
     return;
   }
 
@@ -159,7 +159,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
         if (text === "/help" || text === "/menu" || text === "❓ সাহায্য") {
           await tgSend(
             chatId,
-            "ℹ️ <b>Smart Investor Bot</b>\n\nনিচের button থেকে balance, package ও status দেখুন।",
+            "ℹ️ <b>Smart Click BD Bot</b>\n\nনিচের button থেকে balance, package ও status দেখুন।",
             { reply_markup: MAIN_KEYBOARD },
           );
           return Response.json({ ok: true });

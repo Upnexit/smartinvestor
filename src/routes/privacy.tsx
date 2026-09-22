@@ -5,9 +5,9 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "প্রাইভেসি পলিসি — Smart Investor" },
-      { name: "description", content: "Smart Investor আপনার ব্যক্তিগত তথ্য কীভাবে সংগ্রহ, ব্যবহার ও সুরক্ষিত রাখে জানুন।" },
-      { property: "og:title", content: "প্রাইভেসি পলিসি — Smart Investor" },
+      { title: "প্রাইভেসি পলিসি — Smart Click BD" },
+      { name: "description", content: "Smart Click BD আপনার ব্যক্তিগত তথ্য কীভাবে সংগ্রহ, ব্যবহার ও সুরক্ষিত রাখে জানুন।" },
+      { property: "og:title", content: "প্রাইভেসি পলিসি — Smart Click BD" },
       { property: "og:description", content: "আপনার ডেটা সুরক্ষা ও গোপনীয়তা সংক্রান্ত সম্পূর্ণ নীতিমালা।" },
       { property: "og:url", content: "/privacy" },
     ],
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/privacy")({
 
 function PrivacyPage() {
   const { site_name } = useSiteSettings();
-  const brand = site_name || "Smart Investor";
+  const brand = site_name || "Smart Click BD";
   const updated = "৫ জুলাই, ২০২৬";
 
   return (

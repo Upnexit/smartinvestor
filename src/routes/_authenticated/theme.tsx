@@ -11,9 +11,9 @@ import {
 export const Route = createFileRoute("/_authenticated/theme")({
   head: () => ({
     meta: [
-      { title: "থিম কাস্টমাইজ — Smart Investor" },
+      { title: "থিম কাস্টমাইজ — Smart Click BD" },
       { name: "description", content: "নিজের পছন্দের কালার থিম বেছে নিন — প্যানেলের চেহারা সাথে সাথেই বদলে যাবে।" },
-      { property: "og:title", content: "থিম কাস্টমাইজ — Smart Investor" },
+      { property: "og:title", content: "থিম কাস্টমাইজ — Smart Click BD" },
       { property: "og:description", content: "ইউজার প্যানেলের কালার থিম নিজের মতো করে সাজান।" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

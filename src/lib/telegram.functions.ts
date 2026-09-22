@@ -95,7 +95,7 @@ export const sendTelegramTest = createServerFn({ method: "POST" })
     try {
       await tgCall("sendMessage", {
         chat_id: chatId,
-        text: "✅ <b>Smart Investor</b>\nআপনার Telegram সফলভাবে যুক্ত হয়েছে। এখন থেকে সকল গুরুত্বপূর্ণ notification এখানে পাবেন।",
+        text: "✅ <b>Smart Click BD</b>\nআপনার Telegram সফলভাবে যুক্ত হয়েছে। এখন থেকে সকল গুরুত্বপূর্ণ notification এখানে পাবেন।",
         parse_mode: "HTML",
         disable_web_page_preview: true,
       });

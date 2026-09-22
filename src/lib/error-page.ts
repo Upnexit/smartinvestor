@@ -3,7 +3,7 @@ export function renderErrorPage(): string {
 <html lang="bn">
   <head>
     <meta charset="utf-8" />
-    <title>একটু সমস্যা হয়েছে — Smart Investor</title>
+    <title>একটু সমস্যা হয়েছে — Smart Click BD</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
     <style>

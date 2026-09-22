@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/referral")({
-  head: () => ({ meta: [{ title: "রেফারেল — Smart Investor" }] }),
+  head: () => ({ meta: [{ title: "রেফারেল — Smart Click BD" }] }),
   component: ReferralPage,
 });
 
@@ -68,7 +68,7 @@ function ReferralPage() {
   }
 
   function share(platform: "whatsapp" | "facebook" | "telegram") {
-    const msg = encodeURIComponent(`Smart Investor — ঘরে বসে লাইক/কমেন্ট করে আয় করুন! আমার রেফারেল লিংক: ${link}`);
+    const msg = encodeURIComponent(`Smart Click BD — ঘরে বসে লাইক/কমেন্ট করে আয় করুন! আমার রেফারেল লিংক: ${link}`);
     const urls = {
       whatsapp: `https://wa.me/?text=${msg}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`,

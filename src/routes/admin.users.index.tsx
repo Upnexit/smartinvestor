@@ -30,7 +30,7 @@ export const Route = createFileRoute("/admin/users/")({
     q: typeof s.q === "string" ? s.q : undefined,
     filter: typeof s.filter === "string" ? s.filter : undefined,
   }),
-  head: () => ({ meta: [{ title: "ইউজার — Smart Investor Admin" }] }),
+  head: () => ({ meta: [{ title: "ইউজার — Smart Click BD Admin" }] }),
   component: UsersPage,
 });
 

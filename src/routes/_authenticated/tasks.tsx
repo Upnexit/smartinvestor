@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { startOfTodayBDISO, todayBD } from "@/lib/bd-time";
 
 export const Route = createFileRoute("/_authenticated/tasks")({
-  head: () => ({ meta: [{ title: "আজকের টাস্ক — Smart Investor" }] }),
+  head: () => ({ meta: [{ title: "আজকের টাস্ক — Smart Click BD" }] }),
   component: TasksPage,
 });
 

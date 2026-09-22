@@ -17,13 +17,13 @@ import {
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
     meta: [
-      { title: "কিভাবে কাজ করে — Smart Investor" },
+      { title: "কিভাবে কাজ করে — Smart Click BD" },
       {
         name: "description",
         content:
-          "মাত্র ৩ ধাপে Smart Investor শুরু করুন — একাউন্ট তৈরি, প্রতিদিনের টাস্ক এবং ইনস্ট্যান্ট পেমেন্ট। বিস্তারিত পদ্ধতি ও আয়ের হিসাব দেখুন।",
+          "মাত্র ৩ ধাপে Smart Click BD শুরু করুন — একাউন্ট তৈরি, প্রতিদিনের টাস্ক এবং ইনস্ট্যান্ট পেমেন্ট। বিস্তারিত পদ্ধতি ও আয়ের হিসাব দেখুন।",
       },
-      { property: "og:title", content: "কিভাবে কাজ করে — Smart Investor" },
+      { property: "og:title", content: "কিভাবে কাজ করে — Smart Click BD" },
       {
         property: "og:description",
         content:
@@ -42,7 +42,7 @@ const STEPS = [
     title: "একাউন্ট তৈরি করুন",
     subtitle: "মাত্র ১ মিনিটে ফ্রি রেজিস্ট্রেশন",
     intro:
-      "Smart Investor-এ যাত্রা শুরু করতে প্রথমে একটি ফ্রি একাউন্ট তৈরি করতে হবে। কোনো ফি বা চার্জ নেই।",
+      "Smart Click BD-এ যাত্রা শুরু করতে প্রথমে একটি ফ্রি একাউন্ট তৈরি করতে হবে। কোনো ফি বা চার্জ নেই।",
     details: [
       "হোমপেজে গিয়ে “রেজিস্টার” বাটনে ক্লিক করুন।",
       "আপনার পূর্ণ নাম, ফোন নম্বর/ইমেইল ও একটি শক্তিশালী পাসওয়ার্ড দিন।",
@@ -128,7 +128,7 @@ function HowItWorksPage() {
             <Sparkles className="h-3.5 w-3.5" /> সম্পূর্ণ গাইড
           </span>
           <h1 className="bn-display mt-4 text-4xl leading-tight text-slate-900 sm:text-5xl">
-            কিভাবে কাজ করে <span className="text-emerald-600">Smart Investor</span>
+            কিভাবে কাজ করে <span className="text-emerald-600">Smart Click BD</span>
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-base text-slate-600 sm:text-lg">
             মাত্র ৩টি সহজ ধাপে আপনি ঘরে বসেই আয় শুরু করতে পারবেন — একাউন্ট তৈরি,

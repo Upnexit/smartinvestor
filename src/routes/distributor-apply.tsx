@@ -13,8 +13,8 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 export const Route = createFileRoute("/distributor-apply")({
   head: () => ({
     meta: [
-      { title: "ডিস্ট্রিবিউটর আবেদন — Smart Investor" },
-      { name: "description", content: "Smart Investor এর অফিসিয়াল ডিস্ট্রিবিউটর হতে এখনই আবেদন করুন।" },
+      { title: "ডিস্ট্রিবিউটর আবেদন — Smart Click BD" },
+      { name: "description", content: "Smart Click BD এর অফিসিয়াল ডিস্ট্রিবিউটর হতে এখনই আবেদন করুন।" },
     ],
   }),
   component: DistributorApplyPage,

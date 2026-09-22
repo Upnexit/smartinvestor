@@ -9,9 +9,9 @@ export const Route = createFileRoute("/install")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "অ্যাপ ইনস্টল করুন — Smart Investor" },
-      { name: "description", content: "Smart Investor মোবাইল অ্যাপ এক ক্লিকে সরাসরি ইনস্টল করুন।" },
-      { property: "og:title", content: "Smart Investor অ্যাপ ইনস্টল করুন" },
+      { title: "অ্যাপ ইনস্টল করুন — Smart Click BD" },
+      { name: "description", content: "Smart Click BD মোবাইল অ্যাপ এক ক্লিকে সরাসরি ইনস্টল করুন।" },
+      { property: "og:title", content: "Smart Click BD অ্যাপ ইনস্টল করুন" },
       { property: "og:description", content: "এক ক্লিকে ইনস্টল করে হোম স্ক্রিন থেকে ব্যবহার করুন।" },
       { property: "og:url", content: "/install" },
     ],
@@ -162,11 +162,11 @@ function InstallPage() {
             <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-white p-3 shadow-2xl ring-4 ring-white/40">
               <img
                 src={logo_url || "/app-icon-512.png"}
-                alt={`${site_name || "Smart Investor"} লোগো`}
+                alt={`${site_name || "Smart Click BD"} লোগো`}
                 className="h-full w-full object-contain"
               />
             </div>
-            <h1 className="bn-display mt-5 text-2xl font-bold">{site_name || "Smart Investor"}</h1>
+            <h1 className="bn-display mt-5 text-2xl font-bold">{site_name || "Smart Click BD"}</h1>
             <p className="mt-1 text-sm text-white/90">অফিসিয়াল মোবাইল অ্যাপ</p>
             <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold backdrop-blur-sm">
               <Zap className="h-3.5 w-3.5" /> ফ্রি ইনস্টল • কোনো Play Store লাগবে না
@@ -245,7 +245,7 @@ function InstallPage() {
         </div>
 
         <p className="mt-4 text-center text-xs text-slate-500">
-          © {new Date().getFullYear()} {site_name || "Smart Investor"} — সকল অধিকার সংরক্ষিত।
+          © {new Date().getFullYear()} {site_name || "Smart Click BD"} — সকল অধিকার সংরক্ষিত।
         </p>
       </div>
     </div>

@@ -106,7 +106,7 @@ export function MobileInstallPrompt() {
         {/* Body */}
         <div className="px-6 pb-6 pt-5 text-center">
           <p className="text-sm leading-relaxed text-slate-600">
-            Smart Investor অ্যাপটি আপনার ফোনে ইনস্টল করুন এবং হোম স্ক্রিন থেকে সরাসরি
+            Smart Click BD অ্যাপটি আপনার ফোনে ইনস্টল করুন এবং হোম স্ক্রিন থেকে সরাসরি
             চালু করুন — দ্রুত, স্মুথ এবং সবসময় হাতের কাছে।
           </p>
 

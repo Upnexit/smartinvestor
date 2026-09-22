@@ -1,6 +1,6 @@
-# Smart Investor Landing
+# Smart Click BD Landing
 
-Build a pixel-perfect, mobile-first Bengali landing page for a Bangladeshi online-earning platform called "Smart Investor" (Bengali: স্মার্ট ইনভেস্টর). The page promotes earning money by liking and commenting on social media tasks. Use React + TypeScript + Tailwind CSS + lucide-react icons + embla-carousel-react. The visual language is warm, colorful, and "cream / honey / mint / rose" pastel with bold gold-and-emerald accents — friendly, trustworthy, premium-Bangladeshi fintech vibe. NOT generic SaaS purple-gradient style.
+Build a pixel-perfect, mobile-first Bengali landing page for a Bangladeshi online-earning platform called "Smart Click BD" (Bengali: স্মার্ট ক্লিক বিডি). The page promotes earning money by liking and commenting on social media tasks. Use React + TypeScript + Tailwind CSS + lucide-react icons + embla-carousel-react. The visual language is warm, colorful, and "cream / honey / mint / rose" pastel with bold gold-and-emerald accents — friendly, trustworthy, premium-Bangladeshi fintech vibe. NOT generic SaaS purple-gradient style.
 
 ==================== GLOBAL DESIGN SYSTEM ====================
 - Fonts: Headings → "Baloo Da 2" (Bengali display, weight 800, letter-spacing -0.01em). Body → "Hind Siliguri". Load both from Google Fonts.
@@ -30,7 +30,7 @@ Build a pixel-perfect, mobile-first Bengali landing page for a Bangladeshi onlin
 
 ==================== 1. STICKY NAV ====================
 - White/85 blurred sticky header, 1px amber-100 bottom border.
-- Left: square gold-framed logo placeholder (40×40, rounded-xl, white bg, amber-200 ring) + brand text "Smart Investor" in bn-display, 18–20px.
+- Left: square gold-framed logo placeholder (40×40, rounded-xl, white bg, amber-200 ring) + brand text "Smart Click BD" in bn-display, 18–20px.
 - Center (desktop only): 4 anchor links — "কিভাবে কাজ করে", "ফিচার", "আয়", "রিভিউ" — slate text, hover amber-600.
 - Right: two buttons
   • "লগইন" → emerald-500 bg, white text, rounded-xl, soft emerald shadow.
@@ -82,7 +82,7 @@ Steps:
 
 ==================== 5. FEATURES (id="features") ====================
 - White bg.
-- Heading: eyebrow "ফিচার" (amber), title "কেন Smart Investor সেরা?".
+- Heading: eyebrow "ফিচার" (amber), title "কেন Smart Click BD সেরা?".
 - 6 colored feature cards (1-col → 2-col → 3-col):
 1. ShieldCheck — "১০০% নিরাপদ" — "আপনার তথ্য এবং পেমেন্ট সম্পূর্ণ সুরক্ষিত।" — emerald.
 2. Smartphone — "মোবাইল ফ্রেন্ডলি" — "যেকোনো ডিভাইস থেকে সহজেই কাজ করুন।" — sky.
@@ -155,8 +155,8 @@ Each card: pastel bg of its color, matching border, solid colored icon chip, hov
 
 ==================== 10. FOOTER ====================
 - White bg, 1px slate-200 top border.
-- Left: small framed logo + "Smart Investor" bn-display.
-- Right: copyright line "© 2025 Smart Investor — সকল অধিকার সংরক্ষিত।" plus muted links: "শর্তাবলী", "প্রাইভেসি", "যোগাযোগ".
+- Left: small framed logo + "Smart Click BD" bn-display.
+- Right: copyright line "© 2025 Smart Click BD — সকল অধিকার সংরক্ষিত।" plus muted links: "শর্তাবলী", "প্রাইভেসি", "যোগাযোগ".
 - Stack vertically on mobile, row on sm+.
 
 ==================== TECHNICAL REQUIREMENTS ====================
@@ -166,7 +166,7 @@ Each card: pastel bg of its color, matching border, solid colored icon chip, hov
 - Toast: sonner.
 - All Bengali text must be rendered exactly as quoted above — do NOT translate or paraphrase.
 - Build one single page file. Compose with small section components: Nav, Hero, Stats, HowItWorks, Features, Earnings, Products, Testimonials, CTA, Footer, plus a shared Heading helper that renders the eyebrow pill + bn-display title.
-- The page must be production-grade: semantic HTML, alt text on images, accessible focus rings, single H1 (the hero), proper meta tags (title "Smart Investor — লাইক কমেন্ট করে টাকা ইনকাম", description "ঘরে বসে লাইক ও কমেন্ট করে আয় করার বিশ্বস্ত বাংলাদেশী প্ল্যাটফর্ম।").
+- The page must be production-grade: semantic HTML, alt text on images, accessible focus rings, single H1 (the hero), proper meta tags (title "Smart Click BD — লাইক কমেন্ট করে টাকা ইনকাম", description "ঘরে বসে লাইক ও কমেন্ট করে আয় করার বিশ্বস্ত বাংলাদেশী প্ল্যাটফর্ম।").
 - No purple-gradient generic SaaS look. The signature feel is "warm Bangladeshi gold + emerald + rose on cream", with playful pastel blobs and friendly bn-display headings.
 
 Deliver the complete working page in one go.

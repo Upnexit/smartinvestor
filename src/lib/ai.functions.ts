@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 
 type Msg = { role: "user" | "assistant" | "system"; content: string };
 
-const SYSTEM_BASE = `You are "Smart AI" — a friendly Bengali-first assistant for the Smart Investor platform.
+const SYSTEM_BASE = `You are "Smart AI" — a friendly Bengali-first assistant for the Smart Click BD platform.
 - Reply in clear, simple Bengali (বাংলা) unless the user writes in English.
 - Be concise, warm, and helpful.
 - Answer strictly from the BUSINESS CONTEXT below. Do not invent packages, prices, or rules.
@@ -165,7 +165,7 @@ Based STRICTLY on the title, write concise Bengali step-by-step instructions. On
 
 function buildLocalSmartReply(messages: Msg[], degraded: boolean): string {
   const last = [...messages].reverse().find((m) => m.role === "user")?.content.toLowerCase() ?? "";
-  const note = degraded ? "\n\n(লাইভ AI সাময়িকভাবে ব্যস্ত, তাই Smart Investor quick assistant থেকে উত্তর দিচ্ছি।)" : "";
+  const note = degraded ? "\n\n(লাইভ AI সাময়িকভাবে ব্যস্ত, তাই Smart Click BD quick assistant থেকে উত্তর দিচ্ছি।)" : "";
 
   if (/withdraw|উইথ|তুল|bkash|বিকাশ|nagad|নগদ|rocket|রকেট/.test(last)) {
     return `উইথড্র করতে User Panel → Withdraw এ যান, bKash/Nagad/Rocket নির্বাচন করুন, 01 দিয়ে শুরু ১১ সংখ্যার নম্বর দিন এবং সর্বনিম্ন ৳২০০ রিকোয়েস্ট করুন।${note}`;

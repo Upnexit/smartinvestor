@@ -6,7 +6,7 @@ import { AdminPageHeader, AdminCard, Shimmer } from "@/components/admin/AdminUI"
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/app-installs")({
-  head: () => ({ meta: [{ title: "অ্যাপ ইনস্টল — Smart Investor Admin" }] }),
+  head: () => ({ meta: [{ title: "অ্যাপ ইনস্টল — Smart Click BD Admin" }] }),
   component: AppInstallsPage,
 });
 

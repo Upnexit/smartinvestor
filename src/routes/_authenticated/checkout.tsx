@@ -15,7 +15,7 @@ import {
 } from "@/lib/checkout.functions";
 
 export const Route = createFileRoute("/_authenticated/checkout")({
-  head: () => ({ meta: [{ title: "চেকআউট — Smart Investor" }] }),
+  head: () => ({ meta: [{ title: "চেকআউট — Smart Click BD" }] }),
   validateSearch: (s: Record<string, unknown>) => ({ pkg: typeof s.pkg === "string" ? s.pkg : "" }),
   component: CheckoutPage,
 });

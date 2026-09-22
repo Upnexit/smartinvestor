@@ -1,4 +1,4 @@
-// Server-only helper: builds business context for Smart Investor AI prompts.
+// Server-only helper: builds business context for Smart Click BD AI prompts.
 // Called from server functions (client-safe re: import protection via .server suffix).
 
 import { createClient } from "@supabase/supabase-js";
@@ -17,7 +17,7 @@ let cache: { at: number; text: string } | null = null;
 const CACHE_MS = 60_000; // refresh once per minute — cheap and fresh enough
 
 /**
- * Business context appended to every Smart Investor AI system prompt.
+ * Business context appended to every Smart Click BD AI system prompt.
  * Contains live package catalog + platform rules so the model gives
  * consistent, on-brand answers without leaking private info.
  */
@@ -52,8 +52,8 @@ export async function getBusinessContext(): Promise<string> {
   }
 
   const text = `
-==== SMART INVESTOR — BUSINESS CONTEXT ====
-Platform: Smart Investor (Bangladesh online-earning site — like/comment micro-tasks).
+==== SMART CLICK BD — BUSINESS CONTEXT ====
+Platform: Smart Click BD (Bangladesh online-earning site — like/comment micro-tasks).
 Currency: Bangladeshi Taka (৳ / BDT).
 Language: Bengali (বাংলা) by default; mirror the user's language if they write in English.
 

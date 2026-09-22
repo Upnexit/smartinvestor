@@ -13,7 +13,7 @@ import { bdDateString, startOfDayBD } from "@/lib/bd-time";
 import { ReferralShareCard } from "@/components/panel/ReferralShareCard";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "ড্যাশবোর্ড — Smart Investor" }] }),
+  head: () => ({ meta: [{ title: "ড্যাশবোর্ড — Smart Click BD" }] }),
   beforeLoad: async () => {
     // If the signed-in user is an admin or distributor, send them to their panel
     // so returning-visit "tab reopen" always lands on the right dashboard.

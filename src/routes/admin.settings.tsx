@@ -19,7 +19,7 @@ type Site = {
   signup_bonus: number; referral_commission: number; bonus_locked: boolean;
 };
 const DEF: Site = {
-  site_name: "Smart Investor", tagline: "ঘরে বসে আয়", logo_url: "", favicon_url: "",
+  site_name: "Smart Click BD", tagline: "ঘরে বসে আয়", logo_url: "", favicon_url: "",
   hero_title: "লাইক কমেন্ট করে ইনকাম", hero_subtitle: "বিশ্বস্ত বাংলাদেশী প্ল্যাটফর্ম",
   cta_text: "এখনই শুরু করুন", cta_link: "/register",
   signup_bonus: 300, referral_commission: 5, bonus_locked: true,

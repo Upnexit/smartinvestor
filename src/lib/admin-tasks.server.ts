@@ -45,7 +45,7 @@ function buildDescription(slug: string, action: GeneratedTask["action_type"]): s
 async function callGateway(system: string, user: string, key: string): Promise<string> {
   const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "Lovable-API-Key": key, "X-Lovable-AIG-SDK": "smart-investor-tasks" },
+    headers: { "Content-Type": "application/json", "Lovable-API-Key": key, "X-Lovable-AIG-SDK": "smart-click-bd-tasks" },
     body: JSON.stringify({
       model: "google/gemini-3-flash-preview",
       messages: [{ role: "system", content: system }, { role: "user", content: user }],

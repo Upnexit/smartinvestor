@@ -6,9 +6,9 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "শর্তাবলী — Smart Investor" },
-      { name: "description", content: "Smart Investor প্ল্যাটফর্ম ব্যবহারের শর্তাবলী, বিনিয়োগ ঝুঁকি ও দায়বদ্ধতা সংক্রান্ত তথ্য।" },
-      { property: "og:title", content: "শর্তাবলী — Smart Investor" },
+      { title: "শর্তাবলী — Smart Click BD" },
+      { name: "description", content: "Smart Click BD প্ল্যাটফর্ম ব্যবহারের শর্তাবলী, বিনিয়োগ ঝুঁকি ও দায়বদ্ধতা সংক্রান্ত তথ্য।" },
+      { property: "og:title", content: "শর্তাবলী — Smart Click BD" },
       { property: "og:description", content: "প্ল্যাটফর্ম ব্যবহারের সম্পূর্ণ শর্তাবলী পড়ুন।" },
       { property: "og:url", content: "/terms" },
     ],
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/terms")({
 
 function TermsPage() {
   const { site_name } = useSiteSettings();
-  const brand = site_name || "Smart Investor";
+  const brand = site_name || "Smart Click BD";
   const updated = "৫ জুলাই, ২০২৬";
   const [lang, setLang] = useState<"en" | "bn">("en");
 

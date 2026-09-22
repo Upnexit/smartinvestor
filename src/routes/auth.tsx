@@ -47,8 +47,8 @@ export const Route = createFileRoute("/auth")({
   },
   head: () => ({
     meta: [
-      { title: "লগইন — Smart Investor" },
-      { name: "description", content: "Smart Investor অ্যাকাউন্টে লগইন করুন।" },
+      { title: "লগইন — Smart Click BD" },
+      { name: "description", content: "Smart Click BD অ্যাকাউন্টে লগইন করুন।" },
     ],
   }),
   component: AuthPage,

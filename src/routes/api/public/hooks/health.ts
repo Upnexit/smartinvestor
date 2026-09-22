@@ -11,7 +11,7 @@ export const Route = createFileRoute("/api/public/hooks/health")({
         new Response(
           JSON.stringify({
             ok: true,
-            service: "smart-investor",
+            service: "smart-click-bd",
             build_time: BOOT_TIME,
             runtime: typeof navigator !== "undefined" ? "worker" : "node",
             now: new Date().toISOString(),

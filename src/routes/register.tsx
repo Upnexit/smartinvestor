@@ -31,7 +31,7 @@ export const Route = createFileRoute("/register")({
   },
   head: () => ({
     meta: [
-      { title: "রেজিস্টার — Smart Investor" },
+      { title: "রেজিস্টার — Smart Click BD" },
       { name: "description", content: "নতুন একাউন্ট খুলে ৳৩০০ সাইনআপ বোনাস নিন।" },
     ],
   }),

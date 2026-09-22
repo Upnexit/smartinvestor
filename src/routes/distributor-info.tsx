@@ -9,10 +9,10 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 export const Route = createFileRoute("/distributor-info")({
   head: () => ({
     meta: [
-      { title: "ডিস্ট্রিবিউটর হোন — Smart Investor" },
-      { name: "description", content: "নিজের এলাকায় Smart Investor এর অফিসিয়াল এজেন্ট হয়ে ইনস্ট্যান্ট ৳২৫,০০০ ব্যালেন্স, ৫% কমিশন ও নিয়মিত আয়ের সুযোগ নিন।" },
-      { property: "og:title", content: "ডিস্ট্রিবিউটর হোন — Smart Investor" },
-      { property: "og:description", content: "৳২৫,০০০ ইনস্ট্যান্ট ব্যালেন্স সহ Smart Investor এজেন্ট প্রোগ্রামে যোগ দিন।" },
+      { title: "ডিস্ট্রিবিউটর হোন — Smart Click BD" },
+      { name: "description", content: "নিজের এলাকায় Smart Click BD এর অফিসিয়াল এজেন্ট হয়ে ইনস্ট্যান্ট ৳২৫,০০০ ব্যালেন্স, ৫% কমিশন ও নিয়মিত আয়ের সুযোগ নিন।" },
+      { property: "og:title", content: "ডিস্ট্রিবিউটর হোন — Smart Click BD" },
+      { property: "og:description", content: "৳২৫,০০০ ইনস্ট্যান্ট ব্যালেন্স সহ Smart Click BD এজেন্ট প্রোগ্রামে যোগ দিন।" },
     ],
   }),
   component: DistributorInfoPage,

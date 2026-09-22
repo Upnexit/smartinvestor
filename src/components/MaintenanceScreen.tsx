@@ -46,7 +46,7 @@ export function MaintenanceScreen() {
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-400 via-rose-500 to-fuchsia-600 shadow-lg ring-1 ring-white/20">
               <Sparkles className="h-5 w-5" />
             </span>
-            <span className="bn-display text-xl tracking-wide">Smart Investor</span>
+            <span className="bn-display text-xl tracking-wide">Smart Click BD</span>
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 sm:p-10 shadow-2xl backdrop-blur-xl">
@@ -77,7 +77,7 @@ export function MaintenanceScreen() {
 
             <p className="mt-4 text-center text-slate-300 leading-relaxed sm:text-lg">
               প্রয়োজনীয় <span className="font-semibold text-amber-300">স্টোরেজ আপগ্রেড</span> সম্পন্ন
-              না হওয়ায় Smart Investor প্ল্যাটফর্মটি সীমিত সময়ের জন্য বন্ধ রাখা হয়েছে।
+              না হওয়ায় Smart Click BD প্ল্যাটফর্মটি সীমিত সময়ের জন্য বন্ধ রাখা হয়েছে।
               দ্রুতই আমরা আবার ফিরে আসছি।
             </p>
 
@@ -98,7 +98,7 @@ export function MaintenanceScreen() {
               <InfoTile
                 icon={Mail}
                 title="সাপোর্ট"
-                text="support@smartinvestor"
+                text="support@smartclickbd.com"
                 accent="from-fuchsia-500/20 to-fuchsia-500/5 text-fuchsia-200 ring-fuchsia-400/30"
               />
             </div>
@@ -112,12 +112,12 @@ export function MaintenanceScreen() {
             </div>
 
             <p className="mt-6 text-center text-xs text-slate-400">
-              আপনার ধৈর্যের জন্য ধন্যবাদ। — Smart Investor Team
+              আপনার ধৈর্যের জন্য ধন্যবাদ। — Smart Click BD Team
             </p>
           </div>
 
           <p className="mt-6 text-center text-xs text-slate-500">
-            © {new Date().getFullYear()} Smart Investor. All rights reserved.
+            © {new Date().getFullYear()} Smart Click BD. All rights reserved.
           </p>
         </div>
       </div>
