@@ -137,52 +137,77 @@ export async function updateUser(userId: string, patch: Record<string, unknown>)
 }
 
 export async function deleteUser(userId: string) {
-  // 1) Primary path: Supabase Edge Function with service-role privileges.
-  // This cleans up all database rows AND completely deletes the user from auth.users,
-  // preventing the deleted user from logging in with their email and password again.
-  try {
-    const { data, error } = await supabase.functions.invoke("admin-delete-user", {
-      body: { userId },
-    } as never);
-
-    if (error) {
-      let serverMsg: string | null = null;
-      const ctx = (error as unknown as { context?: Response }).context;
-      if (ctx && typeof ctx.text === "function") {
-        try {
-          const txt = await ctx.clone().text();
-          const parsed = JSON.parse(txt);
-          serverMsg = parsed?.error ?? parsed?.message ?? txt;
-        } catch { /* keep null */ }
-      }
-      throw new Error(serverMsg || error.message || "ইউজার ডিলিট ব্যর্থ হয়েছে");
-    }
-
-    const serverError = (data as { error?: string } | null)?.error;
-    if (serverError) throw new Error(serverError);
-    return data;
-  } catch (edgeErr) {
-    const msg = edgeErr instanceof Error ? edgeErr.message : String(edgeErr);
-    if (/forbidden|শুধুমাত্র অ্যাডমিন|নিজের অ্যাকাউন্ট/i.test(msg)) {
-      throw edgeErr;
-    }
-    console.warn("[deleteUser] Edge function failed, falling back to RPC + server fn:", edgeErr);
-
-    // 2) Fallback: Purge public-schema rows via security-definer RPC
-    const a = await actorId();
-    const { error: rpcErr } = await supabase.rpc("admin_delete_user_data", {
-      _actor: a, _user_id: userId,
-    });
-    if (rpcErr) throw new Error(rpcErr.message);
-
-    // 3) Fallback: Best-effort remove the auth.users row via server fn (service-role)
-    try {
-      const { adminHardDeleteUser } = await import("@/lib/admin.functions");
-      await adminHardDeleteUser({ data: { userId } } as never);
-    } catch (e) {
-      console.warn("[deleteUser] auth.users fallback cleanup skipped:", e);
-    }
+  // Directly invoke the atomic security-definer RPC admin_delete_user_data.
+  // This automatically archives the user's financial history (packages, tasks, withdrawals),
+  // clears relations, purges all operational tables, and removes the auth.users record.
+  const a = await actorId();
+  const { data, error } = await supabase.rpc("admin_delete_user_data", {
+    _actor: a,
+    _user_id: userId,
+  });
+  if (error) {
+    throw new Error(error.message || "ইউজার ডিলিট করতে সমস্যা হয়েছে");
   }
+  return data;
+}
+
+export type DeletedUserArchiveItem = {
+  id: string;
+  original_user_id: string;
+  full_name: string | null;
+  phone: string | null;
+  email: string | null;
+  user_code: string | null;
+  referral_code: string | null;
+  payment_method: string | null;
+  payment_number: string | null;
+  registered_at: string | null;
+  deleted_at: string;
+  deleted_by: string | null;
+  total_packages_amount: number;
+  packages_count: number;
+  packages_details: Array<{
+    package_id?: string;
+    package_name?: string;
+    price?: number;
+    status?: string;
+    purchased_at?: string;
+    payment_method?: string;
+  }>;
+  tasks_completed_count: number;
+  total_tasks_reward: number;
+  total_withdrawn_amount: number;
+  withdrawals_count: number;
+  withdrawals_details: Array<{
+    id?: string;
+    amount?: number;
+    method?: string;
+    account_number?: string;
+    status?: string;
+    created_at?: string;
+  }>;
+  balance_at_deletion: number;
+  locked_balance_at_deletion: number;
+  lifetime_earned: number;
+  archive_notes: string | null;
+};
+
+export async function listDeletedUsersArchive(search = "") {
+  let req = supabase
+    .from("deleted_users_archive")
+    .select("*")
+    .order("deleted_at", { ascending: false })
+    .limit(100);
+
+  const s = search.trim();
+  if (s) {
+    const esc = s.replace(/[%,()]/g, "");
+    req = req.or(`phone.ilike.%${esc}%,full_name.ilike.%${esc}%,email.ilike.%${esc}%,user_code.ilike.%${esc}%`);
+  }
+
+  const { data, error } = await req;
+  if (error) throw new Error(error.message);
+  return (data ?? []) as DeletedUserArchiveItem[];
 }
 
 export async function setUserStatus(userId: string, status: "active" | "suspended" | "banned", reason?: string) {

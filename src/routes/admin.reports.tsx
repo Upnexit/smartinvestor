@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import {
   BarChart3, Download, Trophy, TrendingUp, TrendingDown, Users, Wallet, CreditCard,
   PiggyBank, Activity, AlertTriangle, ShieldCheck, Target, Crown, ArrowUpRight,
-  ArrowDownRight, Sparkles, FileText, Calendar, Printer,
+  ArrowDownRight, Sparkles, FileText, Calendar, Printer, Search, UserX, Package,
+  CheckCircle2, History, ChevronRight, Eye, Phone, Mail, X,
 } from "lucide-react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -16,6 +17,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { cn } from "@/lib/utils";
 import { useAuthReady } from "@/hooks/use-auth-ready";
+import { listDeletedUsersArchive, type DeletedUserArchiveItem } from "@/lib/admin-client";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/admin/reports")({
   head: () => ({ meta: [{ title: "রিপোর্ট ও অ্যানালিটিক্স — Admin" }] }),
@@ -67,6 +72,37 @@ function ReportsPage() {
   const [leaders, setLeaders] = useState<Leader[] | null>(null);
   const [referrers, setReferrers] = useState<Referrer[] | null>(null);
 
+  // Archive state
+  const [archiveSearch, setArchiveSearch] = useState("");
+  const [archiveItems, setArchiveItems] = useState<DeletedUserArchiveItem[]>([]);
+  const [archiveLoading, setArchiveLoading] = useState(false);
+  const [selectedArchiveUser, setSelectedArchiveUser] = useState<DeletedUserArchiveItem | null>(null);
+
+  const loadArchive = async (query = "") => {
+    setArchiveLoading(true);
+    try {
+      const data = await listDeletedUsersArchive(query);
+      setArchiveItems(data);
+    } catch (err) {
+      console.error("Failed to load deleted users archive:", err);
+    } finally {
+      setArchiveLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (authReady) {
+      void loadArchive();
+    }
+  }, [authReady]);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      void loadArchive(archiveSearch);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [archiveSearch]);
+
   /* ---------- Load all data ---------- */
   useEffect(() => {
     if (!authReady) return;
@@ -79,18 +115,20 @@ function ReportsPage() {
       ] = await Promise.all([
         supabase.from("profiles").select("id,balance,locked_balance,total_earned,status,email_verified"),
         supabase.from("profiles").select("created_at,referred_by").gte("created_at", since),
-        supabase.from("user_packages").select("created_at,status,payment_method,package_id,packages(name,price)"),
-        supabase.from("withdrawals").select("created_at,status,amount,method"),
-        supabase.from("task_submissions").select("created_at,status,reward_credited"),
-        supabase.from("referral_earnings").select("amount,created_at"),
+        supabase.from("user_packages").select("created_at,status,payment_method,package_id,user_id,packages(name,price)"),
+        supabase.from("withdrawals").select("created_at,status,amount,method,user_id"),
+        supabase.from("task_submissions").select("created_at,status,reward_credited,user_id"),
+        supabase.from("referral_earnings").select("amount,created_at,referrer_id"),
         supabase.from("packages").select("id,name,price"),
       ]);
 
       const profiles = allProfiles.data ?? [];
-      const userPkgs = allUserPkgs.data ?? [];
-      const withs = allWith.data ?? [];
-      const tasks = allTasks.data ?? [];
-      const refs = allRef.data ?? [];
+      const activeUserIds = new Set(profiles.map((p) => p.id));
+      // Strictly isolate calculations to active existing profiles so deleted users never distort live metrics
+      const userPkgs = (allUserPkgs.data ?? []).filter((u) => !u.user_id || activeUserIds.has(u.user_id));
+      const withs = (allWith.data ?? []).filter((w) => !w.user_id || activeUserIds.has(w.user_id));
+      const tasks = (allTasks.data ?? []).filter((t) => !t.user_id || activeUserIds.has(t.user_id));
+      const refs = (allRef.data ?? []).filter((r) => !r.referrer_id || activeUserIds.has(r.referrer_id));
       const pkgs = allPkgs.data ?? [];
 
       // ---------- KPIs ----------
@@ -571,6 +609,306 @@ function ReportsPage() {
           </AdminCard>
         </>
       )}
+
+      {/* ============== DELETED USER AUDIT & ARCHIVE SECTION ============== */}
+      <div className="mt-8 pt-4 border-t border-slate-200/80">
+        <SectionTitle
+          title="ডিলিটকৃত ইউজার হিস্ট্রি ও আর্কাইভ হিসাব"
+          hint="অডিট ও হিসাব ট্র্যাকিং — ডিলিট হওয়া ব্যবহারকারীদের প্যাকেজ, টাস্ক ও উইথড্র স্টেটমেন্ট"
+        />
+
+        {/* Search and Summary Bar */}
+        <AdminCard accent="indigo" className="p-5 mt-2 space-y-4">
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                value={archiveSearch}
+                onChange={(e) => setArchiveSearch(e.target.value)}
+                placeholder="ফোন নম্বর, নাম, ইউজার কোড বা ইমেইল দিয়ে খুঁজুন..."
+                className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              />
+              {archiveSearch && (
+                <button
+                  type="button"
+                  onClick={() => setArchiveSearch("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-full"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 self-start sm:self-auto">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>আইসোলেটেড ডাটাবেজ আর্কাইভ (Live System সম্পূর্ণ সুরক্ষিত)</span>
+            </div>
+          </div>
+
+          {/* Quick Metrics from Archive */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100/60 p-3 rounded-xl border border-slate-200/60">
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">আর্কাইভ ইউজার</p>
+              <p className="bn-display text-xl font-bold text-slate-800 mt-0.5">{NUM(archiveItems.length)} জন</p>
+            </div>
+            <div className="bg-gradient-to-br from-indigo-50/70 to-purple-50/50 p-3 rounded-xl border border-indigo-100">
+              <p className="text-[11px] font-bold text-indigo-700 uppercase tracking-wider">মোট প্যাকেজ ক্রয়</p>
+              <p className="bn-display text-xl font-bold text-indigo-900 mt-0.5">
+                {BN(archiveItems.reduce((s, u) => s + Number(u.total_packages_amount || 0), 0))}
+              </p>
+            </div>
+            <div className="bg-gradient-to-br from-emerald-50/70 to-teal-50/50 p-3 rounded-xl border border-emerald-100">
+              <p className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">সম্পন্ন টাস্ক</p>
+              <p className="bn-display text-xl font-bold text-emerald-900 mt-0.5">
+                {NUM(archiveItems.reduce((s, u) => s + Number(u.tasks_completed_count || 0), 0))} টি
+              </p>
+            </div>
+            <div className="bg-gradient-to-br from-rose-50/70 to-orange-50/50 p-3 rounded-xl border border-rose-100">
+              <p className="text-[11px] font-bold text-rose-700 uppercase tracking-wider">মোট উইথড্র প্রদান</p>
+              <p className="bn-display text-xl font-bold text-rose-900 mt-0.5">
+                {BN(archiveItems.reduce((s, u) => s + Number(u.total_withdrawn_amount || 0), 0))}
+              </p>
+            </div>
+          </div>
+
+          {/* Archived Users Data List */}
+          <div className="mt-4">
+            {archiveLoading ? (
+              <div className="space-y-2 py-4">
+                <Shimmer className="h-14 w-full rounded-xl" />
+                <Shimmer className="h-14 w-full rounded-xl" />
+                <Shimmer className="h-14 w-full rounded-xl" />
+              </div>
+            ) : archiveItems.length === 0 ? (
+              <div className="text-center py-10 px-4 bg-slate-50/60 rounded-2xl border border-dashed border-slate-200">
+                <UserX className="h-10 w-10 text-slate-400 mx-auto mb-2 opacity-70" />
+                <p className="bn-display text-base font-bold text-slate-700">
+                  {archiveSearch ? "উক্ত সার্চের সাথে কোনো ডিলিটকৃত ইউজার মেলেনি" : "এখন পর্যন্ত কোনো ইউজার আর্কাইভ করা হয়নি"}
+                </p>
+                <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                  {archiveSearch
+                    ? "সঠিক ফোন নম্বর, নাম বা ইউজার কোড লিখে পুনরায় চেষ্টা করুন।"
+                    : "অ্যাডমিন প্যানেল থেকে কোনো ইউজার ডিলিট করা হলে তার সমস্ত হিসাব স্বয়ংক্রিয়ভাবে এখানে সংরক্ষিত থাকবে।"}
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-xl border border-slate-200/80 bg-white">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50/90 text-[11px] font-bold uppercase tracking-wider text-slate-600 border-b border-slate-200">
+                    <tr>
+                      <th className="px-3.5 py-3">ব্যবহারকারী</th>
+                      <th className="px-3.5 py-3">যোগাযোগ</th>
+                      <th className="px-3.5 py-3">প্যাকেজ ক্রয় হিসাব</th>
+                      <th className="px-3.5 py-3">সম্পন্ন টাস্ক</th>
+                      <th className="px-3.5 py-3">মোট প্রাপ্ত উইথড্র</th>
+                      <th className="px-3.5 py-3">ডিলিটের তারিখ</th>
+                      <th className="px-3.5 py-3 text-right">অ্যাকশন</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                    {archiveItems.map((user) => (
+                      <tr key={user.id} className="hover:bg-indigo-50/30 transition-colors">
+                        <td className="px-3.5 py-3">
+                          <p className="font-bold text-slate-900">{user.full_name || "—"}</p>
+                          <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-600">
+                            {user.user_code || "N/A"}
+                          </span>
+                        </td>
+                        <td className="px-3.5 py-3">
+                          <p className="text-slate-800 font-mono">{user.phone || "ফোন নেই"}</p>
+                          <p className="text-[11px] text-slate-400 truncate max-w-[140px]">{user.email || "—"}</p>
+                        </td>
+                        <td className="px-3.5 py-3">
+                          <p className="font-bold text-indigo-700 bn-display text-sm">{BN(user.total_packages_amount)}</p>
+                          <p className="text-[10px] text-slate-500">{NUM(user.packages_count)}টি প্যাকেজ কেনা হয়েছিল</p>
+                        </td>
+                        <td className="px-3.5 py-3">
+                          <p className="font-bold text-emerald-700 bn-display text-sm">{NUM(user.tasks_completed_count)} টি</p>
+                          <p className="text-[10px] text-slate-500">রিওয়ার্ড: {BN(user.total_tasks_reward)}</p>
+                        </td>
+                        <td className="px-3.5 py-3">
+                          <p className="font-bold text-rose-700 bn-display text-sm">{BN(user.total_withdrawn_amount)}</p>
+                          <p className="text-[10px] text-slate-500">{NUM(user.withdrawals_count)} বার উত্তোলন</p>
+                        </td>
+                        <td className="px-3.5 py-3 text-slate-500 text-[11px]">
+                          {new Date(user.deleted_at).toLocaleDateString("bn-BD", {
+                            year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+                          })}
+                        </td>
+                        <td className="px-3.5 py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedArchiveUser(user)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-bold transition-colors cursor-pointer"
+                          >
+                            <Eye className="h-3.5 w-3.5" /> বিস্তারিত
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </AdminCard>
+      </div>
+
+      {/* ============== ARCHIVE USER DETAIL MODAL ============== */}
+      <Dialog open={!!selectedArchiveUser} onOpenChange={(open) => !open && setSelectedArchiveUser(null)}>
+        <DialogContent className="max-w-2xl max-h-[88vh] overflow-y-auto p-6 rounded-3xl">
+          {selectedArchiveUser && (
+            <div className="space-y-5">
+              <DialogHeader>
+                <div className="flex items-center gap-3">
+                  <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white grid place-items-center shadow-lg shadow-indigo-500/20 shrink-0">
+                    <History className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <DialogTitle className="bn-display text-xl text-slate-900 font-bold">
+                      {selectedArchiveUser.full_name || "ইউজার"} — অডিট স্টেটমেন্ট
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-slate-500 mt-0.5">
+                      ডিলিট হওয়ার তারিখ: {new Date(selectedArchiveUser.deleted_at).toLocaleString("bn-BD")}
+                    </DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              {/* User Identity Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase">ইউজার কোড</span>
+                  <p className="font-mono font-bold text-slate-800">{selectedArchiveUser.user_code || "—"}</p>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase">মোবাইল নম্বর</span>
+                  <p className="font-mono font-bold text-slate-800">{selectedArchiveUser.phone || "—"}</p>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase">ইমেইল</span>
+                  <p className="truncate text-slate-800 font-medium" title={selectedArchiveUser.email ?? ""}>
+                    {selectedArchiveUser.email || "—"}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase">পেমেন্ট মেথড</span>
+                  <p className="font-bold text-slate-800 capitalize">
+                    {selectedArchiveUser.payment_method || "—"} ({selectedArchiveUser.payment_number || "—"})
+                  </p>
+                </div>
+              </div>
+
+              {/* Financial Snapshot Summary */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="p-3 rounded-xl bg-indigo-50/70 border border-indigo-100 text-center">
+                  <span className="text-[10px] font-bold text-indigo-600 uppercase">মোট প্যাকেজ ক্রয়</span>
+                  <p className="bn-display text-lg font-bold text-indigo-900 mt-0.5">
+                    {BN(selectedArchiveUser.total_packages_amount)}
+                  </p>
+                  <span className="text-[10px] text-slate-500">{NUM(selectedArchiveUser.packages_count)}টি প্যাকেজ</span>
+                </div>
+                <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-100 text-center">
+                  <span className="text-[10px] font-bold text-emerald-600 uppercase">সম্পন্ন টাস্ক ও আয়</span>
+                  <p className="bn-display text-lg font-bold text-emerald-900 mt-0.5">
+                    {NUM(selectedArchiveUser.tasks_completed_count)} টি
+                  </p>
+                  <span className="text-[10px] text-slate-500">রিওয়ার্ড: {BN(selectedArchiveUser.total_tasks_reward)}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-rose-50/70 border border-rose-100 text-center">
+                  <span className="text-[10px] font-bold text-rose-600 uppercase">মোট উইথড্র প্রদান</span>
+                  <p className="bn-display text-lg font-bold text-rose-900 mt-0.5">
+                    {BN(selectedArchiveUser.total_withdrawn_amount)}
+                  </p>
+                  <span className="text-[10px] text-slate-500">{NUM(selectedArchiveUser.withdrawals_count)} বার উইথড্র</span>
+                </div>
+              </div>
+
+              {/* Purchased Packages Breakdown */}
+              <div>
+                <h4 className="bn-display text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+                  <Package className="h-4 w-4 text-indigo-500" /> কেনা প্যাকেজসমূহের তালিকা
+                </h4>
+                {selectedArchiveUser.packages_details && selectedArchiveUser.packages_details.length > 0 ? (
+                  <div className="rounded-xl border border-slate-200 overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 text-[10px] font-bold uppercase text-slate-500 border-b border-slate-200">
+                        <tr>
+                          <th className="px-3 py-2">প্যাকেজের নাম</th>
+                          <th className="px-3 py-2">মূল্য</th>
+                          <th className="px-3 py-2">পেমেন্ট মেথড</th>
+                          <th className="px-3 py-2">ক্রয়ের তারিখ</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {selectedArchiveUser.packages_details.map((p, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50/50">
+                            <td className="px-3 py-2 font-bold text-slate-800">{p.package_name || "প্যাকেজ"}</td>
+                            <td className="px-3 py-2 font-bold text-indigo-600 bn-display">{BN(p.price ?? 0)}</td>
+                            <td className="px-3 py-2 text-slate-600 uppercase text-[10px]">{p.payment_method || "—"}</td>
+                            <td className="px-3 py-2 text-slate-500 text-[11px]">
+                              {p.purchased_at ? new Date(p.purchased_at).toLocaleDateString("bn-BD") : "—"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 italic bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    কোনো প্যাকেজ ক্রয়ের রেকর্ড পাওয়া যায়নি।
+                  </p>
+                )}
+              </div>
+
+              {/* Withdrawals Breakdown */}
+              <div>
+                <h4 className="bn-display text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+                  <Wallet className="h-4 w-4 text-rose-500" /> উইথড্রয়াল স্টেটমেন্ট
+                </h4>
+                {selectedArchiveUser.withdrawals_details && selectedArchiveUser.withdrawals_details.length > 0 ? (
+                  <div className="rounded-xl border border-slate-200 overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 text-[10px] font-bold uppercase text-slate-500 border-b border-slate-200">
+                        <tr>
+                          <th className="px-3 py-2">পরিমাণ</th>
+                          <th className="px-3 py-2">পেমেন্ট মাধ্যম</th>
+                          <th className="px-3 py-2">অ্যাকাউন্ট নম্বর</th>
+                          <th className="px-3 py-2">তারিখ</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {selectedArchiveUser.withdrawals_details.map((w, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50/50">
+                            <td className="px-3 py-2 font-bold text-rose-600 bn-display">{BN(w.amount ?? 0)}</td>
+                            <td className="px-3 py-2 text-slate-600 uppercase text-[10px]">{w.method || "—"}</td>
+                            <td className="px-3 py-2 font-mono text-slate-700">{w.account_number || "—"}</td>
+                            <td className="px-3 py-2 text-slate-500 text-[11px]">
+                              {w.created_at ? new Date(w.created_at).toLocaleDateString("bn-BD") : "—"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 italic bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    কোনো অনুমোদিত উইথড্রয়ালের রেকর্ড নেই।
+                  </p>
+                )}
+              </div>
+
+              {/* Close Button */}
+              <div className="pt-2 flex justify-end">
+                <GradientButton accent="indigo" onClick={() => setSelectedArchiveUser(null)}>
+                  বন্ধ করুন
+                </GradientButton>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* ============== EXPORT FOOTER ============== */}
       <div className="flex flex-wrap gap-2 pt-2 print:hidden">
