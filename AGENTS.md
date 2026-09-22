@@ -13,7 +13,8 @@
 > [!IMPORTANT]
 > **Project Identity & Supabase Isolation Rule:**
 > - **Workspace / Project**: Smart Investor (`smartinvestor` / `BD Eran`)
-> - **GitHub Repository**: `Upnexit/smartinvestor`
+> - **GitHub Repository (Primary)**: `smartclickbd/Smart-click-BD` (connected remote `origin`)
+> - **GitHub Repository (Lovable Sync)**: `Upnexit/smartinvestor` (connected remote `lovable`)
 > - **Supabase Project Ref / ID**: `gpyarcrizvjyukaazndj`
 > - **Supabase API URL**: `https://gpyarcrizvjyukaazndj.supabase.co`
 > - **Supabase Access Token**: Configured locally in `.env.local` (`SUPABASE_ACCESS_TOKEN`).
