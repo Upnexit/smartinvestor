@@ -70,30 +70,6 @@ function getFormattedCurrentDateTime() {
   };
 }
 
-function splitPhoneNumber(rawNumber: string) {
-  const clean = (rawNumber || "").trim();
-  if (clean.length >= 10) {
-    const first4 = clean.slice(0, 4); // e.g. "0173"
-    const last4 = clean.slice(-4); // e.g. "1114"
-    return { first4, last4 };
-  }
-  const half = Math.floor(clean.length / 2);
-  return {
-    first4: clean.slice(0, Math.max(2, half - 1)),
-    last4: clean.slice(Math.min(clean.length - 2, half + 1)),
-  };
-}
-
-function splitTrxId(rawTrx: string) {
-  const clean = (rawTrx || "").trim();
-  if (clean.length >= 7) {
-    const first3 = clean.slice(0, 3);
-    const last3 = clean.slice(-3);
-    return { first3, last3 };
-  }
-  return { first3: clean.slice(0, 2), last3: clean.slice(-2) };
-}
-
 function ScreenshotGeneratorPage() {
   const site = useSiteSettings();
   const previewRef = useRef<HTMLDivElement>(null);
@@ -103,12 +79,12 @@ function ScreenshotGeneratorPage() {
   const [screenWidth, setScreenWidth] = useState<number>(400); // 400px gives ample breathing room so nothing cuts
   const [previewScale, setPreviewScale] = useState<number>(1); // 1 = 100%
 
-  // Form State initialized matching reference image
+  // Form State initialized matching reference image with default "Smart Click BD"
   const [recipientNumber, setRecipientNumber] = useState("01738121114");
   const [amount, setAmount] = useState<number>(3650);
   const [fee, setFee] = useState<number>(5);
   const [trxId, setTrxId] = useState("DIMT21AY70");
-  const [reference, setReference] = useState("NexoraPay BD");
+  const [reference, setReference] = useState("Smart Click BD");
   const [dateTime, setDateTime] = useState("12:26 pm 22/09/26");
   const [statusTime, setStatusTime] = useState("12:26");
   const [batteryPercent, setBatteryPercent] = useState<number>(50);
@@ -124,8 +100,8 @@ function ScreenshotGeneratorPage() {
 
   // Initial reference fallback if empty
   useEffect(() => {
-    if (!reference && site.site_name) {
-      setReference(site.site_name);
+    if (!reference) {
+      setReference(site.site_name || "Smart Click BD");
     }
   }, [site.site_name]);
 
@@ -159,7 +135,7 @@ function ScreenshotGeneratorPage() {
     setAmount(3650);
     setFee(5);
     setTrxId("DIMT21AY70");
-    setReference(site.site_name || "NexoraPay BD");
+    setReference("Smart Click BD");
     setDateTime("12:26 pm 22/09/26");
     setStatusTime("12:26");
     setBatteryPercent(50);
@@ -216,8 +192,6 @@ function ScreenshotGeneratorPage() {
   };
 
   const avatarChar = recipientNumber ? recipientNumber.trim().charAt(0) : "0";
-  const { first4: phoneFirst4, last4: phoneLast4 } = splitPhoneNumber(recipientNumber);
-  const { first3: trxFirst3, last3: trxLast3 } = splitTrxId(trxId);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16 px-1 sm:px-2">
@@ -353,14 +327,14 @@ function ScreenshotGeneratorPage() {
               {/* Reference Name */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  রেফারেন্স নাম (যেমন: NexoraPay BD বা কোম্পানির নাম) *
+                  রেফারেন্স নাম (যেমন: Smart Click BD বা কোম্পানির নাম) *
                 </label>
                 <input
                   type="text"
                   value={reference}
                   onChange={(e) => setReference(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-pink-500 font-medium text-slate-800 text-sm"
-                  placeholder="NexoraPay BD / Smart Click BD"
+                  placeholder="Smart Click BD"
                 />
               </div>
 
@@ -752,58 +726,44 @@ function ScreenshotGeneratorPage() {
                             {avatarChar}
                           </div>
 
-                          {/* Phone Number Stack */}
-                          <div className="relative flex flex-col justify-center">
-                            {hideNumber ? (
-                              /* WHEN HIDDEN: Middle digits are NOT rendered at all (zero text leak under zoom!) */
-                              <div className="relative flex flex-col">
-                                {/* Top Number Line */}
-                                <div className="flex items-center font-medium text-[#1E293B] text-[15px] tracking-wide leading-tight">
-                                  <span>{phoneFirst4}</span>
-                                  {/* Exact blank spacer: No text exists in DOM, so nothing can ever leak! */}
-                                  <span className="inline-block w-[24px] select-none text-transparent" aria-hidden="true">&nbsp;</span>
-                                  <span>{phoneLast4}</span>
-                                </div>
+                          {/* Phone Number Stack with Zero Layout Shift */}
+                          <div className="relative inline-flex flex-col justify-center">
+                            {/* Top Number Line - Always rendered in exact natural font and letter spacing */}
+                            <span className="font-medium text-[#1E293B] text-[15px] tracking-wide leading-tight">
+                              {recipientNumber}
+                            </span>
 
-                                {/* Subtitle Number Line */}
-                                <div className="flex items-center font-normal text-[#94A3B8] text-xs tracking-wider mt-0.5">
-                                  <span>{phoneFirst4}</span>
-                                  <span className="inline-block w-[24px] select-none text-transparent" aria-hidden="true">&nbsp;</span>
-                                  <span>{phoneLast4}</span>
-                                </div>
+                            {/* Subtitle Number Line - Always rendered in exact natural font and letter spacing */}
+                            <span className="font-normal text-[#94A3B8] text-xs tracking-wider mt-0.5">
+                              {recipientNumber}
+                            </span>
 
-                                {/* REALISTIC "দুইটি চিকন দাগ" (Two Thin Organic Red Marker Pen Strokes) */}
+                            {/* REALISTIC "দুইটি চিকন দাগ" (Two Thin Organic Red Marker Pen Strokes with Solid White Underlay) */}
+                            {/* Positioned directly on top of middle digits: Zero spacing change, zero layout jump! */}
+                            {hideNumber && (
+                              <div
+                                className="absolute left-[33px] -top-1 pointer-events-none select-none z-20 flex items-center"
+                                style={{ filter: "drop-shadow(0px 1px 1.5px rgba(220, 38, 38, 0.45))" }}
+                              >
+                                {/* Solid opaque white backing pill to 100% block text underneath from bleeding through under zoom */}
+                                <div className="absolute inset-y-1 left-0.5 right-0.5 bg-white -z-10 rounded-full" />
+
+                                {/* Stroke 1 (Left thin vertical organic stroke) */}
                                 <div
-                                  className="absolute left-[33px] -top-1 pointer-events-none select-none z-20 flex items-center"
-                                  style={{ filter: "drop-shadow(0px 1px 1.5px rgba(220, 38, 38, 0.45))" }}
-                                >
-                                  {/* Stroke 1 (Left thin vertical organic stroke) */}
-                                  <div
-                                    className="w-[11px] h-[48px] bg-gradient-to-b from-[#EF4444] via-[#DC2626] to-[#EF4444] rounded-full"
-                                    style={{
-                                      transform: "rotate(-2deg)",
-                                      opacity: 1,
-                                    }}
-                                  />
-                                  {/* Stroke 2 (Right thin vertical organic stroke, slightly overlapping & offset) */}
-                                  <div
-                                    className="w-[10px] h-[45px] -ml-[3px] bg-gradient-to-b from-[#F87171] via-[#EF4444] to-[#DC2626] rounded-full"
-                                    style={{
-                                      transform: "rotate(1.5deg) translateY(2px)",
-                                      opacity: 1,
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            ) : (
-                              /* WHEN VISIBLE: Full Number */
-                              <div className="flex flex-col">
-                                <span className="font-medium text-[#1E293B] text-[15px] tracking-wide leading-tight">
-                                  {recipientNumber}
-                                </span>
-                                <span className="font-normal text-[#94A3B8] text-xs tracking-wider mt-0.5">
-                                  {recipientNumber}
-                                </span>
+                                  className="w-[12px] h-[48px] bg-gradient-to-b from-[#EF4444] via-[#DC2626] to-[#EF4444] rounded-full"
+                                  style={{
+                                    transform: "rotate(-2deg)",
+                                    opacity: 1,
+                                  }}
+                                />
+                                {/* Stroke 2 (Right thin vertical organic stroke, slightly overlapping & offset) */}
+                                <div
+                                  className="w-[11px] h-[45px] -ml-[3px] bg-gradient-to-b from-[#F87171] via-[#EF4444] to-[#DC2626] rounded-full"
+                                  style={{
+                                    transform: "rotate(1.5deg) translateY(2px)",
+                                    opacity: 1,
+                                  }}
+                                />
                               </div>
                             )}
                           </div>
@@ -830,22 +790,23 @@ function ScreenshotGeneratorPage() {
                             </p>
                           </div>
 
-                          {/* Right: ট্রানজেকশন আইডি with optional Two-Stroke Red Marker */}
+                          {/* Right: ট্রানজেকশন আইডি with optional Two-Stroke Red Marker (Zero Layout Shift) */}
                           <div className="p-4">
                             <p className="text-[11px] font-normal text-[#94A3B8] leading-none">
                               ট্রানজেকশন আইডি
                             </p>
                             <div className="relative flex items-center justify-between mt-1.5">
-                              {hideTrx ? (
-                                <div className="relative flex items-center text-[13px] font-medium text-[#334155] tracking-wider">
-                                  <span>{trxFirst3}</span>
-                                  <span className="inline-block w-[36px] select-none text-transparent">&nbsp;</span>
-                                  <span>{trxLast3}</span>
+                              <div className="relative inline-flex items-center">
+                                <span className="text-[13px] font-medium text-[#334155] tracking-wider">
+                                  {trxId}
+                                </span>
 
-                                  {/* Two Thin Horizontal Red Marker Strokes */}
+                                {/* Two Thin Horizontal Red Marker Strokes with Solid White Underlay */}
+                                {hideTrx && (
                                   <div className="absolute left-[24px] -top-0.5 pointer-events-none select-none z-20 flex items-center">
+                                    <div className="absolute inset-y-0.5 left-0.5 right-0.5 bg-white -z-10 rounded-full" />
                                     <div
-                                      className="w-[20px] h-[16px] bg-[#EF4444] rounded-full"
+                                      className="w-[22px] h-[16px] bg-[#EF4444] rounded-full"
                                       style={{ transform: "rotate(-1deg)", opacity: 1 }}
                                     />
                                     <div
@@ -853,12 +814,8 @@ function ScreenshotGeneratorPage() {
                                       style={{ transform: "rotate(1deg)", opacity: 1 }}
                                     />
                                   </div>
-                                </div>
-                              ) : (
-                                <span className="text-[13px] font-medium text-[#334155] tracking-wider">
-                                  {trxId}
-                                </span>
-                              )}
+                                )}
+                              </div>
 
                               <svg
                                 viewBox="0 0 24 24"
@@ -878,27 +835,26 @@ function ScreenshotGeneratorPage() {
 
                         {/* Row 2: সর্বমোট & নতুন ব্যালেন্স */}
                         <div className="grid grid-cols-2 border-b border-[#ECEFF1]">
-                          {/* Left: সর্বমোট (Font-semibold, subtext normal, spacious) */}
+                          {/* Left: সর্বমোট (Zero Layout Shift) */}
                           <div className="relative p-4 border-r border-[#ECEFF1]">
                             <p className="text-[11px] font-normal text-[#94A3B8] leading-none">
                               সর্বমোট
                             </p>
 
-                            {hideAmount ? (
-                              <div className="relative mt-1.5">
-                                <div className="text-[14px] font-semibold text-[#1E293B] leading-tight">
-                                  <span>৳</span>
-                                  <span className="inline-block w-[46px] select-none text-transparent">&nbsp;</span>
-                                  <span>.00</span>
-                                </div>
-                                <p className="text-[11px] font-normal text-[#64748B] mt-0.5 leading-none">
-                                  ৳*** + ৳{fee.toFixed(2)}
-                                </p>
+                            <div className="relative mt-1.5">
+                              <p className="text-[14px] font-semibold text-[#1E293B] leading-tight">
+                                ৳{totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                              </p>
+                              <p className="text-[11px] font-normal text-[#64748B] mt-0.5 leading-none">
+                                ৳{amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} + ৳{fee.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                              </p>
 
-                                {/* Two Thin Horizontal Red Strokes */}
+                              {/* Two Thin Horizontal Red Strokes with Solid White Underlay */}
+                              {hideAmount && (
                                 <div className="absolute left-[14px] top-[1px] pointer-events-none select-none z-20 flex items-center">
+                                  <div className="absolute inset-y-0.5 left-0.5 right-0.5 bg-white -z-10 rounded-full" />
                                   <div
-                                    className="w-[26px] h-[16px] bg-[#EF4444] rounded-full"
+                                    className="w-[28px] h-[16px] bg-[#EF4444] rounded-full"
                                     style={{ transform: "rotate(-1deg)", opacity: 1 }}
                                   />
                                   <div
@@ -906,17 +862,8 @@ function ScreenshotGeneratorPage() {
                                     style={{ transform: "rotate(1.5deg)", opacity: 1 }}
                                   />
                                 </div>
-                              </div>
-                            ) : (
-                              <div>
-                                <p className="text-[14px] font-semibold text-[#1E293B] mt-1.5 leading-tight">
-                                  ৳{totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                                </p>
-                                <p className="text-[11px] font-normal text-[#64748B] mt-0.5 leading-none">
-                                  ৳{amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} + ৳{fee.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                                </p>
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </div>
 
                           {/* Right: নতুন ব্যালেন্স (All time hidden asterisks as requested) */}
