@@ -44,88 +44,77 @@ const METHODS: Array<{ key: Method; label: string }> = [
 const AMOUNTS = [480, 650, 850, 1150, 1420, 1680, 1940, 2200, 2550, 2800, 3100, 3500, 4200, 5000];
 
 // Illustrated character avatar with amber circle ring (exact match to reference screenshot)
-function IllustratedAvatar({ seed, className }: { seed: number; className?: string }) {
-  const styleIdx = seed % 4;
-
+function IllustratedAvatar({ className }: { seed?: number; className?: string }) {
   return (
     <div
-      className={`relative rounded-full overflow-hidden p-[2px] bg-gradient-to-tr from-amber-400 to-orange-400 shadow-sm flex items-center justify-center ${
+      className={`relative rounded-full overflow-hidden p-[2.5px] bg-[#E0852B] shadow-xs flex items-center justify-center shrink-0 ${
         className || "w-12 h-12"
       }`}
     >
-      <div className="w-full h-full rounded-full overflow-hidden bg-[#DFF2FE] flex items-center justify-center">
-        <svg viewBox="0 0 100 100" className="w-full h-full" fill="none">
-          {/* Circular background */}
-          <circle cx="50" cy="50" r="48" fill="#DFF2FE" />
+      <div className="w-full h-full rounded-full overflow-hidden bg-[#D3EEFB] flex items-center justify-center">
+        <svg viewBox="0 0 100 100" className="w-full h-full select-none" fill="none">
+          {/* Base background circle */}
+          <circle cx="50" cy="50" r="50" fill="#D3EEFB" />
 
-          {/* Shoulders / Suit */}
+          {/* Blue Suit Jacket - Shoulders */}
           <path
-            d="M 16 98 C 18 78 32 68 50 68 C 68 68 82 78 84 98 Z"
-            fill={styleIdx % 2 === 0 ? "#1E40AF" : "#0F172A"}
+            d="M 12 100 C 13 75 32 64 50 64 C 68 64 87 75 88 100 Z"
+            fill="#2970BF"
           />
 
-          {/* White Collar / Shirt V */}
-          <polygon points="40,68 50,88 60,68 54,68 50,82 46,68" fill="#FFFFFF" />
-
-          {/* Tie (Orange / Amber / Red) */}
-          <polygon
-            points="48,74 52,74 54,92 50,97 46,92"
-            fill={styleIdx === 0 ? "#EA580C" : styleIdx === 1 ? "#DC2626" : "#F59E0B"}
+          {/* Darker lapel shadows on jacket sides */}
+          <path
+            d="M 18 100 C 20 80 32 68 44 65 L 37 84 L 26 100 Z"
+            fill="#1E5799"
           />
-          <polygon points="47,72 53,72 52,76 48,76" fill="#C2410C" />
+          <path
+            d="M 82 100 C 80 80 68 68 56 65 L 63 84 L 74 100 Z"
+            fill="#1E5799"
+          />
+
+          {/* Crisp White Shirt Collar (V shape) */}
+          <polygon points="41,64 50,88 59,64" fill="#FFFFFF" />
+          <polygon points="36,65 44,65 41,74" fill="#FFFFFF" />
+          <polygon points="64,65 56,65 59,74" fill="#FFFFFF" />
+
+          {/* Red/Orange Tie Knot */}
+          <polygon points="46,67 54,67 53,74 47,74" fill="#C93D17" />
+
+          {/* Red/Orange Tie Blade */}
+          <polygon points="47,74 53,74 55,95 50,100 45,95" fill="#E85626" />
 
           {/* Neck */}
-          <rect x="44" y="56" width="12" height="15" rx="2" fill="#F8D2B1" />
-
-          {/* Head & Face */}
-          <ellipse cx="50" cy="45" rx="16" ry="18" fill="#F8D2B1" />
+          <rect x="44" y="54" width="12" height="13" rx="1" fill="#F8D3B7" />
 
           {/* Ears */}
-          <circle cx="34" cy="46" r="3.5" fill="#F8D2B1" />
-          <circle cx="66" cy="46" r="3.5" fill="#F8D2B1" />
+          <circle cx="33" cy="46" r="4" fill="#F8D3B7" />
+          <circle cx="67" cy="46" r="4" fill="#F8D3B7" />
 
-          {/* Eyes & Eyebrows */}
-          <circle cx="44" cy="44" r="1.8" fill="#1E293B" />
-          <circle cx="56" cy="44" r="1.8" fill="#1E293B" />
-          <path d="M 41 40 Q 44 38 47 40" stroke="#1E293B" strokeWidth="1.6" strokeLinecap="round" />
-          <path d="M 53 40 Q 56 38 59 40" stroke="#1E293B" strokeWidth="1.6" strokeLinecap="round" />
+          {/* Head / Face */}
+          <ellipse cx="50" cy="45" rx="17" ry="19" fill="#FFDFC6" />
 
-          {/* Gentle Smile & Nose */}
-          <path d="M 49 46 L 48 50 L 51 50" stroke="#D97706" strokeWidth="1.2" strokeLinecap="round" />
-          <path d="M 45 54 Q 50 57 55 54" stroke="#1E293B" strokeWidth="1.6" strokeLinecap="round" />
+          {/* Hair - exact smooth side-parted hairstyle from reference image */}
+          <path
+            d="M 31 43 C 30 24 43 17 53 17 C 66 17 71 24 69 43 C 65 31 56 28 47 28 C 37 28 33 34 31 43 Z"
+            fill="#2E373F"
+          />
+          {/* Clean sideburns */}
+          <path d="M 31 41 L 33 46 L 35 44" fill="#2E373F" />
+          <path d="M 69 41 L 67 46 L 65 44" fill="#2E373F" />
 
-          {/* Hair Variations */}
-          {styleIdx === 0 && (
-            // Classic Dark Side-part Hair
-            <path
-              d="M 32 44 C 30 28 42 22 52 22 C 64 22 70 28 68 44 C 64 34 56 32 48 32 C 38 32 34 38 32 44 Z"
-              fill="#1E293B"
-            />
-          )}
+          {/* Eyes */}
+          <circle cx="43.5" cy="44.5" r="1.8" fill="#262F36" />
+          <circle cx="56.5" cy="44.5" r="1.8" fill="#262F36" />
 
-          {styleIdx === 1 && (
-            // Modern Styled Haircut
-            <path
-              d="M 33 42 C 32 26 44 20 54 20 C 66 20 68 28 67 42 C 63 32 55 30 46 30 C 37 30 35 36 33 42 Z"
-              fill="#334155"
-            />
-          )}
+          {/* Eyebrows */}
+          <path d="M 40.5 41 Q 43.5 39 46.5 41" stroke="#262F36" strokeWidth="1.4" strokeLinecap="round" />
+          <path d="M 53.5 41 Q 56.5 39 59.5 41" stroke="#262F36" strokeWidth="1.4" strokeLinecap="round" />
 
-          {styleIdx === 2 && (
-            // Short Crop with sideburns
-            <path
-              d="M 33 46 C 31 30 40 24 50 24 C 62 24 69 30 67 46 C 65 34 58 32 50 32 C 40 32 35 36 33 46 Z"
-              fill="#0F172A"
-            />
-          )}
+          {/* Nose */}
+          <path d="M 50 47.5 L 49 51 L 51 51" stroke="#E2A684" strokeWidth="1.2" strokeLinecap="round" />
 
-          {styleIdx === 3 && (
-            // Voluminous Top Hair
-            <path
-              d="M 32 43 C 31 24 43 18 53 18 C 65 18 69 25 68 43 C 64 32 54 30 47 30 C 38 30 35 36 32 43 Z"
-              fill="#1F2937"
-            />
-          )}
+          {/* Friendly Smile */}
+          <path d="M 46 55 Q 50 57.5 54 55" stroke="#262F36" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
       </div>
     </div>
@@ -161,10 +150,10 @@ export function LivePayoutPopup() {
   useEffect(() => {
     let unmounted = false;
 
-    // Initial popup after 2.8 seconds of login
+    // Quick initial popup after 1.2 seconds of page load
     const initialTimer = setTimeout(() => {
       if (!unmounted) scheduleNext();
-    }, 2800);
+    }, 1200);
 
     function scheduleNext() {
       if (unmounted) return;
@@ -172,18 +161,18 @@ export function LivePayoutPopup() {
       setCurrent(nextPayout);
       setIsVisible(true);
 
-      // Visible for 4.8 seconds
+      // Visible for 4.5 seconds
       timerRef.current = setTimeout(() => {
         if (!isHovered.current) {
           setIsVisible(false);
         }
 
-        // Repeat every 8 to 15 seconds
-        const waitMs = Math.floor(8000 + Math.random() * 7000);
+        // Fast & lively interval: repeat every 6 to 10 seconds
+        const waitMs = Math.floor(6000 + Math.random() * 4000);
         setTimeout(() => {
           if (!unmounted) scheduleNext();
         }, waitMs);
-      }, 4800);
+      }, 4500);
     }
 
     return () => {
@@ -214,7 +203,7 @@ export function LivePayoutPopup() {
         isHovered.current = false;
         setTimeout(() => setIsVisible(false), 2000);
       }}
-      className={`fixed z-40 left-3 sm:left-6 bottom-20 lg:bottom-6 max-w-[315px] sm:max-w-[330px] w-[calc(100vw-24px)] sm:w-auto transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+      className={`fixed z-40 left-3 sm:left-6 bottom-[92px] sm:bottom-24 lg:bottom-8 max-w-[315px] sm:max-w-[330px] w-[calc(100vw-24px)] sm:w-auto transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
         isVisible
           ? "translate-x-0 opacity-100 scale-100 pointer-events-auto"
           : "-translate-x-full opacity-0 scale-95 pointer-events-none"
