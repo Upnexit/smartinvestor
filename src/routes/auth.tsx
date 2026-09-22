@@ -39,7 +39,7 @@ export const Route = createFileRoute("/auth")({
         const user = data.session.user;
         const email = user.email?.toLowerCase() ?? "";
         // Determine best destination based on role
-        let isAdmin = email === "upnex360@gmail.com";
+        let isAdmin = email === "smartclickbd@gmail.com";
         let isDistributor = false;
         try {
           const { data: roleRows } = await supabase
@@ -108,7 +108,7 @@ function AuthPage() {
     const { data: roleRows } = await supabase
       .from("user_roles").select("role").eq("user_id", data.user.id);
     const roles = (roleRows ?? []).map((r) => r.role as string);
-    const isAdmin = roles.includes("admin") || data.user.email?.toLowerCase() === "upnex360@gmail.com";
+    const isAdmin = roles.includes("admin") || data.user.email?.toLowerCase() === "smartclickbd@gmail.com";
     const isDistributor = roles.includes("distributor");
     const dest = safeRedirect(search.redirect) ?? (isAdmin ? "/admin" : isDistributor ? "/distributor" : "/dashboard");
     setLoading(false);

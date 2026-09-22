@@ -38,7 +38,7 @@ function AdminShell() {
           .eq("role", "admin")
           .limit(1);
         if (roleError) throw roleError;
-        const isDesignatedAdmin = userData.user.email?.toLowerCase() === "upnex360@gmail.com";
+        const isDesignatedAdmin = userData.user.email?.toLowerCase() === "smartclickbd@gmail.com";
         if (!cancelled) setState((roleRows?.length ?? 0) > 0 || isDesignatedAdmin ? "ok" : "denied");
       } catch {
         if (!cancelled) setState("denied");

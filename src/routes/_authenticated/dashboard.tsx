@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
     const user = data.user;
     if (!user) return;
     const email = user.email?.toLowerCase() ?? "";
-    if (email === "upnex360@gmail.com") throw redirect({ to: "/admin" });
+    if (email === "smartclickbd@gmail.com") throw redirect({ to: "/admin" });
     try {
       const { data: roleRows } = await supabase
         .from("user_roles").select("role").eq("user_id", user.id);
