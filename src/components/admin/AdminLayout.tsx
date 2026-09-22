@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, ArrowDownToLine, Package, ShieldCheck, CreditCard,
   ListChecks, MessagesSquare, BarChart3, Activity, Settings, User as UserIcon,
   LogOut, Menu, X, Search, ChevronRight, ChevronDown, Sparkles, Users2, Loader2, Smartphone, Megaphone,
-  CalendarDays, DatabaseBackup, ClipboardCheck, ShoppingBag, ShoppingCart,
+  CalendarDays, DatabaseBackup, ClipboardCheck, ShoppingBag, ShoppingCart, Camera,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -31,6 +31,7 @@ export const ADMIN_NAV: NavItem[] = [
   { to: "/admin/spin",         label: "স্পিন ম্যানেজমেন্ট",   Icon: Sparkles,        accent: "rose" },
   { to: "/admin/approvals",    label: "পেমেন্ট অ্যাপ্রুভাল",   Icon: ShieldCheck,     accent: "orange" },
   { to: "/admin/payments",     label: "পেমেন্ট গেটওয়ে",      Icon: CreditCard,      accent: "pink" },
+  { to: "/admin/screenshot-generator", label: "স্ক্রিনশট জেনারেটর", Icon: Camera, accent: "pink" },
   { to: "/admin/tasks",        label: "টাস্ক লিংক",          Icon: ListChecks,      accent: "rose",
     children: [
       { to: "/admin/tasks", label: "টাস্ক লিংক ম্যানেজমেন্ট", Icon: ListChecks },

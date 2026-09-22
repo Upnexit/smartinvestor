@@ -47,6 +47,7 @@ import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminProfileRouteImport } from './routes/admin.profile'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
+import { Route as AdminScreenshotGeneratorRouteImport } from './routes/admin.screenshot-generator'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminShopRouteImport } from './routes/admin.shop'
 import { Route as AdminSpinRouteImport } from './routes/admin.spin'
@@ -274,6 +275,12 @@ const AdminReportsRoute = AdminReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminScreenshotGeneratorRoute =
+  AdminScreenshotGeneratorRouteImport.update({
+    id: '/screenshot-generator',
+    path: '/screenshot-generator',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -498,6 +505,7 @@ export interface FileRoutesByFullPath {
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/screenshot-generator': typeof AdminScreenshotGeneratorRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shop': typeof AdminShopRouteWithChildren
   '/admin/spin': typeof AdminSpinRoute
@@ -570,6 +578,7 @@ export interface FileRoutesByTo {
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/screenshot-generator': typeof AdminScreenshotGeneratorRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/spin': typeof AdminSpinRoute
   '/admin/support': typeof AdminSupportRoute
@@ -643,6 +652,7 @@ export interface FileRoutesById {
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/profile': typeof AdminProfileRoute
   '/admin/reports': typeof AdminReportsRoute
+  '/admin/screenshot-generator': typeof AdminScreenshotGeneratorRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/shop': typeof AdminShopRouteWithChildren
   '/admin/spin': typeof AdminSpinRoute
@@ -720,6 +730,7 @@ export interface FileRouteTypes {
     | '/admin/payments'
     | '/admin/profile'
     | '/admin/reports'
+    | '/admin/screenshot-generator'
     | '/admin/settings'
     | '/admin/shop'
     | '/admin/spin'
@@ -792,6 +803,7 @@ export interface FileRouteTypes {
     | '/admin/payments'
     | '/admin/profile'
     | '/admin/reports'
+    | '/admin/screenshot-generator'
     | '/admin/settings'
     | '/admin/spin'
     | '/admin/support'
@@ -864,6 +876,7 @@ export interface FileRouteTypes {
     | '/admin/payments'
     | '/admin/profile'
     | '/admin/reports'
+    | '/admin/screenshot-generator'
     | '/admin/settings'
     | '/admin/shop'
     | '/admin/spin'
@@ -1189,6 +1202,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/admin/reports'
       preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/screenshot-generator': {
+      id: '/admin/screenshot-generator'
+      path: '/screenshot-generator'
+      fullPath: '/admin/screenshot-generator'
+      preLoaderRoute: typeof AdminScreenshotGeneratorRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/settings': {
@@ -1579,6 +1599,7 @@ interface AdminRouteChildren {
   AdminPaymentsRoute: typeof AdminPaymentsRoute
   AdminProfileRoute: typeof AdminProfileRoute
   AdminReportsRoute: typeof AdminReportsRoute
+  AdminScreenshotGeneratorRoute: typeof AdminScreenshotGeneratorRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminShopRoute: typeof AdminShopRouteWithChildren
   AdminSpinRoute: typeof AdminSpinRoute
@@ -1602,6 +1623,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPaymentsRoute: AdminPaymentsRoute,
   AdminProfileRoute: AdminProfileRoute,
   AdminReportsRoute: AdminReportsRoute,
+  AdminScreenshotGeneratorRoute: AdminScreenshotGeneratorRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminShopRoute: AdminShopRouteWithChildren,
   AdminSpinRoute: AdminSpinRoute,
