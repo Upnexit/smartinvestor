@@ -11,6 +11,7 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useLaunchFlag } from "@/hooks/use-launch-flag";
 import { cn } from "@/lib/utils";
 import { NoticeModal } from "@/components/panel/NoticeModal";
+import { LivePayoutPopup } from "@/components/panel/LivePayoutPopup";
 import { PushOptInBanner } from "@/components/panel/PushOptInBanner";
 import { usePushSubscribe } from "@/hooks/use-push-subscribe";
 import { applyPanelTheme, getPanelTheme } from "@/lib/panel-theme";
@@ -245,6 +246,7 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
       </nav>
 
       <NoticeModal />
+      <LivePayoutPopup />
     </div>
   );
 }
