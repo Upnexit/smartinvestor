@@ -8,51 +8,54 @@ export type SiteSettings = {
   favicon_url: string;
 };
 
+export const BRAND_NAME = "Smart Click BD";
+export const BRAND_TAGLINE = "স্মার্ট ক্লিক বিডি";
+export const BRAND_LOGO_URL = "/logo.png";
+export const BRAND_FAVICON_URL = "/app-icon-192.png";
+
 const DEFAULTS: SiteSettings = {
-  site_name: "Smart Click BD",
-  tagline: "স্মার্ট ক্লিক বিডি",
-  logo_url: "/logo.png",
-  favicon_url: "/app-icon-192.png",
+  site_name: BRAND_NAME,
+  tagline: BRAND_TAGLINE,
+  logo_url: BRAND_LOGO_URL,
+  favicon_url: BRAND_FAVICON_URL,
 };
 
-const STORAGE_KEY = "scbd.site-settings.v2";
+const STORAGE_KEY = "scbd.site-settings.v3";
 
 function readCache(): SiteSettings {
-  if (typeof window === "undefined") return DEFAULTS;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return DEFAULTS;
-    return { ...DEFAULTS, ...(JSON.parse(raw) as Partial<SiteSettings>) };
-  } catch {
-    return DEFAULTS;
-  }
+  return DEFAULTS;
 }
 
-function writeCache(v: SiteSettings) {
+function writeCache(_v: SiteSettings) {
   if (typeof window === "undefined") return;
-  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(v)); } catch { /* noop */ }
+  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULTS)); } catch { /* noop */ }
 }
 
 // Module-level singleton state to keep every mounted component in sync
-let current: SiteSettings = readCache();
+let current: SiteSettings = DEFAULTS;
 const listeners = new Set<(s: SiteSettings) => void>();
 let initialized = false;
 let channelStarted = false;
 
 function setAll(next: Partial<SiteSettings>) {
-  current = { ...current, ...next };
+  current = {
+    ...current,
+    ...next,
+    site_name: BRAND_NAME,
+    tagline: BRAND_TAGLINE,
+    logo_url: BRAND_LOGO_URL,
+    favicon_url: BRAND_FAVICON_URL,
+  };
   writeCache(current);
   listeners.forEach((l) => l(current));
   if (typeof document !== "undefined") {
-    if (current.favicon_url) {
-      let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-      if (!link) {
-        link = document.createElement("link");
-        link.rel = "icon";
-        document.head.appendChild(link);
-      }
-      link.href = current.favicon_url;
+    let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      document.head.appendChild(link);
     }
+    link.href = BRAND_FAVICON_URL;
   }
 }
 

@@ -228,12 +228,12 @@ function RegisterPage() {
 
           <div className="relative z-10">
             <Link to="/" aria-label="হোম পেজে ফিরুন" className="flex items-center gap-3 rounded-2xl outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70">
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/20 backdrop-blur-sm shadow-lg ring-1 ring-white/30 overflow-hidden">
-                {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-7 w-7" />}
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white shadow-lg ring-1 ring-white/30 overflow-hidden p-1">
+                <img src="/logo.png" alt="Smart Click BD" className="h-full w-full object-contain" />
               </div>
               <div>
-                <p className="bn-display text-2xl leading-tight">{site.site_name}</p>
-                <p className="text-xs text-white/80">{site.tagline || "হোমে ফিরে যান"}</p>
+                <p className="bn-display text-2xl leading-tight">Smart Click BD</p>
+                <p className="text-xs text-white/80">স্মার্ট ক্লিক বিডি</p>
               </div>
             </Link>
 
@@ -284,10 +284,10 @@ function RegisterPage() {
             {/* Mobile brand bar */}
             <div className="mb-6 flex items-center justify-between lg:hidden">
               <Link to="/" aria-label="হোম পেজে ফিরুন" className="flex items-center gap-2 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-amber-400">
-                <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-amber-400 to-rose-500 text-white shadow-md overflow-hidden">
-                  {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-5 w-5" />}
+                <div className="grid h-9 w-9 place-items-center rounded-xl bg-white shadow-md overflow-hidden p-0.5 ring-1 ring-amber-200">
+                  <img src="/logo.png" alt="Smart Click BD" className="h-full w-full object-contain" />
                 </div>
-                <span className="bn-display text-lg text-slate-900">{site.site_name}</span>
+                <span className="bn-display text-lg text-slate-900">Smart Click BD</span>
               </Link>
               <Link to="/auth" search={{ mode: "login", ...(search.redirect ? { redirect: search.redirect } : {}) }} className="text-sm font-medium text-amber-700">লগইন →</Link>
             </div>

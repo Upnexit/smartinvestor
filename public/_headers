@@ -1,4 +1,4 @@
-# Caching headers for Smart Investor
+# Caching headers for Smart Click BD
 
 # Service worker and version check must NEVER be cached by HTTP proxies or browsers
 /sw.js

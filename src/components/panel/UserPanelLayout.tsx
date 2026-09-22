@@ -105,11 +105,11 @@ export function UserPanelLayout({ children }: { children: ReactNode }) {
       {/* Mobile top bar */}
       <header className="panel-chrome sticky top-0 z-30 flex items-center justify-between border-b backdrop-blur px-4 py-3 lg:hidden">
         <Link to="/dashboard" className="flex items-center gap-2">
-          <div className="panel-brand grid h-9 w-9 place-items-center rounded-xl shadow-lg overflow-hidden">
-            {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-5 w-5" />}
+          <div className="panel-brand grid h-9 w-9 place-items-center rounded-xl shadow-lg overflow-hidden bg-white p-0.5">
+            <img src="/logo.png" alt="Smart Click BD" className="h-full w-full object-contain" />
           </div>
           <div>
-            <p className="bn-display panel-chrome-fg text-base leading-none">{site.site_name}</p>
+            <p className="bn-display panel-chrome-fg text-base leading-none">Smart Click BD</p>
             <p className="panel-chrome-muted text-[10px] mt-0.5">USER · PANEL</p>
           </div>
         </Link>
@@ -219,13 +219,12 @@ function SidebarContent({
     <div className="flex h-full flex-col p-4">
       {/* Brand */}
       <Link to="/dashboard" onClick={onNavigate} className="flex items-center gap-3 rounded-2xl px-2 py-2">
-        <div className="panel-brand grid h-11 w-11 place-items-center rounded-2xl shadow-lg overflow-hidden">
-          {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-6 w-6" />}
+        <div className="panel-brand grid h-11 w-11 place-items-center rounded-2xl shadow-lg overflow-hidden bg-white p-1">
+          <img src="/logo.png" alt="Smart Click BD" className="h-full w-full object-contain" />
         </div>
         <div>
-          <p className="bn-display panel-chrome-fg text-lg leading-none">{site.site_name}</p>
+          <p className="bn-display panel-chrome-fg text-lg leading-none">Smart Click BD</p>
           <p className="panel-chrome-muted text-[10px] font-semibold tracking-wider mt-1">USER · PANEL</p>
-
         </div>
       </Link>
 

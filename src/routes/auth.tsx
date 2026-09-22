@@ -147,16 +147,12 @@ function AuthPage() {
 
           <div className="relative z-10">
             <Link to="/" aria-label="হোম পেজে ফিরুন" className="flex items-center gap-3 rounded-2xl outline-none transition hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/70">
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white/20 backdrop-blur-sm shadow-lg ring-1 ring-white/30 overflow-hidden">
-                {site.logo_url ? (
-                  <img src={site.logo_url} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <Sparkles className="h-7 w-7" />
-                )}
+              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-white shadow-lg ring-1 ring-white/30 overflow-hidden p-1">
+                <img src="/logo.png" alt="Smart Click BD" className="h-full w-full object-contain" />
               </div>
               <div>
-                <p className="bn-display text-2xl leading-tight">{site.site_name}</p>
-                <p className="text-xs text-white/80">{site.tagline || "হোমে ফিরে যান"}</p>
+                <p className="bn-display text-2xl leading-tight">Smart Click BD</p>
+                <p className="text-xs text-white/80">স্মার্ট ক্লিক বিডি</p>
               </div>
             </Link>
 
@@ -207,14 +203,14 @@ function AuthPage() {
                 </div>
                 {/* Logo the character sits on — overlaps upward so feet rest on top */}
                 <Link to="/" aria-label="হোম" className="-mt-4 flex flex-col items-center gap-2">
-                  <div className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-amber-400 via-rose-500 to-fuchsia-600 text-white shadow-2xl ring-2 ring-white/70 overflow-hidden">
-                    {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-8 w-8" />}
+                  <div className="grid h-16 w-16 place-items-center rounded-2xl bg-white text-white shadow-2xl ring-2 ring-white/70 overflow-hidden p-1">
+                    <img src="/logo.png" alt="Smart Click BD" className="h-full w-full object-contain" />
                   </div>
-                  <span className="bn-display text-2xl text-slate-900 drop-shadow-sm">{site.site_name}</span>
+                  <span className="bn-display text-2xl text-slate-900 drop-shadow-sm">Smart Click BD</span>
                 </Link>
               </div>
               <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur px-3 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-200 shadow-sm">
-                <Sparkles className="h-3.5 w-3.5" /> SMART NETWORK BD
+                <Sparkles className="h-3.5 w-3.5" /> SMART CLICK BD
               </span>
               <h1 className="bn-display mt-3 text-2xl text-slate-900">আপনার একাউন্টে লগইন</h1>
               <p className="mt-1.5 text-sm text-slate-700">আবার স্বাগতম! ড্যাশবোর্ডে প্রবেশ করুন।</p>

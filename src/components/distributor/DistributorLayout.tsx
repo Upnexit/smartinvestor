@@ -85,10 +85,10 @@ export function DistributorLayout({ children }: { children: ReactNode }) {
         <div className="flex items-center justify-between gap-2">
           <Link to="/distributor" className="flex items-center gap-2 min-w-0">
             <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/40 overflow-hidden">
-              {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-5 w-5" />}
+              <img src="/logo.png" alt="Smart Click BD" className="h-full w-full object-cover" />
             </div>
             <div className="min-w-0">
-              <p className="bn-display text-sm leading-none truncate">{site.site_name}</p>
+              <p className="bn-display text-sm leading-none truncate">Smart Click BD</p>
               <p className="text-[9px] font-bold tracking-widest text-indigo-600 mt-0.5">DISTRIBUTOR</p>
             </div>
           </Link>
@@ -190,10 +190,10 @@ function SidebarBody({ nav, pathname, onNav, onLogout }: { nav: NavItem[]; pathn
         <span className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-indigo-400 via-violet-500 to-purple-600" />
         <Link to="/distributor" onClick={onNav} className="flex items-center gap-2.5">
           <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-600 to-purple-700 text-white shadow-lg shadow-indigo-500/40 overflow-hidden">
-            {site.logo_url ? <img src={site.logo_url} alt="" className="h-full w-full object-cover" /> : <Sparkles className="h-6 w-6" />}
+            <img src="/logo.png" alt="Smart Click BD" className="h-full w-full object-cover" />
           </div>
           <div className="min-w-0">
-            <p className="bn-display text-base text-slate-900 leading-none">{site.site_name}</p>
+            <p className="bn-display text-base text-slate-900 leading-none">Smart Click BD</p>
             <p className="text-[10px] font-bold tracking-[0.18em] text-indigo-600 mt-1 flex items-center gap-1.5">
               DISTRIBUTOR PANEL
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />

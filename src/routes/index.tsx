@@ -43,27 +43,13 @@ function useStandaloneAutoRedirect() {
 /* ---------------- Shared bits ---------------- */
 
 function Logo({ size = 40 }: { size?: number }) {
-  const { logo_url, site_name } = useSiteSettings();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
-  if (mounted && logo_url) {
-    return (
-      <img
-        src={logo_url}
-        alt={`${site_name} লোগো`}
-        style={{ width: size, height: size }}
-        className="rounded-xl object-cover ring-2 ring-amber-200 shadow-soft bg-white"
-      />
-    );
-  }
   return (
-    <div
-      className="grid place-items-center rounded-xl bg-white ring-2 ring-amber-200 shadow-soft"
+    <img
+      src="/logo.png"
+      alt="Smart Click BD লোগো"
       style={{ width: size, height: size }}
-      aria-hidden
-    >
-      <span className="bn-display text-amber-600" style={{ fontSize: size * 0.45 }}>SC</span>
-    </div>
+      className="rounded-xl object-cover ring-2 ring-amber-200 shadow-soft bg-white"
+    />
   );
 }
 
