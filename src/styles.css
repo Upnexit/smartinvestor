@@ -74,11 +74,15 @@
 }
 
 @utility bg-app {
-  background-color: #fdfbf5;
+  background-color: #f8fafc;
   background-image:
-    radial-gradient(at 12% 8%, rgba(251, 191, 36, 0.22) 0px, transparent 45%),
-    radial-gradient(at 88% 12%, rgba(16, 185, 129, 0.18) 0px, transparent 45%),
-    radial-gradient(at 50% 100%, rgba(244, 114, 182, 0.16) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 45%),
+    radial-gradient(at 100% 0%, rgba(244, 63, 94, 0.12) 0px, transparent 45%),
+    radial-gradient(at 50% 25%, rgba(245, 158, 11, 0.10) 0px, transparent 40%),
+    radial-gradient(at 10% 65%, rgba(16, 185, 129, 0.09) 0px, transparent 45%),
+    radial-gradient(at 90% 70%, rgba(139, 92, 246, 0.11) 0px, transparent 45%),
+    radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.10) 0px, transparent 50%);
+  background-attachment: fixed;
 }
 @utility bg-cream { background-color: #fdfbf5; }
 @utility bg-mint  { background-color: #f1faf5; }
@@ -181,6 +185,47 @@
   outline: 3px solid rgba(251, 146, 60, 0.85);
   outline-offset: 3px;
   border-radius: 1rem;
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(2deg); }
+}
+@utility animate-float-slow {
+  animation: float-slow 5s ease-in-out infinite;
+}
+
+@keyframes float-reverse {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(12px) rotate(-2deg); }
+}
+@utility animate-float-reverse {
+  animation: float-reverse 5.5s ease-in-out infinite;
+}
+
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-8px) scale(1.03); }
+}
+@utility animate-float-gentle {
+  animation: float-gentle 4.2s ease-in-out infinite;
+}
+
+@keyframes reaction-bob {
+  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  30% { transform: translateY(-10px) scale(1.06) rotate(-3deg); }
+  70% { transform: translateY(6px) scale(0.96) rotate(3deg); }
+}
+@utility animate-reaction-bob {
+  animation: reaction-bob 4.8s ease-in-out infinite;
+}
+
+@keyframes float-badge {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-6px) scale(1.02); }
+}
+@utility animate-float-badge {
+  animation: float-badge 3.6s ease-in-out infinite;
 }
 
 

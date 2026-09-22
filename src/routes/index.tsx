@@ -12,6 +12,16 @@ import {
 } from "lucide-react";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  FloatingHeroReactions,
+  FacebookIcon,
+  YouTubeIcon,
+  FbLikeReaction,
+  FbLoveReaction,
+  FbCareReaction,
+  FbHahaReaction,
+  FbWowReaction,
+} from "@/components/home/FloatingHeroReactions";
 
 export const Route = createFileRoute("/")({
   component: SmartClickBdPage,
@@ -115,32 +125,67 @@ function Nav() {
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden px-4 pb-16 pt-12 sm:px-6 md:pt-20 md:pb-24">
-      {/* blobs */}
-      <div aria-hidden className="pointer-events-none absolute -top-16 -left-16 h-72 w-72 rounded-full bg-amber-300/40 blur-2xl" />
-      <div aria-hidden className="pointer-events-none absolute -top-10 -right-20 h-72 w-72 rounded-full bg-emerald-300/40 blur-2xl" />
-      <div aria-hidden className="pointer-events-none absolute -bottom-16 left-1/2 h-72 w-80 -translate-x-1/2 rounded-full bg-rose-300/40 blur-2xl" />
+    <section className="relative overflow-hidden px-4 pb-16 pt-12 sm:px-6 md:pt-20 md:pb-28">
+      {/* Modern Aurora Mesh Glows */}
+      <div aria-hidden className="pointer-events-none absolute -top-24 left-1/2 h-[420px] w-[95%] max-w-6xl -translate-x-1/2 rounded-full bg-gradient-to-r from-blue-400/20 via-rose-400/15 to-amber-300/20 blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute -top-16 -left-20 h-80 w-80 rounded-full bg-indigo-400/15 blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute top-1/3 -right-20 h-80 w-80 rounded-full bg-rose-400/15 blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute bottom-0 left-1/3 h-64 w-80 rounded-full bg-emerald-400/10 blur-3xl" />
 
-      <div className="relative mx-auto max-w-4xl text-center">
-        <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 text-xs font-semibold text-emerald-700 sm:text-sm">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+      {/* Floating Official Social Badges & Emojis surrounding the hero */}
+      <FloatingHeroReactions />
+
+      <div className="relative z-10 mx-auto max-w-4xl text-center">
+        {/* Top Badges */}
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/90 backdrop-blur-md px-3.5 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm sm:text-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
+            বাংলাদেশের #১ অনলাইন ইনকাম প্ল্যাটফর্ম
           </span>
-          বাংলাদেশের #১ অনলাইন ইনকাম প্ল্যাটফর্ম
-        </span>
 
-        <div className="mt-4">
-          <span className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-gradient-to-r from-amber-100 via-yellow-100 to-orange-100 px-4 py-1.5 text-xs font-semibold text-amber-900 sm:text-sm">
+          <span className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-white/90 backdrop-blur-md px-3.5 py-1.5 text-xs font-semibold text-amber-900 shadow-sm sm:text-sm">
             <Gift className="h-4 w-4 text-rose-500" />
-            নতুন একাউন্টে <span className="text-rose-700">৳৩০০</span> সাইনআপ বোনাস (লকড)
+            নতুন একাউন্টে <span className="text-rose-700 font-bold">৳৩০০</span> বোনাস
           </span>
         </div>
 
-        <h1 className="bn-display mt-6 text-[2.5rem] leading-[1.05] text-slate-900 sm:text-6xl md:text-7xl">
-          <span className="text-gradient">লাইক ও কমেন্ট</span>{" "}
-          করে টাকা <span className="text-gradient">ইনকাম</span> করুন
-        </h1>
+        {/* Official Partners Trust Bar */}
+        <div className="mt-4 flex items-center justify-center gap-2">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/85 px-4 py-1.5 shadow-sm ring-1 ring-slate-200/80 backdrop-blur-md">
+            <div className="flex items-center -space-x-1">
+              <FacebookIcon className="h-4 w-4 drop-shadow-sm" />
+              <FbLikeReaction className="h-4 w-4 drop-shadow-sm" />
+              <FbLoveReaction className="h-4 w-4 drop-shadow-sm" />
+              <YouTubeIcon className="h-4 w-4 drop-shadow-sm" />
+            </div>
+            <span className="text-[11px] font-bold text-slate-700">
+              Facebook ও YouTube অফিসিয়াল টাস্ক
+            </span>
+          </div>
+        </div>
+
+        {/* Main Animated Headline */}
+        <div className="relative mt-5">
+          <h1 className="bn-display text-[2.5rem] leading-[1.08] text-slate-900 sm:text-6xl md:text-7xl">
+            <span className="relative inline-block">
+              <span className="text-gradient">লাইক ও কমেন্ট</span>
+              <span className="absolute -top-3 -right-6 hidden sm:inline-block animate-float-badge">
+                <FbLikeReaction className="h-7 w-7 drop-shadow-md" />
+              </span>
+            </span>{" "}
+            করে টাকা{" "}
+            <span className="relative inline-block">
+              <span className="text-gradient">ইনকাম</span>
+              <span className="absolute -top-3 -right-6 hidden sm:inline-block animate-reaction-bob">
+                <FbLoveReaction className="h-7 w-7 drop-shadow-md" />
+              </span>
+            </span>{" "}
+            করুন
+          </h1>
+        </div>
 
         <p className="mx-auto mt-6 max-w-2xl text-base text-slate-600 sm:text-lg">
           ঘরে বসে মোবাইল দিয়ে সহজেই আয় করুন। প্রতিদিন কয়েক মিনিট কাজ করেই পেয়ে যান রিয়েল ক্যাশ —{" "}
@@ -149,8 +194,9 @@ function Hero() {
           <span className="font-semibold text-purple-600">Rocket</span>-এ ইনস্ট্যান্ট পেমেন্ট।
         </p>
 
+        {/* CTA Buttons */}
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link to="/register" className="btn-gold w-full sm:w-auto">
+          <Link to="/register" className="btn-gold w-full sm:w-auto shadow-lg shadow-amber-500/25">
             ফ্রি একাউন্ট খুলুন <ArrowRight className="h-4 w-4" />
           </Link>
           <Link to="/distributor-info" className="group relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 px-6 py-3 font-semibold text-white shadow-lg shadow-violet-500/30 ring-1 ring-white/20 transition-all hover:-translate-y-0.5 hover:shadow-xl sm:w-auto">
@@ -170,10 +216,29 @@ function Hero() {
           ))}
         </div>
 
-        {/* rate cards */}
+        {/* Rate Cards with Official Emojis */}
         <div className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-4">
-          <RateCard tone="sky" Icon={ThumbsUp} label="প্রতি Like" value="৳ ০.৫০" />
-          <RateCard tone="rose" Icon={MessageCircle} label="প্রতি Comment" value="৳ ১.২০" />
+          <div className="group rounded-2xl border border-blue-200/80 bg-white/95 p-5 shadow-soft backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-pop hover:border-blue-300">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="inline-grid h-11 w-11 place-items-center rounded-xl bg-blue-50 shadow-soft ring-1 ring-blue-200/80">
+                <FbLikeReaction className="h-7 w-7" />
+              </div>
+              <FacebookIcon className="h-5 w-5 opacity-70 group-hover:opacity-100 transition-opacity" />
+            </div>
+            <div className="text-sm font-medium text-slate-600">প্রতি Facebook Like</div>
+            <div className="bn-display mt-1 text-2xl sm:text-3xl text-blue-700">৳ ০.৫০</div>
+          </div>
+
+          <div className="group rounded-2xl border border-red-200/80 bg-white/95 p-5 shadow-soft backdrop-blur-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-pop hover:border-red-300">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="inline-grid h-11 w-11 place-items-center rounded-xl bg-red-50 shadow-soft ring-1 ring-red-200/80">
+                <YouTubeIcon className="h-7 w-7" />
+              </div>
+              <FbLoveReaction className="h-5 w-5 opacity-70 group-hover:opacity-100 transition-opacity" />
+            </div>
+            <div className="text-sm font-medium text-slate-600">প্রতি YouTube Comment</div>
+            <div className="bn-display mt-1 text-2xl sm:text-3xl text-red-600">৳ ১.২০</div>
+          </div>
         </div>
       </div>
     </section>
