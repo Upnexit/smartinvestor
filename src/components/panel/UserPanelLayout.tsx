@@ -3,7 +3,7 @@ import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-ro
 import {
   LayoutDashboard, ListChecks, ArrowDownToLine, Package, MessageCircle,
   Users, User as UserIcon, ChevronRight, LogOut, Sparkles, Menu, X, Bell, Crown, Home, LifeBuoy,
-  ShoppingBag, Palette,
+  ShoppingBag, Palette, Trophy,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,6 +43,11 @@ const SPIN_ITEM: NavItem = {
   from: "from-rose-500", to_: "to-amber-500", soft: "bg-rose-50", dot: "bg-rose-500",
 };
 
+const LEADERBOARD_ITEM: NavItem = {
+  to: "/leaderboard", label: "লিডারবোর্ড", short: "লিডার", Icon: Trophy,
+  from: "from-amber-400", to_: "to-yellow-600", soft: "bg-amber-50", dot: "bg-amber-500",
+};
+
 // Staged for the big re-launch — hidden until the launch switch is on.
 const SHOP_ITEM: NavItem = {
   to: "/shop", label: "শপ", short: "শপ", Icon: ShoppingBag,
@@ -56,8 +61,9 @@ const THEME_ITEM: NavItem = {
 
 const sideNav = (launched: boolean): NavItem[] =>
   launched
-    ? [NAV[0], SPIN_ITEM, NAV[1], SHOP_ITEM, ...NAV.slice(2), THEME_ITEM]
-    : [NAV[0], SPIN_ITEM, ...NAV.slice(1), THEME_ITEM];
+    ? [NAV[0], SPIN_ITEM, LEADERBOARD_ITEM, NAV[1], SHOP_ITEM, ...NAV.slice(2), THEME_ITEM]
+    : [NAV[0], SPIN_ITEM, LEADERBOARD_ITEM, ...NAV.slice(1), THEME_ITEM];
+
 
 const bottomNav = (launched: boolean): NavItem[] =>
   launched
