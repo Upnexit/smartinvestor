@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { PartyPopper, CheckCircle2, Handshake } from "lucide-react";
+import { X, AlertTriangle, ShieldAlert } from "lucide-react";
 
-const STORAGE_KEY = "si_admin_payment_done_v1";
+const STORAGE_KEY = "si_admin_notice_v2";
 
 export function AgreementWelcomeDialog() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     try {
-      if (window.localStorage.getItem(STORAGE_KEY) !== "1") setOpen(true);
+      if (window.localStorage.getItem(STORAGE_KEY) !== "1") {
+        setOpen(true);
+      }
     } catch {
       /* ignore */
     }
@@ -26,41 +28,58 @@ export function AgreementWelcomeDialog() {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] grid place-items-center bg-slate-900/60 px-4 backdrop-blur-sm">
-      <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-slate-200">
-        <div className="relative bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 px-6 py-7 text-center text-white">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-white/20 ring-1 ring-white/30">
-            <PartyPopper className="h-8 w-8" />
+    <div
+      className="fixed inset-0 z-[100] grid place-items-center bg-slate-950/65 px-4 backdrop-blur-md animate-fade-in"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-rose-200/80 animate-admin-pop">
+        {/* Top Header Banner */}
+        <div className="relative bg-gradient-to-r from-rose-500 via-red-500 to-amber-600 px-6 py-5 text-white">
+          {/* Top-Right Cross Button */}
+          <button
+            onClick={close}
+            aria-label="বন্ধ করুন"
+            className="absolute top-4 right-4 grid h-8 w-8 place-items-center rounded-xl bg-white/20 text-white backdrop-blur hover:bg-white/30 transition active:scale-95"
+          >
+            <X className="h-4 w-4" />
+          </button>
+
+          <div className="flex items-center gap-3">
+            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-white/20 ring-1 ring-white/30 shadow-md">
+              <ShieldAlert className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <span className="inline-block rounded-md bg-white/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-100">
+                সতর্কবার্তা
+              </span>
+              <h2 className="bn-display text-xl font-bold text-white leading-tight mt-0.5">
+                অ্যাডমিন নোটিশ
+              </h2>
+            </div>
           </div>
-          <h2 className="bn-display mt-3 text-2xl">অভিনন্দন!</h2>
-          <p className="mt-1 text-sm text-emerald-50">
-            আপনার সমস্ত পেমেন্ট সম্পন্ন হয়েছে
-          </p>
         </div>
 
-        <div className="space-y-3 px-6 py-6">
-          <p className="text-center text-sm leading-relaxed text-slate-600">
-            সকল বকেয়া পরিশোধ সম্পন্ন হয়েছে। আপনার প্ল্যাটফর্মের সকল সেবা স্বাভাবিকভাবে
-            চালু থাকবে এবং আমরা পূর্ণ সাপোর্ট দিয়ে পাশে আছি।
-          </p>
-          <div className="space-y-2 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
-            {[
-              "সম্পূর্ণ সিস্টেম অ্যাক্সেস সচল",
-              "নিয়মিত মেইনটেন্যান্স ও আপডেট",
-              "ডেডিকেটেড ডেভেলপার সাপোর্ট",
-            ].map((x) => (
-              <div key={x} className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
-                {x}
-              </div>
-            ))}
+        {/* Notice Content */}
+        <div className="space-y-4 p-6">
+          <div className="rounded-2xl border border-rose-100 bg-rose-50/70 p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 shrink-0 text-rose-600 mt-0.5" />
+              <p className="text-base font-semibold text-slate-800 leading-relaxed">
+                এতবার admin panel এ ঢুকতে লাভ নাই।গুয়া মারা  আপনি খেয়েছেন এবং খাবেন।
+              </p>
+            </div>
           </div>
+
+          <p className="text-xs text-slate-500 text-center">
+            এই নোটিশটি শুধুমাত্র প্রথমবার প্রদর্শিত হচ্ছে। আপনি উপরের ক্রস (×) বা নিচের বাটনে ক্লিক করে এটি বন্ধ করতে পারেন।
+          </p>
 
           <button
             onClick={close}
-            className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-500/30 transition hover:brightness-110"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-rose-500 via-red-500 to-amber-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-rose-500/25 transition hover:brightness-105 active:scale-98"
           >
-            <Handshake className="h-4 w-4" /> ধন্যবাদ, শুরু করি
+            <X className="h-4 w-4" /> বন্ধ করুন
           </button>
         </div>
       </div>
