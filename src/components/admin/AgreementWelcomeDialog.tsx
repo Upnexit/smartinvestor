@@ -1,27 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { X, AlertTriangle, ShieldAlert } from "lucide-react";
 
-const STORAGE_KEY = "si_admin_notice_v2";
-
 export function AgreementWelcomeDialog() {
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    try {
-      if (window.localStorage.getItem(STORAGE_KEY) !== "1") {
-        setOpen(true);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, []);
+  const [open, setOpen] = useState(true);
 
   const close = () => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, "1");
-    } catch {
-      /* ignore */
-    }
     setOpen(false);
   };
 
@@ -72,7 +55,7 @@ export function AgreementWelcomeDialog() {
           </div>
 
           <p className="text-xs text-slate-500 text-center">
-            এই নোটিশটি শুধুমাত্র প্রথমবার প্রদর্শিত হচ্ছে। আপনি উপরের ক্রস (×) বা নিচের বাটনে ক্লিক করে এটি বন্ধ করতে পারেন।
+            আপনি উপরের ক্রস (×) বা নিচের বাটনে ক্লিক করে এটি বন্ধ করতে পারেন।
           </p>
 
           <button
