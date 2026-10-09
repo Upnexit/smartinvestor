@@ -6,7 +6,15 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { GradientButton } from "@/components/admin/AdminUI";
 import { AgreementWelcomeDialog } from "@/components/admin/AgreementWelcomeDialog";
 import { ShutdownCountdownScreen } from "@/components/admin/ShutdownCountdownScreen";
+import { AdminNoticeLockScreen } from "@/components/admin/AdminNoticeLockScreen";
 import { useShutdownPhase } from "@/hooks/use-shutdown-phase";
+
+// ============================================================
+// ADMIN DIRECT NOTICE LOCK
+// Set to `true` to block admin panel access and show direct notice screen.
+// Set to `false` when requested to restore normal admin panel access.
+// ============================================================
+export const ADMIN_NOTICE_LOCK = true;
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -82,6 +90,10 @@ function AdminShell() {
         </div>
       </div>
     );
+  }
+
+  if (ADMIN_NOTICE_LOCK) {
+    return <AdminNoticeLockScreen />;
   }
 
   return (
