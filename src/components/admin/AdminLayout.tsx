@@ -35,7 +35,6 @@ export const ADMIN_NAV: NavItem[] = [
   { to: "/admin/ads",          label: "বিজ্ঞাপন (Ad) কন্ট্রোল", Icon: Sparkles,        accent: "amber" },
   { to: "/admin/tasks",        label: "টাস্ক লিংক (স্থগিত)",  Icon: ListChecks,      accent: "rose",
     children: [
-      { to: "/admin/ads", label: "বিজ্ঞাপন (Ad) কন্ট্রোল", Icon: Sparkles },
       { to: "/admin/tasks", label: "টাস্ক লিংক ম্যানেজমেন্ট", Icon: ListChecks },
       { to: "/admin/tasks/daily-report", label: "দৈনিক রিপোর্ট", Icon: CalendarDays },
       { to: "/admin/tasks/distributor-activity", label: "ডিস্ট্রিবিউটর কার্যক্রম", Icon: Activity },

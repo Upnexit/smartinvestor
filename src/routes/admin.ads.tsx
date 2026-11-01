@@ -166,7 +166,7 @@ function AdminAdsControlPage() {
       <AdminPageHeader
         accent="rose"
         Icon={Tv}
-        title="অ্যাড কন্ট্রোল প্যানেল"
+        title="বিজ্ঞাপন (Ad) ও ভেরিফিকেশন কন্ট্রোল"
         subtitle="Adsterra / রিওয়ার্ডেড ডিরেক্ট লিংক নিয়ন্ত্রণ, রিওয়ার্ড ও ইউজারদের অ্যাড দেখার হিস্ট্রি"
         action={
           <GradientButton accent="rose" busy={saving} onClick={handleSave}>
