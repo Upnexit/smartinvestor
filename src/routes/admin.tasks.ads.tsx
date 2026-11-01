@@ -88,7 +88,7 @@ function AdminAdsControlPage() {
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
 
-      const [todayRes, totalRes, recentRes] = await Promise.all([
+      const [todayRes, totalRes, recentViewsRes] = await Promise.all([
         supabase
           .from("user_ad_views")
           .select("reward_amount")
@@ -98,10 +98,25 @@ function AdminAdsControlPage() {
           .select("reward_amount"),
         supabase
           .from("user_ad_views")
-          .select("id, user_id, reward_amount, created_at, profiles(full_name, phone, user_code)")
+          .select("id, user_id, reward_amount, created_at")
           .order("created_at", { ascending: false })
           .limit(15),
       ]);
+
+      let formattedRecent: RecentView[] = [];
+      if (recentViewsRes.data && recentViewsRes.data.length > 0) {
+        const uids = [...new Set(recentViewsRes.data.map((r) => r.user_id))];
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, full_name, phone, user_code")
+          .in("id", uids);
+
+        const profMap = new Map((profs ?? []).map((p) => [p.id, p]));
+        formattedRecent = recentViewsRes.data.map((r) => ({
+          ...r,
+          profiles: profMap.get(r.user_id) || null,
+        }));
+      }
 
       const tViews = todayRes.data?.length ?? 0;
       const tExp = (todayRes.data ?? []).reduce((acc, r) => acc + Number(r.reward_amount || 0), 0);
@@ -113,7 +128,7 @@ function AdminAdsControlPage() {
       setTotalViews(allViews);
       setTotalExpense(allExp);
 
-      setRecentViews((recentRes.data as unknown as RecentView[]) ?? []);
+      setRecentViews(formattedRecent);
     } catch (err: any) {
       toast.error(err.message || "ডাটা লোড করতে সমস্যা হয়েছে");
     } finally {
