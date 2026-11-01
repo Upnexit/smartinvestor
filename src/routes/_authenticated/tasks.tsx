@@ -1,3 +1,4 @@
+import { AdWatchTaskCard } from "@/components/panel/AdWatchTaskCard";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -196,10 +197,13 @@ function TasksPage() {
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-sky-700">DAILY TASKS</p>
-        <h1 className="bn-display mt-1 text-2xl text-slate-900 sm:text-3xl">আজকের টাস্ক 🎯</h1>
-        <p className="mt-1 text-sm text-slate-600">প্রতিটি টাস্ক সম্পন্ন করে দৈনিক আয় বাড়ান।</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-amber-700">DAILY AD REWARDS</p>
+        <h1 className="bn-display mt-1 text-2xl text-slate-900 sm:text-3xl">বিজ্ঞাপন দেখে প্রতিদিন আয় 🎯</h1>
+        <p className="mt-1 text-sm text-slate-600">কোনো ইনভেস্ট ছাড়া ৫০টি বিজ্ঞাপন দেখুন এবং সরাসরি আপনার অ্যাকাউন্টে ব্যালেন্স যোগ করুন।</p>
       </div>
+
+      {/* Main Rewarded Ad Watch Section */}
+      <AdWatchTaskCard />
 
       {/* Summary — gradient tiles */}
       <div className="grid grid-cols-3 gap-3">
@@ -223,16 +227,7 @@ function TasksPage() {
         </div>
       </div>
 
-      {hasActivePkg === false && (
-        <div className="flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
-          <Lock className="h-5 w-5 shrink-0" />
-          <div className="flex-1">
-            <p className="font-bold">কোন active প্যাকেজ নেই</p>
-            <p className="mt-0.5 text-xs">টাস্ক করতে হলে একটি প্যাকেজ ক্রয় করুন।</p>
-          </div>
-          <Link to="/packages" className="rounded-xl bg-amber-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-700">প্যাকেজ দেখুন</Link>
-        </div>
-      )}
+
 
       {/* Filter chips — colorful gradients */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
