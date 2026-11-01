@@ -29,6 +29,8 @@ type AdSettings = {
   daily_limit: number;
   timer_seconds: number;
   enabled: boolean;
+  min_referrals?: number;
+  verification_fee?: number;
 };
 
 type RecentView = {
@@ -50,6 +52,8 @@ function AdminAdsControlPage() {
     daily_limit: 50,
     timer_seconds: 20,
     enabled: true,
+    min_referrals: 10,
+    verification_fee: 150,
   });
 
   const [saving, setSaving] = useState(false);
@@ -125,9 +129,16 @@ function AdminAdsControlPage() {
         value: settings,
         updated_at: new Date().toISOString(),
       });
-
       if (error) throw error;
-      toast.success("অ্যাড সেটিংস সফলভাবে সেভ করা হয়েছে!");
+
+      // Also update verification package price
+      if (settings.verification_fee != null) {
+        await supabase.from("packages").update({
+          price: settings.verification_fee,
+        }).eq("id", "00000000-0000-0000-0000-000000000001");
+      }
+
+      toast.success("অ্যাড ও উইথড্র ভেরিফিকেশন সেটিংস সফলভাবে সেভ করা হয়েছে!");
     } catch (err: any) {
       toast.error(err.message || "সেভ করতে সমস্যা হয়েছে");
     } finally {
@@ -300,6 +311,51 @@ function AdminAdsControlPage() {
                     className="w-full rounded-xl border border-slate-300 px-3 py-2 text-slate-800 focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
                   />
                   <span className="text-[10px] text-slate-500">কত সেকেন্ড পর টাকা জমা হবে</span>
+                </div>
+              </div>
+
+              {/* Withdraw Requirements Settings */}
+              <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-3.5 space-y-3">
+                <p className="text-xs font-bold text-amber-900 uppercase tracking-wide">
+                  উইথড্র শর্তাবলী ও অ্যাকাউন্ট ভেরিফিকেশন ফি
+                </p>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-semibold text-slate-700 block mb-1 text-xs">
+                      বাধ্যতামূলক রেফারেল সংখ্যা
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={settings.min_referrals ?? 10}
+                      onChange={(e) =>
+                        setSettings({ ...settings, min_referrals: parseInt(e.target.value) || 0 })
+                      }
+                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-slate-800 bg-white focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
+                    />
+                    <span className="text-[10px] text-slate-500">উইথড্র করার আগে কয়টি রেফার লাগবে</span>
+                  </div>
+
+                  <div>
+                    <label className="font-semibold text-slate-700 block mb-1 text-xs">
+                      ভেরিফিকেশন ফি (৳)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={settings.verification_fee ?? 150}
+                        onChange={(e) =>
+                          setSettings({ ...settings, verification_fee: parseFloat(e.target.value) || 0 })
+                        }
+                        className="w-full rounded-xl border border-slate-300 px-3 py-2 text-slate-800 bg-white focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
+                      />
+                      <span className="absolute right-3 top-2 font-bold text-slate-400">৳</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500">অ্যাকাউন্ট ভেরিফাই করার জন্য কত টাকা দিতে হবে</span>
+                  </div>
                 </div>
               </div>
 

@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   ArrowDownToLine, Wallet, Clock, CheckCircle2, XCircle, Loader2,
-  AlertCircle, Smartphone, ShieldCheck,
+  AlertCircle, Smartphone, ShieldCheck, Users, ShieldAlert, Sparkles, ExternalLink,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePaymentBranding } from "@/hooks/use-payment-branding";
@@ -48,6 +48,16 @@ function WithdrawPage() {
   const [history, setHistory] = useState<WD[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
   const [emailVerified, setEmailVerified] = useState(true);
+  const [eligibility, setEligibility] = useState<{
+    referrals_count: number;
+    required_referrals: number;
+    referrals_completed: boolean;
+    is_verified: boolean;
+    verification_status: "unpaid" | "pending" | "verified";
+    verification_fee: number;
+    verification_pkg_id: string;
+    can_withdraw: boolean;
+  } | null>(null);
   const paymentBranding = usePaymentBranding();
   const logos = useMemo<Record<Method, string>>(() => ({
     bkash: paymentBranding.bkash.logo_url ?? "",
@@ -60,12 +70,16 @@ function WithdrawPage() {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
       setUserId(u.user.id);
-      const [{ data: p }, { data: w }] = await Promise.all([
+      const [{ data: p }, { data: w }, { data: elig }] = await Promise.all([
         supabase.from("profiles").select("balance,locked_balance,payment_method,payment_number,email_verified")
           .eq("id", u.user.id).maybeSingle(),
         supabase.from("withdrawals").select("*").eq("user_id", u.user.id)
           .order("created_at", { ascending: false }).limit(20),
+        supabase.rpc("check_withdraw_eligibility"),
       ]);
+      if (elig && typeof elig === "object") {
+        setEligibility(elig as any);
+      }
       if (p) {
         setBalance(Number(p.balance) || 0);
         setLocked(Number(p.locked_balance) || 0);
@@ -87,6 +101,16 @@ function WithdrawPage() {
 
   async function handleSubmit() {
     if (!userId || !phoneValid || !amountValid) return;
+    if (eligibility && !eligibility.can_withdraw) {
+      if (!eligibility.referrals_completed) {
+        toast.error(`উইথড্র করতে কমপক্ষে ${eligibility.required_referrals} জন বন্ধুকে সফল রেফার করতে হবে।`);
+        return;
+      }
+      if (!eligibility.is_verified) {
+        toast.error("উইথড্র করার পূর্বে আপনার অ্যাকাউন্টটি ভেরিফাই করতে হবে।");
+        return;
+      }
+    }
     void emailVerified;
     setSubmitting(true);
     const tId = toast.loading("রিকোয়েস্ট পাঠানো হচ্ছে…");
