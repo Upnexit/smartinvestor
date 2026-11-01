@@ -43,7 +43,6 @@ import { Route as AdminCommunityRouteImport } from './routes/admin.community'
 import { Route as AdminDistributorsRouteImport } from './routes/admin.distributors'
 import { Route as AdminMonitorRouteImport } from './routes/admin.monitor'
 import { Route as AdminNoticesRouteImport } from './routes/admin.notices'
-import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminProfileRouteImport } from './routes/admin.profile'
@@ -508,9 +507,6 @@ export interface FileRoutesByFullPath {
   '/admin/distributors': typeof AdminDistributorsRouteWithChildren
   '/admin/monitor': typeof AdminMonitorRoute
   '/admin/notices': typeof AdminNoticesRoute
-  '/admin/ads': typeof AdminAdsRoute
-  '/admin/ads': typeof AdminAdsRoute
-  '/admin/ads': typeof AdminAdsRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/profile': typeof AdminProfileRoute
@@ -739,7 +735,6 @@ export interface FileRouteTypes {
     | '/admin/distributors'
     | '/admin/monitor'
     | '/admin/notices'
-    | '/admin/ads'
     | '/admin/packages'
     | '/admin/payments'
     | '/admin/profile'
@@ -814,7 +809,6 @@ export interface FileRouteTypes {
     | '/admin/community'
     | '/admin/monitor'
     | '/admin/notices'
-    | '/admin/ads'
     | '/admin/packages'
     | '/admin/payments'
     | '/admin/profile'
@@ -889,7 +883,6 @@ export interface FileRouteTypes {
     | '/admin/distributors'
     | '/admin/monitor'
     | '/admin/notices'
-    | '/admin/ads'
     | '/admin/packages'
     | '/admin/payments'
     | '/admin/profile'
@@ -1193,13 +1186,6 @@ declare module '@tanstack/react-router' {
       path: '/notices'
       fullPath: '/admin/notices'
       preLoaderRoute: typeof AdminNoticesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/ads': {
-      id: '/admin/ads'
-      path: '/ads'
-      fullPath: '/admin/ads'
-      preLoaderRoute: typeof AdminAdsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/packages': {
