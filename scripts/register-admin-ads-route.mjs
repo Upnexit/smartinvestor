@@ -69,3 +69,4 @@ content = content.replace(childrenTarget, childrenCode);
 
 fs.writeFileSync(file, content, "utf-8");
 console.log("Registered /admin/ads into routeTree.gen.ts successfully!");
+

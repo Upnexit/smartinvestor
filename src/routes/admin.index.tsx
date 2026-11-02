@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Users, ShieldCheck, Wallet, UserPlus, Package as PackageIcon, BarChart3,
   Settings, ArrowDownToLine, ListChecks, Sparkles, TrendingUp, Zap,
-  Megaphone, LifeBuoy, UsersRound,
+  Megaphone, LifeBuoy, UsersRound, Tv,
 } from "lucide-react";
 import {
   ComposedChart, Area, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
@@ -139,7 +139,7 @@ function VibrantStat({
 }
 
 const QUICK_ACTIONS = [
-  { to: "/admin/packages",     label: "নতুন প্যাকেজ",  accent: "fuchsia" as AccentKey, Icon: PackageIcon },
+  { to: "/admin/ads",          label: "বিজ্ঞাপন কন্ট্রোল", accent: "amber"   as AccentKey, Icon: Tv },
   { to: "/admin/approvals",    label: "অ্যাপ্রুভাল",     accent: "orange"  as AccentKey, Icon: ShieldCheck },
   { to: "/admin/withdrawals",  label: "উইথড্র",         accent: "emerald" as AccentKey, Icon: ArrowDownToLine },
   { to: "/admin/tasks",        label: "টাস্ক",           accent: "rose"    as AccentKey, Icon: ListChecks },

@@ -36,6 +36,7 @@ import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedThemeRouteImport } from './routes/_authenticated/theme'
 import { Route as AuthenticatedWithdrawRouteImport } from './routes/_authenticated/withdraw'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as AdminAppInstallsRouteImport } from './routes/admin.app-installs'
 import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
 import { Route as AdminBackupRouteImport } from './routes/admin.backup'
@@ -73,7 +74,6 @@ import { Route as AdminShopOrdersRouteImport } from './routes/admin.shop.orders'
 import { Route as AdminShopProductsRouteImport } from './routes/admin.shop.products'
 import { Route as AdminTaskPackagePackageIdRouteImport } from './routes/admin.task-package.$packageId'
 import { Route as AdminTasksIndexRouteImport } from './routes/admin.tasks.index'
-import { Route as AdminTasksAdsRouteImport } from './routes/admin.tasks.ads'
 import { Route as AdminTasksDailyReportRouteImport } from './routes/admin.tasks.daily-report'
 import { Route as AdminTasksDistributorActivityRouteImport } from './routes/admin.tasks.distributor-activity'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin.users.index'
@@ -219,6 +219,11 @@ const AuthenticatedWithdrawRoute = AuthenticatedWithdrawRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdsRoute = AdminAdsRouteImport.update({
+  id: '/ads',
+  path: '/ads',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminAppInstallsRoute = AdminAppInstallsRouteImport.update({
@@ -408,11 +413,6 @@ const AdminTasksIndexRoute = AdminTasksIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminTasksRoute,
 } as any)
-const AdminTasksAdsRoute = AdminTasksAdsRouteImport.update({
-  id: '/ads',
-  path: '/ads',
-  getParentRoute: () => AdminTasksRoute,
-} as any)
 const AdminTasksDailyReportRoute = AdminTasksDailyReportRouteImport.update({
   id: '/daily-report',
   path: '/daily-report',
@@ -500,6 +500,7 @@ export interface FileRoutesByFullPath {
   '/tasks': typeof AuthenticatedTasksRoute
   '/theme': typeof AuthenticatedThemeRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
+  '/admin/ads': typeof AdminAdsRoute
   '/admin/app-installs': typeof AdminAppInstallsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/backup': typeof AdminBackupRoute
@@ -535,7 +536,6 @@ export interface FileRoutesByFullPath {
   '/admin/shop/orders': typeof AdminShopOrdersRoute
   '/admin/shop/products': typeof AdminShopProductsRoute
   '/admin/task-package/$packageId': typeof AdminTaskPackagePackageIdRoute
-  '/admin/tasks/ads': typeof AdminTasksAdsRoute
   '/admin/tasks/daily-report': typeof AdminTasksDailyReportRoute
   '/admin/tasks/distributor-activity': typeof AdminTasksDistributorActivityRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
@@ -575,6 +575,7 @@ export interface FileRoutesByTo {
   '/tasks': typeof AuthenticatedTasksRoute
   '/theme': typeof AuthenticatedThemeRoute
   '/withdraw': typeof AuthenticatedWithdrawRoute
+  '/admin/ads': typeof AdminAdsRoute
   '/admin/app-installs': typeof AdminAppInstallsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/backup': typeof AdminBackupRoute
@@ -605,7 +606,6 @@ export interface FileRoutesByTo {
   '/admin/shop/orders': typeof AdminShopOrdersRoute
   '/admin/shop/products': typeof AdminShopProductsRoute
   '/admin/task-package/$packageId': typeof AdminTaskPackagePackageIdRoute
-  '/admin/tasks/ads': typeof AdminTasksAdsRoute
   '/admin/tasks/daily-report': typeof AdminTasksDailyReportRoute
   '/admin/tasks/distributor-activity': typeof AdminTasksDistributorActivityRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
@@ -649,6 +649,7 @@ export interface FileRoutesById {
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/theme': typeof AuthenticatedThemeRoute
   '/_authenticated/withdraw': typeof AuthenticatedWithdrawRoute
+  '/admin/ads': typeof AdminAdsRoute
   '/admin/app-installs': typeof AdminAppInstallsRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/admin/backup': typeof AdminBackupRoute
@@ -684,7 +685,6 @@ export interface FileRoutesById {
   '/admin/shop/orders': typeof AdminShopOrdersRoute
   '/admin/shop/products': typeof AdminShopProductsRoute
   '/admin/task-package/$packageId': typeof AdminTaskPackagePackageIdRoute
-  '/admin/tasks/ads': typeof AdminTasksAdsRoute
   '/admin/tasks/daily-report': typeof AdminTasksDailyReportRoute
   '/admin/tasks/distributor-activity': typeof AdminTasksDistributorActivityRoute
   '/admin/users/$id': typeof AdminUsersIdRoute
@@ -728,6 +728,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/theme'
     | '/withdraw'
+    | '/admin/ads'
     | '/admin/app-installs'
     | '/admin/approvals'
     | '/admin/backup'
@@ -763,7 +764,6 @@ export interface FileRouteTypes {
     | '/admin/shop/orders'
     | '/admin/shop/products'
     | '/admin/task-package/$packageId'
-    | '/admin/tasks/ads'
     | '/admin/tasks/daily-report'
     | '/admin/tasks/distributor-activity'
     | '/admin/users/$id'
@@ -803,6 +803,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/theme'
     | '/withdraw'
+    | '/admin/ads'
     | '/admin/app-installs'
     | '/admin/approvals'
     | '/admin/backup'
@@ -833,7 +834,6 @@ export interface FileRouteTypes {
     | '/admin/shop/orders'
     | '/admin/shop/products'
     | '/admin/task-package/$packageId'
-    | '/admin/tasks/ads'
     | '/admin/tasks/daily-report'
     | '/admin/tasks/distributor-activity'
     | '/admin/users/$id'
@@ -876,6 +876,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tasks'
     | '/_authenticated/theme'
     | '/_authenticated/withdraw'
+    | '/admin/ads'
     | '/admin/app-installs'
     | '/admin/approvals'
     | '/admin/backup'
@@ -911,7 +912,6 @@ export interface FileRouteTypes {
     | '/admin/shop/orders'
     | '/admin/shop/products'
     | '/admin/task-package/$packageId'
-    | '/admin/tasks/ads'
     | '/admin/tasks/daily-report'
     | '/admin/tasks/distributor-activity'
     | '/admin/users/$id'
@@ -1137,6 +1137,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/ads': {
+      id: '/admin/ads'
+      path: '/ads'
+      fullPath: '/admin/ads'
+      preLoaderRoute: typeof AdminAdsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/app-installs': {
@@ -1398,13 +1405,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTasksIndexRouteImport
       parentRoute: typeof AdminTasksRoute
     }
-    '/admin/tasks/ads': {
-      id: '/admin/tasks/ads'
-      path: '/ads'
-      fullPath: '/admin/tasks/ads'
-      preLoaderRoute: typeof AdminTasksAdsRouteImport
-      parentRoute: typeof AdminTasksRoute
-    }
     '/admin/tasks/daily-report': {
       id: '/admin/tasks/daily-report'
       path: '/daily-report'
@@ -1563,14 +1563,12 @@ const AdminShopRouteWithChildren = AdminShopRoute._addFileChildren(
 )
 
 interface AdminTasksRouteChildren {
-  AdminTasksAdsRoute: typeof AdminTasksAdsRoute
   AdminTasksDailyReportRoute: typeof AdminTasksDailyReportRoute
   AdminTasksDistributorActivityRoute: typeof AdminTasksDistributorActivityRoute
   AdminTasksIndexRoute: typeof AdminTasksIndexRoute
 }
 
 const AdminTasksRouteChildren: AdminTasksRouteChildren = {
-  AdminTasksAdsRoute: AdminTasksAdsRoute,
   AdminTasksDailyReportRoute: AdminTasksDailyReportRoute,
   AdminTasksDistributorActivityRoute: AdminTasksDistributorActivityRoute,
   AdminTasksIndexRoute: AdminTasksIndexRoute,
@@ -1609,6 +1607,7 @@ const AdminWithdrawalsRouteWithChildren =
   AdminWithdrawalsRoute._addFileChildren(AdminWithdrawalsRouteChildren)
 
 interface AdminRouteChildren {
+  AdminAdsRoute: typeof AdminAdsRoute
   AdminAppInstallsRoute: typeof AdminAppInstallsRoute
   AdminApprovalsRoute: typeof AdminApprovalsRoute
   AdminBackupRoute: typeof AdminBackupRoute
@@ -1633,6 +1632,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAdsRoute: AdminAdsRoute,
   AdminAppInstallsRoute: AdminAppInstallsRoute,
   AdminApprovalsRoute: AdminApprovalsRoute,
   AdminBackupRoute: AdminBackupRoute,

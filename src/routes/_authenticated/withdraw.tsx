@@ -57,6 +57,11 @@ function WithdrawPage() {
     verification_fee: number;
     verification_pkg_id: string;
     can_withdraw: boolean;
+    first_withdraw_min?: number;
+    second_withdraw_min?: number;
+    current_min_withdraw?: number;
+    is_second_or_more?: boolean;
+    completed_withdrawals?: number;
   } | null>(null);
   const paymentBranding = usePaymentBranding();
   const logos = useMemo<Record<Method, string>>(() => ({
@@ -95,12 +100,28 @@ function WithdrawPage() {
   const numAmount = Number(amount) || 0;
   const phoneNorm = accountNumber.replace(/\D/g, "");
   const phoneValid = /^01[3-9]\d{8}$/.test(phoneNorm);
-  const amountValid = numAmount >= MIN_WITHDRAW && numAmount <= available;
+  
+  // Dynamic minimum withdraw limit: 1st time vs 2nd+ time
+  const effectiveMinWithdraw =
+    eligibility?.current_min_withdraw ??
+    (history.filter((w) => w.status !== "rejected").length > 0
+      ? (eligibility?.second_withdraw_min ?? 500)
+      : (eligibility?.first_withdraw_min ?? 100));
+
+  const amountValid = numAmount >= effectiveMinWithdraw && numAmount <= available;
   const fee = useMemo(() => Math.round(numAmount * 0.02), [numAmount]);
   const willReceive = Math.max(0, numAmount - fee);
 
   async function handleSubmit() {
-    if (!userId || !phoneValid || !amountValid) return;
+    if (!userId || !phoneValid) return;
+    if (numAmount < effectiveMinWithdraw) {
+      toast.error(`আপনার বর্তমান সর্বনিম্ন উইথড্র লিমিট ৳${effectiveMinWithdraw}`);
+      return;
+    }
+    if (numAmount > available) {
+      toast.error("আপনার ব্যালেন্সের চেয়ে বেশি উইথড্র করা সম্ভব নয়।");
+      return;
+    }
     if (eligibility && !eligibility.can_withdraw) {
       if (!eligibility.referrals_completed) {
         toast.error(`উইথড্র করতে কমপক্ষে ${eligibility.required_referrals} জন বন্ধুকে সফল রেফার করতে হবে।`);
@@ -219,11 +240,26 @@ function WithdrawPage() {
               উপলব্ধ: <span className="font-mono text-emerald-700">৳{available.toFixed(2)}</span>
             </span>
           </div>
+
+          {/* 1st vs 2nd withdraw information badge */}
+          <div className="mt-1 flex items-center justify-between rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] text-emerald-800 border border-emerald-200">
+            <span>
+              {eligibility?.is_second_or_more
+                ? "🎯 পরবর্তী উইথড্র স্তর: সর্বনিম্ন ৳" + effectiveMinWithdraw
+                : "🎉 ১ম বার উইথড্র স্তর: সর্বনিম্ন ৳" + effectiveMinWithdraw}
+            </span>
+            <span className="font-semibold text-emerald-700">
+              {eligibility?.is_second_or_more
+                ? `২য় বার (পূর্বে ${eligibility.completed_withdrawals ?? 1} বার তুলেছেন)`
+                : "১ম বার"}
+            </span>
+          </div>
+
           <input
-            type="number" min={MIN_WITHDRAW} inputMode="numeric"
+            type="number" min={effectiveMinWithdraw} inputMode="numeric"
             value={amount} onChange={(e) => setAmount(e.target.value)}
             disabled={available <= 0}
-            placeholder={available <= 0 ? "ব্যালেন্স নেই" : `সর্বনিম্ন ${MIN_WITHDRAW}`}
+            placeholder={available <= 0 ? "ব্যালেন্স নেই" : `সর্বনিম্ন ৳${effectiveMinWithdraw}`}
             className={cn(
               "mt-1.5 w-full rounded-xl border-2 px-4 py-3 font-mono text-base outline-none transition disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed",
               !amount ? "border-slate-200 focus:border-emerald-400"
@@ -232,7 +268,7 @@ function WithdrawPage() {
             )}
           />
           <div className="mt-1.5 flex justify-between text-xs">
-            <span className="text-slate-500">সর্বনিম্ন: ৳{MIN_WITHDRAW}</span>
+            <span className="text-slate-500">সর্বনিম্ন: ৳{effectiveMinWithdraw}</span>
             <button
               type="button"
               onClick={() => available > 0 && setAmount(String(Math.floor(available)))}
